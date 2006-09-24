@@ -1,0 +1,20 @@
+<HTML>
+<HEAD><TITLE><%title%></TITLE></HEAD>
+<BODY><table border=0 cellspacing=0 cellpadding=0 cols=2 width="100%"><tr><td width=72 valign=top><a href="http://www.jbidwatcher.com"><img src="<%jay%>"></a></td><td><%pname%> (<%ver%>)<br><br>
+Greetings,<br>
+I appreciate your choice to help out the JBidwatcher project by enabling
+the affiliate mode in JBidwatcher.  It was good for a while, but eBay has
+finally spoken, and they have decreed that it's not to be.  In their latest
+affiliate agreement, it explicitly disallows sniping software from being
+part of the affiliate program.<br>
+<br>
+This version (0.9.9) therefore no longer has the affiliate mode available
+in it.<br>
+<br>
+Thank you for your support of my independent software development efforts.
+It means a lot to me, and encourages me that people really do find value
+in JBidwatcher.  The program remains available free, with my great and
+repeated thanks to all who participated.<br>
+<center>--  <a href="mailto:jbcomments@jbidwatcher.com?Subject=JBidwatcher affiliate program ended..."><i>Morgan Schweers</i> <img src="<%head%>"></a></center>
+</BODY>
+</HTML>

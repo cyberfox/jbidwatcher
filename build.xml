@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JBidWatch" default="jar" basedir='.'>
+<!-- Since properties are inmutable, the first definition of a properties is used! -->
+  <!-- Read computers environment -->
+  <property environment="env" />
+
+  <property name="build.dir" value="classes" />
+  <property name="src.dir" value="src" />
+  <property name="dest.dir" value="." />
+  <property name="main.dir" value="." />
+  <property name="log.dir" value="logs" />
+  <property name="lib.dir" value="lib" />
+  <property name="JAVADIR" value="src" />
+
+  <property name="app.name"   value="JBidWatcher" />
+  <property name="VER" value="1.0" />
+  <property name="TARSRC" value="jbidwatcher-${VER}" />
+  <property name="BINARY" value="${app.name}-${VER}.jar" />
+  <property name="OPT_BIN" value="${app.name}-${VER}_o.jar" />
+  <property name="UNOPT_BIN" value="${app.name}-${VER}_u.jar" />
+  <property name="TARFILE" value="${TARSRC}.tar.gz" />
+  <property name="APPFILE" value="${app.name}-${VER}.app.tar.gz" />
+  <property name="EXEFILE" value="${app.name}-${VER}.exe" />
+  <property name="MANIFEST" value="META-INF/MANIFEST.MF" />
+
+  <property name="jopt.jar" value="${JAVADIR}/jopt/jopt.jar" />
+  <!-- available file="${jopt.jar}" property="jopt.jar.present"/ -->
+
+  <!-- Read any properties that are local to the used installation -->
+  <!-- This file must not reside in the repository!!! --> 
+  <property file="build-local.properties" />
+
+  <!-- Read properties that are special for this computer -->
+  <!-- It could be placed in the repository -->
+  <property file="build-${env.COMPUTERNAME}.properties" />
+
+  <!-- Read properties that are special for this user -->
+  <!-- It could be placed in the repository -->  
+  <property file="build-${env.USERNAME}.properties" />
+
+  <path id="project.class.path">
+    <pathelement path="${build.dir}" />
+    <pathelement path="${src.dir}" />
+    <pathelement path="${lib.dir}" />
+  </path>
+
+  <target name="init" description="Prepare for build">
+    <tstamp/>
+    <mkdir dir="${build.dir}" />
+    <mkdir dir="${log.dir}" />
+  </target>
+
+  <target name="compile" depends="init">
+    <echo level="info" message="Compiling all classes." />
+    <mkdir dir="${user.home}/.jbidwatcher" />
+    <mkdir dir="${build.dir}" />
+    <copy file="display.cfg" todir="${user.home}/.jbidwatcher" />
+      <javac srcdir="${src.dir}" destdir="${build.dir}" >
+          <classpath refid="project.class.path" />
+          <include name="**/*.java" />
+      </javac>
+  </target>
+
+  <!--
+  <taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"/>
+        rulesets/basic.xml
+        rulesets/design.xml
+        rulesets/imports.xml
+        rulesets/codesize.xml
+        rulesets/coupling.xml
+        rulesets/controversial.xml
+        rulesets/unusedcode.xml
+
+        rulesets/braces.xml
+        rulesets/favorites.xml
+        rulesets/finalizers.xml
+        rulesets/javabeans.xml
+        rulesets/junit.xml
+        rulesets/naming.xml
+        rulesets/newrules.xml
+        rulesets/scratchpad.xml
+        rulesets/strictexception.xml
+        rulesets/strings.xml
+    <target name="pmd">
+      <pmd rulesetfiles="rulesets/basic.xml,rulesets/design.xml,rulesets/imports.xml,rulesets/codesize.xml,rulesets/coupling.xml,rulesets/controversial.xml,rulesets/unusedcode.xml">
+        <formatter type="html" toFile="pmd_jbidwatcher.html"/>
+        <fileset dir="${src.dir}">
+          <include name="**/*.java"/>
+        </fileset>
+      </pmd>
+    </target>
+    -->
+
+  <target name="whatsnew">
+    <cvschangelog destfile="changelog.xml" start="31 March 2006">
+      <user displayname="Morgan Schweers" userid="cyberfox"/>
+    </cvschangelog>
+    <style in="changelog.xml" out="changelog.html" style="/usr/share/ant/etc/changelog.xsl">
+      <param name="title" expression="JBidwatcher Recent Changes" />
+      <param name="module" expression="JBidwatcher" />
+    </style>
+  </target>
+
+  <target name="jar" depends="compile">
+    <echo level="info" message="Building executable .jar file." />
+    <jar jarfile="${BINARY}" manifest="${MANIFEST}" index="true">
+      <fileset dir="${main.dir}" includes="*.jpg" />
+      <fileset dir="${main.dir}" includes="*.ser" />
+      <fileset dir="${main.dir}" includes="*.xsl" />
+      <fileset dir="${user.home}/.jbidwatcher" includes="display.cfg" />
+      <fileset dir="${build.dir}" includes="**/*.class" />
+      <fileset dir="${lib.dir}" includes="org/**/*.class" />
+      <fileset dir="${lib.dir}" includes="com/**/*.class" />
+      <fileset dir="${main.dir}" includes="icons/*.gif" />
+      <fileset dir="${main.dir}" includes="audio/*.mp3" />
+      <fileset dir="${main.dir}" includes="help/*.jpg" />
+      <fileset dir="${main.dir}" includes="help/*.jbh" />
+      <fileset dir="${main.dir}" includes="platform/tray.dll" />
+      <fileset dir="${main.dir}" includes="jbidwatcher.properties" />
+    </jar>
+  </target>
+
+  <target name="tar" description="Building source .tar file.">
+    <tar destfile="${TARFILE}" compression="gzip">
+      <tarfileset prefix="${TARSRC}" dir="${src.dir}" includes="*.java" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.jpg" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.ser" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.xsl" />
+      <tarfileset prefix="${TARSRC}" dir="${user.home}/.jbidwatcher" includes="display.cfg" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="auctions.dtd" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="TODO" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="Makefile" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="build.xml" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="platform/jbidwatcher.jnlp" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="${MANIFEST}" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="jbidwatcher.properties" />
+      <tarfileset prefix="${TARSRC}/icons" dir="${main.dir}/icons" includes="*.gif" />
+      <tarfileset prefix="${TARSRC}/audio" dir="${main.dir}/audio" includes="*.mp3" />
+      <tarfileset prefix="${TARSRC}/lib/com" dir="${lib.dir}/com" />
+      <tarfileset prefix="${TARSRC}/lib/org" dir="${lib.dir}/org" />
+      <tarfileset prefix="${TARSRC}/lib/javazoom" dir="${lib.dir}/javazoom" />
+      <tarfileset prefix="${TARSRC}/platform" dir="${main.dir}/platform" />
+      <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jpg" />
+      <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jbh" />
+    </tar>
+  </target>
+
+  <property name="dist-mac" value="osx" />
+  <property name="packaging" value="platform" />
+
+  <target name="exe" depends="jar">
+    <copy file="${BINARY}" todir="/tmp"/>
+    <copy file="${packaging}/jbidwatcher.ico" todir="/tmp"/>
+    <copy file="${packaging}/jbidwatcher-launch.cfg" todir="/tmp">
+      <filterchain>
+        <replacetokens begintoken="`" endtoken="`">
+          <token key="binary" value="${BINARY}"/>
+          <token key="executable" value="${EXEFILE}"/>
+        </replacetokens>
+      </filterchain>
+    </copy>
+    <exec executable="launch4j" failonerror="true">
+      <arg line="-1"/>
+      <arg line="/tmp/jbidwatcher-launch.cfg"/>
+    </exec>
+    <delete file="/tmp/jbidwatcher-launch.cfg"/>
+    <delete file="/tmp/${BINARY}"/>
+    <delete file="/tmp/jbidwatcher.ico"/>
+    <copy file="/tmp/${EXEFILE}" todir="."/>
+  </target>
+
+  <target name="osx" depends="jar">
+    <copy file="${packaging}/MRJApp.properties" todir="/tmp">
+      <filterchain>
+        <replacetokens begintoken="`" endtoken="`">
+          <token key="binary" value="${BINARY}"/>
+          <token key="executable" value="${EXEFILE}"/>
+        </replacetokens>
+      </filterchain>
+    </copy>
+    <tar destfile="${APPFILE}" compression="gzip">
+      <tarfileset dir="${packaging}" prefix="${app.name}.app/Contents/MacOS" mode="755">
+        <include name="JavaApplicationStub" />
+      </tarfileset>
+      <tarfileset dir="${packaging}" prefix="${app.name}.app/Contents">
+        <include name="Info.plist" />
+      </tarfileset>
+      <tarfileset dir="${packaging}" prefix="${app.name}.app/Contents/Resources">
+        <include name="jbidicon.icns" />
+      </tarfileset>
+      <tarfileset dir="/tmp" prefix="${app.name}.app/Contents/Resources">
+        <include name="MRJApp.properties" />
+      </tarfileset>
+      <tarfileset dir="${dest.dir}" prefix="${app.name}.app/Contents/Resources/Java">
+        <include name="${BINARY}" />
+      </tarfileset>
+    </tar>
+    <delete file="/tmp/MRJApp.properties" />
+  </target>
+
+  <target name="clean" description="Clean all build products.">
+    <echo level="info" message="Clean all build products." />
+    <delete file="${BINARY}" />
+    <delete file="${UNOPT_BIN}" />
+    <delete file="${TARFILE}" />
+    <delete file="${APPFILE}" />
+    <delete file="${EXEFILE}" />
+    <delete includeEmptyDirs="true" dir="osx"/>
+    <delete>
+      <fileset dir="${build.dir}" includes="**/*.class" />
+    </delete>
+  </target>
+
+  <target name="opt" depends="jar" description="Build an optimized version of the .jar file.">
+    <java fork="true" jar="${jopt.jar}">
+      <arg value="${BINARY}" />
+    </java>
+    <move file="${BINARY}" tofile="${UNOPT_BIN}" />
+    <move file="${OPT_BIN}" tofile="${BINARY}" />
+  </target>
+
+  <target name="release" depends="tar,osx,exe" description="Build for a full release." />
+  <target name="prerelease" depends="jar,tar,osx" description="Build for a pre-release version." />
+
+  <target name="run" description="Start Application">
+    <java fork="true" jar="${BINARY}" args="-Xmx512m -Xms256m"/>
+  </target>
+</project>

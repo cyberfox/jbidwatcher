@@ -1,0 +1,611 @@
+package com.jbidwatcher.util.html;
+/*
+ * Copyright (c) 2000-2005 CyberFOX Software, Inc. All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Library General Public License as published
+ * by the Free Software Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Library General Public License
+ * along with this library; if not, write to the
+ *  Free Software Foundation, Inc.
+ *  59 Temple Place
+ *  Suite 330
+ *  Boston, MA 02111-1307
+ *  USA
+ */
+
+import java.net.*;
+import java.io.*;
+import java.util.*;
+
+import com.stevesoft.pat.*;
+import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.auction.CleanupHandler;
+import com.jbidwatcher.util.http.Http;
+
+public class JHTML implements JHTMLListener {
+  protected boolean m_loaded = false;
+  protected int m_tokenIndex;
+  protected int m_contentIndex;
+  private JHTMLParser m_parser;
+  private Map contentMap;
+  private Map caselessContentMap;
+  private List contentList;
+  private List m_formList;
+  private Form m_curForm;
+  private static boolean do_uber_debug=false;
+
+  public JHTML(StringBuffer strBuf) {
+    setup();
+    m_parser = new JHTMLParser(strBuf, this);
+  }
+
+  private void setup() {
+    caselessContentMap = new HashMap();
+    contentMap = new HashMap();
+    contentList = new ArrayList();
+    m_formList = new ArrayList();
+    m_curForm = null;
+    reset();
+  }
+
+  /**
+   * @brief Set the 'tag pointer' to the start of the document.
+   */
+  public void reset() {
+    m_tokenIndex = 0;
+    m_contentIndex = 0;
+  }
+
+  private class intPair {
+    public int first;
+    public int second;
+
+    public intPair(int f, int s) { first = f; second = s; }
+  }
+
+  public class Form {
+    private List allInputs;
+    private XMLElement formTag;
+
+    public Form(String initialTag) {
+      formTag = new XMLElement();
+      formTag.parseString('<' + initialTag + "/>");
+
+      allInputs = new ArrayList();
+
+      if (do_uber_debug) ErrorManagement.logDebug("Name: " + formTag.getProperty("name", "(unnamed)"));
+    }
+
+    public String getName() { return formTag.getProperty("name"); }
+    public boolean hasInput(String srchFor) {
+      Iterator it = allInputs.iterator();
+      while (it.hasNext()) {
+        XMLElement curInput = (XMLElement) it.next();
+        String name=curInput.getProperty("name");
+        if(name != null) {
+          if(srchFor.equalsIgnoreCase(name)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    public boolean delInput(String srchFor) {
+      Iterator it = allInputs.iterator();
+      while (it.hasNext()) {
+        XMLElement curInput = (XMLElement) it.next();
+        String name=curInput.getProperty("name");
+        if(name != null) {
+          if(srchFor.equalsIgnoreCase(name)) {
+            it.remove();
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    public String getCGI() throws UnsupportedEncodingException {
+      Iterator it = allInputs.iterator();
+      StringBuffer rval = new StringBuffer("");
+      String seperator = "";
+      while(it.hasNext()) {
+        XMLElement curInput = (XMLElement) it.next();
+
+        if(do_uber_debug) ErrorManagement.logDebug("Type == " + curInput.getProperty("type", "text"));
+        if (rval.length() != 0) {
+          seperator = "&";
+        }
+
+        String type = curInput.getProperty("type", "text");
+        String name = curInput.getProperty("name", "");
+
+        if(type.equals("text") || type.equals("hidden") || type.equals("password")) {
+          //  Need to URL-Encode 'value'...
+          rval.append(seperator).append(name).append('=').append(URLEncoder.encode(curInput.getProperty("value", ""), "UTF-8"));
+        } else if(type.equals("checkbox") || type.equals("radio")) {
+          if(curInput.getProperty("checked") != null) {
+            rval.append(seperator).append(name).append('=').append(URLEncoder.encode(curInput.getProperty("value", "on"), "UTF-8"));
+          }
+        } else if(type.equals("submit")) {
+          if(name.length() != 0) {
+            String value = curInput.getProperty("value", "Submit");
+            if (!value.equalsIgnoreCase("cancel")) {
+              rval.append(seperator).append(name).append('=').append(URLEncoder.encode(value, "UTF-8"));
+            }
+          }
+        }
+      }
+
+      String action = formTag.getProperty("action");
+      if(action != null) {
+        if (action.indexOf('?') == -1) {
+          return action + '?' + rval;
+        } else {
+          return action + '&' + rval;
+        }
+      } else {
+        return rval.toString();  //  If no action?!?
+      }
+    }
+
+    public void addInput(String newTag) {
+      XMLElement inputTag = new XMLElement();
+
+      inputTag.parseString('<' + newTag + "/>");
+      boolean isError = false;
+      String inputType = inputTag.getProperty("type", "text").toLowerCase();
+
+      boolean showInputs = JConfig.queryConfiguration("debug.showInputs", "false").equals("true");
+
+      if(inputType.equals("text")) {
+        if (showInputs) ErrorManagement.logDebug("T: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+      } else if(inputType.equals("password")) {
+        if (showInputs) ErrorManagement.logDebug("P: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+      } else if (inputType.equals("hidden")) {
+        if (showInputs) ErrorManagement.logDebug("H: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+      } else if(inputType.equals("checkbox")) {
+        if (showInputs) ErrorManagement.logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+      } else if(inputType.equals("radio")) {
+        if (showInputs) ErrorManagement.logDebug("R: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+      } else if(inputType.equals("submit")) {
+        if (showInputs) ErrorManagement.logDebug("S: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+      } else if(inputType.equals("image")) {
+        if (showInputs) ErrorManagement.logDebug("I: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+      } else if(inputType.equals("button")) {
+        if (showInputs) ErrorManagement.logDebug("B: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+      } else if(inputType.equals("reset")) {
+        if (showInputs) ErrorManagement.logDebug("RST: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+      } else {
+        ErrorManagement.logDebug("Unknown input type: " + inputType);
+        isError = true;
+      }
+
+      if(!isError) {
+        allInputs.add(inputTag);
+      }
+    }
+
+    public void setText(String key, String val) {
+      Iterator it = allInputs.iterator();
+
+      while (it.hasNext()) {
+        XMLElement curInput = (XMLElement) it.next();
+        String name = curInput.getProperty("name");
+
+        if(name != null) {
+          if(name.equalsIgnoreCase(key)) {
+            curInput.setProperty("value", val);
+          }
+        }
+      }
+    }
+  }
+
+  public List getForms() { return m_formList; }
+
+  /**
+   * @brief Added to work with JHTMLParser, which takes a JHTMLListener (which this implements); this
+   * adds each content token into a hash map for later fast lookup.
+   *
+   * @param newToken - The token that has been extracted.
+   * @param contentIndex - This token's index into the total token list...
+   * m_parser.getTokenAt(contentIndex) == newTok.
+   */
+  public void addToken(htmlToken newToken, int contentIndex) {
+    if(newToken.getTokenType() == htmlToken.HTML_CONTENT) {
+      //  Non-numeric single character content tokens suck.
+      if(newToken.getToken().length() == 1 && !Character.isDigit(newToken.getToken().charAt(0))) return;
+      //  Keep the content stored by lowercase value, for case-insensitive searching.
+      //  Store the passed content index (the 'real' index), and the internal index,
+      //  for quick lookups.
+      intPair pair = new intPair(contentIndex, contentList.size());
+
+      //  First entry into the table wins.
+      if(!contentMap.containsKey(newToken.getToken())) {
+        contentMap.put(newToken.getToken(), pair);
+        caselessContentMap.put(newToken.getToken().toLowerCase(), pair);
+      }
+      contentList.add(newToken.getToken());
+    } else {
+      if(newToken.getTokenType() == htmlToken.HTML_TAG ||
+        newToken.getTokenType() == htmlToken.HTML_ENDTAG ||
+        newToken.getTokenType() == htmlToken.HTML_SINGLETAG) {
+        if(newToken.getToken().toLowerCase().startsWith("form")) {
+          if(m_curForm == null) {
+            m_curForm = new Form(newToken.getToken());
+          } else {
+            m_formList.add(m_curForm);
+            m_curForm = new Form(newToken.getToken());
+          }
+        } else if(newToken.getToken().toLowerCase().startsWith("/form")) {
+          if(m_curForm != null) m_formList.add(m_curForm);
+          m_curForm = null;
+        }
+        if(m_curForm != null) {
+          if(newToken.getToken().regionMatches(true, 0, "input", 0, 5)) {
+            m_curForm.addInput(newToken.getToken());
+          }
+        }
+      }
+    }
+  }
+
+  //------------------------------------------------------------
+  // Content operations.
+  //------------------------------------------------------------
+
+  /**
+   * @brief Helper function to retrieve just the first piece of content from a potentially HTML string.
+   *
+   * @param toSearch - The string to search for non-tag content.
+   *
+   * @return The very first block of non-tag content in a potentially HTML string.
+   */
+  public static String getFirstContent(String toSearch) {
+    JHTML parser = new JHTML(new StringBuffer(toSearch));
+
+    return (String)parser.contentList.get(0);
+  }
+
+  public String getFirstContent() {
+    if(contentList.size() == 0) return null;
+    return (String)contentList.get(0);
+  }
+
+  public String getNextContent() {
+    if( (m_contentIndex+1) >= contentList.size()) return null;
+
+    return (String)contentList.get(m_contentIndex++);
+  }
+
+  public String getPrevContent() {
+    if(m_contentIndex == 0) return null;
+
+    return (String)contentList.get(--m_contentIndex);
+  }
+
+  public String getPrevContent(int farBack) {
+    if(farBack > m_contentIndex) {
+      m_contentIndex = 0;
+      return null;
+    }
+
+    m_contentIndex -= farBack;
+    return (String)contentList.get(m_contentIndex);
+  }
+
+//  None of these parameter definitions are needed right now.
+
+//  private static final boolean IGNORE_CASE = true;
+//  private static final boolean IS_REGEX = true;
+//  private static final boolean NOT_REGEX = false;
+//  private static final boolean EXACT = true;
+//  private static final boolean INEXACT = false;
+//  private static final int DOWN = -1;
+//  private static final int UP = 1;
+  private static final boolean CHECK_CASE = false;
+
+  public intPair lookup(String hunt, boolean caseless) {
+    intPair at;
+    if (caseless) {
+      at = (intPair) caselessContentMap.get(hunt.toLowerCase());
+    } else {
+      at = (intPair) contentMap.get(hunt);
+    }
+    return at;
+  }
+
+  private String contentLookup(String hunt, boolean caseless) {
+    intPair at = lookup(hunt, caseless);
+    if(at == null) return null;
+
+    m_tokenIndex = at.first+2;
+    m_contentIndex = at.second+1;
+    return (String)contentList.get(m_contentIndex++);
+  }
+
+  public String find(String hunt, boolean ignoreCase) {
+    for (Iterator it = contentList.iterator(); it.hasNext();) {
+      String nextContent = (String) it.next();
+
+      if (nextContent.regionMatches(ignoreCase, 0, hunt, 0, hunt.length())) {
+        return nextContent;
+      }
+    }
+
+    return null;
+  }
+
+  private String contentFind(String hunt, boolean ignoreCase) {
+    String nextContent = find(hunt, ignoreCase);
+    if (nextContent != null) {
+      //  This might not be safe...
+      nextContent = contentLookup(nextContent, CHECK_CASE);
+    }
+    return nextContent;
+  }
+
+  public String grep(String match) {
+    Regex r1 = new Regex(match);
+
+    r1.optimize();
+
+    return grep(r1);
+  }
+
+  public String grep(Regex r1) {
+    for (Iterator it = contentList.iterator(); it.hasNext();) {
+      String nextContent = (String) it.next();
+
+      if (r1.search(nextContent)) {
+        //  This might not be safe...
+        return nextContent;
+      }
+    }
+
+    return null;
+  }
+
+  private String grepAfter(Regex r1, Regex ignore) {
+    for (Iterator it = contentList.iterator(); it.hasNext();) {
+      String contentStep = (String) it.next();
+      if(r1.search(contentStep)) {
+        Iterator save = it;
+        if(it.hasNext()) {
+          String potential = (String)it.next();
+          if(ignore == null || !ignore.search(potential)) {
+            contentLookup(contentStep, false);
+            return potential;
+          }
+        }
+        it = save;
+      }
+    }
+
+    return null;
+  }
+
+  private String contentGrep(String match, String ignore) {
+    Regex r1 = new Regex(match);
+    Regex skip = null;
+    if(ignore != null) skip = new Regex(ignore);
+    return grepAfter(r1, skip);
+  }
+
+  //  Default to caseless lookups.
+  public String getNextContentAfterContent(String previousData) {
+    return contentFind(previousData, CHECK_CASE);
+  }
+
+  public String getNextContentAfterContent(String previousData, boolean exactMatch, boolean ignoreCase) {
+    if (exactMatch) {
+      return contentLookup(previousData, ignoreCase);
+    } else {
+      return contentFind(previousData, ignoreCase);
+    }
+  }
+
+  public String getContentBeforeContent(String followingData) {
+    if (contentFind(followingData, CHECK_CASE) != null && getPrevContent() != null && getPrevContent() != null) return getPrevContent();
+    return null;
+  }
+
+  public String getNextContentAfterRegex(String match) {
+    return contentGrep(match, null);
+  }
+
+  public String getNextContentAfterRegexIgnoring(String match, String ignore) {
+    return contentGrep(match, ignore);
+  }
+
+  //------------------------------------------------------------
+  // Tag operations.
+  //------------------------------------------------------------
+
+  public String getNextTag() {
+    htmlToken returnToken = nextToken();
+    if (returnToken != null) {
+      while (returnToken != null &&
+        returnToken.getTokenType() == htmlToken.HTML_CONTENT &&
+        returnToken.getTokenType() != htmlToken.HTML_EOF) {
+        returnToken = nextToken();
+      }
+      if (returnToken != null && returnToken.getTokenType() != htmlToken.HTML_EOF) {
+        return returnToken.getToken();
+      }
+    }
+
+    return null;
+  }
+
+  public List getAllLinks() {
+    List linkTags = null;
+    String curTag = getNextTag();
+
+    while(curTag != null) {
+      if(curTag.startsWith("A ") || curTag.startsWith("a ")) {
+        if(linkTags == null) {
+          linkTags = new ArrayList();
+        }
+        linkTags.add(curTag);
+      }
+
+      curTag = getNextTag();
+    }
+    return linkTags;
+  }
+
+  public List getAllImages() {
+    HashSet linkTags = null;
+    String curTag = getNextTag();
+
+    while(curTag != null) {
+      if(curTag.toLowerCase().startsWith("img ")) {
+        if(linkTags == null) {
+          linkTags = new HashSet();
+        }
+        linkTags.add(deAmpersand(curTag));
+      }
+
+      curTag = getNextTag();
+    }
+
+    return new ArrayList(linkTags);
+  }
+
+  public List getAllURLsOnPage(boolean viewOnly) {
+    // Add ALL auctions on myEbay bidding/watching page!
+    List addressTags = getAllLinks();
+    if(addressTags == null) return null;
+    List outEntries = null;
+
+    for(int i=0; i<addressTags.size(); i++) {
+      String curTag = (String)addressTags.get(i);
+
+      //  Extract just the HREF portion (should look for HREF=\")
+      int searchIndex = curTag.indexOf('"');
+      if(searchIndex != -1) {
+        String href = curTag.substring(searchIndex + 1);
+
+        //  Find the end of the quoted string (hopefully)
+        searchIndex = href.indexOf('"');
+        if(searchIndex != -1) {
+          href = href.substring(0, searchIndex);
+
+          searchIndex = href.indexOf('#');
+          //  As long as there isn't an anchor location...
+          if(searchIndex == -1) {
+            boolean isView = false;
+            if(viewOnly) {
+              isView = href.indexOf("ViewItem") != -1;
+              if (isView) {
+                href=deAmpersand(href);
+              }
+            }
+
+            if (!viewOnly || isView) {
+              if (outEntries == null) {
+                outEntries = new ArrayList();
+              }
+              outEntries.add(href);
+            }
+          }
+        }
+      }
+    }
+    return outEntries;
+  }
+
+  public static String deAmpersand(String href) {
+    int searchIndex = href.indexOf("&amp;");
+    while (searchIndex != -1) {
+      href = href.substring(0, searchIndex + 1) +
+              href.substring(searchIndex + 5);
+      searchIndex = href.indexOf("&amp;");
+    }
+
+    return href;
+  }
+
+  //------------------------------------------------------------
+  // Generic token operations.
+  //------------------------------------------------------------
+
+  public htmlToken nextToken() {
+    htmlToken rval = m_parser.getTokenAt(m_tokenIndex++);
+    if (rval == null) --m_tokenIndex;
+    return rval;
+  }
+
+  public boolean isLoaded() { return m_loaded; }
+
+  private void loadParseURL(String newURL, String cookie, CleanupHandler cl) {
+
+    m_parser = new JHTMLParser(this);
+    StringBuffer loadedPage;
+
+    try {
+      URLConnection uc = Http.getPage(newURL, cookie, null, true);
+      loadedPage = Http.receivePage(uc);
+      if(loadedPage != null) {
+        if(cl != null) {
+          cl.cleanup(loadedPage);
+        }
+        m_parser.parse(loadedPage);
+        m_loaded = true;
+      }
+    } catch(IOException e) {
+      loadedPage = null;
+      ErrorManagement.handleException("JHTML.loadPage: " + e, e);
+    }
+    if(loadedPage == null) m_loaded = false;
+  }
+
+  /** 
+   * @brief Simple function that does all the 'usual' stuff for a web page,
+   * constructing a JHTML object with the data from the given page.
+   * 
+   * For pages that need more processing, they have to do it by hand.
+   *
+   * @param newURL - The URL to get, receive, and pre-parse.
+   * @param cookie - A cookie to pass along when getting the page.
+   * @param cl - A CleanupHandler to call to clean up the StringBuffer before continuing.
+   */
+  public JHTML(String newURL, String cookie, CleanupHandler cl) {
+    setup();
+  	loadParseURL(newURL, cookie, cl);
+  }
+
+  public JHTML.Form getFormWithInput(String input) {
+    List forms = getForms();
+    Iterator it = forms.iterator();
+    while(it.hasNext()) {
+      JHTML.Form curForm = (JHTML.Form) it.next();
+      if(curForm.hasInput(input)) return curForm;
+    }
+
+    return null;
+  }
+
+  public static void main(String[] args) {
+    JHTML testLoad = new JHTML(args[1], null, null);
+    JHTML.Form continueForm = testLoad.getFormWithInput("firedFilterId");
+    try {
+      System.err.println("Form == \"" + continueForm.getCGI() + '\"' );
+    } catch(Exception e) {
+      System.err.println("Caught: " + e);
+    }
+  }
+}

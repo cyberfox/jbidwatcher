@@ -1,0 +1,112 @@
+FAQ Items to write
+------------------
+What happens if I bid against myself?
+
+Items to implement:
+-------------------
+Allow font changes (!)
+
+Allow browsing the logs.
+
+Keep all status updates in a circular memory list, also browsable by
+the user.  ('I missed that message, what was it...?')
+
+//
+//  Other interesting ideas:
+//
+//  Get all bidders: http://cgi6.ebay.com/aw-cgi/eBayISAPI.dll?ViewBids&item=570755528
+//
+
+Beeps on a regular interval when auctions are getting close.
+
+Move general configuration options to a program specific XML data
+file, using the same XML class as used to load the auctions.  This
+file needs to have the display info, locations of other files, some
+auction-site specific information, debugging status, etc.  This will
+obsolete the JConfig class, and make all datafiles stored by
+JBidWatcher XML.
+
+Uncreated Configuration Panes
+	Internal Web Server
+		Enable/Disable
+		Port to listen on
+		Require jbidwatcher/[password] or any valid userid/password pair?
+		(Neither is NOT an option!)
+	Security
+		Primary JBidWatcher password
+			--  encrypts passwords on disk, also used for login to the JBidWatcher
+				program if the internal HTTP server is running.
+	File paths
+		Save file pathspec.
+		Splash screen pathspec.
+		Extra auction servers path.
+
+Keyboard navigation of the entire program.
+
+Documentation!
+
+Still need to implement optional things like alternate class files for
+an auction server, as identified in the DTD.
+
+Cool ideas
+----------
+Multiple snipes @ different times, either on different auctions or the
+same auction.  (A general 'snipe queue', with a default, but keep each
+snipe customizable?)
+
+30 day sliding expenditure limit (percentage of limit allowed per auction?)
+(Base limits on max bids.)
+
+Instant Pay by PayPal (Right Click -> Pay Now!)
+
+Add more 'Auction Management' features
+
+Send email to (Bidder | Seller) for won/sold auctions.
+
+Make JBidwatcher Screenshots
+
+Instant Messager messages on snipe results.
+
+Keys: Delete should tie to Auction | Delete.
+Keys: Insert should tie to Auction | Add
+Keys: CTRL-PageUp/PageDown might go to Next/Prev tab
+
+Paid-status Icons, PayPal accepted, & more.
+
+Q: What's up with Opera?  (A: It doesn't work with JBidwatcher?)
+
+Send Auction List to other computer.  (Just dump the XML to the other side, or
+just the item IDs?)
+
+Allow searching through the saved HTML files, including the descriptions?
+
+
+Code cleanups
+-------------
+Structural and architectural commentary.
+
+Generate a dependency graph.
+
+Break up AuctionInfo into AuctionInfo values, and AuctionInfoStorage.
+
+Break debugging out of JConfig?  (For dependency reasons.)
+
+AuctionsManager should be a listener for an 'AddAuction' event, to break UI dep.
+
+Abstract the idea of an AuctionList?  (Same reason, create a 'GUIAuctionList')
+
+
+Crazy stuff
+-----------
+Calculated bid (starts with high bid, adds an increment, bids, repeat
+until (1) winning, or (2) current high bidder's bid has been found).
+
+    THIS CAN BE VERY, VERY EXPENSIVE!
+
+Calculated snipe (just like Calculated Bid, but done automatically,
+and close to the end of the auction).
+
+    THIS ALSO CAN BE VERY, VERY EXPENSIVE!
+
+----------------------------------------------------------------------
+* After payment, dutch auctions subtract out from the 'available' list, and the user seems to no longer have won the listing.
