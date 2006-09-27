@@ -135,6 +135,7 @@ public class AuctionEntryTest extends TestCase {
   }
 
   public void testGetTimeLeft() throws Exception {
+    Thread.sleep(500);
     assertEquals("23h, 59m", mAE.getTimeLeft());
   }
 
@@ -142,8 +143,18 @@ public class AuctionEntryTest extends TestCase {
     assertFalse(mAE.isEnded());
   }
 
+  private static final int NOT_FIXED_PRICE=1;
+  private static final int HIGH_BIDDER=2;
+  private static final int WILL_WIN=4;
+  private static final int HAS_BIN=8;
+  private static final int RESERVE_AND_MET=16;
+  private static final int RESERVE_NOT_MET=32;
+  private static final int HAS_PAYPAL=64;
+
   public void testGetFlags() throws Exception {
-    assertEquals(73, mAE.getFlags());
+    //  1 (Not fixed price), 2 (is High Bidder), 4 (Will win), 8 (Has BIN price),
+    // 16 (Reserve & Reserve is met), 32 (Reserve & Reserve not met), 64 (Has PayPal)
+    assertEquals(HAS_PAYPAL | HAS_BIN | NOT_FIXED_PRICE, mAE.getFlags());
   }
 
   public void testGetCurBid() throws Exception {
