@@ -47,7 +47,7 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.TimerHandler;
 import com.jbidwatcher.Constants;
-import com.jbidwatcher.ThumbnailManager;
+import com.jbidwatcher.auction.ThumbnailManager;
 
 import javax.swing.*;
 import java.awt.*;

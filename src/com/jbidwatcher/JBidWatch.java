@@ -41,6 +41,7 @@ import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionsManager;
+import com.jbidwatcher.auction.ThumbnailManager;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 
 import java.io.*;
