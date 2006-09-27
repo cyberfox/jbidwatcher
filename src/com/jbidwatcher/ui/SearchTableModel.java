@@ -47,7 +47,7 @@ public class SearchTableModel extends BaseTransformation {
     return -1;
   }
 
-  public Class<?> getColumnClass(int i) { return String.class; }
+  public Class getColumnClass(int i) { return String.class; }
 
   public Class getSortByColumnClass(int i) {
     if(i==5) return Long.class; else

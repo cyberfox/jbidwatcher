@@ -574,7 +574,6 @@ public abstract class AuctionServer implements XMLSerialize {
    * @return - An AuctionInfo low-level generic Auction object.
    */
   public AuctionInfo addAuction(URL auctionURL, String item_id) {
-
     SpecificAuction newAuction = (SpecificAuction) loadAuction(auctionURL, item_id, null, true);
 
     return(newAuction);

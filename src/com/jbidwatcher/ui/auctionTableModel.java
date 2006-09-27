@@ -63,7 +63,7 @@ public class auctionTableModel extends BaseTransformation {
   }
 
   //  All columns return strings...
-  public Class<?> getColumnClass(int aColumn) { if(aColumn != 5) return String.class; return Icon.class; }
+  public Class getColumnClass(int aColumn) { if(aColumn != 5) return String.class; return Icon.class; }
 
   //  Except when we want to sort them...
   public Class getSortByColumnClass(int i) {

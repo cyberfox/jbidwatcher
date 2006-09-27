@@ -25,6 +25,7 @@ import com.jbidwatcher.config.JConfig;
 
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.Locale;
 
 /**
  * @author mrs
@@ -34,8 +35,7 @@ import java.util.ResourceBundle;
  */
 public class Externalized {
 	private static final String BUNDLE_NAME = "jbidwatcher";//$NON-NLS-1$
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle
-			.getBundle(BUNDLE_NAME);
+	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault(), Externalized.class.getClassLoader());
 	/**
 	 *
 	 */

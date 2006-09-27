@@ -195,9 +195,10 @@ public class EventLogger implements XMLSerialize {
   public int getStatusCount() { return _allStatus.size(); }
 
   /** What is the most recent thing that happened to this particular auction?
+   *
+   * @param bulk - Whether to return them as a bulk set of entries, or not.
    * 
-   * @return A string, formatted, that details the most recent event in plain 
-   *     words.
+   * @return A string, formatted, that details the most recent event in plain words.
    */
   public String getLastStatus(boolean bulk) {
     if(_allStatus.size() == 0) {

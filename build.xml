@@ -109,8 +109,7 @@
       <fileset dir="${main.dir}" includes="*.xsl" />
       <fileset dir="${user.home}/.jbidwatcher" includes="display.cfg" />
       <fileset dir="${build.dir}" includes="**/*.class" />
-      <fileset dir="${lib.dir}" includes="org/**/*.class" />
-      <fileset dir="${lib.dir}" includes="com/**/*.class" />
+      <fileset dir="${lib.dir}" includes="**/*.class" />
       <fileset dir="${main.dir}" includes="icons/*.gif" />
       <fileset dir="${main.dir}" includes="audio/*.mp3" />
       <fileset dir="${main.dir}" includes="help/*.jpg" />
