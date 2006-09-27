@@ -69,7 +69,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
    * @brief Empty constructor, for XML parsing.
    *
    */
-  public AuctionInfo() {}
+  AuctionInfo() {}
 
   /** 
    * @brief Construct a somewhat complete AuctionInfo object with all
@@ -83,7 +83,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
    * @param auctionEnd - The end time for the auction.
    * @param auctionBidCount - The number of bids that have been placed so far.
    */
-  public AuctionInfo(String auctionTitle, String auctionSeller, String auctionHighBidder,
+  AuctionInfo(String auctionTitle, String auctionSeller, String auctionHighBidder,
                      Currency auctionCurBid, Date auctionStart, Date auctionEnd, int auctionBidCount) {
     _title = auctionTitle.trim();
     _highBidder = auctionHighBidder.trim();
@@ -336,7 +336,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
     return xmlResult;
   }
 
-  public void setThumbnail(ByteBuffer newThumb) {
+  void setThumbnail(ByteBuffer newThumb) {
     if (newThumb == null) {
       _no_thumbnail = true;
     } else {
@@ -403,7 +403,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
     _loadedPage = null;
   }
 
-  public boolean hasThumbnail() {
+  protected boolean hasThumbnail() {
     String imgPath = getValidImagePath(null);
     if(imgPath == null) return false;
     File tester = new File(imgPath);
@@ -411,7 +411,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
     return tester.exists();
   }
 
-  public String getThumbnail() {
+  String getThumbnail() {
     //  Bad optimization -- BUGBUG -- mrs: 21-March-2004 18:28
     //  If it doesn't have a thumbnail, we check.
     if(!_hasThumb) {
@@ -448,14 +448,14 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
     return null;
   }
 
-  public void setRealContent(StringBuffer changedContent, boolean final_data) {
+  void setRealContent(StringBuffer changedContent, boolean final_data) {
     if(changedContent != null) {
       byte[] localBytes = changedContent.toString().getBytes();
       setRealContent(localBytes, final_data);
     }
   }
 
-  public void setRealContent(byte[] changedContent, boolean final_data) {
+  void setRealContent(byte[] changedContent, boolean final_data) {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
 
     if(changedContent != null) {
@@ -472,7 +472,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
     }
   }
 
-  public GZip getRealContent() {
+  GZip getRealContent() {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
     if(outPath != null) {
       String filePath = outPath + System.getProperty("file.separator") + _identifier + ".html.gz";
@@ -486,7 +486,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
     setRealContent(inContent, final_data);
   }
 
-  public StringBuffer getContent() {
+  StringBuffer getContent() {
     StringBuffer sb;
 
     if(_loadedPage != null) {
@@ -510,40 +510,40 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
   public void setIdentifier(String id) { _identifier = id; }
   public String getIdentifier() { return _identifier; }
 
-  public Currency getCurBid() { return(_curBid); }
-  public Currency getUSCurBid() { if(_us_cur == null || _us_cur.isNull()) return Currency.NoValue(); else return(_us_cur); }
-  public Currency getMinBid() { if(_minBid != null) return(_minBid); else return _curBid; }
+  Currency getCurBid() { return(_curBid); }
+  Currency getUSCurBid() { if(_us_cur == null || _us_cur.isNull()) return Currency.NoValue(); else return(_us_cur); }
+  Currency getMinBid() { if(_minBid != null) return(_minBid); else return _curBid; }
 
-  public Currency getShipping() { return _shipping; }
-  public Currency getInsurance() { return _insurance; }
-  public boolean getInsuranceOptional() { return _insurance_optional; }
-  public Currency getBuyNow() { return _buy_now; }
+  Currency getShipping() { return _shipping; }
+  Currency getInsurance() { return _insurance; }
+  boolean getInsuranceOptional() { return _insurance_optional; }
+  Currency getBuyNow() { return _buy_now; }
 
-  public int getQuantity() { return(_quantity); }
-  public int getNumBidders() { return(_numBids); }
+  int getQuantity() { return(_quantity); }
+  int getNumBidders() { return(_numBids); }
 
-  public String getSeller() { return(_seller); }
-  public String getHighBidder() { return(_highBidder); }
-  public String getHighBidderEmail() { return(_highBidderEmail); }
-  public String getTitle() { return(_title); }
+  String getSeller() { return(_seller); }
+  String getHighBidder() { return(_highBidder); }
+  String getHighBidderEmail() { return(_highBidderEmail); }
+  String getTitle() { return(_title); }
 
-  public Date getStartDate() { return(_start); }
-  public Date getEndDate() { return(_end); }
+  Date getStartDate() { return(_start); }
+  Date getEndDate() { return(_end); }
 
-  public boolean isDutch() { return(_isDutch); }
-  public boolean isReserve() { return(_isReserve); }
-  public boolean isPrivate() { return(_isPrivate); }
+  boolean isDutch() { return(_isDutch); }
+  boolean isReserve() { return(_isReserve); }
+  boolean isPrivate() { return(_isPrivate); }
 
-  public boolean isFixed() { return(_fixed_price); }
+  boolean isFixed() { return(_fixed_price); }
 
-  public boolean isReserveMet() { return(_reserveMet); }
+  boolean isReserveMet() { return(_reserveMet); }
 
-  public boolean isOutbid() { return(_outbid); }
+  boolean isOutbid() { return(_outbid); }
 
-  public boolean hasPaypal() { return _paypal; }
-  public String getItemLocation() { return _itemLocation; }
-  public String getPostiveFeedbackPercentage() { return _postivePercentage; }
-  public int getFeedbackScore() { return _feedback; }
+  boolean hasPaypal() { return _paypal; }
+  String getItemLocation() { return _itemLocation; }
+  String getPostiveFeedbackPercentage() { return _postivePercentage; }
+  int getFeedbackScore() { return _feedback; }
 
   public abstract ByteBuffer getSiteThumbnail();
 
