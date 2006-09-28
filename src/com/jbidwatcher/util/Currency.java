@@ -520,7 +520,7 @@ public class Currency implements Comparable {
     otherValue = (Currency)inValue;
 
     sameCurrency = (otherValue.getCurrencyType() == _whatCurrency);
-    sameValue = (otherValue.getValue() == _value);
+    sameValue = ((int)otherValue.getValue()*1000) == ((int)_value*1000);
 
     return(sameCurrency && sameValue);
   }
@@ -552,7 +552,7 @@ public class Currency implements Comparable {
       throw new CurrencyTypeException("Cannot compare different currencies.");
     }
 
-    lowerValue = (otherValue.getValue() > _value);
+    lowerValue = Double.compare( (double)((int)otherValue.getValue()*1000), (double)(int)_value*1000) == 1;
 
     return(lowerValue);
   }

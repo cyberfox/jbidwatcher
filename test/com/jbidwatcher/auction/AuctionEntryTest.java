@@ -118,6 +118,7 @@ public class AuctionEntryTest extends TestCase {
 
   public void testSetNeedsUpdate() throws Exception {
     assertTrue(mAE.checkUpdate());
+    //  TODO --  This does 'too much'.
     mAE.update();
     assertFalse(mAE.checkUpdate());
   }
