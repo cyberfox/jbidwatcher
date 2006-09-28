@@ -588,7 +588,7 @@ public abstract class AuctionServer implements XMLSerialize {
    * 
    * @return - A StringBuffer containing the text of the auction at that URL.
    *
-   * @throws java.io.FileNotFoundException -- TODO
+   * @throws java.io.FileNotFoundException -- If the URL doesn't exist on the auction server.
    */
   public StringBuffer getAuction(URL auctionURL) throws FileNotFoundException {
     StringBuffer loadedPage;
@@ -623,6 +623,7 @@ public abstract class AuctionServer implements XMLSerialize {
       MQFactory.getConcrete("Swing").enqueue("LINK DOWN Communications failure talking to the server");
     }
   }
+
   /**
    * @brief Load an auction, given its URL, its item id, and its 'AuctionEntry'.
    *
@@ -719,16 +720,6 @@ public abstract class AuctionServer implements XMLSerialize {
     } else {
       markCommunicationError(ae);
     }
-  }
-
-  /*!@overload */
-  public AuctionInfo loadAuction(URL auctionURL) {
-    return loadAuction(auctionURL, null, null);
-  }
-
-  /*!@overload */
-  public AuctionInfo loadAuction(URL auctionURL, String item_id) {
-    return loadAuction(auctionURL, item_id, null);
   }
 
   public AuctionInfo reloadAuction(AuctionEntry inEntry) {

@@ -5,6 +5,8 @@ import junit.framework.TestSuite;
 import junit.framework.TestCase;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.queue.MessageQueue;
 
 import java.util.Date;
 
@@ -117,8 +119,12 @@ public class AuctionEntryTest extends TestCase {
   }
 
   public void testSetNeedsUpdate() throws Exception {
+    MQFactory.getConcrete("redraw").registerListener(new MessageQueue.Listener() {
+      public void messageAction(Object deQ) {
+        assertSame(deQ, mAE);
+      }
+    });
     assertTrue(mAE.checkUpdate());
-    //  TODO --  This does 'too much'.
     mAE.update();
     assertFalse(mAE.checkUpdate());
   }
