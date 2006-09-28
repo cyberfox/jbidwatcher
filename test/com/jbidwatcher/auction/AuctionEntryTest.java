@@ -93,9 +93,9 @@ public class AuctionEntryTest extends TestCase {
 
   public void testSetGetLastStatus() throws Exception {
     mAE.setLastStatus("Test Status-1");
-    assertTrue(mAE.getLastStatus().contains("Test Status-1"));
+    assertTrue(mAE.getLastStatus().indexOf("Test Status-1") != -1);
     mAE.setLastStatus("Test Status-2");
-    assertTrue(mAE.getLastStatus().contains("Test Status-1") && mAE.getLastStatus().contains("Test Status-2"));
+    assertTrue(mAE.getLastStatus().indexOf("Test Status-1") != -1 && mAE.getLastStatus().indexOf("Test Status-2") != -1);
   }
 
   public void testSetGetShipping() throws Exception {
