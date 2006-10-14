@@ -29,6 +29,7 @@ package com.jbidwatcher.util.html;
  */
 
 public class JHTMLDialog {
+  protected static final String FORM_ACTION = "action";
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //  These allow me to create HTML forms quickly.
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,7 +89,7 @@ public class JHTMLDialog {
   public JHTMLDialog(String formName, String urlText, String reqType,
                      String actionName, String dataHeader,
                      String dataName, int dataLength, String dataValue) {
-    _currentPage = form(formName, urlText, reqType, table0(tr(td(dataHeader) + td(inputString(dataName, dataLength, dataValue)) + td(submit_button("action", actionName, "")))));
+    _currentPage = form(formName, urlText, reqType, table0(tr(td(dataHeader) + td(inputString(dataName, dataLength, dataValue)) + td(submit_button(FORM_ACTION, actionName, "")))));
   }
 
   public JHTMLDialog(String formName, String urlText, String reqType,
@@ -98,7 +99,7 @@ public class JHTMLDialog {
   {
     _currentPage = table(tr(td(form(formName, urlText, reqType,
                                     hidden(cookieName, cookieData) +
-                                    table0(tr(td(table0(tr(td(submit_button("action", actionName, "")))))) +
+                                    table0(tr(td(table0(tr(td(submit_button(FORM_ACTION, actionName, "")))))) +
                                            tr(td(table0(tr(td(dataHeader))))) +
                                            tr(td(inputString(dataName, dataLength, dataValue))))))));
   }

@@ -684,7 +684,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
 
     if( (_day == 1 && _mon == Calendar.APRIL) &&
         !JConfig.queryConfiguration("sniperkitty", "false").equals("true")) {
-      imageURL = urlCL.getResource("jbidwatch_apr1.jpg");
+      imageURL = urlCL.getResource("/jbidwatch_apr1.jpg");
       JConfig.setConfiguration("sniperkitty", "true");
     } else {
       imageURL = urlCL.getResource(JConfig.queryConfiguration("splash", "jbidwatch.jpg"));
@@ -859,23 +859,23 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     _bidBarPanel.setBorder(BorderFactory.createEtchedBorder());
     _bidBarPanel.add(_headerStatus, BorderLayout.EAST);
 
-    addbutton(_bidBar, inAction, "Add", "icons/add_auction.gif", "Add auction");
-    addbutton(_bidBar, inAction, "Delete", "icons/delete.gif", "Delete Auction");
+    addbutton(_bidBar, inAction, "Add", "/icons/add_auction.gif", "Add auction");
+    addbutton(_bidBar, inAction, "Delete", "/icons/delete.gif", "Delete Auction");
 
-    addbutton(_bidBar, inAction, "Search", "icons/find.gif", "Auction Search Manager");
+    addbutton(_bidBar, inAction, "Search", "/icons/find.gif", "Auction Search Manager");
 
-    addbutton(_bidBar, inAction, "Information", "icons/information.gif", "Get information");
+    addbutton(_bidBar, inAction, "Information", "/icons/information.gif", "Get information");
 
-    addbutton(_bidBar, inAction, "UpdateAll", "icons/updateall.gif", "Update All Auctions");
-    addbutton(_bidBar, inAction, "StopUpdating", "icons/stopupdating.gif", "Stop Updating Auctions");
+    addbutton(_bidBar, inAction, "UpdateAll", "/icons/updateall.gif", "Update All Auctions");
+    addbutton(_bidBar, inAction, "StopUpdating", "/icons/stopupdating.gif", "Stop Updating Auctions");
 
-    addbutton(_bidBar, inAction, "Configure", "icons/configuration.gif", "Configure");
-    addbutton(_bidBar, inAction, "Save", "icons/save.gif", "Save Auctions");
+    addbutton(_bidBar, inAction, "Configure", "/icons/configuration.gif", "Configure");
+    addbutton(_bidBar, inAction, "Save", "/icons/save.gif", "Save Auctions");
 
     //      addbutton(_bidBar, inAction, "GetMyEbay", "getmyebay.gif", "Get My eBay");
 
-    addbutton(_bidBar, inAction, "Help", "icons/help.gif", "Help");
-    addbutton(_bidBar, inAction, "About", "icons/about.gif", "About JBidWatcher");
+    addbutton(_bidBar, inAction, "Help", "/icons/help.gif", "Help");
+    addbutton(_bidBar, inAction, "About", "/icons/about.gif", "About JBidWatcher");
 
     if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
       _bidBar.setFloatable(false);

@@ -37,6 +37,7 @@ package com.jbidwatcher.config;//  -*- Java -*-
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.Base64;
+import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.Constants;
 
 import java.io.*;
@@ -341,7 +342,7 @@ public class JConfig {
     while(what_keys.hasMoreElements()) {
       String key = what_keys.nextElement().toString();
       String lcKey = key.toLowerCase();
-      if(lcKey.indexOf("password") != -1 && lcKey.indexOf("_b64") == -1) {
+      if(lcKey.indexOf(JHTML.Form.FORM_PASSWORD) != -1 && lcKey.indexOf("_b64") == -1) {
         String val = _inProps.getProperty(key);
 
         _inProps.remove(key);
@@ -429,7 +430,7 @@ public class JConfig {
     }
 
     if(fileLoadFailed) {
-      dispIS = urlCL.getResourceAsStream("display.cfg");
+      dispIS = urlCL.getResourceAsStream("/display.cfg");
     }
 
     //  Preset to zero, because we check this later.

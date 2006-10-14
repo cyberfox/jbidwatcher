@@ -15,6 +15,7 @@
   <property name="app.name"   value="JBidWatcher" />
   <property name="VER" value="1.0" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
+  <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
   <property name="OPT_BIN" value="${app.name}-${VER}_o.jar" />
   <property name="UNOPT_BIN" value="${app.name}-${VER}_u.jar" />
@@ -101,15 +102,15 @@
     </style>
   </target>
 
-  <target name="jar" depends="compile">
+  <target name="real-jar" depends="compile">
     <echo level="info" message="Building executable .jar file." />
-    <jar jarfile="${BINARY}" manifest="${MANIFEST}" index="true">
+    <jar jarfile="${INTERMEDIATE}" manifest="${MANIFEST}" index="true">
       <fileset dir="${main.dir}" includes="*.jpg" />
       <fileset dir="${main.dir}" includes="*.ser" />
       <fileset dir="${main.dir}" includes="*.xsl" />
       <fileset dir="${user.home}/.jbidwatcher" includes="display.cfg" />
       <fileset dir="${build.dir}" includes="**/*.class" />
-      <fileset dir="${lib.dir}" includes="**/*.class" />
+      <!-- <fileset dir="${lib.dir}" includes="**/*.class" /> -->
       <fileset dir="${main.dir}" includes="icons/*.gif" />
       <fileset dir="${main.dir}" includes="audio/*.mp3" />
       <fileset dir="${main.dir}" includes="help/*.jpg" />
@@ -117,6 +118,19 @@
       <fileset dir="${main.dir}" includes="platform/tray.dll" />
       <fileset dir="${main.dir}" includes="jbidwatcher.properties" />
     </jar>
+  </target>
+
+  <target name="jar" depends="real-jar">
+    <echo level="info" message="Building the top-level .jar file." />
+    <mkdir dir="/tmp/building/main" />
+    <copy file="${INTERMEDIATE}" tofile="/tmp/building/main/main.jar" />
+    <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
+      <fileset dir="${main.dir}/onejar" includes="com/**" />
+      <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
+      <fileset dir="/tmp/building" includes="main/main.jar" />
+      <fileset dir="${main.dir}" includes="lib/*.jar" />
+    </jar>
+    <delete file="/tmp/building/main/main.jar" />
   </target>
 
   <target name="tar" description="Building source .tar file.">
@@ -200,6 +214,7 @@
   <target name="clean" description="Clean all build products.">
     <echo level="info" message="Clean all build products." />
     <delete file="${BINARY}" />
+    <delete file="${INTERMEDIATE}" />
     <delete file="${UNOPT_BIN}" />
     <delete file="${TARFILE}" />
     <delete file="${APPFILE}" />

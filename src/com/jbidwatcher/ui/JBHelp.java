@@ -39,7 +39,7 @@ public class JBHelp {
   private static final String c_rd = "<font color=\"red\">";
   private static final String c_end= "</font>";
   private static final int MAX_VARIABLES = 40;
-  private static final String HEAD_LOC = "help/MyHead.jpg";
+  private static final String HEAD_LOC = "/help/MyHead.jpg";
 
   private JBHelp() {
   }
@@ -99,7 +99,7 @@ public class JBHelp {
     vars.put("<%que%>", "<li><B><u>Q.</u> ");
     vars.put("<%ans%>", "<br><u>A.</u></B> ");
     vars.put("<%end%>", "<br><a href=\"#top\">Top</a></li>");
-    vars.put("<%jay%>", JBHelp.class.getResource("jbidwatch64.jpg").toString());
+    vars.put("<%jay%>", JBHelp.class.getResource("/jbidwatch64.jpg").toString());
     vars.put("<%auctions_save%>", JConfig.queryConfiguration("savefile"));
 
     Variables theReplacements = new Variables(vars);

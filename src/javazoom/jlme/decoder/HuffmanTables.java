@@ -163,7 +163,7 @@ final class HuffmanTables {
 	int array[][]=null;
 
 	try{
-	  in = new ObjectInputStream(getClass().getClassLoader().getResourceAsStream("huffman.ser"));
+	  in = new ObjectInputStream(getClass().getClassLoader().getResourceAsStream("/huffman.ser"));
 	  ht = new HuffmanTables[HTN];
 	  array = (int[][])in.readObject();
 	  ht[0] = new HuffmanTables("0  ", 0, 0, 0, 0, -1,  array, 0);

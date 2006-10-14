@@ -160,7 +160,7 @@ public class AuctionsUIModel {
       _bid.setEnabled(true);
       _buy.setEnabled(true);
     } else {
-      jp2.add(JBidWatch.makeButton("icons/xml.gif", "Show RSS feed information", "RSS", allTabs, true), BorderLayout.WEST);
+      jp2.add(JBidWatch.makeButton("/icons/xml.gif", "Show RSS feed information", "RSS", allTabs, true), BorderLayout.WEST);
     }
     _table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent event) {

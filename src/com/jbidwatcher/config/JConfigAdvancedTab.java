@@ -23,6 +23,7 @@ package com.jbidwatcher.config;
 
 import com.jbidwatcher.ui.AutoCompletion;
 import com.jbidwatcher.ui.JPasteListener;
+import com.jbidwatcher.util.html.JHTML;
 
 import javax.swing.*;
 import java.awt.*;
@@ -73,7 +74,7 @@ public class JConfigAdvancedTab extends JConfigTab {
     java.util.List cfgKeys = JConfig.getAllKeys();
     for (Iterator it = cfgKeys.iterator(); it.hasNext();) {
       String s = (String) it.next();
-      if(s.indexOf("password") == -1) box.addItem(s);
+      if(s.indexOf(JHTML.Form.FORM_PASSWORD) == -1) box.addItem(s);
     }
 
     if(!boxSet.contains(box)) {
@@ -82,7 +83,7 @@ public class JConfigAdvancedTab extends JConfigTab {
           if(configValue != null && configKey != null) {
             String selected = (String)configKey.getSelectedItem();
             if(selected != null) {
-              boolean isPassword = selected.indexOf("password") != -1;
+              boolean isPassword = selected.indexOf(JHTML.Form.FORM_PASSWORD) != -1;
               if(selected.length() == 0 || isPassword) {
                 configValue.setEnabled(false);
                 if(isPassword) {

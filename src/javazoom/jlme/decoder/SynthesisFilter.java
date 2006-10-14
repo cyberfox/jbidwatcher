@@ -99,7 +99,7 @@ final class SynthesisFilter {
     ObjectInputStream in = null;
 
     try {
-      in = new ObjectInputStream(getClass().getClassLoader().getResourceAsStream("d16.ser"));
+      in = new ObjectInputStream(getClass().getClassLoader().getResourceAsStream("/d16.ser"));
       d = (float[]) in.readObject();
     }
     catch (Exception e) {

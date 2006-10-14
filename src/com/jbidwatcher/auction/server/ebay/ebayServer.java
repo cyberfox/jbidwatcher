@@ -1141,7 +1141,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   public int bid(AuctionEntry inEntry, com.jbidwatcher.util.Currency inBid, int inQuantity) {
     Auctions.startBlocking();
-    if(JConfig.queryConfiguration("sound.enable", "false").equals("true")) MQFactory.getConcrete("audio").enqueue("audio/bid.mp3");
+    if(JConfig.queryConfiguration("sound.enable", "false").equals("true")) MQFactory.getConcrete("audio").enqueue("/audio/bid.mp3");
 
     try {
       //  If it's not closing within the next minute, then go ahead and try for the affiliate mode.

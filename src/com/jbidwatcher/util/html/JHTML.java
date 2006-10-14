@@ -76,6 +76,12 @@ public class JHTML implements JHTMLListener {
   public class Form {
     private List allInputs;
     private XMLElement formTag;
+    private static final String FORM_VALUE = "value";
+    private static final String FORM_SUBMIT = "submit";
+    private static final String FORM_CHECKBOX = "checkbox";
+    public static final String FORM_PASSWORD = "password";
+    private static final String FORM_HIDDEN = "hidden";
+    private static final String FORM_RADIO = "radio";
 
     public Form(String initialTag) {
       formTag = new XMLElement();
@@ -131,16 +137,16 @@ public class JHTML implements JHTMLListener {
         String type = curInput.getProperty("type", "text");
         String name = curInput.getProperty("name", "");
 
-        if(type.equals("text") || type.equals("hidden") || type.equals("password")) {
+        if(type.equals("text") || type.equals(FORM_HIDDEN) || type.equals(FORM_PASSWORD)) {
           //  Need to URL-Encode 'value'...
-          rval.append(seperator).append(name).append('=').append(URLEncoder.encode(curInput.getProperty("value", ""), "UTF-8"));
-        } else if(type.equals("checkbox") || type.equals("radio")) {
-          if(curInput.getProperty("checked") != null) {
-            rval.append(seperator).append(name).append('=').append(URLEncoder.encode(curInput.getProperty("value", "on"), "UTF-8"));
+          rval.append(seperator).append(name).append('=').append(URLEncoder.encode(curInput.getProperty(FORM_VALUE, ""), "UTF-8"));
+        } else if(type.equals(FORM_CHECKBOX) || type.equals(FORM_RADIO)) {
+          if(curInput.getProperty(XMLElement.FORM_CHECKED) != null) {
+            rval.append(seperator).append(name).append('=').append(URLEncoder.encode(curInput.getProperty(FORM_VALUE, "on"), "UTF-8"));
           }
-        } else if(type.equals("submit")) {
+        } else if(type.equals(FORM_SUBMIT)) {
           if(name.length() != 0) {
-            String value = curInput.getProperty("value", "Submit");
+            String value = curInput.getProperty(FORM_VALUE, "Submit");
             if (!value.equalsIgnoreCase("cancel")) {
               rval.append(seperator).append(name).append('=').append(URLEncoder.encode(value, "UTF-8"));
             }
@@ -148,7 +154,7 @@ public class JHTML implements JHTMLListener {
         }
       }
 
-      String action = formTag.getProperty("action");
+      String action = formTag.getProperty(JHTMLDialog.FORM_ACTION);
       if(action != null) {
         if (action.indexOf('?') == -1) {
           return action + '?' + rval;
@@ -170,23 +176,23 @@ public class JHTML implements JHTMLListener {
       boolean showInputs = JConfig.queryConfiguration("debug.showInputs", "false").equals("true");
 
       if(inputType.equals("text")) {
-        if (showInputs) ErrorManagement.logDebug("T: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
-      } else if(inputType.equals("password")) {
-        if (showInputs) ErrorManagement.logDebug("P: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
-      } else if (inputType.equals("hidden")) {
-        if (showInputs) ErrorManagement.logDebug("H: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
-      } else if(inputType.equals("checkbox")) {
-        if (showInputs) ErrorManagement.logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
-      } else if(inputType.equals("radio")) {
-        if (showInputs) ErrorManagement.logDebug("R: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
-      } else if(inputType.equals("submit")) {
-        if (showInputs) ErrorManagement.logDebug("S: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+        if (showInputs) ErrorManagement.logDebug("T: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+      } else if(inputType.equals(FORM_PASSWORD)) {
+        if (showInputs) ErrorManagement.logDebug("P: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+      } else if (inputType.equals(FORM_HIDDEN)) {
+        if (showInputs) ErrorManagement.logDebug("H: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+      } else if(inputType.equals(FORM_CHECKBOX)) {
+        if (showInputs) ErrorManagement.logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+      } else if(inputType.equals(FORM_RADIO)) {
+        if (showInputs) ErrorManagement.logDebug("R: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+      } else if(inputType.equals(FORM_SUBMIT)) {
+        if (showInputs) ErrorManagement.logDebug("S: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else if(inputType.equals("image")) {
-        if (showInputs) ErrorManagement.logDebug("I: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+        if (showInputs) ErrorManagement.logDebug("I: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else if(inputType.equals("button")) {
-        if (showInputs) ErrorManagement.logDebug("B: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+        if (showInputs) ErrorManagement.logDebug("B: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else if(inputType.equals("reset")) {
-        if (showInputs) ErrorManagement.logDebug("RST: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty("value"));
+        if (showInputs) ErrorManagement.logDebug("RST: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else {
         ErrorManagement.logDebug("Unknown input type: " + inputType);
         isError = true;
@@ -206,7 +212,7 @@ public class JHTML implements JHTMLListener {
 
         if(name != null) {
           if(name.equalsIgnoreCase(key)) {
-            curInput.setProperty("value", val);
+            curInput.setProperty(FORM_VALUE, val);
           }
         }
       }

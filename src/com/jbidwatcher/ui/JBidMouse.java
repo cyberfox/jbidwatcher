@@ -1310,7 +1310,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       Dimension aboutBoxSize = new Dimension(495, 245);
 
       if(_aboutText == null) {
-        _aboutText = JBHelp.loadHelp("help/about.jbh", "About " + Constants.PROGRAM_NAME + "...");
+        _aboutText = JBHelp.loadHelp("/help/about.jbh", "About " + Constants.PROGRAM_NAME + "...");
       }
 
       aboutFrame = _oui.showTextDisplay(_aboutText!=null?_aboutText:badAbout, aboutBoxSize, "About " + Constants.PROGRAM_NAME + "...");
@@ -1323,7 +1323,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     Dimension affBoxSize = new Dimension(495, 445);
 
     if(_affiliateText == null) {
-      _affiliateText = JBHelp.loadHelp("help/affiliate.jbh", Constants.PROGRAM_NAME + " Request");
+      _affiliateText = JBHelp.loadHelp("/help/affiliate.jbh", Constants.PROGRAM_NAME + " Request");
     }
 
     if(_affiliateText != null) {
@@ -1336,7 +1336,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     Dimension affBoxSize = new Dimension(495, 445);
 
     if(_noaffiliateText == null) {
-      _noaffiliateText = JBHelp.loadHelp("help/no_affiliate.jbh", Constants.PROGRAM_NAME + " Appreciation");
+      _noaffiliateText = JBHelp.loadHelp("/help/no_affiliate.jbh", Constants.PROGRAM_NAME + " Appreciation");
     }
 
     if(_noaffiliateText != null) {
@@ -1352,7 +1352,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       Dimension faqBoxSize = new Dimension(625, 500);
 
       if(_faqText == null) {
-        _faqText = JBHelp.loadHelp("help/faq.jbh", "FAQ for " + Constants.PROGRAM_NAME + "...");
+        _faqText = JBHelp.loadHelp("/help/faq.jbh", "FAQ for " + Constants.PROGRAM_NAME + "...");
       }
 
       faqFrame = _oui.showTextDisplay(_faqText!=null?_faqText:badFAQ, faqBoxSize, Constants.PROGRAM_NAME + " FAQ");
@@ -1518,7 +1518,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       Dimension chSize = new Dimension(495, 245);
 
       if(_colorHelp == null) {
-        _colorHelp = JBHelp.loadHelp("help/colors.jbh", "Help on Colors");
+        _colorHelp = JBHelp.loadHelp("/help/colors.jbh", "Help on Colors");
       }
 
       helpFrame = _oui.showTextDisplay(_colorHelp!=null?_colorHelp:badColors, chSize, "Help on color use in JBidwatcher");
