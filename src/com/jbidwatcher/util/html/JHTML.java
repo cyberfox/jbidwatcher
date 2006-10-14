@@ -141,7 +141,7 @@ public class JHTML implements JHTMLListener {
           //  Need to URL-Encode 'value'...
           rval.append(seperator).append(name).append('=').append(URLEncoder.encode(curInput.getProperty(FORM_VALUE, ""), "UTF-8"));
         } else if(type.equals(FORM_CHECKBOX) || type.equals(FORM_RADIO)) {
-          if(curInput.getProperty(XMLElement.FORM_CHECKED) != null) {
+          if(curInput.getProperty("checked") != null) {
             rval.append(seperator).append(name).append('=').append(URLEncoder.encode(curInput.getProperty(FORM_VALUE, "on"), "UTF-8"));
           }
         } else if(type.equals(FORM_SUBMIT)) {
