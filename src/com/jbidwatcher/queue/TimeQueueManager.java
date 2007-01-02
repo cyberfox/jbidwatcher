@@ -116,7 +116,7 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
   }
 
   public boolean erase(Object o) {
-    List doErase = new ArrayList();
+    List<TimeQueue.QObject> doErase = new ArrayList<TimeQueue.QObject>();
     List current = m_tq.getUnsorted();
     boolean didErase = false;
     for (Iterator it = current.listIterator(); it.hasNext();) {
@@ -128,8 +128,7 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
       }
     }
     if(didErase) {
-      for (Iterator it = doErase.iterator(); it.hasNext();) {
-        TimeQueue.QObject delMe = (TimeQueue.QObject) it.next();
+      for (TimeQueue.QObject delMe : doErase) {
         m_tq.erase(delMe);
       }
     }

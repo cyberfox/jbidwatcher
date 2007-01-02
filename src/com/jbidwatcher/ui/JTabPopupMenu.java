@@ -40,7 +40,7 @@ public class JTabPopupMenu extends JContext {
   private JMenuItem _export = null;
   private JMenu _deleteSubmenu = null;
   private Method _indexLocation = null;
-  private Map menuItemMap = new TreeMap();
+  private Map<String, JCheckBoxMenuItem> menuItemMap = new TreeMap<String, JCheckBoxMenuItem>();
   private Object[] _indexParams = new Object[2];
   protected int _curIndex = 0;
   private JMenuItem _properties = null;
@@ -54,10 +54,9 @@ public class JTabPopupMenu extends JContext {
   private JPopupMenu makeTabMenu() {
     JPopupMenu myPopup = new JPopupMenu();
 
-    Collection nameCollection = TableColumnController.getInstance().getColumnNames();
+    Collection<String> nameCollection = TableColumnController.getInstance().getColumnNames();
     customize = new JMenu("Custom Columns");
-    for (Iterator it = nameCollection.iterator(); it.hasNext();) {
-      String s = (String) it.next();
+    for (String s : nameCollection) {
       JCheckBoxMenuItem colMenuItem = new JCheckBoxMenuItem(s);
       colMenuItem.setActionCommand('~' + s);
       customize.add(colMenuItem).addActionListener(this);
@@ -98,11 +97,10 @@ public class JTabPopupMenu extends JContext {
       _curIndex = -1;
     } else {
       try {
-        _indexParams[0] = new Integer(e.getX());
-        _indexParams[1] = new Integer(e.getY());
+        _indexParams[0] = e.getX();
+        _indexParams[1] = e.getY();
 
-        Integer tabIndex_i = (Integer)_indexLocation.invoke(_myTabs, _indexParams);
-        _curIndex = tabIndex_i.intValue();
+        _curIndex = (Integer)_indexLocation.invoke(_myTabs, _indexParams);
 
         _indexParams[0] = _indexParams[1] = null;
 
@@ -130,17 +128,15 @@ public class JTabPopupMenu extends JContext {
   }
 
   private void setColumnChecks(String tabName) {
-    List columns = FilterManager.getInstance().getColumns(tabName);
-    for (int i = 0; i < columns.size(); i++) {
-      String colName = (String) columns.get(i);
-      JCheckBoxMenuItem jch = (JCheckBoxMenuItem) menuItemMap.get(colName);
+    List<String> columns = FilterManager.getInstance().getColumns(tabName);
+    for (String colName : columns) {
+      JCheckBoxMenuItem jch = menuItemMap.get(colName);
       jch.setState(true);
     }
   }
 
   private void uncheckAll() {
-    for (Iterator it = menuItemMap.values().iterator(); it.hasNext();) {
-      JCheckBoxMenuItem jch = (JCheckBoxMenuItem) it.next();
+    for (JCheckBoxMenuItem jch : menuItemMap.values()) {
       jch.setState(false);
     }
   }
@@ -151,12 +147,12 @@ public class JTabPopupMenu extends JContext {
   }
 
   protected JFrame propFrame = null;
-  private TreeMap tabToProperties = null;
+  private TreeMap<String, JTabProperties> tabToProperties = null;
 
   protected JFrame getFrame(String tabName) {
     if(propFrame == null) propFrame = new JFrame("Tab Properties");
-    if(tabToProperties == null) tabToProperties = new TreeMap();
-    JTabProperties properties = (JTabProperties) tabToProperties.get(tabName);
+    if(tabToProperties == null) tabToProperties = new TreeMap<String, JTabProperties>();
+    JTabProperties properties = tabToProperties.get(tabName);
 
     if(properties == null) {
       properties = new JTabProperties(tabName);
@@ -206,7 +202,7 @@ public class JTabPopupMenu extends JContext {
     if(actionString.charAt(0) == '~') {
       boolean result = FilterManager.getInstance().toggleField(tabName, actionString.substring(1));
       if(tabToProperties != null) {
-        JTabProperties properties = (JTabProperties) tabToProperties.get(tabName);
+        JTabProperties properties = tabToProperties.get(tabName);
         if(properties != null) {
           properties.setColumnStatus(actionString.substring(1), result);
         }
@@ -276,7 +272,7 @@ public class JTabPopupMenu extends JContext {
   public JTabPopupMenu(JTabbedPane inTabs) {
     try {
       Class[] _indexFinder = new Class[]{int.class, int.class};
-      Class tabbedPane_c = JTabbedPane.class;
+      Class<JTabbedPane> tabbedPane_c = JTabbedPane.class;
       _indexLocation = tabbedPane_c.getDeclaredMethod("indexAtLocation", _indexFinder);
     } catch(Exception ignored) {
       //  Not sure what to do with a reflection exception except punt.

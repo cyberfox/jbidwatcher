@@ -105,13 +105,13 @@ public class HTMLDump {
     return outValue.toString();
   }
 
-  public StringBuffer createFullTable(Iterator aucIterate) {
+  public StringBuffer createFullTable(Iterator<AuctionEntry> aucIterate) {
     StringBuffer sb = new StringBuffer();
 
     sb.append(addAuctionLink());
     sb.append(tableHeader());
     while(aucIterate.hasNext()) {
-      AuctionEntry ae = (AuctionEntry) aucIterate.next();
+      AuctionEntry ae = aucIterate.next();
       sb.append(auctionName(ae.getTitle(), '/' + ae.getIdentifier(), ae));
       sb.append(createValueTable(ae));
     }

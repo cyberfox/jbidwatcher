@@ -38,13 +38,13 @@ import java.util.*;
  */
 public abstract class BaseTransformation extends AbstractTableModel implements BaseModel {
   protected BaseTransformation m_tm;
-  protected List m_row_xform;
-  protected List m_col_xform;
+  protected List<Integer> m_row_xform;
+  protected List<Integer> m_col_xform;
 
   protected BaseTransformation() {
     m_tm = null;
-    m_row_xform = Collections.synchronizedList(new ArrayList(0));
-    m_col_xform = Collections.synchronizedList(new ArrayList(0));
+    m_row_xform = Collections.synchronizedList(new ArrayList<Integer>(0));
+    m_col_xform = Collections.synchronizedList(new ArrayList<Integer>(0));
   }
 
   protected BaseTransformation(BaseTransformation chain) {
@@ -55,14 +55,14 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
 
   protected synchronized void initializeColumns(BaseTransformation chain) {
     int chain_cols = chain.getColumnCount();
-    m_col_xform = Collections.synchronizedList(new ArrayList(chain_cols));
-    for(int i=0; i<chain_cols; i++) m_col_xform.add(new Integer(i));
+    m_col_xform = Collections.synchronizedList(new ArrayList<Integer>(chain_cols));
+    for(int i=0; i<chain_cols; i++) m_col_xform.add(i);
   }
 
   protected synchronized void initializeRows(BaseTransformation chain) {
     int chain_rows = chain.getRowCount();
-    m_row_xform = Collections.synchronizedList(new ArrayList(chain_rows));
-    for(int i=0; i<chain_rows; i++) m_row_xform.add(new Integer(i));
+    m_row_xform = Collections.synchronizedList(new ArrayList<Integer>(chain_rows));
+    for(int i=0; i<chain_rows; i++) m_row_xform.add(i);
   }
 
   protected synchronized boolean checkRowModel() {
@@ -80,14 +80,13 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
     return m_col_xform.size();
   }
 
-  protected synchronized void setRowTransform(List newRows) { m_row_xform = newRows; }
-  protected synchronized void setColumnTransform(List newCols) { m_col_xform = newCols; }
+  protected synchronized void setRowTransform(List<Integer> newRows) { m_row_xform = newRows; }
+  protected synchronized void setColumnTransform(List<Integer> newCols) { m_col_xform = newCols; }
 
   protected synchronized void postInitialize() { }
 
-  protected static int getInt(List l, int index) {
-    Integer i = (Integer)l.get(index);
-    return i.intValue();
+  protected static int getInt(List<Integer> l, int index) {
+    return l.get(index);
   }
 
   public synchronized Object find(Comparison comparison) {
@@ -118,8 +117,8 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
       int new_row = m_tm.convertRowIndexToView(row);
       if(new_row == -1) return -1;
       for(int i=0; i<=getRowCount(); i++) {
-        Integer xlate = (Integer)m_row_xform.get(i);
-        if(xlate.intValue() == new_row) return i;
+        Integer xlate = m_row_xform.get(i);
+        if(xlate == new_row) return i;
       }
     } else {
       if(row < getRowCount()) return row;
@@ -131,9 +130,8 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
   public synchronized int convertRowIndexToModel(int row) {
     if(row == -1) return -1;
     if(m_tm != null) {
-      Integer xlate = (Integer)m_row_xform.get(row);
-      int new_row = xlate.intValue();
-      return m_tm.convertRowIndexToModel(new_row);
+      Integer xlate = m_row_xform.get(row);
+      return m_tm.convertRowIndexToModel(xlate);
     } else {
       if(row < getRowCount()) return row;
     }
@@ -185,8 +183,8 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
   }
 
   private static int compareBoolean(Object o1, Object o2) {
-    boolean b1 = ((Boolean) o1).booleanValue();
-    boolean b2 = ((Boolean) o2).booleanValue();
+    boolean b1 = (Boolean) o1;
+    boolean b2 = (Boolean) o2;
 
     // Define false < true
     return (b1 == b2) ? 0 : (b1 ? 1 : -1);
@@ -223,8 +221,8 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
   }
 
   private static int compareInt(Object o1, Object o2) {
-    int n1 = ((Integer) o1).intValue();
-    int n2 = ((Integer) o2).intValue();
+    int n1 = (Integer) o1;
+    int n2 = (Integer) o2;
 
     return (n1 < n2) ? -1 : ((n1 > n2) ? 1 : 0);
   }

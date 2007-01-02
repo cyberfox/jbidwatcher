@@ -24,7 +24,7 @@ public class SearchInfoDialog extends JDialog {
   private JTextField searchField;
   private boolean cancelled=false;
   private Searcher curSearch;
-  private Map curToId = null;
+  private Map<String, String> curToId = null;
 
   private static final String[] _periods = {
     "Every hour",
@@ -56,7 +56,7 @@ public class SearchInfoDialog extends JDialog {
   public String getCurrency() {
     if(curToId == null) return null;
 
-    return (String)curToId.get(currencyBox.getSelectedItem());
+    return curToId.get(currencyBox.getSelectedItem().toString());
   }
 
   public SearchInfoDialog() {
@@ -248,23 +248,15 @@ public class SearchInfoDialog extends JDialog {
     cBox.removeAllItems();
     cBox.setEditable(false);
 
-    List tmpList = JConfig.getMatching("ebay.currencySearch.");
-    Collections.sort(tmpList, new Comparator() {
-
-      public int compare(Object o1, Object o2) {
-        String s1 = (String) o1;
-        String s2 = (String) o2;
-        return Integer.valueOf(s1).compareTo(Integer.valueOf(s2));
-      }
-    });
-    for (Iterator it = tmpList.iterator(); it.hasNext();) {
-      Object o = it.next();
-      if(o != null) {
+    List<String> tmpList = JConfig.getMatching("ebay.currencySearch.");
+    Collections.sort(tmpList);
+    for (String o : tmpList) {
+      if (o != null) {
         String s = JConfig.queryConfiguration("ebay.currencySearch." + o);
-        if(s != null) {
+        if (s != null) {
           cBox.addItem(s);
 
-          if(curToId == null) curToId = new TreeMap();
+          if (curToId == null) curToId = new TreeMap<String, String>();
           curToId.put(s, o);
         }
       }
@@ -275,12 +267,11 @@ public class SearchInfoDialog extends JDialog {
     tabList.removeAllItems();
     tabList.setEditable(true);
 
-    java.util.List tabs = FilterManager.getInstance().allCategories();
+    List<String> tabs = FilterManager.getInstance().allCategories();
     if(tabs != null) {
       tabs.remove("complete");
       tabs.remove("selling");
-      for (Iterator it = tabs.iterator(); it.hasNext();) {
-        String tabName = (String) it.next();
+      for (String tabName : tabs) {
         tabList.addItem(tabName);
       }
     }

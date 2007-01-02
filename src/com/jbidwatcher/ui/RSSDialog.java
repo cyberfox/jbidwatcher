@@ -10,7 +10,7 @@ import com.jbidwatcher.FilterManager;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
-import java.util.Iterator;
+import java.util.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -20,7 +20,7 @@ import java.net.UnknownHostException;
  * User: Morgan Schweers
  * Date: Jun 28, 2005
  * Time: 10:41:37 PM
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class RSSDialog extends JDialog {
   private JPanel contentPane;
@@ -76,7 +76,7 @@ public class RSSDialog extends JDialog {
   }
 
   private String getHost() {
-    InetAddress thisIp = null;
+    InetAddress thisIp;
     try {
       thisIp = InetAddress.getLocalHost();
     } catch (UnknownHostException e) {
@@ -150,13 +150,12 @@ public class RSSDialog extends JDialog {
   private void buildTabList() {
     tabList.removeAllItems();
     tabList.setEditable(true);
-    java.util.List tabs = FilterManager.getInstance().allCategories();
+    java.util.List<String> tabs = FilterManager.getInstance().allCategories();
     if(tabs != null) {
       tabs.remove("complete");
       tabs.remove("selling");
 
-      for (Iterator it = tabs.iterator(); it.hasNext();) {
-        String tabName = (String) it.next();
+      for (String tabName : tabs) {
         tabList.addItem(tabName);
       }
     }

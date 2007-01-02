@@ -12,6 +12,8 @@ package com.jbidwatcher.util;
   29Aug1998  dl               Refactored from BoundedPriorityQueue
 */
 
+import com.jbidwatcher.queue.TimeQueue;
+
 import java.util.*;
 
 /**
@@ -26,6 +28,7 @@ import java.util.*;
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  **/
 
+@SuppressWarnings({"JavaDoc"})
 public class Heap  {
   protected Object[] nodes_;  // the tree nodes, packed into an array
   protected int count_ = 0;   // number of used slots
@@ -170,7 +173,7 @@ public class Heap  {
     return base;
   }
 
-  public boolean erase(Object o) {
+  public boolean erase(TimeQueue.QObject o) {
     for (int i = 0; i < nodes_.length; i++) {
       if(nodes_[i] == o) {
         extractElementAt(i);

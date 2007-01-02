@@ -29,7 +29,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
 import java.util.HashSet;
 
 /**
@@ -37,7 +36,7 @@ import java.util.HashSet;
  * User: Morgan Schweers
  * Date: Oct 9, 2005
  * Time: 10:14:38 PM
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class JConfigAdvancedTab extends JConfigTab {
   JComboBox configKey = null;
@@ -64,7 +63,7 @@ public class JConfigAdvancedTab extends JConfigTab {
     }
   }
 
-  private static HashSet boxSet = new HashSet();
+  private static HashSet<JComboBox> boxSet = new HashSet<JComboBox>();
 
   private void buildNewConfigList(final JComboBox box, final JTextField value) {
     box.removeAllItems();
@@ -72,9 +71,9 @@ public class JConfigAdvancedTab extends JConfigTab {
     box.addItem("");
 
     java.util.List cfgKeys = JConfig.getAllKeys();
-    for (Iterator it = cfgKeys.iterator(); it.hasNext();) {
-      String s = (String) it.next();
-      if(s.indexOf(JHTML.Form.FORM_PASSWORD) == -1) box.addItem(s);
+    for (Object cfgKey : cfgKeys) {
+      String s = (String) cfgKey;
+      if (s.indexOf(JHTML.Form.FORM_PASSWORD) == -1) box.addItem(s);
     }
 
     if(!boxSet.contains(box)) {

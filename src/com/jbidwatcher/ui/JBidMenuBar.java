@@ -222,7 +222,7 @@ public class JBidMenuBar extends JMenuBar {
     makeMenuItem(inMenu, "About", 'A');
   }
 
-  private static HashMap _frameMenus = new HashMap(10);
+  private static HashMap<String, JBidMenuBar> _frameMenus = new HashMap<String, JBidMenuBar>(10);
 
   /**
    * @brief Return the menu instance associated with a specific frame name.
@@ -233,7 +233,7 @@ public class JBidMenuBar extends JMenuBar {
    * @return - A menu bar usable with said frame.
    */
   protected static JBidMenuBar getFrameInstance(ActionListener inAction, String frameName) {
-    JBidMenuBar retInstance = (JBidMenuBar) _frameMenus.get(frameName);
+    JBidMenuBar retInstance = _frameMenus.get(frameName);
     if(retInstance == null) {
       if(inAction == null) {
         throw new RuntimeException("JBidMenuBar.getInstance(null) called when no matching instance \"" + frameName + "\" yet created!");

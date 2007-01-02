@@ -35,10 +35,9 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import java.io.*;
 import java.util.List;
 import java.util.Vector;
-import java.util.Iterator;
 
 public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, TimerHandler.WakeupProcess {
-  private List _searches = new Vector();
+  private List<Searcher> _searches = new Vector<Searcher>();
   private static SearchManager _instance = null;
 
   public void addSearch(Searcher newSearch) {
@@ -46,9 +45,8 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
   }
 
   public Searcher getSearchByName(String name) {
-    for(Iterator it = _searches.iterator(); it.hasNext(); ) {
-      Searcher search = (Searcher)it.next();
-      if(name.equals(search.getName())) return search;
+    for (Searcher search : _searches) {
+      if (name.equals(search.getName())) return search;
     }
 
     return null;
@@ -79,14 +77,13 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); }
   }
 
-  public Searcher getSearchByIndex(int i) { if(i < _searches.size()) return (Searcher)_searches.get(i); else return null; }
+  public Searcher getSearchByIndex(int i) { if(i < _searches.size()) return _searches.get(i); else return null; }
 
   public int findSearch(Searcher s) { return _searches.indexOf(s); }
 
   public Searcher getSearchById(long id) {
-    for(Iterator it = _searches.iterator(); it.hasNext(); ) {
-      Searcher s = (Searcher)it.next();
-      if(id == s.getId()) return s;
+    for (Searcher s : _searches) {
+      if (id == s.getId()) return s;
     }
 
     return null;
@@ -94,10 +91,8 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
 
   public boolean check() {
     boolean fired=false;
-    for(Iterator it = _searches.iterator(); it.hasNext(); ) {
-      Searcher s = (Searcher)it.next();
-
-      if(s.shouldExecute()) {
+    for (Searcher s : _searches) {
+      if (s.shouldExecute()) {
         s.execute();
         fired = true;
       }
@@ -175,8 +170,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
   public XMLElement toXML() {
     XMLElement allData = new XMLElement("searches");
 
-    for(Iterator it = _searches.iterator(); it.hasNext(); ) {
-      Searcher s = (Searcher)it.next();
+    for (Searcher s : _searches) {
       XMLElement search = s.toXML();
 
       allData.addChild(search);

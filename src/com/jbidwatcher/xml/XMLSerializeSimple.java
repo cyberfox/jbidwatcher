@@ -29,10 +29,10 @@ public abstract class XMLSerializeSimple implements XMLSerialize {
 
   public void fromXML(XMLElement inXML) {
     String[] infoTags = getTags();
-    Iterator infoFields = inXML.getChildren();
+    Iterator<XMLElement> infoFields = inXML.getChildren();
 
     while(infoFields.hasNext()) {
-      XMLElement fieldStep = (XMLElement) infoFields.next();
+      XMLElement fieldStep = infoFields.next();
       String curField = fieldStep.getTagName();
 
       for(int i=0; i<infoTags.length; i++) {

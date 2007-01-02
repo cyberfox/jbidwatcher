@@ -1,4 +1,6 @@
-package com.jbidwatcher.auction.server.ebay;//  This is the concrete implementation of AuctionServer to handle
+package com.jbidwatcher.auction.server.ebay;
+
+//  This is the concrete implementation of AuctionServer to handle
 //  parsing eBay auction pages.  There should be *ZERO* eBay specific
 //  logic outside this class.  A pipe-dream, perhaps, but it seems
 //  mostly doable.
@@ -36,6 +38,7 @@ import com.jbidwatcher.util.html.htmlToken;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.ui.JPasteListener;
 import com.jbidwatcher.ui.OptionUI;
 import com.jbidwatcher.ui.ServerMenu;
@@ -68,7 +71,7 @@ import java.util.regex.Pattern;
 public final class ebayServer extends AuctionServer implements MessageQueue.Listener,CleanupHandler,JConfig.ConfigListener {
   protected static final int THIRTY_MINUTES = (30 * 60 * 1000);
 
-  private HashMap _resultHash = null;
+  private HashMap<String, Integer> _resultHash = null;
   private Regex _bidResultRegex = null;
 
   /** @noinspection FieldAccessedSynchronizedAndUnsynchronized*/
@@ -134,7 +137,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private static final int ITEMS_PER_PAGE = 100;
   /** @noinspection FieldCanBeLocal*/
   private TimerHandler eQueue;
-  private Map snipeMap = new HashMap();
+  private Map<String, AuctionQObject> snipeMap = new HashMap<String, AuctionQObject>();
   private String mBadPassword = null;
   private String mBadUsername = null;
 
@@ -361,19 +364,19 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     if(bidCount == 0) return zeroIncrement;
 
-    for(int i=0; i<rightTable.length; i++) {
-      com.jbidwatcher.util.Currency endValue = rightTable[i][0];
-      com.jbidwatcher.util.Currency incrementValue = rightTable[i][1];
+    for (Currency[] aRightTable : rightTable) {
+      Currency endValue = aRightTable[0];
+      Currency incrementValue = aRightTable[1];
 
       //  Sentinel.  If we reach the end, return the max.
-      if(endValue == null || endValue.isNull()) return incrementValue;
+      if (endValue == null || endValue.isNull()) return incrementValue;
 
       try {
         //  If it's less than, or equal, to the end value than we use
         //  that increment amount.
-        if(correctedValue.less(endValue)) return incrementValue;
-        if(!endValue.less(correctedValue)) return incrementValue;
-      } catch(com.jbidwatcher.util.Currency.CurrencyTypeException e) {
+        if (correctedValue.less(endValue)) return incrementValue;
+        if (!endValue.less(correctedValue)) return incrementValue;
+      } catch (Currency.CurrencyTypeException e) {
         /* Should never happen, since we've checked the currency already.  */
         ErrorManagement.handleException("Currency comparison threw a bad currency exception, which should be impossible.", e); //$NON-NLS-1$
       }
@@ -398,7 +401,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *
    * @return - A new tab to be added to the configuration display.
    */
-  public Object getConfigurationTab() {
+  public JConfigTab getConfigurationTab() {
     //  Always return a new one, to fix a problem on first startup.
     return new JConfigEbayTab();
   }
@@ -657,14 +660,14 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       case AuctionQObject.CANCEL_SNIPE:
         AuctionEntry snipeCancel = (AuctionEntry)ac.getData();
         String id = snipeCancel.getIdentifier();
-        AuctionQObject cancellable = (AuctionQObject)snipeMap.get(id);
+        AuctionQObject cancellable = snipeMap.get(id);
 
         _etqm.erase(cancellable);
         snipeMap.remove(id);
         return;
       case AuctionQObject.SET_SNIPE:
         AuctionEntry snipeOn = (AuctionEntry)ac.getData();
-        AuctionQObject currentlyExists = (AuctionQObject)snipeMap.get(snipeOn.getIdentifier());
+        AuctionQObject currentlyExists = snipeMap.get(snipeOn.getIdentifier());
         //  If we already have a snipe set for it, first cancel the old one, and then set up the new.
         if(currentlyExists != null) {
           _etqm.erase(currentlyExists);
@@ -785,36 +788,36 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
      * would be great.
      */
     if(_resultHash == null) {
-      _resultHash = new HashMap();
-      _resultHash.put("you are not permitted to bid on their listings.", new Integer(BID_ERROR_BANNED)); //$NON-NLS-1$
-      _resultHash.put("the item is no longer available because the auction has ended.", new Integer(BID_ERROR_ENDED)); //$NON-NLS-1$
-      _resultHash.put("cannot proceed", new Integer(BID_ERROR_CANNOT)); //$NON-NLS-1$
-      _resultHash.put("problem with bid amount", new Integer(BID_ERROR_AMOUNT)); //$NON-NLS-1$
-      _resultHash.put("your bid must be at least ", new Integer(BID_ERROR_TOO_LOW)); //$NON-NLS-1$
-      _resultHash.put("you have been outbid by another bidder", new Integer(BID_ERROR_OUTBID)); //$NON-NLS-1$
-      _resultHash.put("your bid is confirmed!", new Integer(BID_DUTCH_CONFIRMED)); //$NON-NLS-1$
-      _resultHash.put("you are bidding on this multiple item auction", new Integer(BID_DUTCH_CONFIRMED)); //$NON-NLS-1$
-      _resultHash.put("you are the high bidder on all items you bid on", new Integer(BID_DUTCH_CONFIRMED)); //$NON-NLS-1$
-      _resultHash.put("you are the current high bidder", new Integer(BID_WINNING)); //$NON-NLS-1$
-      _resultHash.put("you purchased the item", new Integer(BID_WINNING)); //$NON-NLS-1$
-      _resultHash.put("the reserve price has not been met", new Integer(BID_ERROR_RESERVE_NOT_MET)); //$NON-NLS-1$
-      _resultHash.put("your new total must be higher than your current total", new Integer(BID_ERROR_TOO_LOW_SELF)); //$NON-NLS-1$
-      _resultHash.put("this exceeds or is equal to your current bid", new Integer(BID_ERROR_TOO_LOW_SELF)); //$NON-NLS-1$
-      _resultHash.put("you bought this item", new Integer(BID_BOUGHT_ITEM)); //$NON-NLS-1$
-      _resultHash.put("you committed to buy", new Integer(BID_BOUGHT_ITEM)); //$NON-NLS-1$
-      _resultHash.put("congratulations! you won!", new Integer(BID_BOUGHT_ITEM)); //$NON-NLS-1$
-      _resultHash.put("account suspended", new Integer(BID_ERROR_ACCOUNT_SUSPENDED)); //$NON-NLS-1$
-      _resultHash.put("to enter a higher maximum bid, please enter", new Integer(BID_ERROR_TOO_LOW_SELF)); //$NON-NLS-1$
-      _resultHash.put("you are registered in a country to which the seller doesn.t ship.", new Integer(BID_ERROR_WONT_SHIP)); //$NON-NLS-1$
-      _resultHash.put("this seller has set buyer requirements for this item and only sells to buyers who meet those requirements.", new Integer(BID_ERROR_REQUIREMENTS_NOT_MET)); //$NON-NLS-1$
+      _resultHash = new HashMap<String, Integer>();
+      _resultHash.put("you are not permitted to bid on their listings.", BID_ERROR_BANNED); //$NON-NLS-1$
+      _resultHash.put("the item is no longer available because the auction has ended.", BID_ERROR_ENDED); //$NON-NLS-1$
+      _resultHash.put("cannot proceed", BID_ERROR_CANNOT); //$NON-NLS-1$
+      _resultHash.put("problem with bid amount", BID_ERROR_AMOUNT); //$NON-NLS-1$
+      _resultHash.put("your bid must be at least ", BID_ERROR_TOO_LOW); //$NON-NLS-1$
+      _resultHash.put("you have been outbid by another bidder", BID_ERROR_OUTBID); //$NON-NLS-1$
+      _resultHash.put("your bid is confirmed!", BID_DUTCH_CONFIRMED); //$NON-NLS-1$
+      _resultHash.put("you are bidding on this multiple item auction", BID_DUTCH_CONFIRMED); //$NON-NLS-1$
+      _resultHash.put("you are the high bidder on all items you bid on", BID_DUTCH_CONFIRMED); //$NON-NLS-1$
+      _resultHash.put("you are the current high bidder", BID_WINNING); //$NON-NLS-1$
+      _resultHash.put("you purchased the item", BID_WINNING); //$NON-NLS-1$
+      _resultHash.put("the reserve price has not been met", BID_ERROR_RESERVE_NOT_MET); //$NON-NLS-1$
+      _resultHash.put("your new total must be higher than your current total", BID_ERROR_TOO_LOW_SELF); //$NON-NLS-1$
+      _resultHash.put("this exceeds or is equal to your current bid", BID_ERROR_TOO_LOW_SELF); //$NON-NLS-1$
+      _resultHash.put("you bought this item", BID_BOUGHT_ITEM); //$NON-NLS-1$
+      _resultHash.put("you committed to buy", BID_BOUGHT_ITEM); //$NON-NLS-1$
+      _resultHash.put("congratulations! you won!", BID_BOUGHT_ITEM); //$NON-NLS-1$
+      _resultHash.put("account suspended", BID_ERROR_ACCOUNT_SUSPENDED); //$NON-NLS-1$
+      _resultHash.put("to enter a higher maximum bid, please enter", BID_ERROR_TOO_LOW_SELF); //$NON-NLS-1$
+      _resultHash.put("you are registered in a country to which the seller doesn.t ship.", BID_ERROR_WONT_SHIP); //$NON-NLS-1$
+      _resultHash.put("this seller has set buyer requirements for this item and only sells to buyers who meet those requirements.", BID_ERROR_REQUIREMENTS_NOT_MET); //$NON-NLS-1$
       //      _resultHash.put("You are the current high bidder", new Integer(BID_SELFWIN));
     }
 
     //"If you want to submit another bid, your new total must be higher than your current total";
     StringBuffer superRegex = new StringBuffer("(");
-    Iterator it = _resultHash.keySet().iterator();
+    Iterator<String> it = _resultHash.keySet().iterator();
     while (it.hasNext()) {
-      String key = (String) it.next();
+      String key = it.next();
       superRegex.append(key);
       if(it.hasNext()) {
         superRegex.append('|');
@@ -826,7 +829,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       _bidResultRegex.setIgnoreCase(true);
       _bidResultRegex.optimize();
     }
-    _resultHash.put("sign in", new Integer(BID_ERROR_CANT_SIGN_IN));
+    _resultHash.put("sign in", BID_ERROR_CANT_SIGN_IN);
 
     _etqm = new eBayTimeQueueManager();
     eQueue = new TimerHandler(_etqm);
@@ -1042,7 +1045,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       String errMsg = htmlDocument.grep(_bidResultRegex);
       if(errMsg != null) {
         String matched_error = _bidResultRegex.stringMatched().toLowerCase();
-        throw new BadBidException(matched_error, ((Integer)_resultHash.get(matched_error)).intValue());
+        throw new BadBidException(matched_error, _resultHash.get(matched_error));
       }
     }
 
@@ -1241,15 +1244,14 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     String errMsg = htmlDocument.grep(_bidResultRegex);
     if (errMsg != null) {
-      Integer bidResult = (Integer) _resultHash.get(_bidResultRegex.stringMatched().toLowerCase());
+      Integer bidResult = _resultHash.get(_bidResultRegex.stringMatched().toLowerCase());
 
       if(inEntry.getTitle().toLowerCase().indexOf("test") == -1) {
         if(JBConfig.doAffiliate(inEntry.getEndDate().getTime())) {
-          List images = htmlDocument.getAllImages();
-          for(Iterator it = images.iterator(); it.hasNext(); ) {
-            String tag = (String)it.next();
-            if(srcRegex.search(tag)) {
-              int retry=2;
+          List<String> images = htmlDocument.getAllImages();
+          for (String tag : images) {
+            if (srcRegex.search(tag)) {
+              int retry = 2;
               do {
                 StringBuffer result = null;
                 try {
@@ -1257,12 +1259,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
                 } catch (CookieJar.CookieException ignored) {
                   //  Ignore connection refused errors.
                 }
-                if(result == null) {
+                if (result == null) {
                   retry--;
                 } else {
                   retry = 0;
                 }
-              } while(retry != 0);
+              } while (retry != 0);
             }
           }
         }
@@ -1270,7 +1272,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
       if(JConfig.debugging) inEntry.setLastStatus("Done loading post-bid data.");
 
-      if(bidResult != null) return bidResult.intValue();
+      if(bidResult != null) return bidResult;
     }
 
     // Skipping the userID and Password, so this can be submitted as
@@ -1345,25 +1347,23 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   private static URLConnection checkHTMLFollowRedirect(JHTML redirectPage, String lookFor, CookieJar cj) {
     redirectPage.reset();
-    List allURLs = redirectPage.getAllURLsOnPage(false);
-    Iterator urlIt = allURLs.iterator();
-    while (urlIt.hasNext()) {
-      String url = (String) urlIt.next();
+    List<String> allURLs = redirectPage.getAllURLsOnPage(false);
+    for (String url : allURLs) {
       //  If this URL has the text we're looking for in its body someplace, that's the one we want.
       if (url.indexOf(lookFor) != -1) {
         //  Replace nasty quoted amps with single-amps.
         url = url.replaceAll("&amp;", "&");
         url = url.replaceAll("\n", "");
-        if(lookFor.equals("BidBin")) {
+        if (lookFor.equals("BidBin")) {
           int step = url.indexOf("BidBinInfo=");
-          if(step != -1) {
+          if (step != -1) {
             step += "BidBinInfo=".length();
 
             try {
               String encodedURL = URLEncoder.encode(url.substring(step), "UTF-8");
               //noinspection StringContatenationInLoop
               url = url.substring(0, step) + encodedURL;
-            } catch(UnsupportedEncodingException ignored) {
+            } catch (UnsupportedEncodingException ignored) {
               ErrorManagement.logMessage("Failed to build a URL because of encoding transformation failure.");
             }
           }
@@ -1389,17 +1389,15 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-a2.html", confirm);
     JHTML confirmPage = new JHTML(confirm);
 
-    List confirm_forms = confirmPage.getForms();
-    Iterator confirmIt = confirm_forms.iterator();
-    while (confirmIt.hasNext()) {
-      JHTML.Form finalForm = (JHTML.Form) confirmIt.next();
+    List<JHTML.Form> confirm_forms = confirmPage.getForms();
+    for(JHTML.Form finalForm : confirm_forms) {
       if (finalForm.hasInput("MfcISAPICommand")) {
         uc_signin = cj.getAllCookiesFromPage(finalForm.getCGI(), null, false);
         StringBuffer confirmed = Http.receivePage(uc_signin);
         if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-a2.html", confirmed);
         JHTML htdoc = new JHTML(confirmed);
         JHTML.Form curForm = htdoc.getFormWithInput("pass");
-        if(curForm != null) {
+        if (curForm != null) {
           return false;
         }
       }
@@ -1535,21 +1533,21 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - A count of items added.
    */
   private static int addAllItemsOnPage(JHTML htmlDocument, String category, boolean interactive) {
-    List allItemsOnPage = htmlDocument.getAllURLsOnPage(true);
+    List<String> allItemsOnPage = htmlDocument.getAllURLsOnPage(true);
     int item_count = 0;
 
     if(allItemsOnPage == null) {
       ErrorManagement.logDebug("No items on page!"); //$NON-NLS-1$
     } else {
-      for(ListIterator it=allItemsOnPage.listIterator(); it.hasNext(); ) {
-        String url = (String) it.next();
+      for(ListIterator<String> it=allItemsOnPage.listIterator(); it.hasNext(); ) {
+        String url = it.next();
 
         url = url.replaceAll("\n|\r", "");
         boolean gotNext;
         String nextURL;
 
         if(it.hasNext()) {
-          nextURL = (String)it.next();
+          nextURL = it.next();
 
           nextURL = nextURL.replaceAll("\n|\r", "");
           gotNext = true;
@@ -1624,7 +1622,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - A list containing strings with the names of each
    * user who was interested in the item enough to bid.
    */
-  public List getBidderNames(AuctionEntry ae) {
+  public List<String> getBidderNames(AuctionEntry ae) {
     CookieJar cj = getNecessaryCookie(false);
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();
@@ -1642,7 +1640,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       return null;
     }
 
-    List outNames = new ArrayList();
+    List<String> outNames = new ArrayList<String>();
 
     do {
       if(!outNames.contains(curName)) {
@@ -1920,8 +1918,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         return false;
       }
 
-      for(int i = 0; i<eBayTitles.length; i++) {
-        if(auctionTitle.startsWith(eBayTitles[i])) return true;
+      for (String eBayTitle : eBayTitles) {
+        if (auctionTitle.startsWith(eBayTitle)) return true;
       }
 
       return false;
@@ -2121,7 +2119,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
      * @return - preferred if it's not bad, alternate if the preferred object is bad.
      * @noinspection ObjectEquality
      **/
-    private Object ensureSafeValue(Object preferred, Object alternate, Object bad) {
+    private Object ensureSafeValue(Object preferred, Object alternate, Currency bad) {
       return (preferred == bad)?alternate:preferred;
     }
 

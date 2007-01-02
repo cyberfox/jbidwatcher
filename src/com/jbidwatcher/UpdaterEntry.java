@@ -32,7 +32,6 @@ import com.jbidwatcher.util.ErrorManagement;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.awt.*;
 
 public class UpdaterEntry extends XMLSerializeSimple {
@@ -42,14 +41,14 @@ public class UpdaterEntry extends XMLSerializeSimple {
   protected String _url = "";
   protected boolean _valid;
   protected boolean _hasConfigChanges;
-  protected ArrayList configChanges;
+  protected ArrayList<XMLElement> configChanges;
 
   //  For creating, then filling in later, especially when loading from a
   //  file, instead of remotely.
   public UpdaterEntry() { }
 
   public UpdaterEntry(String packageName, String updateFrom) {
-    StringBuffer loadedUpdate = null;
+    StringBuffer loadedUpdate;
 
     try {
       URLConnection uc = Http.getPage(updateFrom);
@@ -114,13 +113,13 @@ public class UpdaterEntry extends XMLSerializeSimple {
         if(valid) {
           String strStamp = curElement.getProperty("STAMP");
           if(strStamp == null) {
-            if(configChanges == null) configChanges = new ArrayList(5);
+            if(configChanges == null) configChanges = new ArrayList<XMLElement>(5);
             configChanges.add(curElement);
           } else {
             long stamp = Long.parseLong(strStamp);
             long last = Long.parseLong(JConfig.queryConfiguration("updates.lastConfig", "0"));
             if(stamp > last) {
-              if(configChanges == null) configChanges = new ArrayList(5);
+              if(configChanges == null) configChanges = new ArrayList<XMLElement>(5);
               configChanges.add(curElement);
             }
           }
@@ -160,55 +159,54 @@ public class UpdaterEntry extends XMLSerializeSimple {
     boolean cfgChanged = false;
     long lastStamp = Long.parseLong(JConfig.queryConfiguration("updates.lastConfig", "0"));
 
-    for (Iterator it = configChanges.iterator(); it.hasNext();) {
-      XMLElement cfg = (XMLElement) it.next();
+    for (XMLElement cfg : configChanges) {
       String type = cfg.getProperty("TYPE", "config");
-      if(type.equals("message")) {
-        if(alert == null) {
+      if (type.equals("message")) {
+        if (alert == null) {
           alert = new StringBuffer(cfg.getContents());
         } else {
           alert.append('\n');
           alert.append(cfg.getContents());
         }
-      } else if(type.equals("config")) {
+      } else if (type.equals("config")) {
         String cfgVar = cfg.getProperty("VARIABLE");
-        if(cfgVar != null) {
+        if (cfgVar != null) {
           //  Save old values, in case we need to restore them later.
-          if(JConfig.queryConfiguration(cfgVar) != null) {
+          if (JConfig.queryConfiguration(cfgVar) != null) {
             JConfig.setConfiguration("saved." + cfgVar, JConfig.queryConfiguration(cfgVar));
           }
           JConfig.setConfiguration(cfgVar, cfg.getContents());
           cfgChanged = true;
         }
-      } else if(type.equals("string")) {
+      } else if (type.equals("string")) {
         String cfgVar = cfg.getProperty("STRING");
-        if(cfgVar != null) {
+        if (cfgVar != null) {
           JConfig.setConfiguration("override." + cfgVar, cfg.getContents());
           cfgChanged = true;
         }
-      } else if(type.equals("restore")) {
+      } else if (type.equals("restore")) {
         String cfgVar = cfg.getContents();
-        if(cfgVar != null) {
+        if (cfgVar != null) {
           String oldCfg = JConfig.queryConfiguration("saved." + cfgVar);
-          if(oldCfg != null) {
+          if (oldCfg != null) {
             JConfig.setConfiguration(cfgVar, oldCfg);
             JConfig.kill("saved." + cfgVar);
             cfgChanged = true;
           }
         }
-      } else if(type.equals("delete")) {
+      } else if (type.equals("delete")) {
         String cfgVar = cfg.getContents();
         String oldCfg = JConfig.queryConfiguration(cfgVar);
-        if(oldCfg != null) {
+        if (oldCfg != null) {
           JConfig.kill(cfgVar);
           cfgChanged = true;
         }
       }
 
       String strStamp = cfg.getProperty("STAMP");
-      if(strStamp != null) {
+      if (strStamp != null) {
         long stamp = Long.parseLong(strStamp);
-        if(stamp > lastStamp) lastStamp = stamp;
+        if (stamp > lastStamp) lastStamp = stamp;
       }
     }
 

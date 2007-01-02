@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
 
 public class auctionTableModel extends BaseTransformation {
   private static final String neverBid = "--";
-  private List dispList;
+  private List<AuctionEntry> dispList;
   private Date futureForever = new Date(Long.MAX_VALUE);
   private XMLElement cvt = new XMLElement();
 
@@ -46,13 +46,13 @@ public class auctionTableModel extends BaseTransformation {
   }
 
   public int insert(Object o) {
-    dispList.add(o);
+    dispList.add((AuctionEntry)o);
     return dispList.size()-1;
   }
 
   public Object find(Comparison c) {
-    for(int i=0; i<dispList.size(); i++) {
-      if(c.match(dispList.get(i))) return dispList.get(i);
+    for (Object aDispList : dispList) {
+      if (c.match(aDispList)) return aDispList;
     }
 
     return null;
@@ -172,11 +172,11 @@ public class auctionTableModel extends BaseTransformation {
     return ret_icon;
   }
 
-  Integer Zero = new Integer(0);
+  Integer Zero = 0;
 
   public Object getSortByValueAt(int i, int j) {
     try {
-      AuctionEntry aEntry = (AuctionEntry) dispList.get(i);
+      AuctionEntry aEntry = dispList.get(i);
       switch(j) {
         case -1: return aEntry;
         case TableColumnController.ID: return aEntry.getIdentifier();
@@ -185,7 +185,7 @@ public class auctionTableModel extends BaseTransformation {
           return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), getMaxOrSnipe(aEntry));
         case TableColumnController.TIME_LEFT: return aEntry.getEndDate();
         case TableColumnController.TITLE: return aEntry.getTitle();
-        case TableColumnController.STATUS: return new Integer(buildEntryFlags(aEntry));
+        case TableColumnController.STATUS: return buildEntryFlags(aEntry);
         case TableColumnController.SELLER: return aEntry.getSeller();
         case TableColumnController.FIXED_PRICE:
           return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getBuyNow());
@@ -202,13 +202,12 @@ public class auctionTableModel extends BaseTransformation {
           return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), snipe);
         case TableColumnController.COMMENT:String s = aEntry.getComment(); return (s==null?"":s);
         case TableColumnController.END_DATE:return aEntry.getEndDate();
-        case TableColumnController.SELLER_FEEDBACK: if(aEntry.getFeedbackScore()==0) return Zero; else return new Integer(aEntry.getFeedbackScore());
+        case TableColumnController.SELLER_FEEDBACK: if(aEntry.getFeedbackScore()==0) return Zero; else return aEntry.getFeedbackScore();
         case TableColumnController.ITEM_LOCATION: return aEntry.getItemLocation();
-        case TableColumnController.BIDCOUNT: return new Integer(aEntry.getNumBidders());
+        case TableColumnController.BIDCOUNT: return aEntry.getNumBidders();
         case TableColumnController.JUSTPRICE: return aEntry.getUSCurBid();
         case TableColumnController.SELLER_POSITIVE_FEEDBACK: try {
-          int result = (int)(Double.parseDouble(aEntry.getPostiveFeedbackPercentage())*10.0);
-          return new Integer(result);
+          return (int)(Double.parseDouble(aEntry.getPostiveFeedbackPercentage())*10.0);
         } catch(Exception e) {
           return Zero;
         }
@@ -345,7 +344,7 @@ public class auctionTableModel extends BaseTransformation {
 
   public Object getValueAt(int rowIndex, int columnIndex) {
     try {
-      AuctionEntry aEntry = (AuctionEntry) dispList.get(rowIndex);
+      AuctionEntry aEntry = dispList.get(rowIndex);
       String errorNote = aEntry.getErrorPage()==null?"":"*";
       switch(columnIndex) {
         case -1: return aEntry;
@@ -414,7 +413,7 @@ public class auctionTableModel extends BaseTransformation {
         case TableColumnController.JUSTPRICE:
           return aEntry.getCurBid();
         case TableColumnController.SELLER_FEEDBACK:
-          return new Integer(aEntry.getFeedbackScore());
+          return aEntry.getFeedbackScore();
         case TableColumnController.SELLER_POSITIVE_FEEDBACK:
           String fbp = aEntry.getPostiveFeedbackPercentage();
           return (fbp == null || fbp.length() == 0)?"--":(fbp+ '%');
@@ -442,14 +441,14 @@ public class auctionTableModel extends BaseTransformation {
   }
 
   public auctionTableModel() {
-    dispList = new Vector();
+    dispList = new ArrayList<AuctionEntry>();
   }
 
   public int compare(int row1, int row2, ColumnStateList columnStateList) {
 	  int result = 0;
 	  
-	  for(ListIterator li = columnStateList.listIterator(); li.hasNext();) {
-		  ColumnState cs = (ColumnState)li.next();
+	  for(ListIterator<ColumnState> li = columnStateList.listIterator(); li.hasNext();) {
+		  ColumnState cs = li.next();
 		  
 		  Class type = getSortByColumnClass(cs.getColumn());
 

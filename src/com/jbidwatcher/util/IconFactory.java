@@ -32,7 +32,7 @@ import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 
 public class IconFactory {
-  private static Hashtable _icons = new Hashtable();
+  private static Hashtable<ImageIcon, Hashtable<Object, ImageIcon>> _icons = new Hashtable<ImageIcon, Hashtable<Object, ImageIcon>>();
 
   /**
    * Create a combination of two images, and return it as a new image.
@@ -45,16 +45,16 @@ public class IconFactory {
     if(leftImage == null) return rightImage;
     if(rightImage == null) return leftImage;
 
-    Hashtable combos = (Hashtable)_icons.get(leftImage);
+    Hashtable<Object, ImageIcon> combos = _icons.get(leftImage);
     if(combos == null) {
       ImageIcon new_icon = appendIcons(leftImage, rightImage);
-      combos = new Hashtable();
+      combos = new Hashtable<Object, ImageIcon>();
       combos.put(rightImage, new_icon);
       _icons.put(leftImage, combos);
       return new_icon;
     }
 
-    ImageIcon old_icon = (ImageIcon)combos.get(rightImage);
+    ImageIcon old_icon = combos.get(rightImage);
     if(old_icon == null) {
       _icons.remove(combos);
       old_icon = appendIcons(leftImage, rightImage);

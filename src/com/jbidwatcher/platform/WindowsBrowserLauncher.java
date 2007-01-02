@@ -66,13 +66,14 @@ public class WindowsBrowserLauncher {
    * quoted if it's not already.
    * 
    * @param cmd - The command to split out and build an array from.
-   * 
+   * @param replace - A string to replace any "%1" or %1 parameter with.
+   *
    * @return - An array of String values which are directly passed to Runtime.exec(...)
    */
   public static String[] splitCommandLine(String cmd, String replace) {
     cmd = replace(cmd, "\\", "\\\\");
     StreamTokenizer str = new StreamTokenizer(new StringReader(cmd));
-    Vector result = new Vector();
+    Vector<String> result = new Vector<String>();
     boolean found_param = false;
 
     str.resetSyntax();
@@ -100,7 +101,7 @@ public class WindowsBrowserLauncher {
     }
 
     for(int i=0; i<result.size(); i++) {
-      output[i] = (String)result.get(i);
+      output[i] = result.get(i);
       if(replace != null) {
         if(output[i].equals("\"%1\"") ||
            output[i].equals("%1")) {
@@ -164,7 +165,7 @@ public class WindowsBrowserLauncher {
    * registry operations.
    */
   public static String getBrowser(String protocol) {
-    String clientName=null;
+    String clientName;
 
     clientName = getKeyDefault("HKEY_CLASSES_ROOT\\\\" + protocol + "\\shell\\open\\command");
     if(clientName == null) {
@@ -246,7 +247,7 @@ public class WindowsBrowserLauncher {
     m.setAccessible(true);
 
     windowsName = toWindowsName(key);
-    value = m.invoke(null, new Object[]{new Integer(nativeHandle), windowsName});
+    value = m.invoke(null, nativeHandle, windowsName);
     WindowsRegCloseKey(nativeHandle);
 
     if (value == null) {
@@ -279,8 +280,8 @@ public class WindowsBrowserLauncher {
 
     m.setAccessible(true);
 
-    ret = m.invoke(null, new Object[]{new Integer(nativeHandle)});
-    return ((Integer) ret).intValue();
+    ret = m.invoke(null, nativeHandle);
+    return (Integer) ret;
   }
 
   /** 
@@ -303,9 +304,7 @@ public class WindowsBrowserLauncher {
                                                                            byte[].class, 
                                                                            int.class});
     m.setAccessible(true);
-    Object ret = m.invoke(null, new Object[]{new Integer(hkey), 
-                                             windowsAbsolutePath, 
-                                             new Integer(securityMask)});
+    Object ret = m.invoke(null, hkey, windowsAbsolutePath, securityMask);
     return (int[]) ret;
   }
 
@@ -367,7 +366,7 @@ public class WindowsBrowserLauncher {
       } else if (ch == '/') {
         windowsName.append('\\');
       } else if ((ch >= 'A') && (ch <= 'Z')) {
-        windowsName.append("/" + ch);
+        windowsName.append("/").append(ch);
       } else {
         windowsName.append(ch);
       }

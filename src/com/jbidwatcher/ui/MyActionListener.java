@@ -21,13 +21,15 @@ package com.jbidwatcher.ui;
  *  USA
  */
 
+import com.jbidwatcher.auction.AuctionEntry;
+
 import java.util.Vector;
 import javax.swing.JFrame;
 import java.awt.event.ActionListener;
 
 public abstract class MyActionListener implements ActionListener {
-  protected Vector m_entries;
+  protected Vector<AuctionEntry> m_entries;
   protected JFrame m_within;
-  public void setEntries(Vector allEntries) { m_entries = allEntries; }
+  public void setEntries(Vector<AuctionEntry> allEntries) { m_entries = allEntries; }
   public void setFrame(JFrame jf) { m_within = jf; }
 }

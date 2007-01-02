@@ -74,7 +74,7 @@ public class JConfig {
 
   //  A vector of ConfigListener classes who (once they've registered) will be told
   //  when a configuration change is made.
-  private static Vector _listeners = new Vector();
+  private static Vector<ConfigListener> _listeners = new Vector<ConfigListener>();
 
   //  Were there any configuration changes since the last updateComplete()?
   private static boolean _anyUpdates = false;
@@ -154,8 +154,7 @@ public class JConfig {
     setDebugging(queryConfiguration("debugging", "false").equals("true"));
 
     if(_anyUpdates) {
-      for(int i = 0; i<_listeners.size(); i++) {
-        ConfigListener jcl = (ConfigListener) _listeners.get(i);
+      for (ConfigListener jcl : _listeners) {
         jcl.updateConfiguration();
       }
     }
@@ -352,7 +351,7 @@ public class JConfig {
   }
 
   private static void passwordUnfixup_b64(Properties _inProps) {
-    Enumeration what_keys = _inProps.keys();
+    Enumeration<Object> what_keys = _inProps.keys();
 
     while(what_keys.hasMoreElements()) {
       String key = what_keys.nextElement().toString();
@@ -535,20 +534,20 @@ public class JConfig {
   }
 
   public static List getAllKeys() {
-    List keyList = new ArrayList(soleProperty.keySet());
+    List<String> keyList = new ArrayList<String>(soleProperty.stringPropertyNames());
     Collections.sort(keyList);
     return keyList;
   }
 
-  public static List getMatching(String prefix) {
+  public static List<String> getMatching(String prefix) {
     Set keySet = soleProperty.keySet();
-    List results = null;
+    List<String> results = null;
     int prefixLen = prefix.length();
 
-    for (Iterator iterator = keySet.iterator(); iterator.hasNext();) {
-      String s =  (String)iterator.next();
-      if(s.startsWith(prefix)) {
-        if(results == null) results = new ArrayList();
+    for (Object aKeySet : keySet) {
+      String s = (String) aKeySet;
+      if (s.startsWith(prefix)) {
+        if (results == null) results = new ArrayList<String>();
         results.add(s.substring(prefixLen));
       }
     }

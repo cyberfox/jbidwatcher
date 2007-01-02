@@ -37,10 +37,10 @@ public class JHTML implements JHTMLListener {
   protected int m_tokenIndex;
   protected int m_contentIndex;
   private JHTMLParser m_parser;
-  private Map contentMap;
-  private Map caselessContentMap;
-  private List contentList;
-  private List m_formList;
+  private Map<String, intPair> contentMap;
+  private Map<String, intPair> caselessContentMap;
+  private List<String> contentList;
+  private List<Form> m_formList;
   private Form m_curForm;
   private static boolean do_uber_debug=false;
 
@@ -50,10 +50,10 @@ public class JHTML implements JHTMLListener {
   }
 
   private void setup() {
-    caselessContentMap = new HashMap();
-    contentMap = new HashMap();
-    contentList = new ArrayList();
-    m_formList = new ArrayList();
+    caselessContentMap = new HashMap<String, intPair>();
+    contentMap = new HashMap<String, intPair>();
+    contentList = new ArrayList<String>();
+    m_formList = new ArrayList<Form>();
     m_curForm = null;
     reset();
   }
@@ -74,7 +74,7 @@ public class JHTML implements JHTMLListener {
   }
 
   public class Form {
-    private List allInputs;
+    private List<XMLElement> allInputs;
     private XMLElement formTag;
     private static final String FORM_VALUE = "value";
     private static final String FORM_SUBMIT = "submit";
@@ -87,19 +87,17 @@ public class JHTML implements JHTMLListener {
       formTag = new XMLElement();
       formTag.parseString('<' + initialTag + "/>");
 
-      allInputs = new ArrayList();
+      allInputs = new ArrayList<XMLElement>();
 
       if (do_uber_debug) ErrorManagement.logDebug("Name: " + formTag.getProperty("name", "(unnamed)"));
     }
 
     public String getName() { return formTag.getProperty("name"); }
     public boolean hasInput(String srchFor) {
-      Iterator it = allInputs.iterator();
-      while (it.hasNext()) {
-        XMLElement curInput = (XMLElement) it.next();
-        String name=curInput.getProperty("name");
-        if(name != null) {
-          if(srchFor.equalsIgnoreCase(name)) {
+      for (XMLElement curInput : allInputs) {
+        String name = curInput.getProperty("name");
+        if (name != null) {
+          if (srchFor.equalsIgnoreCase(name)) {
             return true;
           }
         }
@@ -108,9 +106,9 @@ public class JHTML implements JHTMLListener {
     }
 
     public boolean delInput(String srchFor) {
-      Iterator it = allInputs.iterator();
+      Iterator<XMLElement> it = allInputs.iterator();
       while (it.hasNext()) {
-        XMLElement curInput = (XMLElement) it.next();
+        XMLElement curInput = it.next();
         String name=curInput.getProperty("name");
         if(name != null) {
           if(srchFor.equalsIgnoreCase(name)) {
@@ -123,11 +121,11 @@ public class JHTML implements JHTMLListener {
     }
 
     public String getCGI() throws UnsupportedEncodingException {
-      Iterator it = allInputs.iterator();
+      Iterator<XMLElement> it = allInputs.iterator();
       StringBuffer rval = new StringBuffer("");
       String seperator = "";
       while(it.hasNext()) {
-        XMLElement curInput = (XMLElement) it.next();
+        XMLElement curInput = it.next();
 
         if(do_uber_debug) ErrorManagement.logDebug("Type == " + curInput.getProperty("type", "text"));
         if (rval.length() != 0) {
@@ -204,14 +202,11 @@ public class JHTML implements JHTMLListener {
     }
 
     public void setText(String key, String val) {
-      Iterator it = allInputs.iterator();
-
-      while (it.hasNext()) {
-        XMLElement curInput = (XMLElement) it.next();
+      for (XMLElement curInput : allInputs) {
         String name = curInput.getProperty("name");
 
-        if(name != null) {
-          if(name.equalsIgnoreCase(key)) {
+        if (name != null) {
+          if (name.equalsIgnoreCase(key)) {
             curInput.setProperty(FORM_VALUE, val);
           }
         }
@@ -219,7 +214,7 @@ public class JHTML implements JHTMLListener {
     }
   }
 
-  public List getForms() { return m_formList; }
+  public List<Form> getForms() { return m_formList; }
 
   /**
    * @brief Added to work with JHTMLParser, which takes a JHTMLListener (which this implements); this
@@ -282,24 +277,24 @@ public class JHTML implements JHTMLListener {
   public static String getFirstContent(String toSearch) {
     JHTML parser = new JHTML(new StringBuffer(toSearch));
 
-    return (String)parser.contentList.get(0);
+    return parser.contentList.get(0);
   }
 
   public String getFirstContent() {
     if(contentList.size() == 0) return null;
-    return (String)contentList.get(0);
+    return contentList.get(0);
   }
 
   public String getNextContent() {
     if( (m_contentIndex+1) >= contentList.size()) return null;
 
-    return (String)contentList.get(m_contentIndex++);
+    return contentList.get(m_contentIndex++);
   }
 
   public String getPrevContent() {
     if(m_contentIndex == 0) return null;
 
-    return (String)contentList.get(--m_contentIndex);
+    return contentList.get(--m_contentIndex);
   }
 
   public String getPrevContent(int farBack) {
@@ -309,7 +304,7 @@ public class JHTML implements JHTMLListener {
     }
 
     m_contentIndex -= farBack;
-    return (String)contentList.get(m_contentIndex);
+    return contentList.get(m_contentIndex);
   }
 
 //  None of these parameter definitions are needed right now.
@@ -326,9 +321,9 @@ public class JHTML implements JHTMLListener {
   public intPair lookup(String hunt, boolean caseless) {
     intPair at;
     if (caseless) {
-      at = (intPair) caselessContentMap.get(hunt.toLowerCase());
+      at = caselessContentMap.get(hunt.toLowerCase());
     } else {
-      at = (intPair) contentMap.get(hunt);
+      at = contentMap.get(hunt);
     }
     return at;
   }
@@ -339,13 +334,11 @@ public class JHTML implements JHTMLListener {
 
     m_tokenIndex = at.first+2;
     m_contentIndex = at.second+1;
-    return (String)contentList.get(m_contentIndex++);
+    return contentList.get(m_contentIndex++);
   }
 
   public String find(String hunt, boolean ignoreCase) {
-    for (Iterator it = contentList.iterator(); it.hasNext();) {
-      String nextContent = (String) it.next();
-
+    for (String nextContent : contentList) {
       if (nextContent.regionMatches(ignoreCase, 0, hunt, 0, hunt.length())) {
         return nextContent;
       }
@@ -372,9 +365,7 @@ public class JHTML implements JHTMLListener {
   }
 
   public String grep(Regex r1) {
-    for (Iterator it = contentList.iterator(); it.hasNext();) {
-      String nextContent = (String) it.next();
-
+    for (String nextContent : contentList) {
       if (r1.search(nextContent)) {
         //  This might not be safe...
         return nextContent;
@@ -385,12 +376,12 @@ public class JHTML implements JHTMLListener {
   }
 
   private String grepAfter(Regex r1, Regex ignore) {
-    for (Iterator it = contentList.iterator(); it.hasNext();) {
-      String contentStep = (String) it.next();
+    for (Iterator<String> it = contentList.iterator(); it.hasNext();) {
+      String contentStep = it.next();
       if(r1.search(contentStep)) {
-        Iterator save = it;
+        Iterator<String> save = it;
         if(it.hasNext()) {
-          String potential = (String)it.next();
+          String potential = it.next();
           if(ignore == null || !ignore.search(potential)) {
             contentLookup(contentStep, false);
             return potential;
@@ -456,14 +447,14 @@ public class JHTML implements JHTMLListener {
     return null;
   }
 
-  public List getAllLinks() {
-    List linkTags = null;
+  public List<String> getAllLinks() {
+    List<String> linkTags = null;
     String curTag = getNextTag();
 
     while(curTag != null) {
       if(curTag.startsWith("A ") || curTag.startsWith("a ")) {
         if(linkTags == null) {
-          linkTags = new ArrayList();
+          linkTags = new ArrayList<String>();
         }
         linkTags.add(curTag);
       }
@@ -473,14 +464,14 @@ public class JHTML implements JHTMLListener {
     return linkTags;
   }
 
-  public List getAllImages() {
-    HashSet linkTags = null;
+  public List<String> getAllImages() {
+    HashSet<String> linkTags = null;
     String curTag = getNextTag();
 
     while(curTag != null) {
       if(curTag.toLowerCase().startsWith("img ")) {
         if(linkTags == null) {
-          linkTags = new HashSet();
+          linkTags = new HashSet<String>();
         }
         linkTags.add(deAmpersand(curTag));
       }
@@ -488,42 +479,40 @@ public class JHTML implements JHTMLListener {
       curTag = getNextTag();
     }
 
-    return new ArrayList(linkTags);
+    return new ArrayList<String>(linkTags);
   }
 
-  public List getAllURLsOnPage(boolean viewOnly) {
+  public List<String> getAllURLsOnPage(boolean viewOnly) {
     // Add ALL auctions on myEbay bidding/watching page!
-    List addressTags = getAllLinks();
+    List<String> addressTags = getAllLinks();
     if(addressTags == null) return null;
-    List outEntries = null;
+    List<String> outEntries = null;
 
-    for(int i=0; i<addressTags.size(); i++) {
-      String curTag = (String)addressTags.get(i);
-
+    for (String curTag : addressTags) {
       //  Extract just the HREF portion (should look for HREF=\")
       int searchIndex = curTag.indexOf('"');
-      if(searchIndex != -1) {
+      if (searchIndex != -1) {
         String href = curTag.substring(searchIndex + 1);
 
         //  Find the end of the quoted string (hopefully)
         searchIndex = href.indexOf('"');
-        if(searchIndex != -1) {
+        if (searchIndex != -1) {
           href = href.substring(0, searchIndex);
 
           searchIndex = href.indexOf('#');
           //  As long as there isn't an anchor location...
-          if(searchIndex == -1) {
+          if (searchIndex == -1) {
             boolean isView = false;
-            if(viewOnly) {
+            if (viewOnly) {
               isView = href.indexOf("ViewItem") != -1;
               if (isView) {
-                href=deAmpersand(href);
+                href = deAmpersand(href);
               }
             }
 
             if (!viewOnly || isView) {
               if (outEntries == null) {
-                outEntries = new ArrayList();
+                outEntries = new ArrayList<String>();
               }
               outEntries.add(href);
             }
@@ -595,11 +584,9 @@ public class JHTML implements JHTMLListener {
   }
 
   public JHTML.Form getFormWithInput(String input) {
-    List forms = getForms();
-    Iterator it = forms.iterator();
-    while(it.hasNext()) {
-      JHTML.Form curForm = (JHTML.Form) it.next();
-      if(curForm.hasInput(input)) return curForm;
+    List<Form> forms = getForms();
+    for (Form curForm : forms) {
+      if (curForm.hasInput(input)) return curForm;
     }
 
     return null;

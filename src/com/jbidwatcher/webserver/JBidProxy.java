@@ -52,7 +52,7 @@ public class JBidProxy extends HTTPProxyClient {
   private static final String syndicate = "syndicate/";
   private static final String messageFinisher = "<br>Return to <a href=\"" + Constants.PROGRAM_NAME + "\">auction list</a>.";
 
-  private static List _item_list = null;
+  private static List<String> _item_list = null;
 
   public JBidProxy(Socket talkSock) {
     super(talkSock);
@@ -324,7 +324,7 @@ public class JBidProxy extends HTTPProxyClient {
 
         if(cur_item != -1) {
           if(cur_item != 0) {
-            sbOut.append(getHTMLForEntry("Prev", (String)_item_list.get(cur_item-1)));
+            sbOut.append(getHTMLForEntry("Prev", _item_list.get(cur_item-1)));
             sbOut.append("&nbsp;");
           }
           for(int i=0; i<_item_list.size(); i++) {
@@ -336,12 +336,12 @@ public class JBidProxy extends HTTPProxyClient {
             if (i == cur_item) {
               sbOut.append('(').append(showString).append(')');
             } else {
-              sbOut.append(getHTMLForEntry(showString, (String) _item_list.get(i)));
+              sbOut.append(getHTMLForEntry(showString, _item_list.get(i)));
             }
             sbOut.append("&nbsp;");
           }
           if(cur_item != (_item_list.size()-1)) {
-            sbOut.append(getHTMLForEntry("Next", (String)_item_list.get(cur_item+1)));
+            sbOut.append(getHTMLForEntry("Next", _item_list.get(cur_item+1)));
           }
         }
       }
@@ -374,8 +374,8 @@ public class JBidProxy extends HTTPProxyClient {
 
   private StringBuffer genItems(String s) {
     StringBuffer sb = new StringBuffer(1500);
-    Iterator aucIterate = AuctionsManager.getAuctionIterator();
-    ArrayList allEnded = new ArrayList();
+    Iterator<AuctionEntry> aucIterate = AuctionsManager.getAuctionIterator();
+    ArrayList<AuctionEntry> allEnded = new ArrayList<AuctionEntry>();
     boolean checkEnded = false;
 
     if(s.equals("ended")) checkEnded = true;
@@ -387,7 +387,7 @@ public class JBidProxy extends HTTPProxyClient {
     boolean done = false;
     int count = 0;
     while(!done && aucIterate.hasNext()) {
-      AuctionEntry addme = (AuctionEntry) aucIterate.next();
+      AuctionEntry addme = aucIterate.next();
       if(checkEnded)
         if(addme.isEnded())
           allEnded.add(addme);
@@ -408,7 +408,7 @@ public class JBidProxy extends HTTPProxyClient {
 
     int lastEntry = Math.max(0, allEnded.size()-Constants.SYNDICATION_ITEM_COUNT);
     for(int i=allEnded.size()-1; i>=lastEntry; i--) {
-      AuctionEntry ae = (AuctionEntry) allEnded.get(i);
+      AuctionEntry ae = allEnded.get(i);
       sb.append("<item>\n");
       sb.append("<title><![CDATA[");
       sb.append(JBidMouse.stripHigh(ae.getTitle()));
@@ -432,10 +432,10 @@ public class JBidProxy extends HTTPProxyClient {
     return sb;
   }
 
-  Map labelToDescription;
+  Map<String, String> labelToDescription;
 
   {
-    labelToDescription = new HashMap();
+    labelToDescription = new HashMap<String, String>();
     labelToDescription.put("ended", "List of items ended recently.");
     labelToDescription.put("ending", "List of items ending soon.");
     labelToDescription.put("bid", "List of items being bid/sniped on.");
@@ -455,7 +455,7 @@ public class JBidProxy extends HTTPProxyClient {
             append("</rss>\n");
   }
 
-  public static void setItems(Vector v) {
+  public static void setItems(Vector<String> v) {
     _item_list = v;
   }
 

@@ -9,7 +9,7 @@ import java.util.List;
  * User: mrs
  * Date: May 10, 2005
  * Time: 11:07:18 PM
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class TimeQueue {
   private Heap m_heap = new Heap(11);
@@ -27,9 +27,8 @@ public class TimeQueue {
         m_event = o;
     }
 
-    public boolean less(Object o) {
-        QObject cmp = (QObject) o;
-        return m_when < cmp.m_when;
+    public boolean less(QObject o) {
+      return m_when < o.m_when;
     }
 
     public Object getEvent() { return m_event; }

@@ -29,12 +29,12 @@ import java.util.*;
 import java.io.IOException;
 
 public class CookieJar {
-  private Map _cookies;
+  private Map<String, Cookie> _cookies;
   private boolean m_ignore_redirect_cookies = true;
   private final static boolean do_uber_debug = false;
 
   public CookieJar() {
-    _cookies = new TreeMap();
+    _cookies = new TreeMap<String, Cookie>();
   }
 
   public void ignoreCookiesInRedirects() {
@@ -46,7 +46,7 @@ public class CookieJar {
   }
 
   public Cookie getCookie(String keyName) {
-    return (Cookie)_cookies.get(keyName);
+    return _cookies.get(keyName);
   }
 
   /**
@@ -96,7 +96,7 @@ public class CookieJar {
     }
   }
 
-  public StringBuffer getAllCookiesAndPage(String pageName, String referer, boolean doPost, List pages) throws CookieException {
+  public StringBuffer getAllCookiesAndPage(String pageName, String referer, boolean doPost, List<String> pages) throws CookieException {
     URLConnection uc = getAllCookiesFromPage(pageName, referer, doPost, pages);
     if(uc == null) return null;
 
@@ -142,7 +142,7 @@ public class CookieJar {
   public URLConnection getAllCookiesFromPage(String pageName, String referer, boolean post) {
     return getAllCookiesFromPage(pageName, referer, post, null);
   }
-  public URLConnection getAllCookiesFromPage(String pageName, String referer, boolean post, List pages) {
+  public URLConnection getAllCookiesFromPage(String pageName, String referer, boolean post, List<String> pages) {
     String sendRequest = pageName;
 
     if(pages != null) pages.add(pageName);
@@ -157,7 +157,7 @@ public class CookieJar {
       }
     }
 
-    if(do_uber_debug && JConfig.debugging) {
+    if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) {
       debugRequest(sendRequest, post, cgi);
     }
     HttpURLConnection uc = initiateRequest(post, sendRequest, cgi, referer);
@@ -284,10 +284,9 @@ public class CookieJar {
     StringBuffer outBuf = null;
     Cookie stepper;
 
-    Iterator stepOver = _cookies.values().iterator();
-    while(stepOver.hasNext()) {
-      stepper = (Cookie)stepOver.next();
-      if(!stepper.getValue().equals("")) {
+    for (Cookie cookie : _cookies.values()) {
+      stepper = cookie;
+      if (!stepper.getValue().equals("")) {
         if (!firstThrough) {
           outBuf.append("; ");
         } else {

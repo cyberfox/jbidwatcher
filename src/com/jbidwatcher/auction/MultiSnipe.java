@@ -21,7 +21,6 @@ package com.jbidwatcher.auction;
  *  USA
  */
 
-import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.ErrorManagement;
 
 import java.util.*;
@@ -37,7 +36,7 @@ public class MultiSnipe {
   private com.jbidwatcher.util.Currency _defaultSnipeValue;
   private boolean _subtractShipping;
   private long _internalId;
-  private LinkedList auctionEntriesInThisGroup = new LinkedList();
+  private LinkedList<AuctionEntry> auctionEntriesInThisGroup = new LinkedList<AuctionEntry>();
   private static final int HEX_BASE = 16;
 
   private void setValues(Color groupColor, com.jbidwatcher.util.Currency snipeValue, long id, boolean subtractShipping) {
@@ -50,7 +49,10 @@ public class MultiSnipe {
     _internalId = id;
   }
 
-  /** @noinspection NonConstantStringShouldBeStringBuffer*/
+  /** @noinspection NonConstantStringShouldBeStringBuffer
+   * @param groupColor - The color for the group.
+   * @return - A string consisting of the hex equivalent for the color provided.
+   */
   //  Construct a standard HTML 'bgcolor="#ffffff"' style color string.
   public static String makeRGB(Color groupColor) {
     String red = Integer.toString(groupColor.getRed(), HEX_BASE);
@@ -111,14 +113,14 @@ public class MultiSnipe {
   /**
    *  Right now it doesn't use the passed in parameter.  I'm not sure
    *  what it would do with it, but it seems right to pass it in.
+   *
+   * @param ae - The auction that was won.
    */
   public void setWonAuction(AuctionEntry ae) {
-    List oldEntries = auctionEntriesInThisGroup;
-    auctionEntriesInThisGroup = new LinkedList();
-    Iterator it = oldEntries.iterator();
+    List<AuctionEntry> oldEntries = auctionEntriesInThisGroup;
+    auctionEntriesInThisGroup = new LinkedList<AuctionEntry>();
 
-    while(it.hasNext()) {
-      AuctionEntry aeFromList = (AuctionEntry) it.next();
+    for (AuctionEntry aeFromList : oldEntries) {
       ErrorManagement.logDebug("Cancelling Snipe for: " + aeFromList.getTitle() + '(' + aeFromList.getIdentifier() + ')');
       //  TODO --  Fix this up; this calls back into here, for the remove() function.  This needs to be seperated somehow.
       aeFromList.cancelSnipe(false);
@@ -127,15 +129,11 @@ public class MultiSnipe {
   }
 
   public boolean anyEarlier(AuctionEntry firingEntry) {
-    Iterator it = auctionEntriesInThisGroup.iterator();
-
-    while(it.hasNext()) {
-      AuctionEntry ae = (AuctionEntry) it.next();
-
+    for (AuctionEntry ae : auctionEntriesInThisGroup) {
       //  If any auction entry in the list ends BEFORE the one we're
       //  checking, then we really don't want to do anything until
       //  it's no longer in the list.
-      if(ae.getEndDate().before(firingEntry.getEndDate())) return true;
+      if (ae.getEndDate().before(firingEntry.getEndDate())) return true;
     }
 
     return false;
@@ -159,15 +157,12 @@ public class MultiSnipe {
   }
 
   public boolean isSafeToAdd(AuctionEntry ae) {
-    Iterator it = auctionEntriesInThisGroup.iterator();
-
-    while(it.hasNext()) {
-      AuctionEntry fromList = (AuctionEntry) it.next();
+    for (AuctionEntry fromList : auctionEntriesInThisGroup) {
       //  It's always safe to 'add' an entry that already exists,
       //  it'll just not get added.
       //noinspection ObjectEquality
-      if(fromList != ae) {
-        if(!isSafeMultiSnipe(fromList, ae)) return false;
+      if (fromList != ae) {
+        if (!isSafeMultiSnipe(fromList, ae)) return false;
       }
     }
 

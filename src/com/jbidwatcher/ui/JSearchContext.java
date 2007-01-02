@@ -147,8 +147,8 @@ public class JSearchContext extends JBidMouse {
       if(rows.length == 0) {
         JOptionPane.showMessageDialog(_inTable, no_items_msg, "No search(es) chosen", JOptionPane.INFORMATION_MESSAGE);
       } else {
-        for(int i=0; i<rows.length; i++) {
-          doSingle((Searcher)_inTable.getValueAt(rows[i], -1), cmd);
+        for (int row : rows) {
+          doSingle((Searcher) _inTable.getValueAt(row, -1), cmd);
         }
       }
     }
@@ -195,13 +195,12 @@ public class JSearchContext extends JBidMouse {
         prompt = "Are you sure you want to remove all selected searches?";
         //  Use the right parent!  FIXME -- mrs: 17-February-2003 23:53
         if(confirmDeletion(null, prompt)) {
-          ArrayList delList = new ArrayList();
-          for(int i=0; i<rows.length; i++) {
-            s = (Searcher)_inTable.getValueAt(rows[i], -1);
+          ArrayList<Searcher> delList = new ArrayList<Searcher>();
+          for (int row : rows) {
+            s = (Searcher) _inTable.getValueAt(row, -1);
             delList.add(s);
           }
-          for (int i = 0; i < delList.size(); i++) {
-            Searcher del = (Searcher) delList.get(i);
+          for (Searcher del : delList) {
             SearchManager.getInstance().deleteSearch(del);
           }
         }

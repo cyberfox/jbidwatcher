@@ -74,14 +74,14 @@ public class JTableDrop implements JDropHandler {
     //  someplace in the document...  --  mrs: 28-September-2001 03:53
     if(dropped.charAt(0) == '<') {
       JHTML tinyDocument = new JHTML(dropped);
-      List allItemsOnPage = tinyDocument.getAllURLsOnPage(true);
+      List<String> allItemsOnPage = tinyDocument.getAllURLsOnPage(true);
       String auctionURL;
 
       if(allItemsOnPage == null) return;
 
-      for(Iterator it=allItemsOnPage.iterator(); it.hasNext(); ) {
-        auctionURL = (String)it.next();
-        if(auctionURL != null) {
+      for (String anAllItemsOnPage : allItemsOnPage) {
+        auctionURL = anAllItemsOnPage;
+        if (auctionURL != null) {
           ErrorManagement.logDebug("Adding: " + auctionURL.trim());
           MQFactory.getConcrete("drop").enqueue(new DropQObject(auctionURL.trim(), _name, true));
         }

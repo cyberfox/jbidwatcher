@@ -1093,7 +1093,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   ////////////////////////////////
   //  Multisnipe utility functions
 
-  private static Map allMultiSnipes = new TreeMap();
+  private static Map<Long, MultiSnipe> allMultiSnipes = new TreeMap<Long, MultiSnipe>();
 
   /**
    * @brief Add a new multisnipe to the AuctionEntry class's list of
@@ -1105,7 +1105,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @param newMS - The newly created multisnipe to add.
    */
   private void addMulti(MultiSnipe newMS) {
-    Long newId = new Long(newMS.getIdentifier());
+    long newId = newMS.getIdentifier();
 
     if(!allMultiSnipes.containsKey(newId)) {
       allMultiSnipes.put(newId, newMS);
@@ -1121,7 +1121,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * with the passed in Multisnipe ID.
    */
   private MultiSnipe whichMulti(long id) {
-    return (MultiSnipe)allMultiSnipes.get(new Long(id));
+    return allMultiSnipes.get(id);
   }
 
   /////////////////////
@@ -1483,11 +1483,8 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
         if(minutes < 10) mpad = " ";
         if(seconds < 10) spad = " ";
 
-        Object timeArgs[] = {
-          new Long(days),
-          new Long(hours),
-          new Long(minutes),
-          new Long(seconds), dpad, hpad, mpad, spad };
+        Object[] timeArgs = { days, hours, minutes, seconds,
+                              dpad, hpad,  mpad,    spad };
 
         return(MessageFormat.format(mf, timeArgs));
       }

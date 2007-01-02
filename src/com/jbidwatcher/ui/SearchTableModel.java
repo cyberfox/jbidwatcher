@@ -21,7 +21,6 @@ package com.jbidwatcher.ui;
  *  USA
  */
 
-import com.jbidwatcher.ui.BaseTransformation;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.Constants;
@@ -65,8 +64,8 @@ public class SearchTableModel extends BaseTransformation {
       case 1: return s.getTypeName();
       case 2: return s.getSearch();
       case 3: return s.getServer();
-      case 4: return new Integer(s.getPeriod());
-      case 5: return new Long(s.getLastRun() + (s.getPeriod() * Constants.ONE_HOUR));
+      case 4: return s.getPeriod();
+      case 5: return s.getLastRun() + (s.getPeriod() * Constants.ONE_HOUR);
     }
 
     return null;
@@ -120,8 +119,8 @@ public class SearchTableModel extends BaseTransformation {
   public int compare(int row1, int row2, ColumnStateList columnStateList) {
 	  int result = 0;
 	  
-	  for(ListIterator li = columnStateList.listIterator(); li.hasNext();) {
-		  ColumnState cs = (ColumnState)li.next();
+	  for(ListIterator<ColumnState> li = columnStateList.listIterator(); li.hasNext();) {
+		  ColumnState cs = li.next();
 		  
 		  Class type = getSortByColumnClass(cs.getColumn());
 

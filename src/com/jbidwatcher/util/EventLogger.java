@@ -24,7 +24,6 @@ package com.jbidwatcher.util;
 import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.xml.XMLParseException;
 import com.jbidwatcher.xml.XMLSerialize;
-import com.jbidwatcher.util.ErrorManagement;
 
 import java.util.Iterator;
 import java.util.List;
@@ -56,7 +55,7 @@ public class EventLogger implements XMLSerialize {
    */
   private String _localId=null;
   private String _localTitle=null;
-  private List _allStatus = new Vector();
+  private List<EntryStatus> _allStatus = new Vector<EntryStatus>();
   private final EntryStatus nullStatus = new EntryStatus("Nothing has happened.", new Date());
 
   /*!@class EventLogger
@@ -99,23 +98,23 @@ public class EventLogger implements XMLSerialize {
    *
    * BUGBUG -- Fix this to work with XMLSerializeSimple if possible.  -- mrs: 23-February-2003 21:00
    * 
-   * @param curElement 
+   * @param curElement - The current element to load the events from.
    */
   public void fromXML(XMLElement curElement) {
-    Iterator logStep = curElement.getChildren();
+    Iterator<XMLElement> logStep = curElement.getChildren();
     EntryStatus newEntry;
 
     while(logStep.hasNext()) {
-      XMLElement curEntry = (XMLElement) logStep.next();
+      XMLElement curEntry = logStep.next();
 
       if(curEntry.getTagName().equals("entry")) {
         long msgtime = System.currentTimeMillis();
         String msg = "Nothing has happened.";
         int curCount = Integer.parseInt(curEntry.getProperty("COUNT"));
 
-        Iterator entryStep = curEntry.getChildren();
+        Iterator<XMLElement> entryStep = curEntry.getChildren();
         while(entryStep.hasNext()) {
-          XMLElement entryField = (XMLElement)entryStep.next();
+          XMLElement entryField = entryStep.next();
           if(entryField.getTagName().equals("message")) msg = entryField.getContents();
           if(entryField.getTagName().equals("date")) msgtime = Long.parseLong(entryField.getContents());
         } 
@@ -137,8 +136,7 @@ public class EventLogger implements XMLSerialize {
 
     xmlLog = new XMLElement("log");
 
-    for(int i=0; i< _allStatus.size(); i++) {
-      EntryStatus curEntry = (EntryStatus) _allStatus.get(i);
+    for (EntryStatus curEntry : _allStatus) {
       XMLElement xmlResult;
       XMLElement xmsg, xdate;
 
@@ -176,7 +174,7 @@ public class EventLogger implements XMLSerialize {
 
     if(inStatus != null) {
       if(_allStatus.size() > 0) {
-        lastStatus = (EntryStatus) _allStatus.get(_allStatus.size()-1);
+        lastStatus = _allStatus.get(_allStatus.size()-1);
       } else {
         lastStatus = nullStatus;
       }
@@ -213,7 +211,7 @@ public class EventLogger implements XMLSerialize {
       int i;
 
       for(i=0; i<_allStatus.size(); i++) {
-        lastStatus = (EntryStatus) _allStatus.get(i);
+        lastStatus = _allStatus.get(i);
         if(bulk) {
           sb.append(lastStatus.toBulkString());
         } else {

@@ -260,15 +260,15 @@ public class AuctionsUIModel {
     Currency realAccum = null;
 
     try {
-      for(int i = 0; i<rowList.length; i++) {
+      for (int aRowList : rowList) {
         AuctionEntry ae2;
         try {
-          ae2 = (AuctionEntry) _table.getValueAt(rowList[i], -1);
-        } catch(IndexOutOfBoundsException bounds) {
+          ae2 = (AuctionEntry) _table.getValueAt(aRowList, -1);
+        } catch (IndexOutOfBoundsException bounds) {
           ae2 = null;
           approx = true;
         }
-        if(ae2 != null) {
+        if (ae2 != null) {
           if (accum == null) {
             accum = ae2.getUSCurBid();
             realAccum = getBestBidValue(ae2);
@@ -295,7 +295,7 @@ public class AuctionsUIModel {
               }
             }
           }
-          if(ae2.getCurBid().getCurrencyType() != Currency.US_DOLLAR) approx=true;
+          if (ae2.getCurBid().getCurrencyType() != Currency.US_DOLLAR) approx = true;
         }
       }
     } catch(Currency.CurrencyTypeException e) {
@@ -405,8 +405,8 @@ public class AuctionsUIModel {
     }
   }
 
-  public List getColumns() {
-    ArrayList al = new ArrayList();
+  public List<String> getColumns() {
+    ArrayList<String> al = new ArrayList<String>();
     for(int i = 0; i<_table.getColumnCount(); i++) {
       al.add(_table.getColumnName(i));
     }
@@ -476,7 +476,7 @@ public class AuctionsUIModel {
     //  }
 
 
-    TreeMap initialToSaved = new TreeMap();
+    TreeMap<String, Integer> initialToSaved = new TreeMap<String, Integer>();
     //  This code would need to be somewhat revamped if we allowed
     //  arbitrary, or user-selected column names.
     try {
@@ -499,8 +499,7 @@ public class AuctionsUIModel {
             //System.err.println("move(" + preparedTable.getColumnModel().getColumnIndex(curColumnName) + ", " + Integer.parseInt(colIndex) + ")");
             //preparedTable.moveColumn(preparedTable.getColumnModel().getColumnIndex(curColumnName), Integer.parseInt(colIndex));
             //  Stored as: From, To
-            initialToSaved.put(curColumnName,
-                               new Integer(Integer.parseInt(colIndex)));
+            initialToSaved.put(curColumnName, Integer.parseInt(colIndex));
           }
           preparedTable.getColumn(curColumnName).setPreferredWidth(Integer.parseInt(colWidth));
         }
@@ -513,13 +512,12 @@ public class AuctionsUIModel {
     }
 
     if(!initialToSaved.isEmpty()) {
-      for (Iterator it = initialToSaved.keySet().iterator(); it.hasNext();) {
-        String colName = (String) it.next();
+      for (String colName : initialToSaved.keySet()) {
         int colFrom = preparedTable.getColumnModel().getColumnIndex(colName);
-        int colTo = ((Integer)initialToSaved.get(colName)).intValue();
+        int colTo = initialToSaved.get(colName);
         try {
           preparedTable.moveColumn(colFrom, colTo);
-        } catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
           //  Ignore it, and move on.
         }
       }

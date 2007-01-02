@@ -32,10 +32,10 @@ import java.util.List;
  * User: Administrator
  * Date: Jun 26, 2004
  * Time: 2:34:56 PM
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class JHTMLParser {
-  private List m_tokens;
+  private List<htmlToken> m_tokens;
   private JHTMLListener m_notify = null;
   private final static boolean do_uber_debug = false;
 
@@ -51,7 +51,7 @@ public class JHTMLParser {
   }
 
   private void setup() {
-    m_tokens = new Vector();
+    m_tokens = new Vector<htmlToken>();
   }
 
   protected void parse(StringBuffer trueBuffer) {
@@ -59,7 +59,7 @@ public class JHTMLParser {
     boolean suspicious = false;
     int firstClose=0;
     int charStep, start=0;
-    char ch = '\0', prev = '\0', next = '\0';
+    char ch, prev = '\0', next = '\0';
     int bufLen=trueBuffer.length();
     boolean spitNextTag = false;
 
@@ -176,7 +176,7 @@ public class JHTMLParser {
   }
 
   private void addToken(String newToken, int tokType) {
-    htmlToken finalToken = null;
+    htmlToken finalToken;
 
     switch(tokType) {
       //  Tags are the page-logic.
@@ -201,12 +201,11 @@ public class JHTMLParser {
         finalToken = new htmlToken(newToken, tokType);
       }
     }
-    if(finalToken != null) {
-      if(m_notify != null) {
-        m_notify.addToken(finalToken, m_tokens.size());
-      }
-      m_tokens.add(finalToken);
+
+    if(m_notify != null) {
+      m_notify.addToken(finalToken, m_tokens.size());
     }
+    m_tokens.add(finalToken);
   }
 
   //  Endtags start with '/', i.e. </A>.
@@ -249,7 +248,7 @@ public class JHTMLParser {
     return resultString.trim();
   }
 
-  public List getTokens() {
+  public List<htmlToken> getTokens() {
     return m_tokens;
   }
 
@@ -257,7 +256,7 @@ public class JHTMLParser {
 
   public htmlToken getTokenAt(int index) {
     if (index < getTokenCount()) {
-      return ((htmlToken) m_tokens.get(index));
+      return (m_tokens.get(index));
     }
 
     return null;

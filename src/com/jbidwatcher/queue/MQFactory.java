@@ -29,10 +29,10 @@ import java.util.*;
  */
 public class MQFactory {
   private static MQFactory _instance = null;
-  private static Map MQs;
+  private static Map<String, MessageQueue> MQs;
 
   private MQFactory() {
-    MQs = new TreeMap();
+    MQs = new TreeMap<String, MessageQueue>();
   }
 
   public static void addQueue(String queueName, MessageQueue whatQueue) {
@@ -50,7 +50,7 @@ public class MQFactory {
       _instance = new MQFactory();
     }
 
-    foundMQ = (MessageQueue) MQs.get(whatConcrete);
+    foundMQ = MQs.get(whatConcrete);
 
     if(foundMQ == null) {
       foundMQ = new PlainMessageQueue(whatConcrete);

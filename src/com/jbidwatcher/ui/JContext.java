@@ -25,20 +25,19 @@ import com.jbidwatcher.Constants;
 
 import javax.swing.*;
 import java.util.TreeMap;
-import java.util.Iterator;
 import java.awt.event.MouseEvent;
 
 /** @noinspection AbstractClassExtendsConcreteClass*/
 public abstract class JContext extends JMouseAdapter {
-  TreeMap m_menuToText;
+  TreeMap<String, JMenuItem> m_menuToText;
 
   protected JContext(JPopupMenu inPop) {
     super(inPop);
-    m_menuToText = new TreeMap();
+    m_menuToText = new TreeMap<String, JMenuItem>();
   }
 
   protected JContext() {
-    m_menuToText = new TreeMap();
+    m_menuToText = new TreeMap<String, JMenuItem>();
   }
 
   protected void beforePopup(JPopupMenu inPopup, MouseEvent e) {
@@ -47,8 +46,7 @@ public abstract class JContext extends JMouseAdapter {
   }
 
   protected void enableAll() {
-    for (Iterator it = m_menuToText.values().iterator(); it.hasNext();) {
-      JMenuItem jmi = (JMenuItem) it.next();
+    for (JMenuItem jmi : m_menuToText.values()) {
       jmi.setEnabled(true);
     }
   }
@@ -62,14 +60,14 @@ public abstract class JContext extends JMouseAdapter {
   }
 
   protected void setEnabled(String menuText, boolean enabled) {
-    JMenuItem pick = (JMenuItem)m_menuToText.get(menuText);
+    JMenuItem pick = m_menuToText.get(menuText);
     if(pick != null) {
       pick.setEnabled(enabled);
     }
   }
 
   protected void rename(String menuText, String newMenuText) {
-    JMenuItem pick = (JMenuItem)m_menuToText.get(menuText);
+    JMenuItem pick = m_menuToText.get(menuText);
     if(pick != null) {
       pick.setText(newMenuText);
       m_menuToText.remove(menuText);

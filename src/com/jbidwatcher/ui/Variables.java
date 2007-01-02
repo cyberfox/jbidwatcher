@@ -28,14 +28,14 @@ import java.util.HashMap;
 // Whenever the Regex matches on one of the names, this rule
 // adds the appropriate value to the StringBuffer.
 public class Variables extends ReplaceRule {
-  private HashMap varStorage;
-  public Variables(HashMap h) { varStorage = new HashMap(h); }
+  private HashMap<String, String> varStorage;
+  public Variables(HashMap<String, String> h) { varStorage = new HashMap<String, String>(h); }
   public void apply(StringBufferLike sb,RegRes rr) {
-    Object o=varStorage.get(rr.stringMatched());
+    String o=varStorage.get(rr.stringMatched());
     if(o == null)
       sb.append(rr.stringMatched());
     else
-      sb.append(o.toString());
+      sb.append(o);
   }
   // Needed if we are to clone this rule.  This
   // class is a singly linked list, the super class's

@@ -233,7 +233,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    * 
    * @return An iterator pointing to the first auction list.
    */
-  public static Iterator getAuctionIterator() {
+  public static Iterator<AuctionEntry> getAuctionIterator() {
     return FilterManager.getInstance().getAuctionIterator();
   }
 

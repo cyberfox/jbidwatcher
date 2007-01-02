@@ -21,8 +21,6 @@ package com.jbidwatcher.ui;
  *  USA
  */
 
-import com.jbidwatcher.ui.ColumnStateList;
-
 import java.util.List;
 import java.util.ArrayList;
 
@@ -31,7 +29,7 @@ import java.util.ArrayList;
  * User: Administrator
  * Date: Dec 2, 2004
  * Time: 7:54:23 PM
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class SortTransformation extends Transformation {
   private ColumnStateList mColumnStateList;
@@ -44,7 +42,7 @@ public class SortTransformation extends Transformation {
     if(mColumnStateList == null || mColumnStateList.size() == 0)
       return;
 
-    shuttlesort(new ArrayList(m_row_xform), m_row_xform, 0, m_row_xform.size());
+    shuttlesort(new ArrayList<Integer>(m_row_xform), m_row_xform, 0, m_row_xform.size());
   }
 
   public void setSortList(ColumnStateList columnStateList) {
@@ -62,7 +60,7 @@ public class SortTransformation extends Transformation {
   // arrays. The number of compares appears to vary between N-1 and
   // NlogN depending on the initial order but the main reason for
   // using it here is that, unlike qsort, it is stable.
-  private void shuttlesort(List from, List to, int low, int high) {
+  private void shuttlesort(List<Integer> from, List<Integer> to, int low, int high) {
     if (high - low < 2) {
       return;
     }
@@ -90,7 +88,7 @@ public class SortTransformation extends Transformation {
 
     if (high - low >= 4 && adjustCompare(getInt(from, middle - 1), getInt(from, middle)) <= 0) {
       for (int i = low; i < high; i++) {
-        to.set(i, (Integer)from.get(i));
+        to.set(i, from.get(i));
       }
       return;
     }

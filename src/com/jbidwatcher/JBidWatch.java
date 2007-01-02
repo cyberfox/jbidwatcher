@@ -85,7 +85,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    */
   private SimpleProxy sp;
 
-  private static ArrayList gcSafe = new ArrayList();
+  private static List<Object> gcSafe = new ArrayList<Object>();
   private JFrame mainFrame;
   private boolean _linkUp = true;
   private boolean _userValid;
@@ -329,7 +329,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * decide what to do about it.
    */
   private static void announceNewVersion() {
-    List buttons = new ArrayList();
+    List<String> buttons = new ArrayList<String>();
     buttons.add("Download");
     buttons.add("Ignore");
 
@@ -587,8 +587,8 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     String whatLaF = null;
 
     if(whichUI != null) {
-      for(int i=0; i<lafList.length; i++) {
-        if(whichUI.equals(lafList[i].getName())) whatLaF = lafList[i].getClassName();
+      for (UIManager.LookAndFeelInfo aLafList : lafList) {
+        if (whichUI.equals(aLafList.getName())) whatLaF = aLafList.getClassName();
       }
     }
 
@@ -1183,6 +1183,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     gcSafe.add(clockTimer);
 
     m_ap = new AudioPlayer();
+    gcSafe.add(m_ap);
 
     if(JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo();
   }

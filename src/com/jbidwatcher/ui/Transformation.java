@@ -1,13 +1,11 @@
 package com.jbidwatcher.ui;
 
-import com.jbidwatcher.ui.ColumnStateList;
-
 /**
  * Created by IntelliJ IDEA.
  * User: Morgan Schweers
  * Date: Mar 18, 2005
  * Time: 1:40:30 AM
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class Transformation extends BaseTransformation {
   Transformation() { }
@@ -29,13 +27,13 @@ public class Transformation extends BaseTransformation {
       initializeRows(m_tm);
       postInitialize();
     }
-    int newrow = ((Integer) m_row_xform.get(row)).intValue();
+    int newrow = m_row_xform.get(row);
     int newcol = col;
     if(col != -1) {
       if(!checkColumnModel()) {
         initializeColumns(m_tm);
       }
-      newcol = ((Integer) m_col_xform.get(col)).intValue();
+      newcol = m_col_xform.get(col);
     }
 
     return m_tm.getValueAt(newrow, newcol);
@@ -46,8 +44,8 @@ public class Transformation extends BaseTransformation {
       initializeRows(m_tm);
       postInitialize();
     }
-    int newrow1 = ((Integer) m_row_xform.get(row1)).intValue();
-    int newrow2 = ((Integer) m_row_xform.get(row2)).intValue();
+    int newrow1 = m_row_xform.get(row1);
+    int newrow2 = m_row_xform.get(row2);
 
     return m_tm.compare(newrow1, newrow2, columnStateList);
   }
@@ -69,7 +67,7 @@ public class Transformation extends BaseTransformation {
       postInitialize();
     }
     int newRow = m_tm.insert(newObj);
-    m_row_xform.add(new Integer(newRow));
+    m_row_xform.add(newRow);
     return m_row_xform.size()-1;
   }
 }

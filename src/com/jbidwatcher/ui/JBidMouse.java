@@ -217,7 +217,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     _in_deleting = true;
 
-    Vector deleteIds = new Vector();
+    Vector<AuctionEntry> deleteIds = new Vector<AuctionEntry>();
     StringBuffer wholeDelete = new StringBuffer();
     int[] rowList = getPossibleRows();
     Dimension statusBox;
@@ -271,11 +271,11 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
 
     if(JConfig.queryConfiguration("prompt.hide_delete_confirm", "false").equals("true")) {
-      for(int i=0; i<deleteIds.size(); i++) {
-        AuctionsManager.getInstance().delEntry((AuctionEntry)deleteIds.get(i));
+      for (AuctionEntry deleteId : deleteIds) {
+        AuctionsManager.getInstance().delEntry(deleteId);
       }
     } else {
-      List buttons = new ArrayList();
+      List<String> buttons = new ArrayList<String>();
       buttons.add("TEXT Are you sure you want to delete these auctions: ");
       buttons.add("Yes");
       buttons.add("TEXT    ");
@@ -292,8 +292,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
           } else {
             if(actionString.equals("Yes")) {
               //  Delete all those items...
-              for(int i=0; i<m_entries.size(); i++) {
-                AuctionsManager.getInstance().delEntry((AuctionEntry)m_entries.get(i));
+              for (AuctionEntry m_entry : m_entries) {
+                AuctionsManager.getInstance().delEntry(m_entry);
               }
               if(m_dontprompt) {
                 JConfig.setConfiguration("prompt.hide_delete_confirm", "true");
@@ -493,15 +493,14 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     //  Build a temporary table, because the items will vanish out of
     //  the table when we start refiltering them, and that will mess
     //  everything up.
-    Vector tempTable = new Vector(rowList.length);
-    for(int i=0; i<rowList.length; i++) {
-      AuctionEntry moveEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
+    Vector<AuctionEntry> tempTable = new Vector<AuctionEntry>(rowList.length);
+    for (int aRowList : rowList) {
+      AuctionEntry moveEntry = (AuctionEntry) getIndexedEntry(aRowList);
       tempTable.add(moveEntry);
     }
 
     //  Now move all entries in the temporary table to the new tab.
-    for(int i=0; i<tempTable.size(); i++) {
-      AuctionEntry moveEntry = (AuctionEntry) tempTable.get(i);
+    for (AuctionEntry moveEntry : tempTable) {
       moveEntry.setCategory(tab);
       FilterManager.getInstance().refilterAuction(moveEntry, true);
     }
@@ -727,12 +726,12 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void showComplexInformation(int[] rowList) {
     StringBuffer prompt = new StringBuffer();
-    for(int i=0; i<rowList.length; i++) {
-      AuctionEntry stepAE = (AuctionEntry)getIndexedEntry(rowList[i]);
+    for (int aRowList : rowList) {
+      AuctionEntry stepAE = (AuctionEntry) getIndexedEntry(aRowList);
       prompt.append(buildInfoHTML(stepAE, false)).append("<hr>");
     }
     Dimension statusBox = new Dimension(480, Math.min(372, rowList.length * 30 + 200));
-    Vector buttons = new Vector(2);
+    Vector<String> buttons = new Vector<String>(2);
     buttons.add("Continue");
     MyActionListener al = new MyActionListener() {
         public void actionPerformed(ActionEvent listen_ae) {
@@ -1183,7 +1182,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     int[] rowList = getPossibleRows();
 
     if(rowList.length != 0) {
-      Vector multiAuctionIds = new Vector();
+      Vector<String> multiAuctionIds = new Vector<String>();
       int i;
 
       for(i=0; i<rowList.length; i++) {
@@ -1242,10 +1241,10 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoUpdateAll() {
-    Iterator stepThrough = AuctionsManager.getAuctionIterator();
+    Iterator<AuctionEntry> stepThrough = AuctionsManager.getAuctionIterator();
 
     while(stepThrough.hasNext()) {
-      AuctionEntry ae = (AuctionEntry) stepThrough.next();
+      AuctionEntry ae = stepThrough.next();
       if(!ae.isEnded()) {
         ae.setNeedsUpdate();
       }
@@ -1262,10 +1261,10 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       //  Clear all dropped or programmatically added auctions.
       MQFactory.getConcrete("drop").clear();
 
-      Iterator stepThrough = AuctionsManager.getAuctionIterator();
+      Iterator<AuctionEntry> stepThrough = AuctionsManager.getAuctionIterator();
 
       while(stepThrough.hasNext()) {
-        AuctionEntry ae = (AuctionEntry) stepThrough.next();
+        AuctionEntry ae = stepThrough.next();
         if(!ae.isEnded()) {
           ae.clearNeedsUpdate();
           ae.pauseUpdate();
@@ -1594,15 +1593,15 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     if(tabMenu != null) {
       tabMenu.removeAll();
-      List tabs = FilterManager.getInstance().allCategories();
+      List<String> tabs = FilterManager.getInstance().allCategories();
       if(tabs == null) {
         tabMenu.setEnabled(false);
       } else {
         tabs.remove("selling");
         tabMenu.setEnabled(true);
         tabMenu.add(new JPopupMenu.Separator());
-        for(Iterator it = tabs.iterator(); it.hasNext(); ) {
-          tabMenu.add(makeMenuItem((String)it.next())).addActionListener(tabActions);
+        for (String tab : tabs) {
+          tabMenu.add(makeMenuItem(tab)).addActionListener(tabActions);
         }
       }
     }
@@ -1669,13 +1668,13 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       boolean anyFixed = false;
       boolean anyEnded = false;
       boolean anyCurrent = false;
-      for (int i = 0; i < rowList.length; i++) {
-        Object line = getIndexedEntry(rowList[i]);
+      for (int aRowList : rowList) {
+        Object line = getIndexedEntry(aRowList);
         AuctionEntry step = (AuctionEntry) line;
-        if(step.isSniped()) anySniped = true;
-        if(step.isFixed()) anyFixed = true;
-        if(step.isEnded()) anyEnded = true;
-        if(!step.isEnded()) anyCurrent = true;
+        if (step.isSniped()) anySniped = true;
+        if (step.isFixed()) anyFixed = true;
+        if (step.isEnded()) anyEnded = true;
+        if (!step.isEnded()) anyCurrent = true;
       }
 
       if(!anySniped) disable("Cancel snipe");

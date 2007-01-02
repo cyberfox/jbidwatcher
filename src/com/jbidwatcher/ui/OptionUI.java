@@ -73,10 +73,10 @@ public class OptionUI {
 
     if(endResult == null || endResult.equals("") ||
        result == null || result.equals(JOptionPane.UNINITIALIZED_VALUE)) {
-      buttonChoiceObject = new Integer(JOptionPane.CANCEL_OPTION);
+      buttonChoiceObject = JOptionPane.CANCEL_OPTION;
     } else {
       if(result.getClass() == String.class && result.equals("")) {
-        buttonChoiceObject = new Integer(JOptionPane.OK_OPTION);
+        buttonChoiceObject = JOptionPane.OK_OPTION;
       } else {
         buttonChoiceObject = new Integer(result.toString());
       }
@@ -84,7 +84,7 @@ public class OptionUI {
 
     boolean is_cancelled = false;
     //  Did they click cancel?
-    whatButton = buttonChoiceObject.intValue();
+    whatButton = buttonChoiceObject;
     if(whatButton == JOptionPane.CANCEL_OPTION) {
       is_cancelled = true;
     }
@@ -156,6 +156,7 @@ public class OptionUI {
    * hyperlinks properly, and chains to the Hyperactive module.
    *
    * @param sb - The StringBuffer to fill in as the text.
+   * @param inSize - The preferred size for the editor.
    * @param fixed - Whether it's fixed in position or not.
    *
    * @return - A JBEditorPane to be embedded in a frame.
@@ -309,11 +310,12 @@ public class OptionUI {
    * @param inSize - The size to show it at.
    * @param frameName - The name of the frame to show.
    * @param choices - The array of choices to show.
+   * @param borderTitle - The title to surround the panel with.
    * @param al - Who to notify that a choice was made.
    *
    * @return - The JFrame of the display.
    */
-  public JFrame showChoiceTextDisplay(StringBuffer inSB, Dimension inSize, String frameName, List choices, String borderTitle, ActionListener al) {
+  public JFrame showChoiceTextDisplay(StringBuffer inSB, Dimension inSize, String frameName, List<String> choices, String borderTitle, ActionListener al) {
     JBEditorPane jep = getBasicEditor(inSB, inSize, true);
 
     JFrame otherFrame = new JFrame(frameName);
@@ -334,20 +336,19 @@ public class OptionUI {
 
     boolean isFirst = true;
     JButton firstButton = null;
-    for(int i=0; i<choices.size(); i++) {
-      String info = (String)choices.get(i);
-      if(info.startsWith("CHECK")) {
+    for (String info : choices) {
+      if (info.startsWith("CHECK")) {
         JCheckBox tmpCheck = new JCheckBox(info.substring(6));
         tmpCheck.addActionListener(al);
         bottomPanel.add(tmpCheck);
-      } else if(info.startsWith("TEXT")) {
+      } else if (info.startsWith("TEXT")) {
         JLabel tmpLabel = new JLabel(info.substring(5));
         bottomPanel.add(tmpLabel);
       } else {
         JButton step_button = new JButton(info);
         step_button.addActionListener(al);
         bottomPanel.add(step_button);
-        if(isFirst) {
+        if (isFirst) {
           isFirst = false;
           firstButton = step_button;
         }
@@ -379,6 +380,7 @@ public class OptionUI {
    * checkbox to be set (most often for "don't ever show me this again."),
    * and it will set the configuration appropriately.
    *
+   * @param parent - The higher level component to become a child of; this is to attempt to handle modal blocking dialog issues.
    * @param message - The message to display.
    * @param title - The window title.
    * @param tf_config - The configuration value that will be set to true if
@@ -393,7 +395,8 @@ public class OptionUI {
    *
    * @return - The button value selected, usually of
    *           JOptionPane.CANCEL_OPTION or OK_OPTION, or the val_config
-   *           stored value, or the defaultOption.  */
+   *           stored value, or the defaultOption.
+   */
   public int promptWithCheckbox(Component parent, String message, String title, String tf_config, String val_config, int optionType, int defaultOption) {
     Integer buttonChoiceObject;
     Object[] myComponents;
@@ -433,7 +436,7 @@ public class OptionUI {
     result = jopPrompt.getValue();
 
     if(result == null || result.toString().equals("") || result.equals(JOptionPane.UNINITIALIZED_VALUE)) {
-      buttonChoiceObject = new Integer(JOptionPane.CANCEL_OPTION);
+      buttonChoiceObject = JOptionPane.CANCEL_OPTION;
     } else {
       buttonChoiceObject = new Integer(result.toString());
     }
@@ -445,6 +448,6 @@ public class OptionUI {
       JConfig.setConfiguration(val_config, buttonChoiceObject.toString());
     }
 
-    return buttonChoiceObject.intValue();
+    return buttonChoiceObject;
   }
 }

@@ -4,11 +4,11 @@ package com.jbidwatcher.ui;
  * User: Morgan Schweers
  * Date: Jun 3, 2005
  * Time: 2:11:32 AM
- * To change this template use File | Settings | File Templates.
+ *
+ * Contains the basic list of columns for potential display, and their display-names.
  */
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Iterator;
 import java.util.Collection;
 
 public class TableColumnController {
@@ -37,32 +37,32 @@ public class TableColumnController {
   public static final int SNIPE_TOTAL=20;
 
   public static final int COLUMN_COUNT=21;
-  private static Map m_column_map;
+  private static Map<Integer, String> m_column_map;
 
   private TableColumnController() {
-    m_column_map = new HashMap(COLUMN_COUNT*3);
+    m_column_map = new HashMap<Integer, String>(COLUMN_COUNT*3);
 
-    m_column_map.put(new Integer(ID), "Number");
-    m_column_map.put(new Integer(CUR_BID), "Current");
-    m_column_map.put(new Integer(SNIPE_OR_MAX), "Max");
-    m_column_map.put(new Integer(TIME_LEFT), "Time left");
-    m_column_map.put(new Integer(TITLE), "Description");
-    m_column_map.put(new Integer(STATUS), "Status");
-    m_column_map.put(new Integer(SELLER), "Seller");
-    m_column_map.put(new Integer(SHIPPING_INSURANCE), "Shipping");
-    m_column_map.put(new Integer(BIDDER), "High Bidder");
-    m_column_map.put(new Integer(MAX), "Max Bid");
-    m_column_map.put(new Integer(SNIPE), "Snipe Bid");
-    m_column_map.put(new Integer(COMMENT), "Comment");
-    m_column_map.put(new Integer(END_DATE), "End Date");
-    m_column_map.put(new Integer(FIXED_PRICE), "Buy Price");
-    m_column_map.put(new Integer(SELLER_FEEDBACK), "Feedback");
-    m_column_map.put(new Integer(SELLER_POSITIVE_FEEDBACK), "Feedback %");
-    m_column_map.put(new Integer(ITEM_LOCATION), "Location");
-    m_column_map.put(new Integer(BIDCOUNT), "# of bids");
-    m_column_map.put(new Integer(JUSTPRICE), "Price");
-    m_column_map.put(new Integer(CUR_TOTAL), "Total");
-    m_column_map.put(new Integer(SNIPE_TOTAL), "Snipe Max");
+    m_column_map.put(ID, "Number");
+    m_column_map.put(CUR_BID, "Current");
+    m_column_map.put(SNIPE_OR_MAX, "Max");
+    m_column_map.put(TIME_LEFT, "Time left");
+    m_column_map.put(TITLE, "Description");
+    m_column_map.put(STATUS, "Status");
+    m_column_map.put(SELLER, "Seller");
+    m_column_map.put(SHIPPING_INSURANCE, "Shipping");
+    m_column_map.put(BIDDER, "High Bidder");
+    m_column_map.put(MAX, "Max Bid");
+    m_column_map.put(SNIPE, "Snipe Bid");
+    m_column_map.put(COMMENT, "Comment");
+    m_column_map.put(END_DATE, "End Date");
+    m_column_map.put(FIXED_PRICE, "Buy Price");
+    m_column_map.put(SELLER_FEEDBACK, "Feedback");
+    m_column_map.put(SELLER_POSITIVE_FEEDBACK, "Feedback %");
+    m_column_map.put(ITEM_LOCATION, "Location");
+    m_column_map.put(BIDCOUNT, "# of bids");
+    m_column_map.put(JUSTPRICE, "Price");
+    m_column_map.put(CUR_TOTAL, "Total");
+    m_column_map.put(SNIPE_TOTAL, "Snipe Max");
   }
 
   public static TableColumnController getInstance() {
@@ -70,24 +70,22 @@ public class TableColumnController {
   }
 
   public String getColumnName(int index) {
-    Integer col_index = new Integer(index);
-    return (String)m_column_map.get(col_index);
+    return m_column_map.get(index);
   }
 
   public int getColumnNumber(String colName) {
     if(colName.equals("Ended at")) colName = "End Date";
 
-    for (Iterator it = m_column_map.entrySet().iterator(); it.hasNext();) {
-      Map.Entry entry = (Map.Entry) it.next();
-      if(entry.getValue().equals(colName)) {
-        return ((Integer)entry.getKey()).intValue();
+    for (Map.Entry<Integer, String> entry : m_column_map.entrySet()) {
+      if (entry.getValue().equals(colName)) {
+        return entry.getKey();
       }
     }
 
     return -1;
   }
 
-  public Collection getColumnNames() {
+  public Collection<String> getColumnNames() {
     return m_column_map.values();
   }
 }

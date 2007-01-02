@@ -65,6 +65,7 @@ import java.util.*;
  *         >Marc.DeScheemaecker@advalvas.be</A>&gt;
  * @version 1.5
  */
+@SuppressWarnings({"JavaDoc"})
 public class XMLElement {
   /**
    * Major version of NanoXML.
@@ -87,14 +88,14 @@ public class XMLElement {
   /**
    * The attributes given to the object.
    */
-  protected HashMap _attributes;
+  protected HashMap<String, String> _attributes;
 
 
   /**
    * Subobjects of the object. The subobjects are of class XMLElement
    * themselves.
    */
-  protected List _children;
+  protected List<XMLElement> _children;
 
 
   /**
@@ -119,7 +120,7 @@ public class XMLElement {
   /**
    * Conversion table for &amp;...; tags.
    */
-  protected HashMap _conversionTable;
+  protected HashMap<String, String> _conversionTable;
 
 
   /**
@@ -166,8 +167,9 @@ public class XMLElement {
    * @see XMLElement#XMLElement()
    * @see XMLElement#XMLElement(boolean)
    * @see XMLElement#XMLElement(HashMap,boolean)
+   * @param conversionTable - Quoted string to character conversion table.
    */
-  public XMLElement(HashMap conversionTable) {
+  public XMLElement(HashMap<String, String> conversionTable) {
     this(conversionTable, false, true);
   }
 
@@ -184,6 +186,7 @@ public class XMLElement {
    * @see XMLElement#XMLElement()
    * @see XMLElement#XMLElement(HashMap)
    * @see XMLElement#XMLElement(HashMap,boolean)
+   * @param skipLeadingWhitespace - Ignore white space that starts the tag content.
    */
   public XMLElement(boolean skipLeadingWhitespace) {
     this(null, skipLeadingWhitespace, true);
@@ -203,8 +206,10 @@ public class XMLElement {
    * @see XMLElement#XMLElement()
    * @see XMLElement#XMLElement(boolean)
    * @see XMLElement#XMLElement(HashMap)
+   * @param conversionTable - Quoted string to character conversion table.
+   * @param skipLeadingWhitespace - Ignore white space that starts the tag content.
    */
-  public XMLElement(HashMap conversionTable,
+  public XMLElement(HashMap<String, String> conversionTable,
                     boolean    skipLeadingWhitespace) {
     this(conversionTable, skipLeadingWhitespace, true);
   }
@@ -228,16 +233,19 @@ public class XMLElement {
    * @see XMLElement#XMLElement(boolean)
    * @see XMLElement#XMLElement(HashMap)
    * @see XMLElement#XMLElement(HashMap,boolean)
+   * @param conversionTable - Quoted string to character conversion table.
+   * @param skipLeadingWhitespace - Ignore white space that starts the tag content.
+   * @param fillBasicConversionTable - Add in the fundamental HTML quoted entities if this is true.
    */
-  private XMLElement(HashMap conversionTable,
+  private XMLElement(HashMap<String, String> conversionTable,
                      boolean   skipLeadingWhitespace,
                      boolean   fillBasicConversionTable) {
     _skipLeadingWhitespace = skipLeadingWhitespace;
     _tagName = null;
     _contents = null;
-    _attributes = new HashMap(10);
-    _children = new ArrayList(10);
-    _conversionTable = conversionTable==null?new HashMap(10):new HashMap(conversionTable);
+    _attributes = new HashMap<String, String>(10);
+    _children = new ArrayList<XMLElement>(10);
+    _conversionTable = conversionTable==null?new HashMap<String, String>(10):new HashMap<String, String>(conversionTable);
     _lineNr = 0;
 
     if (fillBasicConversionTable)
@@ -259,6 +267,7 @@ public class XMLElement {
 
   /**
    * Returns the number of subobjects of the object.
+   * @return - The number of children of this element.
    */
   public int countChildren() {
     return _children.size();
@@ -267,27 +276,31 @@ public class XMLElement {
 
   /**
    * Enumerates the attribute names.
+   * @return - The list of attribute names.
    */
-  public Iterator getAttributes() {
+  public Iterator<String> getAttributes() {
     return _attributes.keySet().iterator();
   }
 
 
   /**
    * Enumerates the subobjects of the object.
+   * @return - An iterator over the children of this element.
    */
-  public Iterator getChildren() {
+  public Iterator<XMLElement> getChildren() {
     return _children.iterator();
   }
 
 
   /**
    * Returns the specifically named child.
+   * @param tagName - The child tag to get.
+   * @return - The element identified by the named child tag.
    */
   public XMLElement getChild(String tagName) {
-    Iterator step = getChildren();
+    Iterator<XMLElement> step = getChildren();
     while(step.hasNext()) {
-      XMLElement child = (XMLElement)step.next();
+      XMLElement child = step.next();
 
       if(child.getTagName().equals(tagName)) {
         return child;
@@ -320,7 +333,7 @@ public class XMLElement {
    * <CODE>null</CODE>.
    */
   public String getProperty(String key) {
-    return (String)_attributes.get(key.toLowerCase());
+    return _attributes.get(key.toLowerCase());
   }
 
 
@@ -330,7 +343,7 @@ public class XMLElement {
    * If the property doesn't exist, <I>defaultValue</I> is returned.
    */
   public String getProperty(String key, String defaultValue) {
-    String result = (String)_attributes.get(key.toLowerCase());
+    String result = _attributes.get(key.toLowerCase());
 
     if(result == null) result = defaultValue;
 
@@ -405,10 +418,10 @@ public class XMLElement {
    * stringbuffer, untouched, if there are no attributes.
    */
   private StringBuffer allAttribs(StringBuffer attrList) {
-    Iterator attrStep = getAttributes();
+    Iterator<String> attrStep = getAttributes();
 
     while(attrStep.hasNext()) {
-      String attrName = (String)attrStep.next();
+      String attrName = attrStep.next();
       attrList.append(' ');
       attrList.append(attrName);
       attrList.append("=\"");
@@ -452,11 +465,11 @@ public class XMLElement {
     } else {
       wholeXML.append('>');
       if (_contents == null) {
-        Iterator xmlStep = getChildren();
+        Iterator<XMLElement> xmlStep = getChildren();
 
         wholeXML.append('\n');
         while (xmlStep.hasNext()) {
-          ((XMLElement)xmlStep.next()).toStringBuffer(wholeXML, depth+1);
+          (xmlStep.next()).toStringBuffer(wholeXML, depth+1);
         }
 
         prependSpaces(wholeXML, depth);
@@ -1307,7 +1320,7 @@ public class XMLElement {
           result.append((char) Integer.parseInt(key.substring(1), 10));
         }
       } else {
-        String cvt = (String)_conversionTable.get(key);
+        String cvt = _conversionTable.get(key);
         if(cvt == null) {
           result.append('&').append(key).append(';');
         } else {

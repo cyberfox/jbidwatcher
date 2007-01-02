@@ -22,7 +22,6 @@ package com.jbidwatcher.xml;
  */
 
 import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.xml.XMLSerialize;
 import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.AuctionEntry;
 
@@ -31,7 +30,6 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.*;
 import java.io.*;
 import java.util.List;
-import java.util.Iterator;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 
@@ -40,13 +38,12 @@ import java.text.SimpleDateFormat;
  * User: Morgan Schweers
  * Date: Mar 24, 2006
  * Time: 1:47:44 AM
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class JTransformer implements ErrorListener, URIResolver {
-  public void transform(List auctions) {
+  public void transform(List<XMLSerialize> auctions) {
     StringBuffer data = new StringBuffer("<auctions>\n");
-    for (Iterator it = auctions.iterator(); it.hasNext();) {
-      XMLSerialize xs = (XMLSerialize) it.next();
+    for (XMLSerialize xs : auctions) {
       data.append(xs.toXML().toString(1));
     }
     data.append("</auctions>\n");
@@ -94,7 +91,7 @@ public class JTransformer implements ErrorListener, URIResolver {
       // can be a DOM node, SAX stream, or a java out
       // stream/reader
 
-      Result transResult = null;
+      Result transResult;
       StringWriter sw = null;
       if(xmlOutputFile == null) {
         sw = new StringWriter();

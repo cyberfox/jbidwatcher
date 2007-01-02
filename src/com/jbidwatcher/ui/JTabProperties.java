@@ -37,7 +37,7 @@ import java.util.List;
  * User: Morgan Schweers
  * Date: Jan 11, 2006
  * Time: 2:05:32 AM
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class JTabProperties extends JConfigTab implements ActionListener {
   private String _tab;
@@ -51,7 +51,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
   private String LOST_TARGET;
   private String OTHER_TARGET;
 
-  private Map columns2Boxes = null;
+  private Map<String, JCheckBox> columns2Boxes = null;
 
   public JTabProperties(String tabName) {
     super.setLayout(new BorderLayout());
@@ -78,7 +78,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
   }
 
   public void setColumnStatus(String colName, boolean status) {
-    JCheckBox jcb = (JCheckBox)columns2Boxes.get(colName);
+    JCheckBox jcb = columns2Boxes.get(colName);
     if(jcb != null) jcb.setSelected(status);
   }
 
@@ -113,13 +113,12 @@ public class JTabProperties extends JConfigTab implements ActionListener {
 
   private static void prepareComboBox(JComboBox target) {
     target.removeAllItems();
-    List tabs = FilterManager.getInstance().allCategories();
+    List<String> tabs = FilterManager.getInstance().allCategories();
 
     target.setEditable(true);
     if(tabs != null) {
       tabs.remove("selling");
-      for (Iterator it = tabs.iterator(); it.hasNext();) {
-        String tabName = (String) it.next();
+      for (String tabName : tabs) {
         target.addItem(tabName);
       }
     }
@@ -127,19 +126,19 @@ public class JTabProperties extends JConfigTab implements ActionListener {
 
   private JPanel buildColumnPanel() {
     JPanel columnChecks = new JPanel();
-    if(columns2Boxes == null) columns2Boxes = new TreeMap();
+    if(columns2Boxes == null) columns2Boxes = new TreeMap<String, JCheckBox>();
 
     columnChecks.setBorder(BorderFactory.createTitledBorder("Custom Column Settings"));
 
     JPanel internal = new JPanel();
     internal.setLayout(new GridLayout(0, 4, 2*10, 0));
 
-    List columns = FilterManager.getInstance().getColumns(_tab);
+    List<String> columns = FilterManager.getInstance().getColumns(_tab);
     Object[] names = TableColumnController.getInstance().getColumnNames().toArray();
     Arrays.sort(names);
-    for (int i = 0; i < names.length; i++) {
-      String s = (String)names[i];
-      if(s != null) {
+    for (Object name1 : names) {
+      String s = (String) name1;
+      if (s != null) {
         JCheckBox jch = new JCheckBox(s, columns.contains(s));
         jch.addActionListener(this);
         columns2Boxes.put(s, jch);

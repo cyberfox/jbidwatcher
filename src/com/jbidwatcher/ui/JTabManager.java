@@ -26,13 +26,12 @@ import javax.swing.*;
 import java.util.*;
 import com.stevesoft.pat.*;
 import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.ui.Selector;
 import com.jbidwatcher.auction.AuctionEntry;
 
 public class JTabManager extends JBidMouse {
   private JTabbedPane _auctionTypes;
 
-  private Map _nameTableMap = new TreeMap();
+  private Map<String, TableSorter> _nameTableMap = new TreeMap<String, TableSorter>();
 
   public JTabManager() {
     _auctionTypes = new JTabbedPane();
@@ -52,7 +51,7 @@ public class JTabManager extends JBidMouse {
     int currentIndex = _auctionTypes.getSelectedIndex();
     String currentTitle = _auctionTypes.getTitleAt(currentIndex);
 
-    return( (TableSorter) _nameTableMap.get(currentTitle) );
+    return(_nameTableMap.get(currentTitle));
   }
 
   protected int[] getPossibleRows() {
@@ -69,7 +68,7 @@ public class JTabManager extends JBidMouse {
     public boolean select(JTable inTable) {
       String trueSearch = _search;
       boolean foundOne = false;
-      boolean match = false, invert = false;
+      boolean match, invert = false;
       boolean comment_t = false, seller_t = false, buyer_t = false, all_t = false;
       AuctionEntry ae;
 

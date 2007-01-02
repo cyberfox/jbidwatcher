@@ -5,10 +5,10 @@ import java.util.ListIterator;
 
 public class ColumnStateList {
 	
-	private ArrayList columnStateList;
+	private ArrayList<ColumnState> columnStateList;
 	
 	public ColumnStateList() {
-		columnStateList = new ArrayList();
+		columnStateList = new ArrayList<ColumnState>();
 	}
 	
 	public void clear() {
@@ -24,7 +24,7 @@ public class ColumnStateList {
 	}
 	
 	public ColumnState get(int index) {
-		return (ColumnState)columnStateList.get(index);
+		return columnStateList.get(index);
 	}
 	
 	public int indexOf(ColumnState columnState) {
@@ -35,7 +35,7 @@ public class ColumnStateList {
 		return columnStateList.size();
 	}
 	
-	public ListIterator listIterator() {
+	public ListIterator<ColumnState> listIterator() {
 		return columnStateList.listIterator();
 	}
 	

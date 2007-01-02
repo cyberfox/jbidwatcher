@@ -32,10 +32,10 @@ import java.io.File;
  * @brief Manage deleted items, so they are not added again.
  */
 public class DeletedManager implements XMLSerialize {
-  private Map _deletedItems = null;
+  private Map<String, Date> _deletedItems = null;
 
   public DeletedManager() {
-    _deletedItems = new TreeMap();
+    _deletedItems = new TreeMap<String, Date>();
   }
 
   public boolean isDeleted(String id) {
@@ -82,9 +82,9 @@ public class DeletedManager implements XMLSerialize {
     if(deletedEntries == null) return;
 
     //  Walk over all the deleted entries and store them.
-    Iterator delWalk = deletedEntries.getChildren();
+    Iterator<XMLElement> delWalk = deletedEntries.getChildren();
     while(delWalk.hasNext()) {
-      XMLElement delEntry = (XMLElement)delWalk.next();
+      XMLElement delEntry = delWalk.next();
       if(delEntry.getTagName().equals("delentry")) {
         String strDel = delEntry.getProperty("when");
         Date whenDeleted;
@@ -100,10 +100,9 @@ public class DeletedManager implements XMLSerialize {
 
   public XMLElement toXML() {
     XMLElement xmlResult = new XMLElement("deleted");
-    for(Iterator it=_deletedItems.keySet().iterator(); it.hasNext(); ) {
-      String delId = (String)it.next();
+    for (String delId : _deletedItems.keySet()) {
       XMLElement entry = new XMLElement("delentry");
-      entry.setProperty("when", Long.toString(((Date)_deletedItems.get(delId)).getTime()));
+      entry.setProperty("when", Long.toString((_deletedItems.get(delId)).getTime()));
       entry.setContents(delId);
       xmlResult.addChild(entry);
     }

@@ -31,7 +31,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -49,7 +48,7 @@ import javax.swing.JLabel;
 public class JConfigFrame implements ActionListener {
   private JFrame mainFrame;
   private boolean buttonPressed = false;
-  private List allTabs;
+  private List<JConfigTab> allTabs;
   private static int cfgCount = 1;
 
   public void spinWait() {
@@ -70,9 +69,7 @@ public class JConfigFrame implements ActionListener {
   }
 
   public final void show() {
-    for(int i = 0; i<allTabs.size(); i++) {
-      JConfigTab jct = (JConfigTab) allTabs.get(i);
-
+    for (JConfigTab jct : allTabs) {
       jct.updateValues();
     }
     mainFrame.setState(Frame.NORMAL);
@@ -80,17 +77,13 @@ public class JConfigFrame implements ActionListener {
   }
 
   private void applyAll() {
-    for(int i = 0; i<allTabs.size(); i++) {
-      JConfigTab jct = (JConfigTab) allTabs.get(i);
-
+    for (JConfigTab jct : allTabs) {
       jct.apply();
     }
   }
 
   private void cancelAll() {
-    for(int i = 0; i<allTabs.size(); i++) {
-      JConfigTab jct = (JConfigTab) allTabs.get(i);
-
+    for (JConfigTab jct : allTabs) {
       jct.cancel();
     }
   }
@@ -147,16 +140,14 @@ public class JConfigFrame implements ActionListener {
     contentPane.setLayout(new BorderLayout());
     contentPane.add(jtpAllTabs, BorderLayout.CENTER);
 
-    allTabs = new ArrayList();
+    allTabs = new ArrayList<JConfigTab>();
 
     //  Add all non-server-specific tabs here.
     allTabs.add(new JConfigGeneralTab());
 
-    List serverTabs = AuctionServerManager.getInstance().getServerConfigurationTabs();
-    JConfigTab jct;
-    for(Iterator it = serverTabs.iterator(); it.hasNext();) {
-      jct = (JConfigTab)it.next();
-      allTabs.add(jct);
+    List<JConfigTab> serverTabs = AuctionServerManager.getInstance().getServerConfigurationTabs();
+    for (JConfigTab serverTab : serverTabs) {
+      allTabs.add(serverTab);
     }
 
     //  Stub the browser tab under MacOSX, so they don't try to use it.
@@ -182,10 +173,9 @@ public class JConfigFrame implements ActionListener {
     //  (if it has more) will look somewhat wonky.
 
     //  Loop over all tabs, and add them to the display.
-    for(int i = 0; i<allTabs.size(); i++) {
-      jct = (JConfigTab) allTabs.get(i);
-      jct.setOpaque(true);
-      jtpAllTabs.addTab(jct.getTabName(), jct);
+    for (JConfigTab allTab : allTabs) {
+      allTab.setOpaque(true);
+      jtpAllTabs.addTab(allTab.getTabName(), allTab);
     }
 
     jtpAllTabs.setSelectedIndex(0);

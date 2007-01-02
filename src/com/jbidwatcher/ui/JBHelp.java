@@ -24,10 +24,8 @@ package com.jbidwatcher.ui;
 import java.io.*;
 import com.stevesoft.pat.*;
 import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.ui.JBidMouse;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.Constants;
-import com.jbidwatcher.ui.Variables;
 
 import java.util.HashMap;
 
@@ -82,7 +80,7 @@ public class JBHelp {
     Regex r = Regex.perlCode("s/<%que (\\w+)%>/<%que%><a name=\"Q\\1\">/");
     munge = r.replaceAll(munge);
 
-    HashMap vars = new HashMap(MAX_VARIABLES);
+    HashMap<String, String> vars = new HashMap<String, String>(MAX_VARIABLES);
     vars.put("<%toc%>", toc);
     vars.put("<%pname%>", Constants.PROGRAM_NAME);
     vars.put("<%ver%>", Constants.PROGRAM_VERS);

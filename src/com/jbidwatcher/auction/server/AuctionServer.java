@@ -33,6 +33,7 @@ package com.jbidwatcher.auction.server;
  * is, and do the appropriate parsing for that site.
  */
 import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.queue.AuctionQObject;
 import com.jbidwatcher.xml.XMLElement;
@@ -117,7 +118,7 @@ public abstract class AuctionServer implements XMLSerialize {
     }
   }
 
-  protected final Set _aucList = new TreeSet(new AuctionEntry.AuctionComparator()); /**< The list of auctions that this server is holding onto. */
+  protected final Set<AuctionEntry> _aucList = new TreeSet<AuctionEntry>(new AuctionEntry.AuctionComparator()); /**< The list of auctions that this server is holding onto. */
 
   protected long _pageRequestTime=0; /**< The full amount of time it takes to request a single page from this site. */
   protected long _affRequestTime=0;  /**< The amount of time it takes to request an item via their affiliate program. */
@@ -132,7 +133,7 @@ public abstract class AuctionServer implements XMLSerialize {
   public abstract int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, Currency inBid, int inQuantity);
   public abstract boolean checkIfIdentifierIsHandled(String auctionId);
   public abstract void establishMenu();
-  public abstract Object getConfigurationTab();
+  public abstract JConfigTab getConfigurationTab();
   public abstract void cancelSearches();
   public abstract void addSearches(SearchManagerInterface searchManager);
   public abstract Currency getMinimumBidIncrement(Currency currentBid, int bidCount);
@@ -384,27 +385,26 @@ public abstract class AuctionServer implements XMLSerialize {
     long lastEndedTime = Long.MAX_VALUE;
     long lastSnipeTime = Long.MAX_VALUE;
 
-    for (Iterator item = _aucList.iterator(); item.hasNext();) {
-      AuctionEntry ae = (AuctionEntry) item.next();
-      if(ae.isEnded()) {
+    for (AuctionEntry ae : _aucList) {
+      if (ae.isEnded()) {
         outStat._completed++;
       } else {
         long thisTime = ae.getEndDate().getTime();
-        if(ae.isSniped()) {
+        if (ae.isSniped()) {
           outStat._snipes++;
-          if(thisTime < lastSnipeTime) {
+          if (thisTime < lastSnipeTime) {
             outStat._nextSnipe = ae;
             lastSnipeTime = thisTime;
           }
         }
 
-        if(thisTime < lastEndedTime) {
+        if (thisTime < lastEndedTime) {
           outStat._nextEnd = ae;
           lastEndedTime = thisTime;
         }
 
         long nextTime = ae.getNextUpdate();
-        if(nextTime < lastUpdateTime) {
+        if (nextTime < lastUpdateTime) {
           outStat._nextUpdate = ae;
           lastUpdateTime = nextTime;
         }
@@ -437,9 +437,9 @@ public abstract class AuctionServer implements XMLSerialize {
       }
     }
 
-    Iterator entryStep = inXML.getChildren();
+    Iterator<XMLElement> entryStep = inXML.getChildren();
     while(entryStep.hasNext()) {
-      XMLElement perEntry = (XMLElement)entryStep.next();
+      XMLElement perEntry = entryStep.next();
       AuctionEntry ae = new AuctionEntry();
 
 	  ae.setServer(this);
@@ -464,8 +464,7 @@ public abstract class AuctionServer implements XMLSerialize {
     xmlResult.setProperty("name", siteId);
 
     synchronized(_aucList) {
-      for(Iterator it = _aucList.iterator(); it.hasNext(); ) {
-        AuctionEntry ae = (AuctionEntry) it.next();
+      for (AuctionEntry ae : _aucList) {
         xmlResult.addChild(ae.toXML());
       }
     }

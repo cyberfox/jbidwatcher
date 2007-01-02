@@ -35,7 +35,7 @@ import java.util.ArrayList;
  * User: mrs
  * Date: Nov 5, 2004
  * Time: 11:56:56 AM
- * To change this template use File | Settings | File Templates.
+ * 
  */
 public class AffiliateRetrieve {
   public static void main(String[] args) {
@@ -54,7 +54,7 @@ public class AffiliateRetrieve {
 
   private AffiliateRetrieve() { }
   public static StringBuffer getAuctionViaAffiliate(CookieJar cj, String auction_id) throws CookieJar.CookieException {
-    List allSteps = new ArrayList();
+    List<String> allSteps = new ArrayList<String>();
     String affiliate_link = Externalized.getString("ebayServer.affiliateLink") + auction_id;
     String affiliate_ref  = Externalized.getString("ebayServer.affiliateRef");
     //JConfig.setDebugging(true);
@@ -62,11 +62,11 @@ public class AffiliateRetrieve {
     StringBuffer interstitial = cj.getAllCookiesAndPage(affiliate_link, affiliate_ref, false, allSteps);
     //System.out.println(interstitial);
     if(interstitial == null) return null;
-    String lastStep = (String)allSteps.get(allSteps.size()-1);
+    String lastStep = allSteps.get(allSteps.size()-1);
 
     JHTML myFile = new JHTML(interstitial);
-    List allLinks = myFile.getAllURLsOnPage(false);
-    String redirectLink = (String)allLinks.get(0);
+    List<String> allLinks = myFile.getAllURLsOnPage(false);
+    String redirectLink = allLinks.get(0);
 
     //System.err.println("Last step was: " + lastStep);
     return cj.getAllCookiesAndPage(redirectLink, lastStep, false);
