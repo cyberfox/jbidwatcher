@@ -23,13 +23,12 @@ package com.jbidwatcher.config;
 
 import com.jbidwatcher.ui.AutoCompletion;
 import com.jbidwatcher.ui.JPasteListener;
-import com.jbidwatcher.util.html.JHTML;
 
+import java.util.*;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.util.HashSet;
+import java.awt.BorderLayout;
 
 /**
  * Created by IntelliJ IDEA.
@@ -70,31 +69,31 @@ public class JConfigAdvancedTab extends JConfigTab {
     box.setEditable(true);
     box.addItem("");
 
-    java.util.List cfgKeys = JConfig.getAllKeys();
+    List<String> cfgKeys = JConfig.getAllKeys();
     for (Object cfgKey : cfgKeys) {
       String s = (String) cfgKey;
-      if (s.indexOf(JHTML.Form.FORM_PASSWORD) == -1) box.addItem(s);
+      if (s.indexOf("password") == -1) box.addItem(s);
     }
 
     if(!boxSet.contains(box)) {
       box.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          if(configValue != null && configKey != null) {
-            String selected = (String)configKey.getSelectedItem();
+          if(value != null && box != null) {
+            String selected = (String)box.getSelectedItem();
             if(selected != null) {
-              boolean isPassword = selected.indexOf(JHTML.Form.FORM_PASSWORD) != -1;
+              boolean isPassword = selected.indexOf("password") != -1;
               if(selected.length() == 0 || isPassword) {
-                configValue.setEnabled(false);
+                value.setEnabled(false);
                 if(isPassword) {
-                  configValue.setText("********");
+                  value.setText("********");
                 } else {
-                  configValue.setText("");
+                  value.setText("");
                 }
                 setButton.setEnabled(false);
                 delButton.setEnabled(false);
               } else {
-                configValue.setEnabled(true);
-                configValue.setText(JConfig.queryConfiguration(selected, ""));
+                value.setEnabled(true);
+                value.setText(JConfig.queryConfiguration(selected, ""));
                 setButton.setEnabled(true);
                 delButton.setEnabled(true);
               }
@@ -119,9 +118,7 @@ public class JConfigAdvancedTab extends JConfigTab {
     tp.setLayout(new BoxLayout(tp, BoxLayout.Y_AXIS));
 
     configKey = new JComboBox();
-    buildNewConfigList(configKey, configValue);
     tp.add(new JLabel("Configuration Key"));
-    tp.add(configKey);
 
     configValue = new JTextField();
     configValue.addMouseListener(JPasteListener.getInstance());
@@ -129,6 +126,10 @@ public class JConfigAdvancedTab extends JConfigTab {
     configValue.setEditable(true);
     configValue.getAccessibleContext().setAccessibleName("The configuration value for the entered key.");
     JLabel jl = new JLabel("Configuration Value");
+
+    buildNewConfigList(configKey, configValue);
+
+    tp.add(configKey);
     tp.add(jl);
 
     updateValues();
