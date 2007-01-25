@@ -124,7 +124,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   /**
    * @brief Function to identify if the link is up or down.
    *
-   * @return - TODO
+   * @return - true if the connection to eBay appears to be up.
    */
   public boolean getLinkUp() {
     return _linkUp;
@@ -458,7 +458,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    *
    * @param inConfig - The configuration file to try to load.
    *
-   * @return - TODO
+   * @return - The input stream reading from the best config data it could find.
    */
   private static InputStream checkConfig(String inConfig) {
     JConfig.setConfigurationFile(inConfig);
@@ -581,7 +581,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * @param inFrame - The base frame of the application, to indicate
    * that the UI has changed.
    *
-   * @param lafList - TODO
+   * @param lafList - The list of look-and-feels from which to choose.
    */
   private static void setUI(String whichUI, JFrame inFrame, UIManager.LookAndFeelInfo[] lafList) {
     String whatLaF = null;

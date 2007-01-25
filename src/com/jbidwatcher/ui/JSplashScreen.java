@@ -43,7 +43,6 @@ public class JSplashScreen extends Window {
     pack();
 
     // Plonk it on center of screen
-    //  Todo -- Multimonitor fix.
     Dimension WindowSize=getSize(), ScreenSize=Toolkit.getDefaultToolkit().getScreenSize();
 
     setBounds((ScreenSize.width-WindowSize.width)/2,

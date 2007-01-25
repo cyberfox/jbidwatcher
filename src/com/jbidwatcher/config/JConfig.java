@@ -436,7 +436,6 @@ public class JConfig {
     height = 0;
     width = 0;
 
-    //  TODO -- Multimonitor fix.
     Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
 
     boolean setOwnProps = false;

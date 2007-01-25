@@ -38,7 +38,6 @@ public class SearchFrame implements ActionListener {
   SearchTableModel _stm;
   TableSorter _ts;
 
-  // TODO -- Multimonitor fix.
   public SearchFrame() {
     mainFrame = createSearchFrame();
     Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
