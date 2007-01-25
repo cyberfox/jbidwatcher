@@ -104,12 +104,12 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private TimeQueueManager m_tqm = new TimeQueueManager();
 
   private static String _cfgLoad = "JBidWatch.cfg";
-  private RuntimeInfo _rti = null;
+  private RuntimeInfo _rti;
   private static final int HOURS_IN_DAY = 24;
   private static final int MINUTES_IN_HOUR = 60;
   private static final int ONE_SECOND = Constants.ONE_SECOND;
   private static final int ONEK = 1024;
-  private AudioPlayer m_ap = null;
+  private AudioPlayer m_ap;
 
   /**
    * @brief Function to let any class tell us that the link is down or
@@ -365,22 +365,21 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     mal.setFrame(newFrame);
   }
 
-  private Date now = new Date();
-  private Calendar cal = new GregorianCalendar();
+  private Date mNow = new Date();
+  private Calendar mCal = new GregorianCalendar();
   /**
    * @brief Sets the text in the status bar on the bottom of the screen.
    *
    * @param newStatus The text to place on the status line.
    */
   private void setStatus(String newStatus) {
-    now.setTime(System.currentTimeMillis());
-    String bracketed;
+    mNow.setTime(System.currentTimeMillis());
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
-    bracketed = " [" + defaultServerTime + '/' + Constants.localClockFormat.format(now) + ']';
+    String bracketed = " [" + defaultServerTime + '/' + Constants.localClockFormat.format(mNow) + ']';
     if(JConfig.queryConfiguration("timesync.enabled", "true").equals("false")) {
       TimeZone tz = AuctionServerManager.getInstance().getDefaultServer().getOfficialServerTimeZone();
-      if(tz != null && tz.hasSameRules(cal.getTimeZone())) {
-        bracketed = " [" + Constants.localClockFormat.format(now) + ']';
+      if(tz != null && tz.hasSameRules(mCal.getTimeZone())) {
+        bracketed = " [" + Constants.localClockFormat.format(mNow) + ']';
       }
     }
 
@@ -538,6 +537,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     }
     return false;
   }
+
   private static boolean EstablishHTTPSProxy(Properties inProps) {
     if(JConfig.queryConfiguration("proxy.https.set", "false").equals("true")) {
       String secureProxyHost = JConfig.queryConfiguration("proxy.https.host");
@@ -772,7 +772,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     System.exit(0);
   }
 
-  static long lastTime=0;
+  static long lastTime;
 
   /**
    * @brief Show the time once a second, in strikeout if the link to
