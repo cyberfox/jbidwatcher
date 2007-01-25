@@ -534,7 +534,10 @@ public class JConfig {
   }
 
   public static List<String> getAllKeys() {
-    List<String> keyList = new ArrayList<String>(soleProperty.stringPropertyNames());
+    List<String> keyList = new ArrayList<String>();
+    for (Object name : soleProperty.keySet()) {
+      keyList.add(name.toString());
+    }
     Collections.sort(keyList);
     return keyList;
   }
