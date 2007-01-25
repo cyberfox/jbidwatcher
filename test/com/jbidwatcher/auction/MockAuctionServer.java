@@ -5,6 +5,7 @@ import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.search.SearchManagerInterface;
+import com.jbidwatcher.config.JConfigTab;
 
 import junit.framework.TestCase;
 
@@ -105,7 +106,7 @@ public class MockAuctionServer extends AuctionServer {
     TestCase.fail("Unexpected function called!");
   }
 
-  public Object getConfigurationTab() {
+  public JConfigTab getConfigurationTab() {
     TestCase.fail("Unexpected function called!");
     return null;
   }
