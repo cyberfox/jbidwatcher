@@ -1,5 +1,11 @@
 package com.jbidwatcher.util;
 /*
+ * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
+ *
+ * Developed by mrs (Morgan Schweers)
+ */
+
+/*
   File: Heap.java
 
   Originally written by Doug Lea and released into the public domain.

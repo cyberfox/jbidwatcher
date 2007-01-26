@@ -1,4 +1,10 @@
 package com.jbidwatcher.config;//  -*- Java -*-
+/*
+ * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
+ *
+ * Developed by mrs (Morgan Schweers)
+ */
+
 //
 //  History:
 //  mrs: 06-July-2003 12:47 - Added default return value for display configurations.
@@ -11,28 +17,6 @@ package com.jbidwatcher.config;//  -*- Java -*-
 //                            purely as a central repository for all cfg info.
 //  mrs: 22-July-1999 23:57 - First version.  Contains the  configuration
 //                            information, theoretically loaded once on startup.
-
-/*
- * Copyright (c) 2000-2005 CyberFOX Software, Inc. All Rights Reserved.
- *
- * This library is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Library General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Library General Public License
- * along with this library; if not, write to the
- *  Free Software Foundation, Inc.
- *  59 Temple Place
- *  Suite 330
- *  Boston, MA 02111-1307
- *  USA
- */
 
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.ErrorManagement;

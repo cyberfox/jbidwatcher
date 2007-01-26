@@ -1,24 +1,8 @@
 package com.jbidwatcher;
 /*
- * Copyright (c) 2000-2005 CyberFOX Software, Inc. All Rights Reserved.
+ * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
- * This library is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Library General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Library General Public License
- * along with this library; if not, write to the
- *  Free Software Foundation, Inc.
- *  59 Temple Place
- *  Suite 330
- *  Boston, MA 02111-1307
- *  USA
+ * Developed by mrs (Morgan Schweers)
  */
 
 import com.jbidwatcher.platform.Platform;
@@ -34,6 +18,7 @@ import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.AudioPlayer;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.RuntimeInfo;
+import com.jbidwatcher.util.Database;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
@@ -668,6 +653,15 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       System.exit(0);
     }
     setUI(null, null, UIManager.getInstalledLookAndFeels());
+
+//    try {
+//      Database db = new Database(null);
+//      Database.dbTest(db);
+//      db.shutdown();
+//    } catch (Exception e) {
+//      ErrorManagement.handleException("DB error", e);
+//    }
+
     if(!ebayLoaded) AuctionServerManager.getInstance().addServer("ebay", new ebayServer());
 
     loadProxySettings();

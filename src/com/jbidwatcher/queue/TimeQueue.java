@@ -1,5 +1,11 @@
 package com.jbidwatcher.queue;
 
+/*
+ * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
+ *
+ * Developed by mrs (Morgan Schweers)
+ */
+
 import com.jbidwatcher.util.Heap;
 
 import java.util.List;

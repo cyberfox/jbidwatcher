@@ -1,5 +1,11 @@
 package com.jbidwatcher.util;
 
+/*
+ * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
+ *
+ * Developed by mrs (Morgan Schweers)
+ */
+
 import com.jbidwatcher.config.JConfig;
 
 import java.sql.*;
@@ -67,7 +73,7 @@ public class Database {
     return rval;
   }
 
-  private static boolean dbTest(Database db) {
+  public static boolean dbTest(Database db) {
     try {
       /*
          Creating a statement lets us issue commands against

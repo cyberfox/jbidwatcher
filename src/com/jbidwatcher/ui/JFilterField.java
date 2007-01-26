@@ -1,4 +1,8 @@
-package com.jbidwatcher.ui; /**
+package com.jbidwatcher.ui; /*
+ * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
+ *
+ * Developed by mrs (Morgan Schweers)
+ */ /**
  * A text field for search/filter interfaces. The extra functionality includes
  * a placeholder string (when the user hasn't yet typed anything), and a button
  * to clear the currently-entered text.

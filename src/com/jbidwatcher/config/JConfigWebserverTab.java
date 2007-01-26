@@ -1,5 +1,11 @@
 package com.jbidwatcher.config;
 
+/*
+ * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
+ *
+ * Developed by mrs (Morgan Schweers)
+ */
+
 import javax.swing.*;
 import java.awt.*;
 

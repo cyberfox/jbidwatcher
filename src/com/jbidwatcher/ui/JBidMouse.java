@@ -1,39 +1,8 @@
 package com.jbidwatcher.ui;//  -*- Java -*-
-/**
- * Copyright (c) 2000-2005 CyberFOX Software, Inc. All Rights Reserved/**
- * @file   JBidMouse.java
- * @author Morgan Schweers <cyberfox@users.sourceforge.net>
- * @note   Library GPL'ed.
- * @date   Wed Oct  9 17:28:52 2002
+/*
+ * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
- * @brief  This handles mouse actions/menu actions.
- *
- * The actionPerformed code figures out which auction you might be
- * pointing to (usually ignored if you've selected items), and passes
- * both that and the action command actually executed to DoAction.
- *
- * DoAction farms off the functions to various different internal
- * functions to do the 'real work'.  This class is subclassed by
- * anything that wants to add some more functionality, or be usable
- * in other environments.
- *
- * This library is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Library General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Library General Public License
- * along with this library; if not, write to the
- *  Free Software Foundation, Inc.
- *  59 Temple Place
- *  Suite 330
- *  Boston, MA 02111-1307
- *  USA
+ * Developed by mrs (Morgan Schweers)
  */
 
 import java.awt.*;

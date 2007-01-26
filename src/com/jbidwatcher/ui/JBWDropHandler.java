@@ -1,5 +1,11 @@
 package com.jbidwatcher.ui;
 
+/*
+ * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
+ *
+ * Developed by mrs (Morgan Schweers)
+ */
+
 import com.jbidwatcher.queue.DropQObject;
 import com.jbidwatcher.queue.MessageQueue;
 import com.jbidwatcher.queue.MQFactory;
@@ -8,27 +14,6 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.server.AuctionServer;
-/*
- * Copyright (c) 2000-2005 CyberFOX Software, Inc. All Rights Reserved.
- *
- * This library is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Library General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Library General Public License
- * along with this library; if not, write to the
- *  Free Software Foundation, Inc.
- *  59 Temple Place
- *  Suite 330
- *  Boston, MA 02111-1307
- *  USA
- */
 
 public class JBWDropHandler implements MessageQueue.Listener {
   private static boolean do_uber_debug = false;
