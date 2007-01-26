@@ -12,10 +12,9 @@ import java.sql.*;
 import java.util.Properties;
 
 public class Database {
-  /* the default framework is embedded*/
-  private String framework = "embedded";
-  private String driver = "org.apache.derby.jdbc.EmbeddedDriver";
-  private String protocol = "jdbc:derby:";
+  private String framework;
+  private String driver;
+  private String protocol;
   private Connection mConn;
 
   public static void main(String[] args) {
@@ -29,6 +28,11 @@ public class Database {
   }
 
   public Database(String base) throws Exception {
+    /* the default framework is embedded*/
+    framework = JConfig.queryConfiguration("db.framework", "embedded");
+    driver = JConfig.queryConfiguration("db.driver", "org.apache.derby.jdbc.EmbeddedDriver");
+    protocol = JConfig.queryConfiguration("db.protocol", "jdbc:derby:");
+
     if(base == null) base = JConfig.getHomeDirectory("jbidwatcher");
     System.setProperty("derby.system.home", base);
     setup();
@@ -43,8 +47,8 @@ public class Database {
     ErrorManagement.logDebug("Loaded the appropriate driver.");
 
     Properties props = new Properties();
-    props.setProperty("user", "user1");
-    props.setProperty("password", "user1");
+    props.setProperty("user", JConfig.queryConfiguration("db.user", "user1"));
+    props.setProperty("password", JConfig.queryConfiguration("db.pass", "user1"));
 
     /*
        The connection specifies create=true to cause
@@ -55,8 +59,8 @@ public class Database {
        derby.system.home points to, or the current
        directory if derby.system.home is not set.
      */
-    mConn = DriverManager.getConnection(protocol + "derbyDB;create=true", props);
-    ErrorManagement.logDebug("Connected to and created database derbyDB");
+    mConn = DriverManager.getConnection(protocol + "jbdb;create=true", props);
+    ErrorManagement.logDebug("Connected to and created database jbdb (JBidwatcher DataBase)");
 
     mConn.setAutoCommit(false);
   }
