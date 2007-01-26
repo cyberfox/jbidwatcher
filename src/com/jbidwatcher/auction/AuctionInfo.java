@@ -1,24 +1,8 @@
 package com.jbidwatcher.auction;
 /*
- * Copyright (c) 2000-2005 CyberFOX Software, Inc. All Rights Reserved.
+ * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
- * This library is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Library General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Library General Public License
- * along with this library; if not, write to the
- *  Free Software Foundation, Inc.
- *  59 Temple Place
- *  Suite 330
- *  Boston, MA 02111-1307
- *  USA
+ * Developed by mrs (Morgan Schweers)
  */
 
 /*
@@ -128,6 +112,9 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
         break;
       case 6:
         _curBid = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
+        if(_curBid.getCurrencyType() == Currency.US_DOLLAR) {
+          _us_cur = _curBid;
+        }
         break;
       case 7:
         _isDutch = true;
@@ -164,7 +151,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
       case 13:  //  Buy Now
         _buy_now = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
         break;
-      case 14:  //  Buy Now
+      case 14:  //  Current US price
         _us_cur = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
         break;
       case 15:  //  Fixed price
@@ -511,7 +498,15 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
   public String getIdentifier() { return _identifier; }
 
   Currency getCurBid() { return(_curBid); }
-  Currency getUSCurBid() { if(_us_cur == null || _us_cur.isNull()) return Currency.NoValue(); else return(_us_cur); }
+  Currency getUSCurBid() {
+    Currency rval = Currency.NoValue();
+    if (_us_cur != null && !_us_cur.isNull()) {
+      rval = _us_cur;
+    } else if(_curBid.getCurrencyType() == Currency.US_DOLLAR) {
+      rval = _curBid;
+    }
+    return rval;
+  }
   Currency getMinBid() { if(_minBid != null) return(_minBid); else return _curBid; }
 
   Currency getShipping() { return _shipping; }
