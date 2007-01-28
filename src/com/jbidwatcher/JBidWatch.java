@@ -109,7 +109,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   /**
    * @brief Function to identify if the link is up or down.
    *
-   * @return - true if the connection to eBay appears to be up.
+   * @return - true if the connection with the auction server appears to be working, false otherwise.
    */
   public boolean getLinkUp() {
     return _linkUp;
@@ -443,7 +443,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    *
    * @param inConfig - The configuration file to try to load.
    *
-   * @return - The input stream reading from the best config data it could find.
+   * @return - The input stream corresponding with the best version of the provided file we can find.
    */
   private static InputStream checkConfig(String inConfig) {
     JConfig.setConfigurationFile(inConfig);
