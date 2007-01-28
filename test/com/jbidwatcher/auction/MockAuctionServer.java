@@ -11,7 +11,6 @@ import junit.framework.TestCase;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.FileNotFoundException;
@@ -21,14 +20,14 @@ public class MockAuctionServer extends AuctionServer {
     siteId = "testBay";
   }
 
-  private static HashMap mCalled = new HashMap();
-  private static final Integer ONE = new Integer(1);
+  private static HashMap<String, Integer> mCalled = new HashMap<String, Integer>();
+  private static final Integer ONE = 1;
 
   private void addCall(String method) {
-    Object exists = mCalled.get(method);
+    Integer exists = mCalled.get(method);
     if(exists != null) {
-      Integer i = (Integer)exists;
-      i = new Integer(i.intValue()+1);
+      Integer i = exists;
+      i = i + 1;
       mCalled.put(method, i);
     } else {
       mCalled.put(method, ONE);
@@ -36,8 +35,8 @@ public class MockAuctionServer extends AuctionServer {
   }
 
   public static void dumpCalls() {
-    for (Iterator it = mCalled.keySet().iterator(); it.hasNext();) {
-      String key = (String)it.next();
+    for (Object o : mCalled.keySet()) {
+      String key = (String) o;
       System.err.println(key + " - " + mCalled.get(key));
     }
   }
