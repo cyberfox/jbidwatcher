@@ -30,9 +30,9 @@ import java.util.*;
 
 @SuppressWarnings({"JavaDoc"})
 public class Heap  {
-  protected Object[] nodes_;  // the tree nodes, packed into an array
-  protected int count_ = 0;   // number of used slots
-  protected final Comparator cmp_;  // for ordering
+  protected Object[] mNodes;  // the tree nodes, packed into an array
+  protected int mCount = 0;   // number of used slots
+  protected final Comparator mCmp;  // for ordering
 
   /**
    * Create a Heap with the given initial capacity and comparator
@@ -45,8 +45,8 @@ public class Heap  {
   public Heap(int capacity, Comparator cmp)
    throws IllegalArgumentException {
     if (capacity <= 0) throw new IllegalArgumentException();
-    nodes_ = new Object[capacity];
-    cmp_ = cmp;
+    mNodes = new Object[capacity];
+    mCmp = cmp;
   }
 
   /**
@@ -69,10 +69,10 @@ public class Heap  {
   * @return
   */
   protected int compare(Object a, Object b) {
-    if (cmp_ == null)
+    if (mCmp == null)
       return ((Comparable)a).compareTo(b);
     else
-      return cmp_.compare(a, b);
+      return mCmp.compare(a, b);
   }
 
   // indexes of heap parents and children
@@ -86,24 +86,24 @@ public class Heap  {
    * @param x
    */
   public synchronized void insert(Object x) {
-    if (count_ >= nodes_.length) {
-      int newcap =  3 * nodes_.length / 2 + 1;
+    if (mCount >= mNodes.length) {
+      int newcap =  3 * mNodes.length / 2 + 1;
       Object[] newnodes = new Object[newcap];
-      System.arraycopy(nodes_, 0, newnodes, 0, nodes_.length);
-      nodes_ = newnodes;
+      System.arraycopy(mNodes, 0, newnodes, 0, mNodes.length);
+      mNodes = newnodes;
     }
 
-    int k = count_;
-    ++count_;
+    int k = mCount;
+    ++mCount;
     while (k > 0) {
       int par = parent(k);
-      if (compare(x, nodes_[par]) < 0) {
-        nodes_[k] = nodes_[par];
+      if (compare(x, mNodes[par]) < 0) {
+        mNodes[k] = mNodes[par];
         k = par;
       }
       else break;
     }
-    nodes_[k] = x;
+    mNodes[k] = x;
   }
 
   /**
@@ -112,59 +112,59 @@ public class Heap  {
    * @return
    */
   public synchronized Object extract() {
-    if (count_ < 1) return null;
+    if (mCount < 1) return null;
 
     int k = 0; // take element at root;
     return extractElementAt(k);
   }
 
   private Object extractElementAt(int k) {
-    Object least = nodes_[k];
-    --count_;
-    Object x = nodes_[count_];
+    Object least = mNodes[k];
+    --mCount;
+    Object x = mNodes[mCount];
     for (;;) {
       int l = left(k);
-      if (l >= count_)
+      if (l >= mCount)
         break;
       else {
         int r = right(k);
-        int child = (r >= count_ || compare(nodes_[l], nodes_[r]) < 0)? l : r;
-        if (compare(x, nodes_[child]) > 0) {
-          nodes_[k] = nodes_[child];
+        int child = (r >= mCount || compare(mNodes[l], mNodes[r]) < 0)? l : r;
+        if (compare(x, mNodes[child]) > 0) {
+          mNodes[k] = mNodes[child];
           k = child;
         }
         else break;
       }
     }
-    nodes_[k] = x;
+    mNodes[k] = x;
     //  Prevent leakage...?
-    nodes_[count_] = null;
+    mNodes[mCount] = null;
     return least;
   }
 
   /** Return least element without removing it, or null if empty **/
   public synchronized Object peek() {
-    if (count_ > 0)
-      return nodes_[0];
+    if (mCount > 0)
+      return mNodes[0];
     else
       return null;
   }
 
   /** Return number of elements **/
   public synchronized int size() {
-    return count_;
+    return mCount;
   }
 
   /** remove all elements **/
   public synchronized void clear() {
     //  Clear out the array, to avoid keeping references around.
-    for(int i=0; i<count_; i++) nodes_[i] = null;
-    count_ = 0;
+    for(int i=0; i< mCount; i++) mNodes[i] = null;
+    mCount = 0;
   }
 
   public List getUnsorted() {
-    List rval = Arrays.asList(nodes_);
-    return rval.subList(0, count_);
+    List rval = Arrays.asList(mNodes);
+    return rval.subList(0, mCount);
   }
 
   public List getSorted() {
@@ -174,8 +174,8 @@ public class Heap  {
   }
 
   public boolean erase(TimeQueue.QObject o) {
-    for (int i = 0; i < nodes_.length; i++) {
-      if(nodes_[i] == o) {
+    for (int i = 0; i < mNodes.length; i++) {
+      if(mNodes[i] == o) {
         extractElementAt(i);
         return true;
       }
