@@ -8,7 +8,7 @@ package com.jbidwatcher.queue;
 import java.util.*;
 
 public abstract class MessageQueue implements Runnable {
-  protected final LinkedList _queue = new LinkedList();
+  protected final LinkedList<Object> _queue = new LinkedList<Object>();
   protected MessageQueue.Listener _listener = null;
   protected abstract void handleListener();
 

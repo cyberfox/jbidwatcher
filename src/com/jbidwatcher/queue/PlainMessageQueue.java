@@ -9,17 +9,15 @@ import com.jbidwatcher.util.ErrorManagement;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Iterator;
 
 /** @noinspection ThisEscapedInObjectConstruction,CallToThreadStartDuringObjectConstruction*/
 public final class PlainMessageQueue extends MessageQueue {
-  List _postpone = new ArrayList();
+  List<Object> _postpone = new ArrayList<Object>();
   Thread _myself;
 
   protected void handleListener() {
     if(_postpone != null) {
-      for (Iterator it = _postpone.iterator(); it.hasNext();) {
-        Object data = it.next();
+      for (Object data : _postpone) {
         enqueue(data);
       }
       _postpone.clear();
@@ -50,7 +48,7 @@ public final class PlainMessageQueue extends MessageQueue {
       }
 
       if(data != null) {
-        boolean empty = false;
+        boolean empty;
         do {
           if (_listener != null) {
             try {

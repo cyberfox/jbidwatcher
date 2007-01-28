@@ -54,7 +54,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
     setInvalid();
   }
 
-  public static class AuctionComparator implements Comparator
+  public static class AuctionComparator implements Comparator<AuctionEntry>
   {
     /**
      * @param o1 - The first auction entry.
@@ -62,7 +62,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
      * @return -1 if o1 < o2, 0 if o1 == o2, 1 if o1 > o2.
      * @brief Compare two auction objects for ordering by end-date.
      */
-    public int compare(Object o1, Object o2) {
+    public int compare(AuctionEntry o1, AuctionEntry o2) {
       if (o1 == null && o2 == null) return 0;
       if (o1 == null) return -1;
       if (o2 == null) return 1;
