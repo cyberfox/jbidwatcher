@@ -1878,12 +1878,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       String skimOver = sb.toString();
 
       Matcher startCommentSearch = Pattern.compile(Externalized.getString("ebayServer.startedRegex")).matcher(skimOver); //$NON-NLS-1$
-      startCommentSearch.find();
-      _startComment = startCommentSearch.group(1);
+      if(startCommentSearch.find()) _startComment = startCommentSearch.group(1);
+      else _startComment = "";
 
       Matcher bidCountSearch = Pattern.compile(Externalized.getString("ebayServer.bidCountRegex")).matcher(skimOver); //$NON-NLS-1$
-      bidCountSearch.find();
-      _bidCountScript = bidCountSearch.group(1);
+      if(bidCountSearch.find()) _bidCountScript = bidCountSearch.group(1);
+      else _bidCountScript = "";
 
       //  Use eBayServer's cleanup method to finish up with.
       internalCleanup(sb);
@@ -1993,7 +1993,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     private void load_shipping_insurance(com.jbidwatcher.util.Currency sampleAmount) {
       String shipString = _htmlDocument.getNextContentAfterRegex(eBayShippingRegex);
       //  Sometimes the next content might not be the shipping amount, it might be the next-next.
-      Matcher amount = amountPat.matcher(shipString);
+      Matcher amount = null;
+      if(shipString != null) amount = amountPat.matcher(shipString);
       if(shipString != null && !amount.find()) {
         shipString = _htmlDocument.getNextContent();
         amount = amountPat.matcher(shipString);
