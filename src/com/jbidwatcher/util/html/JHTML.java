@@ -9,7 +9,6 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
-import com.stevesoft.pat.*;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.util.ErrorManagement;
@@ -341,32 +340,23 @@ public class JHTML implements JHTMLListener {
   }
 
   public String grep(String match) {
-    Regex r1 = new Regex(match);
-
-    r1.optimize();
-
-    return grep(r1);
-  }
-
-  public String grep(Regex r1) {
     for (String nextContent : contentList) {
-      if (r1.search(nextContent)) {
+      if (nextContent.matches(match)) {
         //  This might not be safe...
         return nextContent;
       }
     }
-
     return null;
   }
 
-  private String grepAfter(Regex r1, Regex ignore) {
+  private String grepAfter(String match, String ignore) {
     for (Iterator<String> it = contentList.iterator(); it.hasNext();) {
       String contentStep = it.next();
-      if(r1.search(contentStep)) {
+      if(contentStep.matches(match)) {
         Iterator<String> save = it;
         if(it.hasNext()) {
           String potential = it.next();
-          if(ignore == null || !ignore.search(potential)) {
+          if(ignore == null || !potential.matches(ignore)) {
             contentLookup(contentStep, false);
             return potential;
           }
@@ -379,10 +369,7 @@ public class JHTML implements JHTMLListener {
   }
 
   private String contentGrep(String match, String ignore) {
-    Regex r1 = new Regex(match);
-    Regex skip = null;
-    if(ignore != null) skip = new Regex(ignore);
-    return grepAfter(r1, skip);
+    return grepAfter(match, ignore);
   }
 
   //  Default to caseless lookups.

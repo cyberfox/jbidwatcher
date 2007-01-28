@@ -12,10 +12,11 @@ import java.io.*;
 import javax.swing.*;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import com.stevesoft.pat.*;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.config.JConfigFrame;
 import com.jbidwatcher.queue.MQFactory;
@@ -321,6 +322,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     sysClip.setContents(t, t);
   }
 
+  private static Pattern digitSearch = Pattern.compile("[0-9]+");
+
   private void DoPasteFromClipboard() {
     String auctionId = getClipboardString();
     String original = auctionId;
@@ -328,9 +331,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     if(auctionId.charAt(0) == '<') {
       auctionId = JHTML.getFirstContent(auctionId);
       if(auctionId.charAt(0) < '0' || auctionId.charAt(0) > '9') {
-        Regex digitSearch = new Regex("[0-9]+");
-        digitSearch.search(auctionId);
-        auctionId = digitSearch.stringMatched();
+        Matcher digits = digitSearch.matcher(auctionId);
+        if(digits.find()) auctionId = digits.group();
         if(auctionId == null) {
           ErrorManagement.logDebug("Failed to paste auction id: " + original);
         }

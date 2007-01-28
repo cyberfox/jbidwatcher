@@ -11,7 +11,6 @@ package com.jbidwatcher.auction.server.ebay;
 //  logic outside this class.  A pipe-dream, perhaps, but it seems
 //  mostly doable.
 
-import com.stevesoft.pat.Regex;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.config.JConfigTab;
@@ -56,7 +55,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   protected static final int THIRTY_MINUTES = (30 * 60 * 1000);
 
   private HashMap<String, Integer> _resultHash = null;
-  private Regex _bidResultRegex = null;
+  private String mBidResultRegex = null;
+  private Pattern mFindBidResult;
 
   /** @noinspection FieldAccessedSynchronizedAndUnsynchronized*/
   private volatile CookieJar _signinCookie = null;
@@ -808,11 +808,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       } else {
         superRegex.append(')');
       }
-
-      _bidResultRegex = new Regex(superRegex.toString());
-      _bidResultRegex.setIgnoreCase(true);
-      _bidResultRegex.optimize();
     }
+    mBidResultRegex = "(?i)" + superRegex.toString();
+    mFindBidResult = Pattern.compile(mBidResultRegex);
     _resultHash.put("sign in", BID_ERROR_CANT_SIGN_IN);
 
     _etqm = new eBayTimeQueueManager();
@@ -828,10 +826,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   private static final String srcMatch = "(?i)src=\"([^\"]*?)\"";
-  private static final Regex srcRegex = new Regex(srcMatch);
+  private static Pattern srcPat = Pattern.compile(srcMatch);
 
   private static final String dateMatch = "(?i)(Ends|end.time).([A-Za-z]+(.[0-9]+)+.[A-Z]+)";
-  private static final Regex dateRegex = new Regex(dateMatch);
+  private static Pattern datePat = Pattern.compile(dateMatch);
 
   /**
    * @brief Go to eBay and get their official time page, parse it, and
@@ -872,9 +870,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * string passed in, or null if no identifier could be found.
    */
   public String extractIdentifierFromURLString(String urlStyle) {
-    Regex purl = new Regex(eBayParseItemURL);
-    if(purl.search(urlStyle)) {
-        String itemNum = purl.stringMatched(2);
+    Pattern url = Pattern.compile(eBayParseItemURL);
+    Matcher urlMatch = url.matcher(urlStyle);
+    if(urlMatch.find()) {
+        String itemNum = urlMatch.group(2);
         if(isNumberOnly(itemNum)) return itemNum;
     }
     URL siteAddr = getURLFromString(urlStyle);
@@ -1026,9 +1025,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if(htmlDocument != null) {
       String signOn = htmlDocument.getFirstContent();
       if(signOn != null && signOn.equalsIgnoreCase("Sign In")) throw new BadBidException("sign in", BID_ERROR_CANT_SIGN_IN);
-      String errMsg = htmlDocument.grep(_bidResultRegex);
+      String errMsg = htmlDocument.grep(mBidResultRegex);
       if(errMsg != null) {
-        String matched_error = _bidResultRegex.stringMatched().toLowerCase();
+        Matcher bidMatch = mFindBidResult.matcher(errMsg);
+        bidMatch.find();
+        String matched_error = bidMatch.group().toLowerCase();
         throw new BadBidException(matched_error, _resultHash.get(matched_error));
       }
     }
@@ -1226,20 +1227,24 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
     }
 
-    String errMsg = htmlDocument.grep(_bidResultRegex);
+    String errMsg = htmlDocument.grep(mBidResultRegex);
     if (errMsg != null) {
-      Integer bidResult = _resultHash.get(_bidResultRegex.stringMatched().toLowerCase());
+      Matcher bidMatch = mFindBidResult.matcher(errMsg);
+      bidMatch.find();
+      String matched_error = bidMatch.group().toLowerCase();
+      Integer bidResult = _resultHash.get(matched_error);
 
       if(inEntry.getTitle().toLowerCase().indexOf("test") == -1) {
         if(JBConfig.doAffiliate(inEntry.getEndDate().getTime())) {
           List<String> images = htmlDocument.getAllImages();
           for (String tag : images) {
-            if (srcRegex.search(tag)) {
+            Matcher tagMatch = srcPat.matcher(tag);
+            if (tagMatch.find()) {
               int retry = 2;
               do {
                 StringBuffer result = null;
                 try {
-                  result = getNecessaryCookie(false).getAllCookiesAndPage(srcRegex.stringMatched(1), "http://offer.ebay.com/ws/eBayISAPI.dll", false);
+                  result = getNecessaryCookie(false).getAllCookiesAndPage(tagMatch.group(1), "http://offer.ebay.com/ws/eBayISAPI.dll", false);
                 } catch (CookieJar.CookieException ignored) {
                   //  Ignore connection refused errors.
                 }
@@ -1785,20 +1790,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - true if the delete happened, false otherwise.
    */
   private static boolean deleteRegexPair(StringBuffer sb, String startStr, String endStr) {
-    String fullBuff = sb.toString();
-    Regex start = new Regex(startStr);
-    Regex end = new Regex(endStr);
+    Matcher start = Pattern.compile(startStr, Pattern.CASE_INSENSITIVE).matcher(sb);
+    Matcher end = Pattern.compile(endStr, Pattern.CASE_INSENSITIVE).matcher(sb);
 
-    start.setIgnoreCase(true);
-    end.setIgnoreCase(true);
-
-    start.optimize();
-    end.optimize();
-
-    if(start.search(fullBuff) &&
-       end.searchFrom(fullBuff, start.matchedFrom()+1)) {
-      int desc_start = start.matchedFrom();
-      int desc_end = end.matchedTo();
+    if(start.find() &&
+       end.find(start.start()+1)) {
+      int desc_start = start.start();
+      int desc_end = end.end();
 
       return deleteRange(sb, desc_start, desc_end);
     }
@@ -1879,13 +1877,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
       String skimOver = sb.toString();
 
-      Regex startCommentSearch = new Regex(Externalized.getString("ebayServer.startedRegex")); //$NON-NLS-1$
-      startCommentSearch.search(skimOver);
-      _startComment = startCommentSearch.stringMatched(1);
+      Matcher startCommentSearch = Pattern.compile(Externalized.getString("ebayServer.startedRegex")).matcher(skimOver); //$NON-NLS-1$
+      startCommentSearch.find();
+      _startComment = startCommentSearch.group(1);
 
-      Regex bidCountSearch = new Regex(Externalized.getString("ebayServer.bidCountRegex")); //$NON-NLS-1$
-      bidCountSearch.search(skimOver);
-      _bidCountScript = bidCountSearch.stringMatched(1);
+      Matcher bidCountSearch = Pattern.compile(Externalized.getString("ebayServer.bidCountRegex")).matcher(skimOver); //$NON-NLS-1$
+      bidCountSearch.find();
+      _bidCountScript = bidCountSearch.group(1);
 
       //  Use eBayServer's cleanup method to finish up with.
       internalCleanup(sb);
@@ -1936,10 +1934,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       return newCur;
     }
 
+    private Pattern digits = Pattern.compile("([0-9]+)");
+
     int getDigits(String digitsStarting) {
-      Regex numBuf = new Regex("([0-9]+)"); //$NON-NLS-1$
-      numBuf.search(digitsStarting);
-      String rawCount = numBuf.stringMatched();
+      Matcher m = digits.matcher(digitsStarting);
+      m.find();
+      String rawCount = m.group();
       if(rawCount != null) {
         return Integer.parseInt(rawCount);
       }
@@ -1988,16 +1988,19 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       return outTitle.toString();
     }
 
+    private Pattern amountPat = Pattern.compile("(([0-9]+\\.[0-9]+|(?i)free))");
+
     private void load_shipping_insurance(com.jbidwatcher.util.Currency sampleAmount) {
       String shipString = _htmlDocument.getNextContentAfterRegex(eBayShippingRegex);
-      Regex amount = new Regex("(([0-9]+\\.[0-9]+|(?i)free))");
       //  Sometimes the next content might not be the shipping amount, it might be the next-next.
-      if(shipString != null && !amount.search(shipString)) {
+      Matcher amount = amountPat.matcher(shipString);
+      if(shipString != null && !amount.find()) {
         shipString = _htmlDocument.getNextContent();
-        if(shipString != null) amount.search(shipString);
+        amount = amountPat.matcher(shipString);
+        if(shipString != null) amount.find();
       }
       //  This will result in either 'null' or the amount.
-      if(shipString != null) shipString = amount.stringMatched();
+      if(shipString != null) shipString = amount.group();
 
       //  Step back two contents, to check if it's 'Payment
       //  Instructions', in which case, the shipping and handling
@@ -2074,9 +2077,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     private String getEndDate(String inTitle) {
       String result = null;
 
-      if(dateRegex.search(inTitle)) {
-        result = dateRegex.stringMatched(2);
-      }
+      Matcher dateMatch = datePat.matcher(inTitle);
+      if(dateMatch.find()) result = dateMatch.group(2);
 
       return result;
     }
@@ -2108,11 +2110,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
 
     private String getResult(JHTML doc, String regex, int match) {
-      Regex searcher = new Regex(regex);
-      String rval = doc.grep(searcher);
+      String rval = doc.grep(regex);
       if(rval != null) {
         if(match == 0) return rval;
-        return searcher.stringMatched(match);
+        Pattern searcher = Pattern.compile(regex);
+        Matcher matcher = searcher.matcher(rval);
+        return matcher.group(match);
       }
 
       return null;
@@ -2183,10 +2186,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       if(prelimTitle.startsWith(Externalized.getString("ebayServer.titleEbay2")) ||
          prelimTitle.startsWith(Externalized.getString("ebayServer.titleMotors2"))) {
         //  Handle the new titles.
-        Regex newTitleR = new Regex(Externalized.getString("ebayServer.titleMatch"));
-        if(newTitleR.search(prelimTitle)) {
-          _title = decodeLatin(newTitleR.stringMatched(2));
-          String endDate = newTitleR.stringMatched(4);
+        Pattern newTitlePat = Pattern.compile(Externalized.getString("ebayServer.titleMatch"));
+        Matcher newTitleMatch = newTitlePat.matcher(prelimTitle);
+//        Regex newTitleR = new Regex(Externalized.getString("ebayServer.titleMatch"));
+        if(newTitleMatch.find()) {
+          _title = decodeLatin(newTitleMatch.group(2));
+          String endDate = newTitleMatch.group(4);
           _end = figureDate(endDate, eBayDateFormat);
         }
       }
@@ -2298,9 +2303,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         if(_minBid == null || _minBid.isNull()) {
           String original = _htmlDocument.grep(Externalized.getString("ebayServer.originalBid"));
           if(original != null) {
-            Regex r1 = new Regex(Externalized.getString("ebayServer.originalBid"));
-            if(r1.search(original)) {
-              _minBid = com.jbidwatcher.util.Currency.getCurrency(r1.stringMatched(1));
+            Pattern bidPat = Pattern.compile(Externalized.getString("ebayServer.originalBid"));
+            Matcher bidMatch = bidPat.matcher(original);
+            if(bidMatch.find()) {
+              _minBid = com.jbidwatcher.util.Currency.getCurrency(bidMatch.group(1));
             }
           }
         }

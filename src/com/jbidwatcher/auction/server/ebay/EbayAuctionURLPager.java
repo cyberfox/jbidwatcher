@@ -8,7 +8,6 @@ package com.jbidwatcher.auction.server.ebay;
 
 import java.util.NoSuchElementException;
 
-import com.stevesoft.pat.Regex;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.html.AbstractURLPager;
 import com.jbidwatcher.util.http.CookieJar;
@@ -69,10 +68,7 @@ public class EbayAuctionURLPager extends AbstractURLPager {
   }
 
 	private void removePattern(String regex) {
-		Regex replace = new Regex(regex, "");
-
-		replace.setIgnoreCase(true);
-		urlString = replace.replaceAll(urlString);
+    urlString = urlString.replaceAll("(?i)"+regex, "");
 	}
 
   private String getPageURL(int pageNumber) {
@@ -89,8 +85,7 @@ public class EbayAuctionURLPager extends AbstractURLPager {
   }
 
 	protected JHTML getPage(String pageURL) {
-		if(pageURL == null)
-			return null;
+		if(pageURL == null) return null;
 
     CookieJar cj = auctionServer.getNecessaryCookie(false);
     String cookies = null;

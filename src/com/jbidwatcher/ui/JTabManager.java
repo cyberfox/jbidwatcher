@@ -8,7 +8,6 @@ package com.jbidwatcher.ui;
 import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;
-import com.stevesoft.pat.*;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.auction.AuctionEntry;
 
@@ -81,22 +80,20 @@ public class JTabManager extends JBidMouse {
         if (trueSearch.startsWith(" ")) trueSearch = trueSearch.substring(1);
       }
 
-      Regex tableSearch = new Regex(trueSearch);
+      trueSearch = "(?i)" + trueSearch;
 
-      tableSearch.setIgnoreCase(true);
-      tableSearch.optimize();
       inTable.clearSelection();
 
       for (int i = 0; i < inTable.getRowCount(); i++) {
         match = false;
         ae = (AuctionEntry) inTable.getValueAt(i, -1);
 
-        if (!match && seller_t) match = tableSearch.search(ae.getSeller());
-        if (!match && buyer_t && ae.getHighBidder() != null) match = tableSearch.search(ae.getHighBidder());
-        if (!match && comment_t && ae.getComment() != null) match = tableSearch.search(ae.getComment());
+        if (          seller_t) match = ae.getSeller().matches(trueSearch);
+        if (!match && buyer_t && ae.getHighBidder() != null) match = ae.getHighBidder().matches(trueSearch);
+        if (!match && comment_t && ae.getComment() != null) match = ae.getComment().matches(trueSearch);
         //  If seller or buyer search was set, ignore the title / comments.
         if (!match && (all_t || (!seller_t && !buyer_t && !comment_t))) {
-          match = tableSearch.search(ae.getTitle());
+          match = ae.getTitle().matches(trueSearch);
         }
         if (invert) match = !match;
         if (match) {
