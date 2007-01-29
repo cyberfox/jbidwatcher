@@ -11,7 +11,7 @@ import com.jbidwatcher.queue.MQFactory;
 
 public class AudioPlayer implements MessageQueue.Listener {
   public AudioPlayer() {
-    MQFactory.getConcrete("audio").registerListener(this);
+    MQFactory.getConcrete("sfx").registerListener(this);
   }
 
   public void messageAction(Object deQ) {
