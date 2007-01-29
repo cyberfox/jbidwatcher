@@ -25,7 +25,12 @@ public class JBWDropHandler implements MessageQueue.Listener {
   static String lastSeen = null;
 
   public void messageAction(Object deQ) {
-    DropQObject dObj = (DropQObject) deQ;
+    DropQObject dObj;
+    if (deQ instanceof String) {
+      dObj = new DropQObject((String)deQ, null, false);
+    } else {
+      dObj = (DropQObject) deQ;
+    }
     String auctionURL = (String)dObj.getData();
     String label = dObj.getLabel();
 
@@ -33,8 +38,18 @@ public class JBWDropHandler implements MessageQueue.Listener {
       ErrorManagement.logDebug("Dropping (action): " + auctionURL);
     }
 
-    AuctionServer aucServ = AuctionServerManager.getInstance().getServerForUrlString(auctionURL);
-    String aucId = aucServ.extractIdentifierFromURLString(auctionURL);
+    String aucId;
+    AuctionServer aucServ;
+
+    //  Check to see if it's got a protocol ({protocol}:{path})
+    //  If not, treat it as an item number alone, in the space of the default auction server.
+    if(auctionURL.indexOf(":") != -1) {
+      aucServ = AuctionServerManager.getInstance().getServerForUrlString(auctionURL);
+      aucId = aucServ.extractIdentifierFromURLString(auctionURL);
+    } else {
+      aucServ = AuctionServerManager.getInstance().getDefaultServer();
+      aucId = auctionURL;
+    }
     String cvtURL = aucServ.getStringURLFromItem(aucId);
 
     if(dObj.isInteractive()) {
