@@ -44,7 +44,8 @@
     <pathelement path="${src.dir}" />
     <pathelement path="${lib.dir}/apple.jar" />
     <pathelement path="${lib.dir}/jdesktop.jar" />
-    <pathelement path="${lib.dir}/regex.jar" />
+    <pathelement path="${lib.dir}/mp3codec.jar" />
+    <pathelement path="${lib.dir}/derby.jar" />
   </path>
 
   <target name="init" description="Prepare for build">
