@@ -4,6 +4,10 @@ package com.jbidwatcher.auction;
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
  * Developed by mrs (Morgan Schweers)
+ * Date: Aug 17, 2005
+ * Time: 9:59:47 PM
+ *
+ * TODO - Create a 'Bid' equivalent of this class.
  */
 
 import com.jbidwatcher.queue.MQFactory;
@@ -14,13 +18,6 @@ import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.AuctionEntry;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Morgan Schweers
- * Date: Aug 17, 2005
- * Time: 9:59:47 PM
- * To change this template use File | Settings | File Templates.
- */
 public class Snipe {
   public final static int SUCCESSFUL=0;
   public final static int RESNIPE=1;
