@@ -14,6 +14,7 @@ import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.ui.JBidMouse;
 import com.jbidwatcher.*;
+import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.xml.JTransformer;
 import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -34,6 +35,7 @@ public class JBidProxy extends HTTPProxyClient {
   private static final String findIDString = "id";
   private static final String findAmountString = "snipeamount";
   private static final String syndicate = "syndicate/";
+  private static final String event = "event";
   private static final String messageFinisher = "<br>Return to <a href=\"" + Constants.PROGRAM_NAME + "\">auction list</a>.";
 
   private static List<String> _item_list = null;
@@ -268,6 +270,10 @@ public class JBidProxy extends HTTPProxyClient {
       return(cancelSnipe(relativeDocument));
     }
 
+    if(relativeDocument.startsWith(event)) {
+      return(fireEvent(relativeDocument));
+    }
+
     if(relativeDocument.equalsIgnoreCase("jbidwatcher")) {
       AuctionsManager.getInstance().saveAuctions();
       return checkError(JTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml")));
@@ -354,6 +360,19 @@ public class JBidProxy extends HTTPProxyClient {
     }
 
     return sbOut;
+  }
+
+  private StringBuffer fireEvent(String relativeDocument) {
+    String eventName = extractField(relativeDocument, "name");
+    String eventParam= extractField(relativeDocument, "param");
+
+    if(eventName == null || eventParam == null) {
+      return new JHTMLOutput("Invalid event", "No such event available." + messageFinisher).getStringBuffer();
+    }
+    eventParam = eventParam.replaceAll("\\+", " ").replaceAll("%20", " ");
+    ErrorManagement.logMessage("Firing event to queue '" + eventName + "' with parameter '" + eventParam + "'");
+    MQFactory.getConcrete(eventName).enqueue(eventParam);
+    return new JHTMLOutput("Event posted", "Event has been submitted." + messageFinisher).getStringBuffer();
   }
 
   private StringBuffer genItems(String s) {
