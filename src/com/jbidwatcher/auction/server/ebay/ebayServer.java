@@ -1129,7 +1129,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   public int bid(AuctionEntry inEntry, com.jbidwatcher.util.Currency inBid, int inQuantity) {
     Auctions.startBlocking();
-    if(JConfig.queryConfiguration("sound.enable", "false").equals("true")) MQFactory.getConcrete("audio").enqueue("/audio/bid.mp3");
+    if(JConfig.queryConfiguration("sound.enable", "false").equals("true")) MQFactory.getConcrete("sfx").enqueue("/audio/bid.mp3");
 
     try {
       //  If it's not closing within the next minute, then go ahead and try for the affiliate mode.
@@ -1994,14 +1994,18 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       String shipString = _htmlDocument.getNextContentAfterRegex(eBayShippingRegex);
       //  Sometimes the next content might not be the shipping amount, it might be the next-next.
       Matcher amount = null;
-      if(shipString != null) amount = amountPat.matcher(shipString);
-      if(shipString != null && !amount.find()) {
-        shipString = _htmlDocument.getNextContent();
+      boolean amountFound = false;
+      if(shipString != null) {
         amount = amountPat.matcher(shipString);
-        if(shipString != null) amount.find();
+        amountFound = amount.find();
+        if (!amountFound) {
+          shipString = _htmlDocument.getNextContent();
+          amount = amountPat.matcher(shipString);
+          if (shipString != null) amountFound = amount.find();
+        }
       }
       //  This will result in either 'null' or the amount.
-      if(shipString != null) shipString = amount.group();
+      if(shipString != null && amountFound) shipString = amount.group();
 
       //  Step back two contents, to check if it's 'Payment
       //  Instructions', in which case, the shipping and handling
@@ -2040,12 +2044,20 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         if(shipString.equalsIgnoreCase("free")) {
           _shipping = com.jbidwatcher.util.Currency.getCurrency(sampleAmount.fullCurrencyName(), "0.0");
         } else {
-          _shipping = com.jbidwatcher.util.Currency.getCurrency(sampleAmount.fullCurrencyName(), shipString);
+          try {
+            _shipping = com.jbidwatcher.util.Currency.getCurrency(sampleAmount.fullCurrencyName(), shipString);
+          } catch(NumberFormatException nfe) {
+            _shipping = com.jbidwatcher.util.Currency.NoValue();
+          }
         }
       } else {
         _shipping = com.jbidwatcher.util.Currency.NoValue();
       }
-      _insurance = com.jbidwatcher.util.Currency.getCurrency(insureString);
+      try {
+        _insurance = com.jbidwatcher.util.Currency.getCurrency(insureString);
+      } catch(NumberFormatException nfe) {
+        _insurance = com.jbidwatcher.util.Currency.NoValue();
+      }
     }
 
     private void load_buy_now() {
