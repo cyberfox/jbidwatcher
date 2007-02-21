@@ -13,6 +13,10 @@ import java.util.Date;
 * To change this template use File | Settings | File Templates.
 */
 class MockAuctionInfo extends AuctionInfo {
+  private long truncThousands(long time) {
+    return (time / 1000) * 1000;
+  }
+
   public MockAuctionInfo() {
     _identifier = "12345678";
     _curBid = Currency.getCurrency("$9.99");
@@ -25,8 +29,8 @@ class MockAuctionInfo extends AuctionInfo {
     _fixed_price = false;
     _no_thumbnail = true;
     _buy_now = Currency.getCurrency("$19.99");
-    _start = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 6);
-    _end = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+    _start = new Date(truncThousands(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 6));
+    _end = new Date(truncThousands(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
     _seller = "cyberfox";
     _highBidder = "test-jbidwatcher-bids";
     _title = "A test auction.";

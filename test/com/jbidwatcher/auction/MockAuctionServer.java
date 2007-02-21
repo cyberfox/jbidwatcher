@@ -155,19 +155,19 @@ public class MockAuctionServer extends AuctionServer {
   }
 
   public long getPageRequestTime() {
-    return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    return 0;
   }
 
   public long getAdjustedTime() {
-    return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    return System.currentTimeMillis();
   }
 
   public boolean validate(String username, String password) {
-    return false;  //To change body of implemented methods use File | Settings | File Templates.
+    return true;
   }
 
   public String getUserId() {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
+    return "zarf";
   }
 
   public String getStringURLFromItem(String itemID) {
