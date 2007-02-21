@@ -125,7 +125,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
   protected abstract StringBuffer getAuction(AuctionEntry ae, String id);
 
   public void reloadTime() {
-    if (setTimeDifference()) {
+    if (getOfficialTime() != null) {
       MQFactory.getConcrete("Swing").enqueue("Successfully synchronized time with " + getName() + '.');
     } else {
       MQFactory.getConcrete("Swing").enqueue("Failed to synchronize time with " + getName() + '!');
@@ -305,9 +305,5 @@ public abstract class AuctionServer implements AuctionServerInterface {
     } else {
       markCommunicationError(ae);
     }
-  }
-
-  private boolean setTimeDifference() {
-    return getOfficialTime() != null;
   }
 }
