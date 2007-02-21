@@ -40,28 +40,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 
 
-public abstract class AuctionServer implements XMLSerialize {
-  public static final int BID_ERROR_UNKNOWN=-1;
-  public static final int BID_ERROR_CANNOT=1;
-  public static final int BID_ERROR_AMOUNT=2;
-  public static final int BID_ERROR_OUTBID=3;
-  public static final int BID_WINNING=4;
-  public static final int BID_SELFWIN=5;
-  public static final int BID_DUTCH_CONFIRMED=6;
-  public static final int BID_ERROR_MULTI=7;
-  public static final int BID_ERROR_TOO_LOW=8;
-  public static final int BID_ERROR_ENDED=9;
-  public static final int BID_ERROR_BANNED=10;
-  public static final int BID_ERROR_RESERVE_NOT_MET=11;
-  public static final int BID_ERROR_CONNECTION=12;
-  public static final int BID_ERROR_TOO_LOW_SELF = 13; // You can't bid that low against yourself...
-  public static final int BID_ERROR_AUCTION_GONE = 14; // Auction vanished between bid creation and submission.
-  public static final int BID_ERROR_NOT_BIN = 15; // Trying to 'Buy' an item that isn't a BIN/Fixed Price listing.
-  public static final int BID_BOUGHT_ITEM = 16; //  Successfully bought an item via BIN.
-  public static final int BID_ERROR_ACCOUNT_SUSPENDED = 17; //  Your account has been (!) suspended, you can't bid.
-  public static final int BID_ERROR_CANT_SIGN_IN = 18; //  We tried to get bid pages, but it kept asking for login.
-  public static final int BID_ERROR_WONT_SHIP = 19; //  You are registered in a country to which the seller doesn't ship.
-  public static final int BID_ERROR_REQUIREMENTS_NOT_MET = 20; //  This seller has set buyer requirements for this item and only sells to buyers who meet those requirements.
+public abstract class AuctionServer implements XMLSerialize, AuctionServerInterface {
 
   protected String siteId = null; /**< The human-readable name of an auction server. */
   private String userCfgString=null;
@@ -72,10 +51,9 @@ public abstract class AuctionServer implements XMLSerialize {
   private static final int YEAR_BASE = 1990;
   private static GregorianCalendar midpointDate = new GregorianCalendar(YEAR_BASE, Calendar.JANUARY, 1);
   private static final int HIGHBIT_ASCII = 0x80;
-  public static final String UPDATE_LOGIN_COOKIE = "Update login cookie";
 
-  public abstract StringBuffer getAuctionViaAffiliate(CookieJar cj, AuctionEntry ae, String id) throws CookieJar.CookieException;
-  public abstract int buy(AuctionEntry ae, int quantity);
+  protected abstract StringBuffer getAuction(AuctionEntry ae, String id);
+
   public abstract long getSnipePadding();
 
   /*!@class BadBidException
@@ -102,25 +80,23 @@ public abstract class AuctionServer implements XMLSerialize {
     }
   }
 
-  protected final Set<AuctionEntry> _aucList = new TreeSet<AuctionEntry>(new AuctionEntry.AuctionComparator()); /**< The list of auctions that this server is holding onto. */
-
-  protected long _pageRequestTime=0; /**< The full amount of time it takes to request a single page from this site. */
-  protected long _affRequestTime=0;  /**< The amount of time it takes to request an item via their affiliate program. */
+  protected final Set<AuctionEntry> _aucList = new TreeSet<AuctionEntry>(new AuctionEntry.AuctionComparator());
+  /**< The amount of time it takes to request an item via their affiliate program. */
   protected long _officialServerTimeDelta=0;
   protected TimeZone _officialServerTimeZone = null;
-  public abstract String extractIdentifierFromURLString(String urlStyle);
+
   public abstract CookieJar getNecessaryCookie(boolean force);
   public abstract CookieJar getSignInCookie(CookieJar old_cj);
   public abstract void safeGetAffiliate(CookieJar cj, AuctionEntry inEntry) throws CookieJar.CookieException;
   public abstract JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, com.jbidwatcher.util.Currency inCurr, int inQuant) throws BadBidException;
-  public abstract int bid(AuctionEntry inEntry, Currency inBid, int inQuantity);
+
   public abstract int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, Currency inBid, int inQuantity);
-  public abstract boolean checkIfIdentifierIsHandled(String auctionId);
+
   public abstract void establishMenu();
   public abstract JConfigTab getConfigurationTab();
   public abstract void cancelSearches();
   public abstract void addSearches(SearchManagerInterface searchManager);
-  public abstract Currency getMinimumBidIncrement(Currency currentBid, int bidCount);
+
   public abstract boolean isHighDutch(AuctionEntry inAE);
   public abstract void updateHighBid(AuctionEntry ae);
 
@@ -131,16 +107,7 @@ public abstract class AuctionServer implements XMLSerialize {
    */
   protected abstract Date getOfficialTime();
 
-  /** 
-   * @brief Get the URL (in String form that a browser can view with) for a given item ID on this auction server.
-   * 
-   * @param itemID - The item to retrieve the URL for.
-   * 
-   * @return - A String with the full URL of the item description on the auction server.
-   */
-  public abstract String getBrowsableURLFromItem(String itemID);
-
-  /** 
+  /**
    * @brief Get the string-form URL for a given item ID on this
    * auction server, for when we aren't browsing.
    * 
@@ -268,14 +235,6 @@ public abstract class AuctionServer implements XMLSerialize {
   //  Generalized logic
   //  -----------------
 
-  /** 
-   * @brief Add an auction to this server, based on item ID.
-   * 
-   * @param itemId - The auction item to add.
-   * 
-   * @return - The underlying 'AuctionInfo' object that contains all
-   * the basic accessors for auction data.
-   */
   public AuctionInfo addAuction(String itemId) {
     URL auctionURL = getURLFromItem(itemId);
     return( addAuction(auctionURL, itemId));
@@ -292,11 +251,6 @@ public abstract class AuctionServer implements XMLSerialize {
     }
   }
 
-  /** 
-   * @brief Get the human-readable auction site name for this server.
-   * 
-   * @return - A String with the human-readable auction site name.
-   */
   public String getName() {
     return siteId;
   }
@@ -505,59 +459,16 @@ public abstract class AuctionServer implements XMLSerialize {
     }
   }
 
-  /**
-   * @brief Returns the amount of time it takes to retrieve a page
-   * from the auction server.
-   * 
-   * @return The amount of milliseconds it takes to get a simple page
-   * from the auction server.
-   */
-  public long getPageRequestTime() {
-    return _pageRequestTime;
-  }
-
-  /**
-   * @brief Returns the amount of time it takes to retrieve an item
-   * from the auction server via their affiliate program.
-   *
-   * @return The amount of milliseconds it takes to get an item
-   * from the auction server via their affiliate server.
-   */
-  public long getAffiliateRequestTime() {
-    return _affRequestTime;
-  }
-
-  /**
-   * @brief Returns the difference in time between the local machine's
-   * normalized time, and the auction site's normalized time.
-   * 
-   * @return The amount of milliseconds off the server time is from
-   * local time.
-   */
   public long getOfficialServerTimeDelta() {
     return _officialServerTimeDelta;
   }
 
-  /** 
-   * @brief Retrieve what time zone the server is in.
-   * 
-   * @return - The time zone of the auction server.
-   */
   public TimeZone getOfficialServerTimeZone() {
     return _officialServerTimeZone;
   }
 
-  /** 
-   * @brief Load an auction, and return it.  It really doesn't 'add'
-   * anything...
-   * 
-   * @param auctionURL - The URL to the item description to add.
-   * @param item_id - The item ID to add.
-   * 
-   * @return - An AuctionInfo low-level generic Auction object.
-   */
   public AuctionInfo addAuction(URL auctionURL, String item_id) {
-    SpecificAuction newAuction = (SpecificAuction) loadAuction(auctionURL, item_id, null, true);
+    SpecificAuction newAuction = (SpecificAuction) loadAuction(auctionURL, item_id, null);
 
     return(newAuction);
   }
@@ -595,10 +506,6 @@ public abstract class AuctionServer implements XMLSerialize {
 
   static long s_last_updated = 0;
 
-  public AuctionInfo loadAuction(URL auctionURL, String item_id, AuctionEntry ae) {
-    return loadAuction(auctionURL, item_id, ae, false);
-  }
-
   private void markCommunicationError(AuctionEntry ae) {
     if (ae != null) {
       MQFactory.getConcrete("Swing").enqueue("LINK DOWN Communications failure talking to the server during item #" + ae.getIdentifier() + "( " + ae.getTitle() + " )");
@@ -615,86 +522,68 @@ public abstract class AuctionServer implements XMLSerialize {
    * @param auctionURL - The URL to load the auction from.
    * @param item_id - The item # to associate this returned info with.
    * @param ae - An object to notify when an error occurs.
-   * @param viaAffiliate - Whether to load via an affiliate link or not.
-   * 
    * @return - An object containing the information extracted from the auction.
    */
-  public AuctionInfo loadAuction(URL auctionURL, String item_id, AuctionEntry ae, boolean viaAffiliate) {
+  public AuctionInfo loadAuction(URL auctionURL, String item_id, AuctionEntry ae) {
+    StringBuffer sb = getAuction(ae, item_id);
+
+    if (sb == null) {
+      try {
+        sb = getAuction(auctionURL);
+      } catch (FileNotFoundException ignored) {
+        //  Just get out.  The item no longer exists on the auction
+        //  server, so we shouldn't be trying any of the rest.  The
+        //  Error should have been logged at the lower level, so just
+        //  punt.  It's not a communications error, either.
+        return null;
+      } catch (Exception catchall) {
+        if (JConfig.debugging()) {
+          ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
+        }
+      }
+    }
+
+    SpecificAuction curAuction = null;
+    if(sb != null) {
+      curAuction = doParse(sb, ae, item_id);
+    }
+
+    if(curAuction == null) {
+      noteRetrieveError(ae);
+    }
+    return curAuction;
+  }
+
+  private SpecificAuction doParse(StringBuffer sb, AuctionEntry ae, String item_id) {
     SpecificAuction curAuction = getNewSpecificAuction();
 
-    if(item_id != null) {
+    if (item_id != null) {
       curAuction.setIdentifier(item_id);
     }
-    StringBuffer sb = null;
+    curAuction.setContent(sb, false);
+    String error = null;
+    if (curAuction.preParseAuction()) {
+      if (curAuction.parseAuction(ae)) {
+        curAuction.save();
+      } else error = "Bad Parse!";
+    } else error = "Bad pre-parse!";
 
-    if(viaAffiliate) {
-      try {
-        long pre = System.currentTimeMillis();
-        sb = getAuctionViaAffiliate(getNecessaryCookie(false), ae, item_id);
-        long post = System.currentTimeMillis();
-        _affRequestTime = (post - pre);
-        if(sb == null) viaAffiliate = false;
-      } catch (CookieJar.CookieException e) {
-        //  This failed...  Let's retry with a normal get...
-        viaAffiliate = false;
-      }
-    }
-
-    try {
-      if(!viaAffiliate) {
-        if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
-          long pre = System.currentTimeMillis();
-          sb = getAuction(auctionURL);
-          long post = System.currentTimeMillis();
-          _pageRequestTime = (post - pre);
-        } else /* TimeSync disabled */
-          sb = getAuction(auctionURL);
-      }
-      if(sb != null) {
-        curAuction.setContent(sb, false);
-      }
-    } catch(FileNotFoundException ignored) {
-      //  Just get out.  The item no longer exists on the auction
-      //  server, so we shouldn't be trying any of the rest.  The
-      //  Error should have been logged at the lower level, so just
-      //  punt.  It's not a communications error, either.
-      return null;
-    } catch(Exception catchall) {
-      if(JConfig.debugging()) ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
-      sb = null;
-    }
-    boolean successfulParse = true;
-
-    if(sb == null) {
+    if(error != null) {
+      ErrorManagement.logMessage(error);
       checkLogError(ae);
-      successfulParse = false;
     }
+      return curAuction;
+  }
 
-    if(successfulParse) {
-      successfulParse = curAuction.preParseAuction();
-      if(successfulParse) {
-        successfulParse = curAuction.parseAuction(ae);
-      } else {
-        ErrorManagement.logMessage("Bad Parse!");
-        checkLogError(ae);
-      }
+  private void noteRetrieveError(AuctionEntry ae) {
+    checkLogError(ae);
+    //  Whoops!  Bad thing happened on the way to loading the auction!
+    ErrorManagement.logDebug("Failed to parse auction!  Bad return result from auction server.");
+    //  Only retry the login cookie once every ten minutes of these errors.
+    if ((s_last_updated + Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
+      s_last_updated = System.currentTimeMillis();
+      MQFactory.getConcrete(siteId).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$ //$NON-NLS-2$
     }
-
-    if(!successfulParse) {
-      //  Whoops!  Bad thing happened on the way to loading the auction!
-      ErrorManagement.logDebug("Failed to parse auction!  Bad return result from auction server.");
-      //  Only retry the login cookie once every ten minutes of these errors.
-      if( (s_last_updated + Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
-        s_last_updated = System.currentTimeMillis();
-        MQFactory.getConcrete(siteId).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$ //$NON-NLS-2$
-      }
-      curAuction = null;
-    }
-
-    if(curAuction != null) {
-      curAuction.save();
-    }
-    return(curAuction);
   }
 
   private void checkLogError(AuctionEntry ae) {
@@ -800,8 +689,6 @@ public abstract class AuctionServer implements XMLSerialize {
     } else {
       //  This is bad...
       ErrorManagement.logMessage(siteId + ": Error, can't accurately set delta to server's official time.");
-      //  This should be LOGGED!  -- FIXME  -- mrs: 13-February-2001 19:59
-      _pageRequestTime = 0;
       _officialServerTimeDelta = 0;
       return false;
     }

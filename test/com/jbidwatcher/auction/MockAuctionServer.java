@@ -16,6 +16,12 @@ import java.net.MalformedURLException;
 import java.io.FileNotFoundException;
 
 public class MockAuctionServer extends AuctionServer {
+  /**< The full amount of time it takes to request a single page from this site. */
+  protected long _affRequestTime=0;
+  /**< The list of auctions that this server is holding onto. */
+
+  protected long _pageRequestTime=0;
+
   public MockAuctionServer() {
     siteId = "testBay";
   }
@@ -41,8 +47,8 @@ public class MockAuctionServer extends AuctionServer {
     }
   }
 
-  public StringBuffer getAuctionViaAffiliate(CookieJar cj, AuctionEntry ae, String id) throws CookieJar.CookieException {
-    addCall("getAuctionViaAffiliate");
+  public StringBuffer getAuction(AuctionEntry ae, String id) {
+    addCall("getAuction");
     StringBuffer sb = null;
     try {
       sb = getAuction(getURLFromItem(id));
@@ -142,6 +148,10 @@ public class MockAuctionServer extends AuctionServer {
     return "http://www.jbidwatcher.com";
   }
 
+  public long getPageRequestTime() {
+    return 0;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
   public String getStringURLFromItem(String itemID) {
     TestCase.fail("Unexpected function called!");
     return "http://www.jbidwatcher.com";
@@ -171,5 +181,16 @@ public class MockAuctionServer extends AuctionServer {
   public boolean checkIfSiteNameHandled(String serverName) {
     addCall("checkIfSiteNameHandled");
     return true;
+  }
+
+  /**
+   * @brief Returns the amount of time it takes to retrieve an item
+   * from the auction server via their affiliate program.
+   *
+   * @return The amount of milliseconds it takes to get an item
+   * from the auction server via their affiliate server.
+   */
+  public long getAffiliateRequestTime() {
+    return _affRequestTime;
   }
 }

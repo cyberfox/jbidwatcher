@@ -15,6 +15,7 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.AuctionEntry;
 
@@ -124,38 +125,38 @@ public class Snipe {
 
   public static String getSnipeResult(int snipeResult, String aucTitle, AuctionEntry aeFire) {
     String snipeOutput;
-    if(snipeResult == AuctionServer.BID_WINNING || snipeResult == AuctionServer.BID_SELFWIN) {
+    if(snipeResult == AuctionServerInterface.BID_WINNING || snipeResult == AuctionServerInterface.BID_SELFWIN) {
       snipeOutput = "Successfully sniped a high bid on " + aucTitle + '!';
-    } else if(snipeResult == AuctionServer.BID_DUTCH_CONFIRMED) {
+    } else if(snipeResult == AuctionServerInterface.BID_DUTCH_CONFIRMED) {
       snipeOutput = "Successfully sniped a high dutch bid on " + aucTitle + '!';
     } else {
       switch(snipeResult) {
-        case AuctionServer.BID_ERROR_UNKNOWN:
+        case AuctionServerInterface.BID_ERROR_UNKNOWN:
           snipeOutput = "Unknown error sniping on " + aucTitle;
           break;
-        case AuctionServer.BID_ERROR_ENDED:
-        case AuctionServer.BID_ERROR_CANNOT:
+        case AuctionServerInterface.BID_ERROR_ENDED:
+        case AuctionServerInterface.BID_ERROR_CANNOT:
           snipeOutput = "Snipe apparently failed, as the auction cannot be bid on anymore: " + aucTitle;
           break;
-        case AuctionServer.BID_ERROR_BANNED:
+        case AuctionServerInterface.BID_ERROR_BANNED:
           snipeOutput = "Snipe failed, as you are disallowed from bidding on " + aeFire.getSeller() + "'s items.";
           break;
-        case AuctionServer.BID_ERROR_TOO_LOW:
+        case AuctionServerInterface.BID_ERROR_TOO_LOW:
           snipeOutput = "Snipe was too low, and was not accepted.";
           break;
-        case AuctionServer.BID_ERROR_TOO_LOW_SELF:
+        case AuctionServerInterface.BID_ERROR_TOO_LOW_SELF:
           snipeOutput = "Your bid was below or equal to your previous high bid, and was not accepted.";
           break;
-        case AuctionServer.BID_ERROR_RESERVE_NOT_MET:
+        case AuctionServerInterface.BID_ERROR_RESERVE_NOT_MET:
           snipeOutput = "Your snipe was successful, but it did not meet the reserve price.";
           break;
-        case AuctionServer.BID_ERROR_AMOUNT:
+        case AuctionServerInterface.BID_ERROR_AMOUNT:
           snipeOutput = "There is an error with the amount for the snipe on " + aucTitle + " (Probably snipe too low vs. current bids).";
           break;
-        case AuctionServer.BID_ERROR_OUTBID:
+        case AuctionServerInterface.BID_ERROR_OUTBID:
           snipeOutput = "You have been outbid in your snipe on " + aucTitle;
           break;
-        case AuctionServer.BID_ERROR_CONNECTION:
+        case AuctionServerInterface.BID_ERROR_CONNECTION:
           snipeOutput = "Snipe failed due to connection problem.  Probably a timeout trying to reach eBay.";
           break;
         case AuctionServer.BID_ERROR_AUCTION_GONE:
@@ -173,7 +174,7 @@ public class Snipe {
         case AuctionServer.BID_ERROR_REQUIREMENTS_NOT_MET:
           snipeOutput = "You don't meet some requirement the seller has set for the item.  Check the item details for more information.";
           break;
-        case AuctionServer.BID_ERROR_MULTI:
+        case AuctionServerInterface.BID_ERROR_MULTI:
           snipeOutput = "There is a problem with the multisnipe, an earlier entry hasn't finished updating.  Trying again shortly.";
           break;
         default:

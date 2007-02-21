@@ -31,6 +31,7 @@ import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.TimerHandler;
 import com.jbidwatcher.Constants;
 import com.jbidwatcher.auction.ThumbnailManager;
@@ -124,6 +125,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private Map<String, AuctionQObject> snipeMap = new HashMap<String, AuctionQObject>();
   private String mBadPassword = null;
   private String mBadUsername = null;
+  /**< The full amount of time it takes to request a single page from this site. */
+  protected long _affRequestTime=0;
+  /**< The list of auctions that this server is holding onto. */
+
+  protected long _pageRequestTime=0;
 
   {
     loadStrings();
@@ -857,6 +863,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
 
     Auctions.endBlocking();
+
+    //  If we couldn't get a number, clear the page request time.
+    if(result == null) _pageRequestTime = 0;
     return result;
   }
 
@@ -1056,20 +1065,34 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return 1;
   }
 
-  public StringBuffer getAuctionViaAffiliate(CookieJar cj, AuctionEntry ae, String id) throws CookieJar.CookieException {
+  public StringBuffer getAuction(AuctionEntry ae, String id) {
+    CookieJar cj = getCookie();
     long end_time = 1;
+    //  TODO -- Replace with a global lookup for auction entry by id.
     if(ae != null) {
       Date end = ae.getEndDate();
       if(end != null) end_time = end.getTime();
     }
     StringBuffer sb = null;
-    if(JBConfig.doAffiliate(end_time)) {
-      sb = AffiliateRetrieve.getAuctionViaAffiliate(cj, id);
+    if(cj != null && allowAffiliate() && JBConfig.doAffiliate(end_time)) {
+      try {
+        long pre = System.currentTimeMillis();
+        sb = AffiliateRetrieve.getAuctionViaAffiliate(cj, id);
+        long post = System.currentTimeMillis();
+        _affRequestTime = (post - pre);
+      } catch(CookieJar.CookieException cje) {
+        //  Cookie failure...  Ignore it and do a regular get.
+      }
     }
 
     if(sb == null || sb.indexOf("eBay item") == -1) {
       try {
+        long pre = System.currentTimeMillis();
         sb = getAuction(getURLFromItem(id));
+        long post = System.currentTimeMillis();
+        if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
+          _pageRequestTime = (post - pre);
+        }
       } catch (FileNotFoundException ignored) {
         sb = null;
       }
@@ -1078,17 +1101,28 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return sb;
   }
 
+  public long getPageRequestTime() {
+    return _pageRequestTime;
+  }
+
+  private boolean allowAffiliate() {
+    ErrorManagement.logDebug("NOT allowing affiliate mode.");
+    return false;
+  }
+
+  private CookieJar getCookie() {
+    ErrorManagement.logDebug("NOT getting cookie.");
+    return null;
+  }
+
   public int buy(AuctionEntry ae, int quantity) {
     String buyRequest = "http://offer.ebay.com/ws/eBayISAPI.dll?MfcISAPICommand=BinConfirm&fb=1&co_partnerid=&item=" + ae.getIdentifier() + "&quantity=" + quantity;
 
     //  This updates the cookies with the affiliate information, if it's not a test auction.
     if(ae.getTitle().toLowerCase().indexOf("test") == -1) {
       if(JBConfig.doAffiliate(ae.getEndDate().getTime())) {
-        try {
-          getAuctionViaAffiliate(getNecessaryCookie(false), ae, ae.getIdentifier());
-        } catch (CookieJar.CookieException ignore) {
-          //  Ignore, it doesn't matter for this call.
-        }
+        //  Ignoring the result as it's just called to trigger affiliate mode.
+        getAuction(ae, ae.getIdentifier());
       }
     }
 
@@ -1191,7 +1225,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if(inEntry.getTitle().toLowerCase().indexOf("test") == -1) {
       if(JBConfig.doAffiliate(inEntry.getEndDate().getTime())) {
         if(JConfig.debugging) inEntry.setLastStatus("Loading item...");
-        getAuctionViaAffiliate(cj, inEntry, inEntry.getIdentifier());
+        getAuction(inEntry, inEntry.getIdentifier());
         if(JConfig.debugging) inEntry.setLastStatus("Done loading item...");
       }
     }
@@ -1558,7 +1592,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           /**
            * Does this look like an auction server item URL?
            */
-          AuctionServer aucServ = AuctionServerManager.getInstance().getServerForUrlString(url);
+          AuctionServerInterface aucServ = AuctionServerManager.getInstance().getServerForUrlString(url);
           String hasId = aucServ.extractIdentifierFromURLString(url);
 
           if (hasId != null) {
@@ -2777,5 +2811,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
       }
     }
+  }
+
+  /**
+   * @brief Returns the amount of time it takes to retrieve an item
+   * from the auction server via their affiliate program.
+   *
+   * @return The amount of milliseconds it takes to get an item
+   * from the auction server via their affiliate server.
+   */
+  public long getAffiliateRequestTime() {
+    return _affRequestTime;
   }
 }

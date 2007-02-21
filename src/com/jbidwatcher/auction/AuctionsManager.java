@@ -22,6 +22,7 @@ import com.jbidwatcher.ui.JSplashScreen;
 import com.jbidwatcher.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.util.ErrorManagement;
 
 import java.io.*;
@@ -321,7 +322,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
   public static String stripId(String id) {
     String strippedId = id;
     if(id.startsWith("http")) {
-      AuctionServer aucServ = AuctionServerManager.getInstance().getServerForUrlString(id);
+      AuctionServerInterface aucServ = AuctionServerManager.getInstance().getServerForUrlString(id);
       strippedId = aucServ.extractIdentifierFromURLString(id);
     }
 

@@ -341,14 +341,10 @@ public class JBidProxy extends HTTPProxyClient {
       try {
         boolean got = false;
         if(JConfig.queryConfiguration("server.browseAffiliate", "true").equals("true")) {
-          try {
-            StringBuffer sb = aucServ.getAuctionViaAffiliate(aucServ.getNecessaryCookie(false), ae, ae.getIdentifier());
-            if(sb != null) {
-              sbOut.append(sb);
-              got = true;
-            }
-          } catch (CookieJar.CookieException ignored) {
-            //  Ignore it, because 'got' will be false, and the right thing will happen.
+          StringBuffer sb = aucServ.getAuction(AuctionServer.getURLFromString(aucServ.getStringURLFromItem(ae.getIdentifier())));
+          if (sb != null) {
+            sbOut.append(sb);
+            got = true;
           }
         }
         if(!got) {

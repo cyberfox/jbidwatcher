@@ -123,7 +123,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     String cmd = (String)deQ;
 
     if(cmd.equals("TIMECHECK")) {
-      AuctionServer defaultServer = getDefaultServer();
+      AuctionServerInterface defaultServer = getDefaultServer();
 
       defaultServer.reloadTimeNow();
 
@@ -150,7 +150,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public String getDefaultServerTime() {
-    AuctionServer defaultServer = getDefaultServer();
+    AuctionServerInterface defaultServer = getDefaultServer();
     return defaultServer.getTime();
   }
 
