@@ -21,7 +21,6 @@ import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.queue.AuctionQObject;
 import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.xml.XMLSerialize;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
@@ -29,7 +28,6 @@ import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.*;
-import com.jbidwatcher.auction.EntryManager;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.auction.AuctionInfo;
@@ -38,23 +36,24 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 
-public abstract class AuctionServer implements XMLSerialize, AuctionServerInterface {
-  private EntryManager _em = null;
-  private static long _sLastUpdated = 0;
-  private final Set<AuctionEntry> _aucList = new TreeSet<AuctionEntry>(new AuctionEntry.AuctionComparator());
+public abstract class AuctionServer implements AuctionServerInterface {
+  private static long sLastUpdated = 0;
 
+  //  Note: JBidProxy
   public abstract CookieJar getNecessaryCookie(boolean force);
 
-  //  TODO - The following are exposed to and used by the snipe class only.  Is there another way?
+  //  TODO - The following are exposed to and used by the Snipe class only.  Is there another way?
   public abstract CookieJar getSignInCookie(CookieJar old_cj);
   public abstract JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, com.jbidwatcher.util.Currency inCurr, int inQuant) throws BadBidException;
   public abstract int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, Currency inBid, int inQuantity);
 
   //  UI functions
+  //  Note: AuctionServerManager
   public abstract void establishMenu();
   public abstract JConfigTab getConfigurationTab();
 
-  //  Exposed to AuctionServerManager -- TODO -- A better search structure would be nice.
+  // TODO -- A better search structure would be nice.
+  //  Note: AuctionServerManager
   public abstract void cancelSearches();
   public abstract void addSearches(SearchManagerInterface searchManager);
 
@@ -65,6 +64,8 @@ public abstract class AuctionServer implements XMLSerialize, AuctionServerInterf
   /**
    * @brief Get the string-form URL for a given item ID on this
    * auction server, for when we aren't browsing.
+   *
+   * Note: AuctionEntry, JBWDropHandler
    * 
    * @param itemID - The item to retrieve the URL for.
    * 
@@ -80,7 +81,9 @@ public abstract class AuctionServer implements XMLSerialize, AuctionServerInterf
    * to it.  This abstract function is defined by the auction server
    * specific classes, and actually returns an object of their type of
    * 'auction'.
-   * 
+   *
+   *  Note: AuctionEntry
+   *
    * @return - A freshly allocated auction-server specific auction data object.
    */
   public abstract SpecificAuction getNewSpecificAuction();
@@ -103,6 +106,9 @@ public abstract class AuctionServer implements XMLSerialize, AuctionServerInterf
    */
   public abstract boolean checkIfSiteNameHandled(String serverName);
 
+  public abstract void setAuthorization(XMLElement auth);
+  public abstract void extractAuthorization(XMLElement auth);
+
   /**
    * @return - The current time as reported by the auction site's 'official time' mechanism.
    * @brief Get the official 'right now' time from the server.
@@ -117,12 +123,19 @@ public abstract class AuctionServer implements XMLSerialize, AuctionServerInterf
   protected abstract URL getURLFromItem(String itemID);
 
   protected abstract StringBuffer getAuction(AuctionEntry ae, String id);
-  protected abstract void setAuthorization(XMLElement auth);
-  protected abstract void extractAuthorization(XMLElement auth);
+
+  public void reloadTime() {
+    if (setTimeDifference()) {
+      MQFactory.getConcrete("Swing").enqueue("Successfully synchronized time with " + getName() + '.');
+    } else {
+      MQFactory.getConcrete("Swing").enqueue("Failed to synchronize time with " + getName() + '!');
+    }
+  }
 
   /**
    * @brief Show an auction entry in the browser.
    * TODO -- Move this someplace more sane.
+   * Note: JBidMouse
    * 
    * @param inEntry - The auction entry to load up and display in the users browser.
    */
@@ -147,144 +160,14 @@ public abstract class AuctionServer implements XMLSerialize, AuctionServerInterf
 
   //  Generalized logic
   //  -----------------
-  public AuctionInfo addAuction(String itemId) {
+  //  Note: AuctionEntry
+  public AuctionInfo createAuction(String itemId) {
     URL auctionURL = getURLFromItem(itemId);
-    return( addAuction(auctionURL, itemId));
+
+    return loadAuction(auctionURL, itemId, null);
   }
 
   /**
-   * @brief Auctions must be registered when they are added, so that
-   * the auction server can keep a list of auctions that it is
-   * managing.  This is used when storing out the list of auctions per
-   * server.
-   * 
-   * @param ae - The AuctionEntry to add to the server's list.
-   */
-  public void registerAuction(AuctionEntry ae) {
-    synchronized(_aucList) { _aucList.add(ae); }
-  }
-
-  /** 
-   * @brief When an auction is deleted, it should unregister itself,
-   * so that the AuctionServer object won't store it out, when doing
-   * saves.
-   * 
-   * @param ae - The AuctionEntry to remove from the server's list.
-   */
-  public void unregisterAuction(AuctionEntry ae) {
-    synchronized(_aucList) { _aucList.remove(ae); }
-  }
-
-  public AuctionStats getStats() {
-    AuctionStats outStat = new AuctionStats();
-    outStat._count = _aucList.size();
-    long lastUpdateTime = Long.MAX_VALUE;
-    long lastEndedTime = Long.MAX_VALUE;
-    long lastSnipeTime = Long.MAX_VALUE;
-
-    for (AuctionEntry ae : _aucList) {
-      if (ae.isEnded()) {
-        outStat._completed++;
-      } else {
-        long thisTime = ae.getEndDate().getTime();
-        if (ae.isSniped()) {
-          outStat._snipes++;
-          if (thisTime < lastSnipeTime) {
-            outStat._nextSnipe = ae;
-            lastSnipeTime = thisTime;
-          }
-        }
-
-        if (thisTime < lastEndedTime) {
-          outStat._nextEnd = ae;
-          lastEndedTime = thisTime;
-        }
-
-        long nextTime = ae.getNextUpdate();
-        if (nextTime < lastUpdateTime) {
-          outStat._nextUpdate = ae;
-          lastUpdateTime = nextTime;
-        }
-      }
-    }
-
-    return outStat;
-  }
-
-  public void fromXML(XMLElement inXML) {
-    //  TODO mrs: Why do we care about this?
-    inXML.getProperty("NAME", "unknown");
-
-    extractAuthorization(inXML);
-
-    Iterator<XMLElement> entryStep = inXML.getChildren();
-    while(entryStep.hasNext()) {
-      XMLElement perEntry = entryStep.next();
-      AuctionEntry ae = new AuctionEntry();
-
-	  ae.setServer(this);
-      ae.fromXML(perEntry);
-      if(_em != null) {
-        _em.addEntry(ae);
-      }
-    }
-  }
-
-  public void setEntryManager(EntryManager em) {
-    _em = em;
-  }
-
-  public XMLElement toXML() {
-    XMLElement xmlResult = new XMLElement("server");
-
-    xmlResult.setProperty("name", getName());
-
-    synchronized(_aucList) {
-      for (AuctionEntry ae : _aucList) {
-        xmlResult.addChild(ae.toXML());
-      }
-    }
-
-    return xmlResult;
-  }
-
-  /** 
-    * @brief How many auctions is this auction server managing?
-    * 
-    * @return - The number of auctions that this server is currently aware of.
-    */
-  public int getAuctionCount() {
-    return(_aucList.size());
-  }
-
-  /**
-    * @brief Resynchronize with the server's 'official' time, so as to
-    * make sure not to miss a snipe, for example.  This does NOT happen
-    * inline with the call, it's queued to happen later.
-    *
-    * Primarily exists to be used 'interactively', which is why it doesn't block.
-    */
-  public static void reloadTime() {
-    if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
-      MQFactory.getConcrete("auction_manager").enqueue("TIMECHECK");
-    }
-  }
-
-  public void reloadTimeNow() {
-    if(setTimeDifference()) {
-      MQFactory.getConcrete("Swing").enqueue("Successfully synchronized time with " + getName() + '.');
-    } else {
-      MQFactory.getConcrete("Swing").enqueue("Failed to synchronize time with " + getName() + '!');
-    }
-  }
-
-  public AuctionInfo addAuction(URL auctionURL, String item_id) {
-    SpecificAuction newAuction = (SpecificAuction) loadAuction(auctionURL, item_id, null);
-
-    return(newAuction);
-  }
-
-  /** 
    * @brief Load an auction from a given URL, and return the textual
    * form of that auction to the caller in a Stringbuffer, having
    * passed in any necessary cookies, passwords, etc.
@@ -316,18 +199,17 @@ public abstract class AuctionServer implements XMLSerialize, AuctionServerInterf
     return loadedPage;
   }
 
+  //  Note: AuctionEntry
   public AuctionInfo reloadAuction(AuctionEntry inEntry) {
     URL auctionURL = getURLFromItem(inEntry.getIdentifier());
 
     SpecificAuction curAuction = (SpecificAuction) loadAuction(auctionURL, inEntry.getIdentifier(), inEntry);
 
     if (curAuction != null) {
-      synchronized (_aucList) {
-        _aucList.remove(inEntry);
-        inEntry.setAuctionInfo(curAuction);
-        inEntry.clearInvalid();
-        _aucList.add(inEntry);
-      }
+      AuctionServerManager.getInstance().deleteEntry(inEntry);
+      inEntry.setAuctionInfo(curAuction);
+      inEntry.clearInvalid();
+      AuctionServerManager.getInstance().addEntry(inEntry);
       MQFactory.getConcrete("Swing").enqueue("LINK UP");
     } else {
       inEntry.setLastStatus("Failed to load from server!");
@@ -411,8 +293,8 @@ public abstract class AuctionServer implements XMLSerialize, AuctionServerInterf
     //  Whoops!  Bad thing happened on the way to loading the auction!
     ErrorManagement.logDebug("Failed to parse auction!  Bad return result from auction server.");
     //  Only retry the login cookie once every ten minutes of these errors.
-    if ((_sLastUpdated + Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
-      _sLastUpdated = System.currentTimeMillis();
+    if ((sLastUpdated + Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
+      sLastUpdated = System.currentTimeMillis();
       MQFactory.getConcrete(getName()).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$ //$NON-NLS-2$
     }
   }

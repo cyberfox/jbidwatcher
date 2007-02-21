@@ -74,11 +74,6 @@ public class MockAuctionServer extends AuctionServer {
     return BID_BOUGHT_ITEM;
   }
 
-  public long getSnipePadding() {
-    addCall("getSnipePadding");
-    return 100;
-  }
-
   public String extractIdentifierFromURLString(String urlStyle) {
     addCall("extractIdentifierFromURLString");
     return "12345678";
@@ -206,11 +201,11 @@ public class MockAuctionServer extends AuctionServer {
     return true;
   }
 
-  protected void setAuthorization(XMLElement auth) {
+  public void setAuthorization(XMLElement auth) {
     //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  protected void extractAuthorization(XMLElement auth) {
+  public void extractAuthorization(XMLElement auth) {
     //To change body of implemented methods use File | Settings | File Templates.
   }
 

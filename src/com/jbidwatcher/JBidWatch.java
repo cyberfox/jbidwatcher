@@ -194,7 +194,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     } else if(msg.equals(SNIPE_ALTERED_MSG)) {
       if(Platform.isTrayEnabled()) {
         StringBuffer snipeText = new StringBuffer("TOOLTIP ");
-        AuctionStats as = AuctionServerManager.getInstance().getDefaultServer().getStats();
+        AuctionStats as = AuctionServerManager.getInstance().getStats();
         if(as.getSnipes() != 0) {
           snipeText.append("Next Snipe at: ").append(Constants.remoteClockFormat.format(as.getNextSnipe().getSnipeDate())).append('\n');
           snipeText.append(as.getSnipes()).append(" snipes outstanding\n");
@@ -760,7 +760,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
 
     AuctionsManager.getInstance().saveAuctions();
     SearchManager.getInstance().saveSearches();
-    AuctionStats as = AuctionServerManager.getInstance().getDefaultServer().getStats();
+    AuctionStats as = AuctionServerManager.getInstance().getStats();
     JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
     JConfig.saveConfiguration(cfgFilename);
     System.exit(0);

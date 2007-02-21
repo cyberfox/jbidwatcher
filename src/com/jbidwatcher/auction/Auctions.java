@@ -112,7 +112,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
     boolean removedAny = _tSort.delete(inEntry);
 
     if(removedAny) {
-      AuctionServerManager.getInstance().delete_entry(inEntry);
+      AuctionServerManager.getInstance().deleteEntry(inEntry);
     }
   }
 
@@ -140,7 +140,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
     boolean inserted = (_tSort.insert(aeNew) != -1);
 
     if (inserted) {
-      AuctionServerManager.getInstance().add_entry(aeNew);
+      AuctionServerManager.getInstance().addEntry(aeNew);
       return true;
     }
     ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");

@@ -149,6 +149,35 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     loadStrings();
   }
 
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ebayServer that = (ebayServer) o;
+
+    if (!siteId.equals(that.siteId)) return false;
+
+    String user1 = JConfig.queryConfiguration(userCfgString);
+    String pass1 = JConfig.queryConfiguration(passCfgString);
+    String user2 = JConfig.queryConfiguration(that.userCfgString);
+    String pass2 = JConfig.queryConfiguration(that.passCfgString);
+
+    return !(user1 != null ? !user1.equals(user2) : user2 != null) &&
+           !(pass1 != null ? !pass1.equals(pass2) : pass2 != null) &&
+            (user1 == null || pass1 == null || user1.equals(user2) && pass1.equals(pass2));
+  }
+
+  public int hashCode() {
+    String user = JConfig.queryConfiguration(userCfgString);
+    String pass = JConfig.queryConfiguration(passCfgString);
+
+    int result = siteId.hashCode();
+    result = 31 * result + (user != null ? user.hashCode() : 0);
+    result = 31 * result + (pass != null ? pass.hashCode() : 0);
+
+    return result;
+  }
+
   /** @noinspection TooBroadScope,UnusedAssignment,UNUSED_SYMBOL*/
   private void loadStrings() {
     eBayHost = Externalized.getString("ebayServer.host"); //$NON-NLS-1$
@@ -400,7 +429,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   /**
    * @brief Return the UI tab used to configure eBay-specific information.
-   *
    *
    * @return - A new tab to be added to the configuration display.
    */
@@ -1455,7 +1483,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return true;
   }
 
-  protected void extractAuthorization(XMLElement auth) {
+  public void extractAuthorization(XMLElement auth) {
     String username = auth.getProperty("USER", null);
     if (username != null) {
       JConfig.setConfiguration(userCfgString, username);
@@ -1475,7 +1503,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
   }
 
-  protected void setAuthorization(XMLElement auth) {
+  public void setAuthorization(XMLElement auth) {
     if (getUserId() != null) {
       auth.setProperty("user", getUserId());
       auth.setProperty("password1", Base64.encodeString(getPassword(), false));

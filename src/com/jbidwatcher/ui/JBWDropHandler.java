@@ -72,7 +72,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
         lastSeen = aucId;
       }
       if(aeNew != null) {
-        AuctionServerManager.getInstance().delete_entry(aeNew);
+        AuctionServerManager.getInstance().deleteEntry(aeNew);
       }
     }
   }

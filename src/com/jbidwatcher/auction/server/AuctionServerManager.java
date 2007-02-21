@@ -21,18 +21,19 @@ import java.util.*;
 import java.net.*;
 
 public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener {
-  private List<AuctionServerListEntry> _serverList;
-  private List<JConfigTab> _configTabList = null;
-  private final static AuctionServerManager _instance = new AuctionServerManager();
-  private static EntryManager _em = null;
+  private Map<AuctionServer, List<AuctionEntry>> mServerAuctionList;
+  private List<AuctionServerListEntry> mServerList;
+  private List<JConfigTab> mConfigTabList = null;
+  private final static AuctionServerManager mInstance = new AuctionServerManager();
+  private static EntryManager sEntryManager = null;
 
-  private static final boolean uber_debug = false;
+  private static final boolean sUberDebug = false;
 
   static {
-    MQFactory.getConcrete("auction_manager").registerListener(_instance);
+    MQFactory.getConcrete("auction_manager").registerListener(mInstance);
   }
 
-  public static void setEntryManager(EntryManager newEM) { _em = newEM; }
+  public static void setEntryManager(EntryManager newEM) { sEntryManager = newEM; }
 
   private static class AuctionServerListEntry {
     private String _serverName;
@@ -53,7 +54,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public AuctionServer getServerByName(String name) {
-    for (AuctionServerListEntry a_serverList : _serverList) {
+    for (AuctionServerListEntry a_serverList : mServerList) {
       AuctionServer as = (a_serverList).getAuctionServer();
       if (as.getName().equals(name)) return as;
     }
@@ -62,7 +63,8 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   private AuctionServerManager() {
-    _serverList = new ArrayList<AuctionServerListEntry>();
+    mServerAuctionList = new HashMap<AuctionServer, List<AuctionEntry>>(2);
+    mServerList = new ArrayList<AuctionServerListEntry>();
   }
 
   /** 
@@ -103,14 +105,29 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         }
 
         if(newServer != null) {
-          newServer.setEntryManager(_em);
-          try {
-            newServer.fromXML(perServer);
-          } catch(XMLParseException e) {
-            ErrorManagement.handleException("Parse exception: ", e);
-          }
+          getServerAuctionEntries(newServer, perServer);
         }
       }
+    }
+  }
+
+  private void getServerAuctionEntries(AuctionServer newServer, XMLElement perServer) {
+    try {
+      newServer.extractAuthorization(perServer);
+
+      Iterator<XMLElement> entryStep = perServer.getChildren();
+      while (entryStep.hasNext()) {
+        XMLElement perEntry = entryStep.next();
+        AuctionEntry ae = new AuctionEntry();
+
+        ae.setServer(newServer);
+        ae.fromXML(perEntry);
+        if (sEntryManager != null) {
+          sEntryManager.addEntry(ae);
+        }
+      }
+    } catch(XMLParseException e) {
+      ErrorManagement.handleException("Parse exception: ", e);
     }
   }
 
@@ -126,7 +143,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     if(cmd.equals("TIMECHECK")) {
       AuctionServerInterface defaultServer = getDefaultServer();
 
-      defaultServer.reloadTimeNow();
+      defaultServer.reloadTime();
 
       long servTime = defaultServer.getServerTimeDelta();
       Date now = new Date(System.currentTimeMillis() + servTime);
@@ -145,7 +162,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       } catch(NoSuchElementException nsee) {
         //  Nothing really to do, this just means we cleaned out the
         //  list before finding a non-timecheck value.
-        if(uber_debug) ErrorManagement.logDebug("No Such Element caught.");
+        if(sUberDebug) ErrorManagement.logDebug("No Such Element caught.");
       }
     }
   }
@@ -159,10 +176,23 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     XMLElement xmlResult = new XMLElement("auctions");
     int aucCount = 0;
 
-    for (AuctionServerListEntry asle : _serverList) {
-      aucCount += asle.getAuctionServer().getAuctionCount();
+    for (AuctionServerListEntry asle : mServerList) {
+      AuctionServer aucServ = asle.getAuctionServer();
+      List<AuctionEntry> aucList = mServerAuctionList.get(aucServ);
+      XMLElement serverChild = new XMLElement("server");
 
-      xmlResult.addChild(asle.getAuctionServer().toXML());
+      serverChild.setProperty("name", aucServ.getName());
+      aucServ.setAuthorization(serverChild);
+
+      synchronized (aucList) {
+        aucCount += aucList.size();
+
+        for (AuctionEntry ae : aucList) {
+          serverChild.addChild(ae.toXML());
+        }
+      }
+      xmlResult.addChild(serverChild);
+
     }
 
     xmlResult.setProperty("count", Integer.toString(aucCount));
@@ -170,41 +200,43 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     return xmlResult;
   }
 
-  public void delete_entry(AuctionEntry ae) {
+  public void deleteEntry(AuctionEntry ae) {
     AuctionServer aucserv = ae.getServer();
     if(aucserv != null) {
-      aucserv.unregisterAuction(ae);
+      List<AuctionEntry> aucList = mServerAuctionList.get(aucserv);
+      synchronized(aucList) { aucList.remove(ae); }
     }
   }
 
-  public void add_entry(AuctionEntry ae) {
+  public void addEntry(AuctionEntry ae) {
     AuctionServer aucserv = ae.getServer();
     if(aucserv != null) {
-      aucserv.registerAuction(ae);
+      List<AuctionEntry> aucList = mServerAuctionList.get(aucserv);
+      synchronized (aucList) { aucList.add(ae); }
     }
   }
 
   public static AuctionServerManager getInstance() {
-    return _instance;
+    return mInstance;
   }
 
   private AuctionServer addServerNoUI(String inName, AuctionServer aucServ) {
-    for (AuctionServerListEntry asle : _serverList) {
+    for (AuctionServerListEntry asle : mServerList) {
       if (asle.getAuctionServer() == aucServ || inName.equals(asle.getName())) {
         return (asle.getAuctionServer());
       }
     }
 
-    _serverList.add(new AuctionServerListEntry(inName, aucServ));
-
+    mServerList.add(new AuctionServerListEntry(inName, aucServ));
+    mServerAuctionList.put(aucServ, Collections.synchronizedList(new ArrayList<AuctionEntry>()));
     return(aucServ);
   }
 
   public AuctionServer addServer(String inName, AuctionServer aucServ) {
     AuctionServer as = addServerNoUI(inName, aucServ);
     if(as == aucServ) {
-      if(_configTabList != null) {
-        _configTabList.add(aucServ.getConfigurationTab());
+      if(mConfigTabList != null) {
+        mConfigTabList.add(aucServ.getConfigurationTab());
       }
     }
 
@@ -217,7 +249,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
   //  Handle the case of '198332643'.  (For 'paste auction').
   public AuctionServer getServerForIdentifier(String auctionId) {
-    for (AuctionServerListEntry a_serverList : _serverList) {
+    for (AuctionServerListEntry a_serverList : mServerList) {
       AuctionServer as = (a_serverList).getAuctionServer();
 
       if (as.checkIfIdentifierIsHandled(auctionId)) {
@@ -229,7 +261,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public AuctionServer getServerForUrlString(String strURL) {
-    for (AuctionServerListEntry a_serverList : _serverList) {
+    for (AuctionServerListEntry a_serverList : mServerList) {
       AuctionServer as = (a_serverList).getAuctionServer();
       URL serverAddr = StringTools.getURLFromString(strURL);
 
@@ -243,14 +275,14 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public void addAuctionServerMenus() {
-    for (AuctionServerListEntry a_serverList : _serverList) {
+    for (AuctionServerListEntry a_serverList : mServerList) {
       AuctionServer as = (a_serverList).getAuctionServer();
       as.establishMenu();
     }
   }
 
   public AuctionServer getDefaultServer() {
-    Iterator<AuctionServerListEntry> it = _serverList.iterator();
+    Iterator<AuctionServerListEntry> it = mServerList.iterator();
     if(it.hasNext()) {
       return (it.next()).getAuctionServer();
     }
@@ -259,7 +291,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public void addSearches(SearchManagerInterface searchManager) {
-    for (AuctionServerListEntry a_serverList : _serverList) {
+    for (AuctionServerListEntry a_serverList : mServerList) {
       AuctionServer as = (a_serverList).getAuctionServer();
 
       as.addSearches(searchManager);
@@ -267,7 +299,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public void cancelSearches() {
-    for (AuctionServerListEntry a_serverList : _serverList) {
+    for (AuctionServerListEntry a_serverList : mServerList) {
       AuctionServer as = (a_serverList).getAuctionServer();
       as.cancelSearches();
     }
@@ -275,11 +307,50 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
   public List<JConfigTab> getServerConfigurationTabs() {
     //  Always rebuild, so as to fix a problem on first-startup.
-    _configTabList = new ArrayList<JConfigTab>();
-    for (AuctionServerListEntry a_serverList : _serverList) {
+    mConfigTabList = new ArrayList<JConfigTab>();
+    for (AuctionServerListEntry a_serverList : mServerList) {
       AuctionServer as = (a_serverList).getAuctionServer();
-      _configTabList.add(as.getConfigurationTab());
+      mConfigTabList.add(as.getConfigurationTab());
     }
-    return _configTabList;
+    return mConfigTabList;
+  }
+
+  public AuctionStats getStats() {
+    AuctionStats outStat = new AuctionStats();
+    List<AuctionEntry> aucList = mServerAuctionList.get(getDefaultServer());
+
+    long lastUpdateTime = Long.MAX_VALUE;
+    long lastEndedTime = Long.MAX_VALUE;
+    long lastSnipeTime = Long.MAX_VALUE;
+
+    synchronized (aucList) {
+      outStat._count = aucList.size();
+      for (AuctionEntry ae : aucList) {
+        if (ae.isEnded()) {
+          outStat._completed++;
+        } else {
+          long thisTime = ae.getEndDate().getTime();
+          if (ae.isSniped()) {
+            outStat._snipes++;
+            if (thisTime < lastSnipeTime) {
+              outStat._nextSnipe = ae;
+              lastSnipeTime = thisTime;
+            }
+          }
+
+          if (thisTime < lastEndedTime) {
+            outStat._nextEnd = ae;
+            lastEndedTime = thisTime;
+          }
+
+          long nextTime = ae.getNextUpdate();
+          if (nextTime < lastUpdateTime) {
+            outStat._nextUpdate = ae;
+            lastUpdateTime = nextTime;
+          }
+        }
+      }
+    }
+    return outStat;
   }
 }

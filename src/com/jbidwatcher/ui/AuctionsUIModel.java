@@ -627,11 +627,15 @@ public class AuctionsUIModel {
 
     public String getToolTipText(MouseEvent event) {
       int rowPoint = rowAtPoint(new Point(event.getX(), event.getY()));
-      AuctionEntry ae = (AuctionEntry) getValueAt(rowPoint, -1);
+      String result = null;
 
-      String result = buildHTMLComment(ae);
-      if(result == null) return super.getToolTipText(event);
-      return result;
+      if(rowPoint != -1) {
+        AuctionEntry ae = (AuctionEntry) getValueAt(rowPoint, -1);
+
+        result = buildHTMLComment(ae);
+      }
+
+      return result == null ? super.getToolTipText(event) : result;
     }
 
     class MouseListenerSelectProxy implements MouseListener {

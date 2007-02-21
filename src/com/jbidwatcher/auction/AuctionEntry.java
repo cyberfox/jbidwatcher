@@ -285,7 +285,8 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
       _aucServ = AuctionServerManager.getInstance().getServerForUrlString(auctionIdentifier);
       if(_aucServ != null) {
         _identifier = _aucServ.extractIdentifierFromURLString(auctionIdentifier);
-        _auction = _aucServ.addAuction(StringTools.getURLFromString(auctionIdentifier), _identifier);
+        _auction = _aucServ.createAuction(_identifier);
+//        _auction = _aucServ.createAuction(StringTools.getURLFromString(auctionIdentifier), _identifier);
 
         _needsUpdate = false;
         _isLoaded = true;
@@ -294,7 +295,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
       _aucServ = AuctionServerManager.getInstance().getServerForIdentifier(auctionIdentifier);
 
       if(_aucServ != null) {
-        _auction = _aucServ.addAuction(auctionIdentifier);
+        _auction = _aucServ.createAuction(auctionIdentifier);
 
         _isLoaded = true;
         _identifier = auctionIdentifier;

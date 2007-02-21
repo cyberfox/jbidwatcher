@@ -345,15 +345,14 @@ public class JBidProxy extends HTTPProxyClient {
       sbOut.append("<hr><br>");
       AuctionServer aucServ = ae.getServer();
       try {
-        boolean got = false;
+        StringBuffer sb = null;
         if(JConfig.queryConfiguration("server.browseAffiliate", "true").equals("true")) {
-          StringBuffer sb = ae.getBody();
+          sb = ae.getBody();
           if (sb != null) {
             sbOut.append(sb);
-            got = true;
           }
         }
-        if(!got) {
+        if(sb == null) {
           //  TODO -- This is nauseating.  Fix it.
           sbOut.append(checkError(aucServ.getAuction(StringTools.getURLFromString(aucServ.getBrowsableURLFromItem(ae.getIdentifier())))));
         }

@@ -74,7 +74,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
       return aeNew;
     } else {
-      if(aeNew != null) AuctionServerManager.getInstance().delete_entry(aeNew);
+      if(aeNew != null) AuctionServerManager.getInstance().deleteEntry(aeNew);
       return null;
     }
   }
@@ -87,7 +87,15 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
       cmdAddAuction(auctionSource);
     } else if(commandStr.equals(GET_SERVER_TIME)) {
-      AuctionServer.reloadTime();
+      /**
+       * Resynchronize with the server's 'official' time, so as to make sure
+       * not to miss a snipe, for example.  This does NOT happen inline with
+       * the call, it's queued to happen later because otherwise it could
+       * impact interactivity.
+       */
+      if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
+        MQFactory.getConcrete("auction_manager").enqueue("TIMECHECK");
+      }
     } else if(commandStr.equals(SEARCH)) {
       DoSearch();
     } else if(commandStr.equals("About")) {

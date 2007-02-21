@@ -59,14 +59,14 @@ public interface AuctionServerInterface {
   String getTime();
 
   /**
-   * @brief Add an auction to this server, based on item ID.
+   * @brief Load an auction from the server based on item ID, and return it.
    *
-   * @param itemId - The auction item to add.
+   * @param itemId - The auction item id to load and create.
    *
    * @return - The underlying 'AuctionInfo' object that contains all
    * the basic accessors for auction data.
    */
-  AuctionInfo addAuction(String itemId);
+  AuctionInfo createAuction(String itemId);
 
   /**
    * @brief Get the human-readable auction site name for this server.
@@ -74,8 +74,6 @@ public interface AuctionServerInterface {
    * @return - A String with the human-readable auction site name.
    */
   String getName();
-
-  void reloadTimeNow();
 
   /**
    * @brief Returns the difference in time between the local machine's
@@ -93,17 +91,6 @@ public interface AuctionServerInterface {
    */
   TimeZone getOfficialServerTimeZone();
 
-  /**
-   * @brief Load an auction, and return it.  It really doesn't 'add'
-   * anything...
-   *
-   * @param auctionURL - The URL to the item description to add.
-   * @param item_id - The item ID to add.
-   *
-   * @return - An AuctionInfo low-level generic Auction object.
-   */
-  AuctionInfo addAuction(URL auctionURL, String item_id);
-
   AuctionInfo reloadAuction(AuctionEntry inEntry);
 
   /**
@@ -116,6 +103,8 @@ public interface AuctionServerInterface {
   long getPageRequestTime();
 
   public long getAdjustedTime();
+
+  void reloadTime();
 
   public boolean validate(String username, String password);
 

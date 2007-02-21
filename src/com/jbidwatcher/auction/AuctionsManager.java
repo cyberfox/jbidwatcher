@@ -299,7 +299,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
 
     AuctionServerManager.setEntryManager(this);
     AuctionServerManager.getInstance().fromXML(auctionsXML);
-    AuctionStats as = AuctionServerManager.getInstance().getDefaultServer().getStats();
+    AuctionStats as = AuctionServerManager.getInstance().getStats();
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if(as.getCount() != auctionTotal || (savedCount != -1 && as.getCount() != savedCount)) {
       MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions.");
