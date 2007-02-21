@@ -50,6 +50,8 @@ public class JBWDropHandler implements MessageQueue.Listener {
       aucServ = AuctionServerManager.getInstance().getDefaultServer();
       aucId = auctionURL;
     }
+    //  TODO -- WTF?  Why do we get the URL from the Id, then create an
+    //  TODO -- auction entry from the URL instead of just creating it from the Id?
     String cvtURL = aucServ.getStringURLFromItem(aucId);
 
     if(dObj.isInteractive()) {

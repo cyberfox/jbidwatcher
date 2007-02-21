@@ -16,6 +16,7 @@ import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
+import com.jbidwatcher.auction.server.BadBidException;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.AuctionEntry;
 
@@ -111,7 +112,7 @@ public class Snipe {
     //  Get Bid Key/Form
     try {
       m_bidForm = as.getBidForm(m_cj, m_auction, m_auction.getSnipeBid(), m_auction.getSnipeQuantity());
-    } catch (AuctionServer.BadBidException bbe) {
+    } catch (BadBidException bbe) {
       String result = getSnipeResult(bbe.getResult(), m_auction.getTitle(), m_auction);
       m_auction.setLastStatus(result);
       MQFactory.getConcrete("Swing").enqueue("NOTIFY " + result);

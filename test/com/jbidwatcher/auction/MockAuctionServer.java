@@ -1,19 +1,25 @@
 package com.jbidwatcher.auction;
 
 import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.auction.server.BadBidException;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.config.JConfigTab;
+import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.Constants;
+import com.jbidwatcher.xml.XMLElement;
 
 import junit.framework.TestCase;
 
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.FileNotFoundException;
+import java.text.SimpleDateFormat;
 
 public class MockAuctionServer extends AuctionServer {
   /**< The full amount of time it takes to request a single page from this site. */
@@ -21,10 +27,15 @@ public class MockAuctionServer extends AuctionServer {
   /**< The list of auctions that this server is holding onto. */
 
   protected long _pageRequestTime=0;
+  /**< The amount of time it takes to request an item via their affiliate program. */
+  protected long _officialServerTimeDelta=0;
+  protected TimeZone _officialServerTimeZone = null;
+  private static final int YEAR_BASE = 1990;
+  private static GregorianCalendar midpointDate = new GregorianCalendar(YEAR_BASE, Calendar.JANUARY, 1);
+  private Date mNow = new Date();
+  private GregorianCalendar mCal;
 
-  public MockAuctionServer() {
-    siteId = "testBay";
-  }
+  public MockAuctionServer() { }
 
   private static HashMap<String, Integer> mCalled = new HashMap<String, Integer>();
   private static final Integer ONE = 1;
@@ -152,6 +163,18 @@ public class MockAuctionServer extends AuctionServer {
     return 0;  //To change body of implemented methods use File | Settings | File Templates.
   }
 
+  public long getAdjustedTime() {
+    return 0;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public boolean validate(String username, String password) {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public String getUserId() {
+    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
   public String getStringURLFromItem(String itemID) {
     TestCase.fail("Unexpected function called!");
     return "http://www.jbidwatcher.com";
@@ -183,6 +206,14 @@ public class MockAuctionServer extends AuctionServer {
     return true;
   }
 
+  protected void setAuthorization(XMLElement auth) {
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  protected void extractAuthorization(XMLElement auth) {
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
   /**
    * @brief Returns the amount of time it takes to retrieve an item
    * from the auction server via their affiliate program.
@@ -192,5 +223,83 @@ public class MockAuctionServer extends AuctionServer {
    */
   public long getAffiliateRequestTime() {
     return _affRequestTime;
+  }
+
+  public String getTime() {
+    TimeZone serverTZ = getOfficialServerTimeZone();
+    if (serverTZ != null) {
+      if(mCal == null) {
+        mCal = new GregorianCalendar(serverTZ);
+        if(JConfig.queryConfiguration("display.ebayTime", "false").equals("true")) {
+          Constants.remoteClockFormat.setCalendar(mCal);
+        }
+      }
+
+      if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
+        mNow.setTime(System.currentTimeMillis() +
+                getServerTimeDelta() +
+                getPageRequestTime());
+      } else {
+        mNow.setTime(System.currentTimeMillis());
+      }
+      mCal.setTime(mNow);
+      //  Just in case it changes because of the setup.
+      mNow.setTime(mCal.getTimeInMillis());
+      return getUserId() + '@' + getName() + ": " + Constants.remoteClockFormat.format(mNow);
+    } else {
+      mNow.setTime(System.currentTimeMillis());
+      return getUserId() + '@' + getName() + ": " + Constants.localClockFormat.format(mNow);
+    }
+  }
+
+  public String getName() {
+    return "testBay";
+  }
+
+  public long getServerTimeDelta() {
+    return _officialServerTimeDelta;
+  }
+
+  public TimeZone getOfficialServerTimeZone() {
+    return _officialServerTimeZone;
+  }
+
+  protected Date figureDate(String endTime, String siteDateFormat) {
+    return figureDate(endTime, siteDateFormat, true);
+  }
+
+  /**
+   * @brief Use the date parsing code to figure out the time an
+   * auction ends (also used to parse the 'official' time) from the
+   * web page.
+   *
+   * @param endTime - The string containing the human-readable time to be parsed.
+   * @param siteDateFormat - The format describing the human-readable time.
+   * @param strip_high - Whether or not to strip high characters.
+   *
+   * @return - The date/time in Date format that was represented by
+   * the human readable date string.
+   */
+  protected Date figureDate(String endTime, String siteDateFormat, boolean strip_high) {
+    String endTimeFmt = endTime;
+    SimpleDateFormat sdf = new SimpleDateFormat(siteDateFormat, Locale.US);
+
+    sdf.set2DigitYearStart(midpointDate.getTime());
+
+    if(endTime == null) return null;
+
+    if(strip_high) {
+      endTimeFmt = StringTools.stripHigh(endTime, siteDateFormat);
+    }
+    Date endingDate;
+
+    try {
+      endingDate = sdf.parse(endTimeFmt);
+      _officialServerTimeZone = sdf.getCalendar().getTimeZone();
+    } catch(java.text.ParseException e) {
+      ErrorManagement.handleException("Error parsing date (" + endTimeFmt + "), setting to completed.", e);
+      endingDate = new Date();
+    }
+    return(endingDate);
   }
 }

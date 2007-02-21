@@ -21,8 +21,8 @@ import com.jbidwatcher.xml.XMLParseException;
 import com.jbidwatcher.ui.JSplashScreen;
 import com.jbidwatcher.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
+import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.util.ErrorManagement;
 
 import java.io.*;
@@ -299,7 +299,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
 
     AuctionServerManager.setEntryManager(this);
     AuctionServerManager.getInstance().fromXML(auctionsXML);
-    AuctionServer.AuctionStats as = AuctionServerManager.getInstance().getDefaultServer().getStats();
+    AuctionStats as = AuctionServerManager.getInstance().getDefaultServer().getStats();
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if(as.getCount() != auctionTotal || (savedCount != -1 && as.getCount() != savedCount)) {
       MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions.");

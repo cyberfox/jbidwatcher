@@ -651,7 +651,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     String prompt = "<html><body><table>";
     prompt += "<tr><td><b>Current time:</b></td><td>" + new Date() + "</td></tr>";
     prompt += "<tr><td><b>Page load time:</td><td>" + as.getPageRequestTime() + "</td></tr>";
-    prompt += "<tr><td><b>eBay Time delta:</td><td>" + as.getOfficialServerTimeDelta() + "</td></tr>";
+    prompt += "<tr><td><b>eBay Time delta:</td><td>" + as.getServerTimeDelta() + "</td></tr>";
     prompt += "</table></body></html>";
 
     jop = new JOptionPane(prompt, JOptionPane.INFORMATION_MESSAGE);

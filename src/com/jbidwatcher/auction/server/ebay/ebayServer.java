@@ -32,8 +32,10 @@ import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
+import com.jbidwatcher.auction.server.BadBidException;
 import com.jbidwatcher.TimerHandler;
 import com.jbidwatcher.Constants;
+import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.auction.ThumbnailManager;
 
 import javax.swing.*;
@@ -50,9 +52,14 @@ import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.text.SimpleDateFormat;
 
 /** @noinspection OverriddenMethodCallInConstructor*/
 public final class ebayServer extends AuctionServer implements MessageQueue.Listener,CleanupHandler,JConfig.ConfigListener {
+  /**< The human-readable name of the auction server. */
+  private String siteId = "ebay"; //$NON-NLS-1$
+  private String userCfgString = null;
+  private String passCfgString = null;
   protected static final int THIRTY_MINUTES = (30 * 60 * 1000);
 
   private HashMap<String, Integer> _resultHash = null;
@@ -130,6 +137,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   /**< The list of auctions that this server is holding onto. */
 
   protected long _pageRequestTime=0;
+  /**< The amount of time it takes to request an item via their affiliate program. */
+  protected long _officialServerTimeDelta=0;
+  protected TimeZone _officialServerTimeZone = null;
+  private static final int YEAR_BASE = 1990;
+  private static GregorianCalendar midpointDate = new GregorianCalendar(YEAR_BASE, Calendar.JANUARY, 1);
+  private Date mNow = new Date();
+  private GregorianCalendar mCal;
 
   {
     loadStrings();
@@ -380,10 +394,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   private class eBayTimeQueueManager extends TimeQueueManager {
     public long getCurrentTime() {
-      return super.getCurrentTime() + getOfficialServerTimeDelta();
+      return super.getCurrentTime() + getServerTimeDelta();
     }
   }
-
 
   /**
    * @brief Return the UI tab used to configure eBay-specific information.
@@ -417,7 +430,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - true if the item looks like it's an eBay id, false otherwise.
    */
   public boolean checkIfIdentifierIsHandled(String auctionId) {
-    return auctionId != null && isNumberOnly(auctionId);
+    return auctionId != null && StringTools.isNumberOnly(auctionId);
   }
 
   /**
@@ -460,7 +473,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       if(newCurrency == null) return;
 
       //  If we're dealing with feedback, skip it.
-      if(isNumberOnly(newCurrency)) newCurrency = htmlDocument.getNextContent(); //  Skip feedback number
+      if(StringTools.isNumberOnly(newCurrency)) newCurrency = htmlDocument.getNextContent(); //  Skip feedback number
       int bidCount = 1;
 
       //  Check the next two columns for acceptable values.
@@ -770,8 +783,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * now, but it is probably not broken.  -- mrs: 18-September-2003 15:08
    */
   public ebayServer() {
-    siteId = "ebay"; //$NON-NLS-1$
-
+    userCfgString = getName() + ".user";
+    passCfgString = getName() + ".password";
     /**
      * Build a simple hashtable of results that bidding might get.
      * Not the greatest solution, but it's working okay.  A better one
@@ -847,6 +860,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   protected Date getOfficialTime() {
     Auctions.startBlocking();
+    long localDateBeforePage = System.currentTimeMillis();
     String timeRequest = eBayProtocol + eBayHost + eBayFile + Externalized.getString("ebayServer.timeCmd"); //$NON-NLS-1$
 
 //  Getting the necessary cookie here causes intense slowdown which fudges the time, badly.
@@ -865,7 +879,20 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     Auctions.endBlocking();
 
     //  If we couldn't get a number, clear the page request time.
-    if(result == null) _pageRequestTime = 0;
+    if(result == null) {
+      _pageRequestTime = 0;
+      //  This is bad...
+      ErrorManagement.logMessage(getName() + ": Error, can't accurately set delta to server's official time.");
+      _officialServerTimeDelta = 0;
+    } else {
+      long localDateAfterPage = System.currentTimeMillis();
+
+      long reqTime = localDateAfterPage - localDateBeforePage;
+      //  eBay's current time, minus the current time before we loaded the page, minus half the request-time
+      //  tells how far off our system clock is to eBay.
+      //noinspection MultiplyOrDivideByPowerOfTwo
+      _officialServerTimeDelta = (result.getTime() - localDateBeforePage) - (reqTime / 2);
+    }
     return result;
   }
 
@@ -883,9 +910,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     Matcher urlMatch = url.matcher(urlStyle);
     if(urlMatch.find()) {
         String itemNum = urlMatch.group(2);
-        if(isNumberOnly(itemNum)) return itemNum;
+        if(StringTools.isNumberOnly(itemNum)) return itemNum;
     }
-    URL siteAddr = getURLFromString(urlStyle);
+    URL siteAddr = StringTools.getURLFromString(urlStyle);
 
     if(siteAddr != null) {
       String lastPart = siteAddr.toString();
@@ -932,7 +959,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - A string containing the way to browse to the users preferred international site.
    */
   public String getBrowsableURLFromItem(String itemID) {
-    int browse_site = Integer.parseInt(JConfig.queryConfiguration(siteId + ".browse.site", "0")); //$NON-NLS-1$ //$NON-NLS-2$
+    int browse_site = Integer.parseInt(JConfig.queryConfiguration(getName() + ".browse.site", "0")); //$NON-NLS-1$ //$NON-NLS-2$
 
     return eBayProtocol + eBayBrowseHost + site_choices[browse_site] + eBayFile + '?' + eBayViewItemCmd + eBayViewItemCGI + itemID;
   }
@@ -945,7 +972,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - a URL to use to pull that item.
    */
   protected URL getURLFromItem(String itemID) {
-    return(getURLFromString(getStringURLFromItem(itemID)));
+    return(StringTools.getURLFromString(getStringURLFromItem(itemID)));
   }
 
   /**
@@ -1428,9 +1455,53 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return true;
   }
 
+  protected void extractAuthorization(XMLElement auth) {
+    String username = auth.getProperty("USER", null);
+    if (username != null) {
+      JConfig.setConfiguration(userCfgString, username);
+
+      //  If password1 is available, use it as a Base64 encoded
+      //  password.  If it's not available, fall back to
+      //  compatibility, loading the password as unencrypted.  This
+      //  can be extended, by including encryption algorithms with
+      //  increasing numbers at the end of PASSWORD, and preserving
+      //  backwards compatibility.
+      String b64Password = auth.getProperty("PASSWORD1");
+      String password = b64Password != null ? Base64.decodeToString(b64Password) : auth.getProperty("PASSWORD", null);
+
+      if (password != null) {
+        JConfig.setConfiguration(passCfgString, password);
+      }
+    }
+  }
+
+  protected void setAuthorization(XMLElement auth) {
+    if (getUserId() != null) {
+      auth.setProperty("user", getUserId());
+      auth.setProperty("password1", Base64.encodeString(getPassword(), false));
+    }
+  }
+
+  /**
+   * @return - The user's ID, as they entered it.
+   * @brief Get the user's ID for this auction server.
+   * TODO --  Fewer things should care about this.
+   */
+  public String getUserId() {
+    return JConfig.queryConfiguration(userCfgString, "default");
+  }
+
+  /**
+   * @return - The user's password, as they entered it.
+   * @brief Get the user's password for this auction server.
+   */
+  private String getPassword() {
+    return JConfig.queryConfiguration(passCfgString, "default");
+  }
+
   // @noinspection TailRecursion
   public CookieJar getSignInCookie(CookieJar oldCookie, String username, String password) {
-    boolean isAdult = JConfig.queryConfiguration(siteId + ".adult", "false").equals("true");
+    boolean isAdult = JConfig.queryConfiguration(getName() + ".adult", "false").equals("true");
     CookieJar cj = (oldCookie==null)?new CookieJar():oldCookie;
     String startURL = Externalized.getString("ebayServer.signInPage");
     if(isAdult) {
@@ -1454,7 +1525,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           } else {
             //  Disable adult mode and try again.
             ErrorManagement.logMessage("Disabling 'adult' mode and retrying.");
-            JConfig.setConfiguration(siteId + ".adult", "false");
+            JConfig.setConfiguration(getName() + ".adult", "false");
             return getSignInCookie(cj, username, password);
           }
         } else {
@@ -1623,7 +1694,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @param searchManager - The search manager to add these searches to.
    */
   public void addSearches(SearchManagerInterface searchManager) {
-    String doSync = JConfig.queryConfiguration(siteId + ".synchronize", "false"); //$NON-NLS-1$ //$NON-NLS-2$
+    String doSync = JConfig.queryConfiguration(getName() + ".synchronize", "false"); //$NON-NLS-1$ //$NON-NLS-2$
 
     if(!doSync.equals("ignore")) {
       if(doSync.equalsIgnoreCase("true")) { //$NON-NLS-1$
@@ -1631,7 +1702,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       } else {
         _my_ebay = searchManager.addSearch("My Items", "My eBay", "", "ebay", -1, 1); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
       }
-      JConfig.setConfiguration(siteId + ".synchronize", "ignore");
+      JConfig.setConfiguration(getName() + ".synchronize", "ignore");
     }
   }
 
@@ -2171,7 +2242,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     private void loadSecondaryInformation(JHTML doc) {
       try {
         String score = getResult(doc, Externalized.getString("ebayServer.feedbackRegex"), 1);
-        if(score != null && isNumberOnly(score)) {
+        if(score != null && StringTools.isNumberOnly(score)) {
           _feedback = Integer.parseInt(score);
         }
 
@@ -2199,7 +2270,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         prelimTitle = eBayTemporarilyUnavailable;
       }
       if(prelimTitle.equals(eBayAdultLoginPageTitle) || prelimTitle.indexOf("Terms of Use: ") != -1) {
-        boolean isAdult = JConfig.queryConfiguration(siteId + ".adult", "false").equals("true"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        boolean isAdult = JConfig.queryConfiguration(getName() + ".adult", "false").equals("true"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         if(isAdult) {
           getNecessaryCookie(true);
         } else {
@@ -2631,11 +2702,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     public boolean apply() {
       int selectedSite = siteSelect.getSelectedIndex();
 
-      String old_adult = JConfig.queryConfiguration(siteId + ".adult"); //$NON-NLS-1$
-      JConfig.setConfiguration(siteId + ".adult", adultBox.isSelected()?"true":"false"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-      String new_adult = JConfig.queryConfiguration(siteId + ".adult"); //$NON-NLS-1$
+      String old_adult = JConfig.queryConfiguration(getName() + ".adult"); //$NON-NLS-1$
+      JConfig.setConfiguration(getName() + ".adult", adultBox.isSelected()?"true":"false"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      String new_adult = JConfig.queryConfiguration(getName() + ".adult"); //$NON-NLS-1$
       if(JConfig.queryConfiguration("prompt.ebay_synchronize", "false").equals("true")) {
-        JConfig.setConfiguration(siteId + ".synchronize", synchBox.isSelected()?"true":"false"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        JConfig.setConfiguration(getName() + ".synchronize", synchBox.isSelected()?"true":"false"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         if(_my_ebay == null) {
           _my_ebay = SearchManager.getInstance().getSearchByName("My eBay");
         }
@@ -2648,15 +2719,15 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
       }
 
-      String old_user = JConfig.queryConfiguration(siteId + ".user"); //$NON-NLS-1$
-      JConfig.setConfiguration(siteId + ".user", username.getText()); //$NON-NLS-1$
-      String new_user = JConfig.queryConfiguration(siteId + ".user"); //$NON-NLS-1$
-      String old_pass = JConfig.queryConfiguration(siteId + ".password"); //$NON-NLS-1$
-      JConfig.setConfiguration(siteId + ".password", password.getText()); //$NON-NLS-1$
-      String new_pass = JConfig.queryConfiguration(siteId + ".password"); //$NON-NLS-1$
+      String old_user = JConfig.queryConfiguration(getName() + ".user"); //$NON-NLS-1$
+      JConfig.setConfiguration(getName() + ".user", username.getText()); //$NON-NLS-1$
+      String new_user = JConfig.queryConfiguration(getName() + ".user"); //$NON-NLS-1$
+      String old_pass = JConfig.queryConfiguration(getName() + ".password"); //$NON-NLS-1$
+      JConfig.setConfiguration(getName() + ".password", password.getText()); //$NON-NLS-1$
+      String new_pass = JConfig.queryConfiguration(getName() + ".password"); //$NON-NLS-1$
 
       if(selectedSite != -1) {
-        JConfig.setConfiguration(siteId + ".browse.site", Integer.toString(selectedSite)); //$NON-NLS-1$
+        JConfig.setConfiguration(getName() + ".browse.site", Integer.toString(selectedSite)); //$NON-NLS-1$
       }
 
       if(old_pass == null || !new_pass.equals(old_pass) ||
@@ -2668,10 +2739,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
 
     public void updateValues() {
-      String isAdult = JConfig.queryConfiguration(siteId + ".adult", "false"); //$NON-NLS-1$ //$NON-NLS-2$
+      String isAdult = JConfig.queryConfiguration(getName() + ".adult", "false"); //$NON-NLS-1$ //$NON-NLS-2$
       adultBox.setSelected(isAdult.equals("true")); //$NON-NLS-1$
       if(JConfig.queryConfiguration("prompt.ebay_synchronize", "false").equals("true")) {
-        String doSynchronize = JConfig.queryConfiguration(siteId + ".synchronize", "false"); //$NON-NLS-1$ //$NON-NLS-2$
+        String doSynchronize = JConfig.queryConfiguration(getName() + ".synchronize", "false"); //$NON-NLS-1$ //$NON-NLS-2$
 
         if(doSynchronize.equals("ignore")) {
           if(_my_ebay != null) synchBox.setSelected(_my_ebay.isEnabled());
@@ -2680,8 +2751,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
       }
 
-      username.setText(JConfig.queryConfiguration(siteId + ".user", "default")); //$NON-NLS-1$ //$NON-NLS-2$
-      password.setText(JConfig.queryConfiguration(siteId + ".password", "default")); //$NON-NLS-1$ //$NON-NLS-2$
+      username.setText(JConfig.queryConfiguration(getName() + ".user", "default")); //$NON-NLS-1$ //$NON-NLS-2$
+      password.setText(JConfig.queryConfiguration(getName() + ".password", "default")); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     private JPanel buildUsernamePanel() {
@@ -2692,10 +2763,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       username = new JTextField();
       username.addMouseListener(JPasteListener.getInstance());
 
-      username.setText(JConfig.queryConfiguration(siteId + ".user", "default")); //$NON-NLS-1$ //$NON-NLS-2$
+      username.setText(JConfig.queryConfiguration(getName() + ".user", "default")); //$NON-NLS-1$ //$NON-NLS-2$
       username.setEditable(true);
       username.getAccessibleContext().setAccessibleName("User name to log into eBay"); //$NON-NLS-1$
-      password = new JPasswordField(JConfig.queryConfiguration(siteId + ".password")); //$NON-NLS-1$
+      password = new JPasswordField(JConfig.queryConfiguration(getName() + ".password")); //$NON-NLS-1$
       password.addMouseListener(JPasteListener.getInstance());
       password.setEditable(true);
 
@@ -2712,8 +2783,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
 
     private JPanel buildCheckboxPanel() {
-      String isAdult = JConfig.queryConfiguration(siteId + ".adult", "false"); //$NON-NLS-1$ //$NON-NLS-2$
-      String doSynchronize = JConfig.queryConfiguration(siteId + ".synchronize", "false"); //$NON-NLS-1$ //$NON-NLS-2$
+      String isAdult = JConfig.queryConfiguration(getName() + ".adult", "false"); //$NON-NLS-1$ //$NON-NLS-2$
+      String doSynchronize = JConfig.queryConfiguration(getName() + ".synchronize", "false"); //$NON-NLS-1$ //$NON-NLS-2$
       JPanel tp = new JPanel();
 
       tp.setBorder(BorderFactory.createTitledBorder("General eBay Options")); //$NON-NLS-1$
@@ -2749,7 +2820,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       tp.setBorder(BorderFactory.createTitledBorder("Browse target")); //$NON-NLS-1$
       tp.setLayout(new BorderLayout());
 
-      String curSite = JConfig.queryConfiguration(siteId + ".browse.site", "0");
+      String curSite = JConfig.queryConfiguration(getName() + ".browse.site", "0");
       int realCurrentSite;
       try {
         realCurrentSite = Integer.parseInt(curSite);
@@ -2822,5 +2893,91 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   public long getAffiliateRequestTime() {
     return _affRequestTime;
+  }
+
+  public String getTime() {
+    TimeZone serverTZ = getOfficialServerTimeZone();
+    if (serverTZ != null) {
+      if(mCal == null) {
+        mCal = new GregorianCalendar(serverTZ);
+        if(JConfig.queryConfiguration("display.ebayTime", "false").equals("true")) {
+          Constants.remoteClockFormat.setCalendar(mCal);
+        }
+      }
+
+      if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
+        mNow.setTime(System.currentTimeMillis() +
+                getServerTimeDelta() +
+                getPageRequestTime());
+      } else {
+        mNow.setTime(System.currentTimeMillis());
+      }
+      mCal.setTime(mNow);
+      //  Just in case it changes because of the setup.
+      mNow.setTime(mCal.getTimeInMillis());
+      return getUserId() + '@' + getName() + ": " + Constants.remoteClockFormat.format(mNow);
+    } else {
+      mNow.setTime(System.currentTimeMillis());
+      return getUserId() + '@' + getName() + ": " + Constants.localClockFormat.format(mNow);
+    }
+  }
+
+  public long getAdjustedTime() {
+    return System.currentTimeMillis() + getServerTimeDelta() + getPageRequestTime() + getSnipePadding();
+  }
+
+  public long getServerTimeDelta() {
+    return _officialServerTimeDelta;
+  }
+
+  public TimeZone getOfficialServerTimeZone() {
+    return _officialServerTimeZone;
+  }
+
+  protected Date figureDate(String endTime, String siteDateFormat) {
+    return figureDate(endTime, siteDateFormat, true);
+  }
+
+  /**
+   * @brief Use the date parsing code to figure out the time an
+   * auction ends (also used to parse the 'official' time) from the
+   * web page.
+   *
+   * @param endTime - The string containing the human-readable time to be parsed.
+   * @param siteDateFormat - The format describing the human-readable time.
+   * @param strip_high - Whether or not to strip high characters.
+   *
+   * @return - The date/time in Date format that was represented by
+   * the human readable date string.
+   */
+  protected Date figureDate(String endTime, String siteDateFormat, boolean strip_high) {
+    String endTimeFmt = endTime;
+    SimpleDateFormat sdf = new SimpleDateFormat(siteDateFormat, Locale.US);
+
+    sdf.set2DigitYearStart(midpointDate.getTime());
+
+    if(endTime == null) return null;
+
+    if(strip_high) {
+      endTimeFmt = StringTools.stripHigh(endTime, siteDateFormat);
+    }
+    Date endingDate;
+
+    try {
+      endingDate = sdf.parse(endTimeFmt);
+      _officialServerTimeZone = sdf.getCalendar().getTimeZone();
+    } catch(java.text.ParseException e) {
+      ErrorManagement.handleException("Error parsing date (" + endTimeFmt + "), setting to completed.", e);
+      endingDate = new Date();
+    }
+    return(endingDate);
+  }
+
+  public String getName() {
+    return siteId;
+  }
+
+  public boolean validate(String username, String password) {
+    return !getUserId().equals("default") && getUserId().equals(username) && getPassword().equals(password);
   }
 }

@@ -62,11 +62,16 @@ public class JBidProxy extends HTTPProxyClient {
   }
 
   protected boolean handleAuthorization(String inAuth) {
-    AuctionServer aucServ = AuctionServerManager.getInstance().getDefaultServer();
-    String passcheck = aucServ.getUserId() + ':' + aucServ.getPassword();
-
     String converted = Base64.decodeToString(inAuth);
-    return converted.equals(passcheck);
+    String[] params = converted.split(":");
+    if(params.length != 2) return false;
+    String user = params[0];
+    String pass = params[1];
+
+    //  TODO -- Actually, validate against ASM, and it can *find* the correct
+    //  TODO -- server/user combination and restrict the display/interaction to that server.
+    AuctionServer aucServ = AuctionServerManager.getInstance().getDefaultServer();
+    return aucServ.validate(user, pass);
   }
 
   protected StringBuffer buildHeaders(String whatDocument, byte[][] buf) {
@@ -95,6 +100,7 @@ public class JBidProxy extends HTTPProxyClient {
       aucServ = AuctionServerManager.getInstance().getDefaultServer();
     }
 
+    //  TODO -- Is this the only way to get the cookie passed through?  I don't like it...
     CookieJar cj = aucServ.getNecessaryCookie(false);
     String newCookie = null;
     if(cj != null) newCookie = cj.toString();
@@ -341,14 +347,15 @@ public class JBidProxy extends HTTPProxyClient {
       try {
         boolean got = false;
         if(JConfig.queryConfiguration("server.browseAffiliate", "true").equals("true")) {
-          StringBuffer sb = aucServ.getAuction(AuctionServer.getURLFromString(aucServ.getStringURLFromItem(ae.getIdentifier())));
+          StringBuffer sb = ae.getBody();
           if (sb != null) {
             sbOut.append(sb);
             got = true;
           }
         }
         if(!got) {
-          sbOut.append(checkError(aucServ.getAuction(AuctionServer.getURLFromString(aucServ.getBrowsableURLFromItem(ae.getIdentifier())))));
+          //  TODO -- This is nauseating.  Fix it.
+          sbOut.append(checkError(aucServ.getAuction(StringTools.getURLFromString(aucServ.getBrowsableURLFromItem(ae.getIdentifier())))));
         }
       } catch (FileNotFoundException ignored) {
         sbOut.append("<b><i>Item no longer appears on the server.</i></b><br>\n");

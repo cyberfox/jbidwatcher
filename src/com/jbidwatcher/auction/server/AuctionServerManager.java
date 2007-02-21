@@ -12,6 +12,7 @@ import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.xml.XMLParseException;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.EntryManager;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.config.JConfigTab;
@@ -127,7 +128,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
       defaultServer.reloadTimeNow();
 
-      long servTime = defaultServer.getOfficialServerTimeDelta();
+      long servTime = defaultServer.getServerTimeDelta();
       Date now = new Date(System.currentTimeMillis() + servTime);
       MQFactory.getConcrete("Swing").enqueue("Server time is now: " + now);
 
@@ -230,7 +231,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   public AuctionServer getServerForUrlString(String strURL) {
     for (AuctionServerListEntry a_serverList : _serverList) {
       AuctionServer as = (a_serverList).getAuctionServer();
-      URL serverAddr = AuctionServer.getURLFromString(strURL);
+      URL serverAddr = StringTools.getURLFromString(strURL);
 
       if (as.doHandleThisSite(serverAddr)) {
         return (addServer(as));

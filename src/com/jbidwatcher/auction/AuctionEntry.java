@@ -16,12 +16,14 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.EventLogger;
+import com.jbidwatcher.util.StringTools;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Comparator;
 import java.text.MessageFormat;
+import java.io.FileNotFoundException;
 
 /**
  * @brief Contains all the methods to examine, control, and command a
@@ -283,7 +285,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
       _aucServ = AuctionServerManager.getInstance().getServerForUrlString(auctionIdentifier);
       if(_aucServ != null) {
         _identifier = _aucServ.extractIdentifierFromURLString(auctionIdentifier);
-        _auction = _aucServ.addAuction(AuctionServer.getURLFromString(auctionIdentifier), _identifier);
+        _auction = _aucServ.addAuction(StringTools.getURLFromString(auctionIdentifier), _identifier);
 
         _needsUpdate = false;
         _isLoaded = true;
@@ -347,7 +349,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   private void checkEnded() {
     if(!_auctionEnded) {
       Date serverTime = new Date(System.currentTimeMillis() +
-                                 _aucServ.getOfficialServerTimeDelta());
+                                 _aucServ.getServerTimeDelta());
 
       //  If we're past the end time, update once, and never again.
       if(serverTime.after(getEndDate())) {
@@ -689,6 +691,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
     int numBidders = getNumBidders();
 
     if(numBidders > 0) {
+      //  TODO -- This is silly.  Why should the AuctionEntry know about doing a network check?
       if(isOutbid() && doNetworkCheck) {
         _aucServ.updateHighBid(this);
       }
@@ -765,7 +768,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
 
     if(!_needsUpdate) {
       if(!_isUpdating && !_auctionEnded) {
-        long serverTime = curTime + _aucServ.getOfficialServerTimeDelta();
+        long serverTime = curTime + _aucServ.getServerTimeDelta();
 
         //  If we're past the end time, update once, and never again.
         if(serverTime > getEndDate().getTime()) {
@@ -1123,9 +1126,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
       long endDate, curDate, adjustedDate;
 
       endDate = _auction.getEndDate().getTime();
-      curDate = System.currentTimeMillis() +
-        _aucServ.getOfficialServerTimeDelta() +
-        _aucServ.getPageRequestTime() * _aucServ.getSnipePadding();
+      curDate = _aucServ.getAdjustedTime();
 
       //  If the auction hasn't ended already...
       if(endDate > curDate) {
@@ -1242,7 +1243,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
       }
     } else {
       Date serverTime = new Date(System.currentTimeMillis() +
-                                 _aucServ.getOfficialServerTimeDelta());
+                                 _aucServ.getServerTimeDelta());
 
       //  If we're past the end time, update once, and never again.
       if (serverTime.after(getEndDate())) {
@@ -1422,7 +1423,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
   public String getTimeLeft() {
     long rightNow = System.currentTimeMillis();
-    long officialDelta = _aucServ.getOfficialServerTimeDelta();
+    long officialDelta = _aucServ.getServerTimeDelta();
     long pageReqTime = _aucServ.getPageRequestTime();
     boolean use_detailed = JConfig.queryConfiguration("timeleft.detailed", "false").equals("true");
 
@@ -1638,5 +1639,13 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
 
   public boolean isShippingOverridden() {
     return _shippingSet;
+  }
+
+  public String getURL() {
+    return _aucServ.getStringURLFromItem(_identifier);
+  }
+
+  public StringBuffer getBody() throws FileNotFoundException {
+    return _aucServ.getAuction(StringTools.getURLFromString(getURL()));
   }
 }

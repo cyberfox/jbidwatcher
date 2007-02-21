@@ -18,13 +18,13 @@ import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.AudioPlayer;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.RuntimeInfo;
-import com.jbidwatcher.util.Database;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.ThumbnailManager;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
@@ -194,7 +194,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     } else if(msg.equals(SNIPE_ALTERED_MSG)) {
       if(Platform.isTrayEnabled()) {
         StringBuffer snipeText = new StringBuffer("TOOLTIP ");
-        AuctionServer.AuctionStats as = AuctionServerManager.getInstance().getDefaultServer().getStats();
+        AuctionStats as = AuctionServerManager.getInstance().getDefaultServer().getStats();
         if(as.getSnipes() != 0) {
           snipeText.append("Next Snipe at: ").append(Constants.remoteClockFormat.format(as.getNextSnipe().getSnipeDate())).append('\n');
           snipeText.append(as.getSnipes()).append(" snipes outstanding\n");
@@ -760,7 +760,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
 
     AuctionsManager.getInstance().saveAuctions();
     SearchManager.getInstance().saveSearches();
-    AuctionServer.AuctionStats as = AuctionServerManager.getInstance().getDefaultServer().getStats();
+    AuctionStats as = AuctionServerManager.getInstance().getDefaultServer().getStats();
     JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
     JConfig.saveConfiguration(cfgFilename);
     System.exit(0);

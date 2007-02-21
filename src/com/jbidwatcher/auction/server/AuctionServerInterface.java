@@ -84,7 +84,7 @@ public interface AuctionServerInterface {
    * @return The amount of milliseconds off the server time is from
    * local time.
    */
-  long getOfficialServerTimeDelta();
+  long getServerTimeDelta();
 
   /**
    * @brief Retrieve what time zone the server is in.
@@ -114,4 +114,10 @@ public interface AuctionServerInterface {
    * from the auction server.
    */
   long getPageRequestTime();
+
+  public long getAdjustedTime();
+
+  public boolean validate(String username, String password);
+
+  String getUserId();
 }
