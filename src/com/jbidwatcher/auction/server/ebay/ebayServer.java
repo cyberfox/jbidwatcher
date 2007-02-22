@@ -1121,7 +1121,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public StringBuffer getAuction(AuctionEntry ae, String id) {
-    CookieJar cj = getCookie();
     long end_time = 1;
     //  TODO -- Replace with a global lookup for auction entry by id.
     if(ae != null) {
@@ -1129,14 +1128,17 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       if(end != null) end_time = end.getTime();
     }
     StringBuffer sb = null;
-    if(cj != null && allowAffiliate() && JBConfig.doAffiliate(end_time)) {
-      try {
-        long pre = System.currentTimeMillis();
-        sb = AffiliateRetrieve.getAuctionViaAffiliate(cj, id);
-        long post = System.currentTimeMillis();
-        _affRequestTime = (post - pre);
-      } catch(CookieJar.CookieException cje) {
-        //  Cookie failure...  Ignore it and do a regular get.
+    if(JBConfig.doAffiliate(end_time) && allowAffiliate()) {
+      CookieJar cj = getCookie();
+      if (cj != null) {
+        try {
+          long pre = System.currentTimeMillis();
+          sb = AffiliateRetrieve.getAuctionViaAffiliate(cj, id);
+          long post = System.currentTimeMillis();
+          _affRequestTime = (post - pre);
+        } catch (CookieJar.CookieException cje) {
+          //  Cookie failure...  Ignore it and do a regular get.
+        }
       }
     }
 
@@ -2261,7 +2263,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         if(match == 0) return rval;
         Pattern searcher = Pattern.compile(regex);
         Matcher matcher = searcher.matcher(rval);
-        return matcher.group(match);
+        if(matcher.matches()) return matcher.group(match);
       }
 
       return null;
