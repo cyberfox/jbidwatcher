@@ -201,11 +201,11 @@ public class MockAuctionServer extends AuctionServer {
     return true;
   }
 
-  public void setAuthorization(XMLElement auth) {
+  public void storeAuthorization(XMLElement auth) {
     //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  public void extractAuthorization(XMLElement auth) {
+  public void loadAuthorization(XMLElement auth) {
     //To change body of implemented methods use File | Settings | File Templates.
   }
 

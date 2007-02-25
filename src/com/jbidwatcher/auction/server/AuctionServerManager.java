@@ -113,7 +113,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
   private void getServerAuctionEntries(AuctionServer newServer, XMLElement perServer) {
     try {
-      newServer.extractAuthorization(perServer);
+      newServer.loadAuthorization(perServer);
 
       Iterator<XMLElement> entryStep = perServer.getChildren();
       while (entryStep.hasNext()) {
@@ -182,7 +182,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       XMLElement serverChild = new XMLElement("server");
 
       serverChild.setProperty("name", aucServ.getName());
-      aucServ.setAuthorization(serverChild);
+      aucServ.storeAuthorization(serverChild);
 
       synchronized (aucList) {
         aucCount += aucList.size();

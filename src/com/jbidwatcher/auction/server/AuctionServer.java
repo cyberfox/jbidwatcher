@@ -106,24 +106,51 @@ public abstract class AuctionServer implements AuctionServerInterface {
    */
   public abstract boolean checkIfSiteNameHandled(String serverName);
 
-  public abstract void setAuthorization(XMLElement auth);
-  public abstract void extractAuthorization(XMLElement auth);
+  /**
+   * @brief Fills an XMLElement's attributes with the username and password
+   * for the current auction server user.
+   *
+   * @param auth - The XMLElement to have user-auth related attributes added to.
+   */
+  public abstract void storeAuthorization(XMLElement auth);
 
   /**
-   * @return - The current time as reported by the auction site's 'official time' mechanism.
+   * @brief Loads authorization information from an XMLElement's attributes
+   * for the current auction server user.
+   *
+   * @param auth - The XMLElement to load user-auth related attributes from.
+   */
+  public abstract void loadAuthorization(XMLElement auth);
+
+  /**
    * @brief Get the official 'right now' time from the server.
+   *
+   * @return - The current time as reported by the auction site's 'official time' mechanism.
    */
   protected abstract Date getOfficialTime();
 
   /**
+   * @brief Get a URL that points to the item on the auction site's server.
+   *
    * @param itemID - The item to get the URL for.
    * @return - A URL that refers to the item at the auction site.
-   * @brief Get a java.net.URL that points to the item on the auction site's server.
    */
   protected abstract URL getURLFromItem(String itemID);
 
+  /**
+   * Get the full text of an auction from the auction server.
+   *
+   * @param ae - The AuctionEntry for an existing auction; only used in affiliate mode.
+   * @param id - The item id for the item to retrieve from the server.
+   *
+   * @return - The full text of the auction from the server, or null if it wasn't found.
+   */
   protected abstract StringBuffer getAuction(AuctionEntry ae, String id);
 
+  /**
+   * @brief Get the current time inline with the current thread.  This will
+   * block until it's done getting the time.
+   */
   public void reloadTime() {
     if (getOfficialTime() != null) {
       MQFactory.getConcrete("Swing").enqueue("Successfully synchronized time with " + getName() + '.');
@@ -199,7 +226,16 @@ public abstract class AuctionServer implements AuctionServerInterface {
     return loadedPage;
   }
 
-  //  Note: AuctionEntry
+  /**
+   * @brief Given an auction entry, reload/update the core auction information from the server.
+   *
+   * Note: AuctionEntry
+   *
+   * @param inEntry - The auction to update.
+   *
+   * @return - The core auction information that has been set into the
+   * auction entry, or null if the update failed.
+   */
   public AuctionInfo reloadAuction(AuctionEntry inEntry) {
     URL auctionURL = getURLFromItem(inEntry.getIdentifier());
 
@@ -217,14 +253,6 @@ public abstract class AuctionServer implements AuctionServerInterface {
     }
 
     return (curAuction);
-  }
-
-  private void markCommunicationError(AuctionEntry ae) {
-    if (ae != null) {
-      MQFactory.getConcrete("Swing").enqueue("LINK DOWN Communications failure talking to the server during item #" + ae.getIdentifier() + "( " + ae.getTitle() + " )");
-    } else {
-      MQFactory.getConcrete("Swing").enqueue("LINK DOWN Communications failure talking to the server");
-    }
   }
 
   /**
@@ -299,11 +327,20 @@ public abstract class AuctionServer implements AuctionServerInterface {
     }
   }
 
+  //  TODO -- Make sense out of this.
   private void checkLogError(AuctionEntry ae) {
     if (ae != null) {
       ae.logError();
     } else {
       markCommunicationError(ae);
+    }
+  }
+
+  private void markCommunicationError(AuctionEntry ae) {
+    if (ae != null) {
+      MQFactory.getConcrete("Swing").enqueue("LINK DOWN Communications failure talking to the server during item #" + ae.getIdentifier() + "( " + ae.getTitle() + " )");
+    } else {
+      MQFactory.getConcrete("Swing").enqueue("LINK DOWN Communications failure talking to the server");
     }
   }
 }

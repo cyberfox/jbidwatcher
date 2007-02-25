@@ -6,6 +6,8 @@ package com.jbidwatcher.auction.server.ebay;
  * Developed by mrs (Morgan Schweers)
  */
 
+//  TODO -- Talk about a monstrosity.  This is FAR too large.  Split into a dozen files?
+
 //  This is the concrete implementation of AuctionServer to handle
 //  parsing eBay auction pages.  There should be *ZERO* eBay specific
 //  logic outside this class.  A pipe-dream, perhaps, but it seems
@@ -22,7 +24,6 @@ import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.ui.JPasteListener;
 import com.jbidwatcher.ui.OptionUI;
 import com.jbidwatcher.ui.ServerMenu;
 import com.jbidwatcher.search.Searcher;
@@ -39,7 +40,6 @@ import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.auction.ThumbnailManager;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -56,98 +56,50 @@ import java.text.SimpleDateFormat;
 
 /** @noinspection OverriddenMethodCallInConstructor*/
 public final class ebayServer extends AuctionServer implements MessageQueue.Listener,CleanupHandler,JConfig.ConfigListener {
-  /**< The human-readable name of the auction server. */
-  private String siteId = "ebay"; //$NON-NLS-1$
+  final static String eBayDisplayName = "eBay";
+  private final static String eBayServerName = "ebay";
+
+  private static final int ITEMS_PER_PAGE = 100;
+  private static final int YEAR_BASE = 1990;
+
+  /**
+   * The human-readable name of the auction server.
+   */
+  private String siteId = "ebay";
   private String userCfgString = null;
   private String passCfgString = null;
-  protected static final int THIRTY_MINUTES = (30 * 60 * 1000);
 
-  private HashMap<String, Integer> _resultHash = null;
+  private HashMap<String, Integer> mResultHash = null;
   private String mBidResultRegex = null;
   private Pattern mFindBidResult;
 
   /** @noinspection FieldAccessedSynchronizedAndUnsynchronized*/
-  private volatile CookieJar _signinCookie = null;
+  private volatile CookieJar mSignInCookie = null;
   private eBayTimeQueueManager _etqm;
-  private Searcher _my_ebay = null;
-  private Searcher sellerSearch = null;
+  private Searcher mMyeBay = null;
+  private Searcher mSellerSearch = null;
 
-  private final static String eBayDisplayName = "eBay"; //$NON-NLS-1$
-  private final static String eBayServerName = "ebay"; //$NON-NLS-1$
-
-  private String eBayHost;
-  private String eBayViewHost;
-  private String eBayBrowseHost;
-  private String eBayDetectionHost;
-  private String eBayTWDetectionHost;
-  private String eBayESDetectionHost;
-  private String eBayBidHost;
-  private String eBayDutchRequest;
-  private String eBayProtocol;
-  private String eBayFile;
-  private String eBayV3File;
-  private String eBayWS3File;
-  private String eBayViewItemCmd;
-  private String eBayParseItemURL;
-  private String eBayViewItemCGI;
-  private String eBayViewDutchWinners;
-  private String eBaySearchURL1;
-  private String eBaySearchURL2;
-  private String eBaySearchURLNoDesc;
-  private String eBayBidItem;
-
-  //  eBay fields for parsing...  Change when eBay's format changes!
-  private String eBayItemCGI;
-  private String eBayItemNumber;
-  private String eBayPrequelTimeString;
-  private String eBayPrequelTimeString2;
-  private String eBayDateFormat;
-  private String eBayOfficialTimeFormat;
-  private String eBayAdultLoginPageTitle;
-  private String[] eBayTitles;
-  private String eBayCurrentBid;
-  private String eBayLowestBid;
-  private String eBayFirstBid;
-  private String eBayQuantity;
-  private String eBayBidCount;
-  private String eBayStartTime;
-  private String eBaySeller;
-  private String eBayHighBidder;
-  private String eBayBuyer;
-  private String eBayShippingRegex;
-  private String eBayInsurance;
-  private String eBayBuyItNow;
-  private String eBayItemEnded;
-  private String eBayTemporarilyUnavailable;
-  private String eBayPrice;
-  private String eBayDescStart;
-  private String eBayMotorsDescStart;
-  private String eBayDescEnd;
-  private String eBayPayInstructions;
-  private String eBayClosedDescEnd;
-
-  private static final int ITEMS_PER_PAGE = 100;
   /** @noinspection FieldCanBeLocal*/
   private TimerHandler eQueue;
   private Map<String, AuctionQObject> snipeMap = new HashMap<String, AuctionQObject>();
   private String mBadPassword = null;
   private String mBadUsername = null;
-  /**< The full amount of time it takes to request a single page from this site. */
-  protected long _affRequestTime=0;
-  /**< The list of auctions that this server is holding onto. */
 
-  protected long _pageRequestTime=0;
   /**< The amount of time it takes to request an item via their affiliate program. */
-  protected long _officialServerTimeDelta=0;
-  protected TimeZone _officialServerTimeZone = null;
-  private static final int YEAR_BASE = 1990;
-  private static GregorianCalendar midpointDate = new GregorianCalendar(YEAR_BASE, Calendar.JANUARY, 1);
+  private long mAffiliateRequestTime =0;
+
+  /**< The full amount of time it takes to request a single page from this site. */
+  private long mPageRequestTime =0;
+
+  /**< The amount of time to adjust the system clock by, to make it be nearly second-accurate to eBay time. */
+  private long mOfficialServerTimeDelta =0;
+
+  /**< The time zone the auction server is in (for eBay this will be PST or PDT). */
+  private TimeZone mOfficialServerTimeZone = null;
+  private static GregorianCalendar sMidpointDate = new GregorianCalendar(YEAR_BASE, Calendar.JANUARY, 1);
   private Date mNow = new Date();
   private GregorianCalendar mCal;
-
-  {
-    loadStrings();
-  }
+  private final static ebayCurrencyTables sCurrencies = new ebayCurrencyTables();
 
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -178,247 +130,41 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return result;
   }
 
-  /** @noinspection TooBroadScope,UnusedAssignment,UNUSED_SYMBOL*/
-  private void loadStrings() {
-    eBayHost = Externalized.getString("ebayServer.host"); //$NON-NLS-1$
-    eBayViewHost = Externalized.getString("ebayServer.viewHost"); //$NON-NLS-1$
-    eBayBrowseHost = Externalized.getString("ebayServer.browseHost"); //$NON-NLS-1$
-    eBayDetectionHost = Externalized.getString("ebayServer.detectionHost"); //$NON-NLS-1$
-    eBayTWDetectionHost = Externalized.getString("ebayServer.TaiwanDetectionHost"); // Taiwan is the only URL of the form tw.ebay.com.  *sigh* //$NON-NLS-1$
-    eBayESDetectionHost = Externalized.getString("ebayServer.SpainDetectionHost"); // Scratch that 'only', looks like Spain does that too. //$NON-NLS-1$
-    eBayBidHost = Externalized.getString("ebayServer.bidHost"); //$NON-NLS-1$
-    eBayDutchRequest = Externalized.getString("ebayServer.dutchRequestHost"); //$NON-NLS-1$
-    eBayProtocol = Externalized.getString("ebayServer.protocol"); //$NON-NLS-1$
-    eBayFile = Externalized.getString("ebayServer.file"); //$NON-NLS-1$
-    eBayV3File = Externalized.getString("ebayServer.V3file"); //$NON-NLS-1$
-    eBayWS3File = Externalized.getString("ebayServer.V3WS3File"); //$NON-NLS-1$
-    eBayViewItemCmd = Externalized.getString("ebayServer.viewCmd"); //$NON-NLS-1$
-    eBayParseItemURL = Externalized.getString("ebayServer.itemNumberMatch"); //$NON-NLS-1$
-    eBayViewItemCGI = Externalized.getString("ebayServer.viewCGI"); //$NON-NLS-1$
-    eBayViewDutchWinners = Externalized.getString("ebayServer.viewDutch"); //$NON-NLS-1$
-    eBaySearchURL1 = Externalized.getString("ebayServer.searchURL1"); //$NON-NLS-1$
-    eBaySearchURL2 = Externalized.getString("ebayServer.searchURL2"); //$NON-NLS-1$
-    eBaySearchURLNoDesc = Externalized.getString("ebayServer.searchURLNoDesc"); //$NON-NLS-1$
-
-    eBayBidItem = Externalized.getString("ebayServer.bidCmd"); //$NON-NLS-1$
-    eBayPrequelTimeString = Externalized.getString("ebayServer.timePrequel1"); //$NON-NLS-1$
-    eBayPrequelTimeString2 = Externalized.getString("ebayServer.timePrequel2"); //$NON-NLS-1$
-    eBayDateFormat = Externalized.getString("ebayServer.dateFormat"); //$NON-NLS-1$
-    eBayOfficialTimeFormat = Externalized.getString("ebayServer.officialTimeFormat"); //$NON-NLS-1$
-    eBayAdultLoginPageTitle = Externalized.getString("ebayServer.adultPageTitle"); //$NON-NLS-1$
-    eBayTitles = new String[]{ Externalized.getString("ebayServer.titleEbay"),
-                     Externalized.getString("ebayServer.titleEbay2"),
-                     Externalized.getString("ebayServer.titleMotors"),
-                     Externalized.getString("ebayServer.titleMotors2"),
-                     Externalized.getString("ebayServer.titleDisney"),
-                     Externalized.getString("ebayServer.titleCollections") };
-    eBayCurrentBid = Externalized.getString("ebayServer.currentBid"); //$NON-NLS-1$
-    eBayLowestBid = Externalized.getString("ebayServer.lowestBid"); //$NON-NLS-1$
-    eBayFirstBid = Externalized.getString("ebayServer.firstBid"); //$NON-NLS-1$
-    eBayQuantity = Externalized.getString("ebayServer.quantity"); //$NON-NLS-1$
-    eBayBidCount = Externalized.getString("ebayServer.bidCount"); //$NON-NLS-1$
-    eBayStartTime = Externalized.getString("ebayServer.startTime"); //$NON-NLS-1$
-    eBaySeller = Externalized.getString("ebayServer.seller"); //$NON-NLS-1$
-    eBayHighBidder = Externalized.getString("ebayServer.highBidder"); //$NON-NLS-1$
-    eBayBuyer = Externalized.getString("ebayServer.buyer"); //$NON-NLS-1$
-    eBayShippingRegex = Externalized.getString("ebayServer.shipping"); //$NON-NLS-1$
-    eBayInsurance = Externalized.getString("ebayServer.shippingInsurance"); //$NON-NLS-1$
-    eBayBuyItNow = Externalized.getString("ebayServer.buyItNow"); //$NON-NLS-1$
-    eBayItemEnded = Externalized.getString("ebayServer.ended"); //$NON-NLS-1$
-    eBayTemporarilyUnavailable = Externalized.getString("ebayServer.unavailable"); //$NON-NLS-1$
-    eBayPrice = Externalized.getString("ebayServer.price"); //$NON-NLS-1$
-    eBayDescStart = Externalized.getString("ebayServer.description"); //$NON-NLS-1$
-    eBayMotorsDescStart = Externalized.getString("ebayServer.descriptionMotors"); //$NON-NLS-1$
-    eBayDescEnd = Externalized.getString("ebayServer.descriptionEnd"); //$NON-NLS-1$
-    eBayPayInstructions = Externalized.getString("ebayServer.paymentInstructions"); //$NON-NLS-1$
-    eBayClosedDescEnd = Externalized.getString("ebayServer.descriptionClosedEnd"); //$NON-NLS-1$
-    eBayItemCGI = Externalized.getString("ebayServer.itemCGI"); //$NON-NLS-1$
-    eBayItemNumber = Externalized.getString("ebayServer.itemNum"); //$NON-NLS-1$
-  }
-
-  private String[] site_choices = {
-    "ebay.com", //$NON-NLS-1$
-    "ebay.de", //$NON-NLS-1$
-    "ebay.ca", //$NON-NLS-1$
-    "ebay.co.uk", //$NON-NLS-1$
-    "tw.ebay.com", //$NON-NLS-1$
-    "es.ebay.com", //$NON-NLS-1$
-    "ebay.fr", //$NON-NLS-1$
-    "ebay.it", //$NON-NLS-1$
-    "ebay.com.au", //$NON-NLS-1$
-    "ebay.at", //$NON-NLS-1$
-    "benl.ebay.be", //$NON-NLS-1$
-    "ebay.nl", //$NON-NLS-1$
-    "ebay.com.sg", //$NON-NLS-1$
-    "ebaysweden.com", //$NON-NLS-1$
-    "ebay.ch", //$NON-NLS-1$
+  final static String[] site_choices = {
+    "ebay.com",
+    "ebay.de",
+    "ebay.ca",
+    "ebay.co.uk",
+    "tw.ebay.com",
+    "es.ebay.com",
+    "ebay.fr",
+    "ebay.it",
+    "ebay.com.au",
+    "ebay.at",
+    "benl.ebay.be",
+    "ebay.nl",
+    "ebay.com.sg",
+    "ebaysweden.com",
+    "ebay.ch",
     "befr.ebay.be",
-    "ebay.ie"}; //$NON-NLS-1$
+    "ebay.ie"};
 
   /** @noinspection RedundantIfStatement*/
   public boolean doHandleThisSite(URL checkURL) {
     if(checkURL == null) return false;
-    if( (checkURL.getHost().startsWith(eBayDetectionHost)) ) return true;
-    if( (checkURL.getHost().startsWith(eBayTWDetectionHost)) ) return true;
-    if( (checkURL.getHost().startsWith(eBayESDetectionHost)) ) return true;
+    if( (checkURL.getHost().startsWith(Externalized.getString("ebayServer.detectionHost"))) ) return true;
+    if( (checkURL.getHost().startsWith(Externalized.getString("ebayServer.TaiwanDetectionHost"))) ) return true;
+    if( (checkURL.getHost().startsWith(Externalized.getString("ebayServer.SpainDetectionHost"))) ) return true;
 
     return false;
   }
 
-  private static com.jbidwatcher.util.Currency[][] incrementTable = {
-    { new com.jbidwatcher.util.Currency(   "$0.99"), new com.jbidwatcher.util.Currency( "$0.05") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(   "$4.99"), new com.jbidwatcher.util.Currency( "$0.25") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "$24.99"), new com.jbidwatcher.util.Currency( "$0.50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "$99.99"), new com.jbidwatcher.util.Currency( "$1.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "$249.99"), new com.jbidwatcher.util.Currency( "$2.50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "$499.99"), new com.jbidwatcher.util.Currency( "$5.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "$999.99"), new com.jbidwatcher.util.Currency("$10.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency("$2499.99"), new com.jbidwatcher.util.Currency("$25.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency("$4999.99"), new com.jbidwatcher.util.Currency("$50.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { com.jbidwatcher.util.Currency.NoValue(), new com.jbidwatcher.util.Currency("$100.00") } }; //$NON-NLS-1$
-
-  private static com.jbidwatcher.util.Currency[][] au_incrementTable = {
-    { new com.jbidwatcher.util.Currency(   "AUD0.99"), new com.jbidwatcher.util.Currency( "AUD0.05") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(   "AUD4.99"), new com.jbidwatcher.util.Currency( "AUD0.25") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "AUD24.99"), new com.jbidwatcher.util.Currency( "AUD0.50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "AUD99.99"), new com.jbidwatcher.util.Currency( "AUD1.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "AUD249.99"), new com.jbidwatcher.util.Currency( "AUD2.50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "AUD499.99"), new com.jbidwatcher.util.Currency( "AUD5.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "AUD999.99"), new com.jbidwatcher.util.Currency("AUD10.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency("AUD2499.99"), new com.jbidwatcher.util.Currency("AUD25.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency("AUD4999.99"), new com.jbidwatcher.util.Currency("AUD50.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { com.jbidwatcher.util.Currency.NoValue(), new com.jbidwatcher.util.Currency("AUD100.00") } }; //$NON-NLS-1$
-
-  private static com.jbidwatcher.util.Currency[][] ca_incrementTable = {
-    { new com.jbidwatcher.util.Currency( "CAD0.99"), new com.jbidwatcher.util.Currency( "CAD0.05") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "CAD4.99"), new com.jbidwatcher.util.Currency( "CAD0.25") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency("CAD24.99"), new com.jbidwatcher.util.Currency( "CAD0.50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency("CAD99.99"), new com.jbidwatcher.util.Currency( "CAD1.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { com.jbidwatcher.util.Currency.NoValue(), new com.jbidwatcher.util.Currency("CAD2.50") } }; //$NON-NLS-1$
-
-  private static com.jbidwatcher.util.Currency[][] uk_incrementTable = {
-    { new com.jbidwatcher.util.Currency(   "GBP1.00"), new com.jbidwatcher.util.Currency( "GBP0.05") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(   "GBP5.00"), new com.jbidwatcher.util.Currency( "GBP0.20") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "GBP15.00"), new com.jbidwatcher.util.Currency( "GBP0.50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "GBP60.00"), new com.jbidwatcher.util.Currency( "GBP1.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "GBP150.00"), new com.jbidwatcher.util.Currency( "GBP2.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "GBP300.00"), new com.jbidwatcher.util.Currency( "GBP5.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "GBP600.00"), new com.jbidwatcher.util.Currency("GBP10.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency("GBP1500.00"), new com.jbidwatcher.util.Currency("GBP25.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency("GBP3000.00"), new com.jbidwatcher.util.Currency("GBP50.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { com.jbidwatcher.util.Currency.NoValue(), new com.jbidwatcher.util.Currency("GBP100.00") } }; //$NON-NLS-1$
-
-  private static com.jbidwatcher.util.Currency[][] fr_incrementTable = {
-    { new com.jbidwatcher.util.Currency(    "FRF4.99"), new com.jbidwatcher.util.Currency( "FRF0.25") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(   "FRF24.99"), new com.jbidwatcher.util.Currency( "FRF0.50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(   "FRF99.99"), new com.jbidwatcher.util.Currency( "FRF1.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "FRF249.99"), new com.jbidwatcher.util.Currency( "FRF2.50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "FRF499.99"), new com.jbidwatcher.util.Currency( "FRF5.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "FRF999.99"), new com.jbidwatcher.util.Currency("FRF10.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "FRF2499.99"), new com.jbidwatcher.util.Currency("FRF25.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "FRF9999.99"), new com.jbidwatcher.util.Currency("FRF100.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency("FRF49999.99"), new com.jbidwatcher.util.Currency("FRF250.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { com.jbidwatcher.util.Currency.NoValue(), new com.jbidwatcher.util.Currency("FRF500.00") } }; //$NON-NLS-1$
-
-  private static com.jbidwatcher.util.Currency[][] eu_incrementTable = {
-    { new com.jbidwatcher.util.Currency(   "EUR49.99"), new com.jbidwatcher.util.Currency( "EUR0.50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "EUR499.99"), new com.jbidwatcher.util.Currency( "EUR1.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "EUR999.99"), new com.jbidwatcher.util.Currency( "EUR5.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "EUR4999.99"), new com.jbidwatcher.util.Currency("EUR10.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { com.jbidwatcher.util.Currency.NoValue(), new com.jbidwatcher.util.Currency("EUR50.00") } }; //$NON-NLS-1$
-
-  private static com.jbidwatcher.util.Currency[][] tw_incrementTable = {
-    { new com.jbidwatcher.util.Currency(   "NTD500"), new com.jbidwatcher.util.Currency( "NTD15") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "NTD2500"), new com.jbidwatcher.util.Currency( "NTD30") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "NTD5000"), new com.jbidwatcher.util.Currency( "NTD50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "NTD25000"), new com.jbidwatcher.util.Currency("NTD100") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { com.jbidwatcher.util.Currency.NoValue(), new com.jbidwatcher.util.Currency("NTD200") } }; //$NON-NLS-1$
-
-  private static com.jbidwatcher.util.Currency[][] ch_incrementTable = {
-    { new com.jbidwatcher.util.Currency(   "CHF49.99"), new com.jbidwatcher.util.Currency( "CHF0.50") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "CHF499.99"), new com.jbidwatcher.util.Currency( "CHF1.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency(  "CHF999.99"), new com.jbidwatcher.util.Currency( "CHF5.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { new com.jbidwatcher.util.Currency( "CHF4999.99"), new com.jbidwatcher.util.Currency("CHF10.00") }, //$NON-NLS-1$ //$NON-NLS-2$
-    { com.jbidwatcher.util.Currency.NoValue(), new com.jbidwatcher.util.Currency("CHF50.00") } }; //$NON-NLS-1$
-
-  private static com.jbidwatcher.util.Currency zeroDollars = new com.jbidwatcher.util.Currency("$0.00"); //$NON-NLS-1$
-  private static com.jbidwatcher.util.Currency zeroPounds = new com.jbidwatcher.util.Currency("GBP 0.00"); //$NON-NLS-1$
-  private static com.jbidwatcher.util.Currency zeroFrancs = new com.jbidwatcher.util.Currency("FR 0.00"); //$NON-NLS-1$
-  private static com.jbidwatcher.util.Currency zeroSwissFrancs = new com.jbidwatcher.util.Currency("CHF0.00"); //$NON-NLS-1$
-  private static com.jbidwatcher.util.Currency zeroEuros = new com.jbidwatcher.util.Currency("EUR 0.00"); //$NON-NLS-1$
-  private static com.jbidwatcher.util.Currency zeroAustralian = new com.jbidwatcher.util.Currency("AUD0.00"); //$NON-NLS-1$
-  private static com.jbidwatcher.util.Currency zeroTaiwanese = new com.jbidwatcher.util.Currency("NTD0.00"); //$NON-NLS-1$
-  private static com.jbidwatcher.util.Currency zeroCanadian = new com.jbidwatcher.util.Currency("CAD0.00"); //$NON-NLS-1$
-
   public com.jbidwatcher.util.Currency getMinimumBidIncrement(com.jbidwatcher.util.Currency currentBid, int bidCount) {
-    com.jbidwatcher.util.Currency correctedValue = currentBid;
-    com.jbidwatcher.util.Currency zeroIncrement = zeroDollars;
-    com.jbidwatcher.util.Currency[][] rightTable;
-
-    switch(currentBid.getCurrencyType()) {
-      //  Default to USD, so we don't freak if we're passed a bad
-      //  value.  We'll get the wrong answer, but we won't thrash.
-      default:
-        correctedValue = zeroDollars;
-        rightTable = incrementTable;
-        break;
-      case com.jbidwatcher.util.Currency.US_DOLLAR:
-        rightTable = incrementTable;
-        break;
-      case com.jbidwatcher.util.Currency.UK_POUND:
-        rightTable = uk_incrementTable;
-        zeroIncrement = zeroPounds;
-        break;
-      case com.jbidwatcher.util.Currency.FR_FRANC:
-        rightTable = fr_incrementTable;
-        zeroIncrement = zeroFrancs;
-        break;
-      case com.jbidwatcher.util.Currency.CH_FRANC:
-        rightTable = ch_incrementTable;
-        zeroIncrement = zeroSwissFrancs;
-        break;
-      case com.jbidwatcher.util.Currency.EURO:
-        rightTable = eu_incrementTable;
-        zeroIncrement = zeroEuros;
-        break;
-      case com.jbidwatcher.util.Currency.TW_DOLLAR:
-        rightTable = tw_incrementTable;
-        zeroIncrement = zeroTaiwanese;
-        break;
-      case com.jbidwatcher.util.Currency.CAN_DOLLAR:
-        rightTable = ca_incrementTable;
-        zeroIncrement = zeroCanadian;
-        break;
-      case com.jbidwatcher.util.Currency.AU_DOLLAR:
-        rightTable = au_incrementTable;
-        zeroIncrement = zeroAustralian;
-        break;
-    }
-
-    if(bidCount == 0) return zeroIncrement;
-
-    for (Currency[] aRightTable : rightTable) {
-      Currency endValue = aRightTable[0];
-      Currency incrementValue = aRightTable[1];
-
-      //  Sentinel.  If we reach the end, return the max.
-      if (endValue == null || endValue.isNull()) return incrementValue;
-
-      try {
-        //  If it's less than, or equal, to the end value than we use
-        //  that increment amount.
-        if (correctedValue.less(endValue)) return incrementValue;
-        if (!endValue.less(correctedValue)) return incrementValue;
-      } catch (Currency.CurrencyTypeException e) {
-        /* Should never happen, since we've checked the currency already.  */
-        ErrorManagement.handleException("Currency comparison threw a bad currency exception, which should be impossible.", e); //$NON-NLS-1$
-      }
-    }
-    return null;
+    return sCurrencies.getMinimumBidIncrement(currentBid, bidCount);
   }
 
   public void updateConfiguration() {
-    sellerSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", getUserId(), getName(), null, 0);
+    mSellerSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", getUserId(), getName(), null, 0);
   }
 
   private class eBayTimeQueueManager extends TimeQueueManager {
@@ -434,7 +180,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   public JConfigTab getConfigurationTab() {
     //  Always return a new one, to fix a problem on first startup.
-    return new JConfigEbayTab();
+    return new JConfigEbayTab(this);
   }
 
   /**
@@ -473,7 +219,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - true if the user is one of the high bidders on a dutch item, false otherwise.
    */
   public boolean isHighDutch(AuctionEntry inAE) {
-    String dutchWinners = eBayProtocol + eBayDutchRequest + eBayWS3File + eBayViewDutchWinners + inAE.getIdentifier();
+    String dutchWinners = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.dutchRequestHost") + Externalized.getString("ebayServer.V3WS3File") + Externalized.getString("ebayServer.viewDutch") + inAE.getIdentifier();
     CookieJar cj = getNecessaryCookie(false);
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();
@@ -488,7 +234,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public void updateHighBid(AuctionEntry ae) {
-    String bidHistory = eBayProtocol + eBayBidHost + eBayV3File + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier();
+    String bidHistory = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file") + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier();
     CookieJar cj = getNecessaryCookie(false);
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();
@@ -551,7 +297,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   private void loadAllFromURLString(Object searcher, String label) {
     String urlStr = ((Searcher)searcher).getSearch();
-    MQFactory.getConcrete("Swing").enqueue("Loading from URL " + urlStr); //$NON-NLS-1$ //$NON-NLS-2$
+    MQFactory.getConcrete("Swing").enqueue("Loading from URL " + urlStr);
 
     //noinspection MismatchedQueryAndUpdateOfCollection
     EbayAuctionURLPager pager = new EbayAuctionURLPager(urlStr, this, this);
@@ -560,7 +306,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     ListIterator li = pager.listIterator();
 
     while(li.hasNext()) {
-      MQFactory.getConcrete("Swing").enqueue("Loading page " + li.nextIndex() + "/" + pager.size() + " from URL " + urlStr); //$NON-NLS-1$ //$NON-NLS-2$
+      MQFactory.getConcrete("Swing").enqueue("Loading page " + li.nextIndex() + "/" + pager.size() + " from URL " + urlStr);
 
     	JHTML htmlDocument = (JHTML)li.next();
     	if(htmlDocument != null) {
@@ -569,9 +315,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
 
     if(results == 0) {
-      MQFactory.getConcrete("Swing").enqueue("Failed to load from URL " + urlStr); //$NON-NLS-1$ //$NON-NLS-2$
+      MQFactory.getConcrete("Swing").enqueue("Failed to load from URL " + urlStr);
     } else {
-      MQFactory.getConcrete("Swing").enqueue("Done loading from URL " + urlStr); //$NON-NLS-1$ //$NON-NLS-2$
+      MQFactory.getConcrete("Swing").enqueue("Done loading from URL " + urlStr);
     }
   }
 
@@ -596,7 +342,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     int allResults = 0;
 
     if(encodedSearch != null) {
-      MQFactory.getConcrete("Swing").enqueue("Searching for: " + search); //$NON-NLS-1$ //$NON-NLS-2$
+      MQFactory.getConcrete("Swing").enqueue("Searching for: " + search);
       String sacur = "";
 
       String currency = ((Searcher)searcher).getCurrency();
@@ -605,9 +351,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       String fullSearch;
 
       if (title_only) {
-        fullSearch = eBaySearchURL1 + encodedSearch + sacur + eBaySearchURLNoDesc;
+        fullSearch = Externalized.getString("ebayServer.searchURL1") + encodedSearch + sacur + Externalized.getString("ebayServer.searchURLNoDesc");
       } else {
-        fullSearch = eBaySearchURL1 + encodedSearch + sacur + eBaySearchURL2;
+        fullSearch = Externalized.getString("ebayServer.searchURL1") + encodedSearch + sacur + Externalized.getString("ebayServer.searchURL2");
       }
       int skipCount = 0;
       boolean done;
@@ -624,7 +370,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           if(pageResults != 0) {
             if(pageResults >= ITEMS_PER_PAGE) {
               skipCount += ITEMS_PER_PAGE;
-              fullSearch = new StringBuffer(eBaySearchURL1).append(encodedSearch).append(sacur).append(title_only?eBaySearchURLNoDesc:eBaySearchURL2).append("&skip=").append(skipCount).toString(); //$NON-NLS-1$
+              fullSearch = new StringBuffer(Externalized.getString("ebayServer.searchURL1")).append(encodedSearch).append(sacur).append(title_only? Externalized.getString("ebayServer.searchURLNoDesc") : Externalized.getString("ebayServer.searchURL2")).append("&skip=").append(skipCount).toString();
               done = false;
             }
 
@@ -635,9 +381,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
 
     if(allResults == 0) {
-      MQFactory.getConcrete("Swing").enqueue("No results found for search: " + search); //$NON-NLS-1$ //$NON-NLS-2$
+      MQFactory.getConcrete("Swing").enqueue("No results found for search: " + search);
     } else {
-      MQFactory.getConcrete("Swing").enqueue("Done searching for: " + search); //$NON-NLS-1$ //$NON-NLS-2$
+      MQFactory.getConcrete("Swing").enqueue("Done searching for: " + search);
     }
   }
 
@@ -648,17 +394,14 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *
    */
   public void messageAction(Object deQ) {
-    AuctionQObject ac = (AuctionQObject)deQ; //$NON-NLS-1$
+    AuctionQObject ac = (AuctionQObject)deQ;
     String failString = null;
-    boolean defaultUser = getUserId().equals("default"); //$NON-NLS-1$
+    boolean defaultUser = getUserId().equals("default");
 
     /**
      * Just load all listings on a specific URL.
      */
     switch(ac.getCommand()) {
-      case AuctionQObject.LOAD_STRINGS:
-        loadStrings();
-        return;
       case AuctionQObject.LOAD_URL:
         loadAllFromURLString(ac.getData(), ac.getLabel());
         return;
@@ -682,7 +425,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         return;
       case AuctionQObject.LOAD_MYITEMS:
         if(defaultUser) {
-          failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2"); //$NON-NLS-1$ //$NON-NLS-2$
+          failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           doMyEbaySynchronize(ac.getLabel());
           return;
@@ -736,9 +479,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
        * This calls back to here, by adding a message onto the queue,
        * but it will update the 'last run' time for the 'My eBay' search.
        */
-      if(ac.getData().equals("Get My eBay Items")) { //$NON-NLS-1$
-        if(_my_ebay != null) {
-          _my_ebay.execute();
+      if(ac.getData().equals("Get My eBay Items")) {
+        if(getMyEbay() != null) {
+          getMyEbay().execute();
           return;
         }
         /**
@@ -747,7 +490,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
          * the action they are trying to do.
          */
         if(defaultUser) {
-          failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2"); //$NON-NLS-1$ //$NON-NLS-2$
+          failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           doMyEbaySynchronize(null);
           return;
@@ -757,12 +500,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       /**
        * Get items this user is selling.
        */
-      if(ac.getData().equals("Get Selling Items")) { //$NON-NLS-1$
+      if(ac.getData().equals("Get Selling Items")) {
         if(defaultUser) {
-          failString = Externalized.getString("ebayServer.cantLoadSellerWithoutUser1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2"); //$NON-NLS-1$ //$NON-NLS-2$
+          failString = Externalized.getString("ebayServer.cantLoadSellerWithoutUser1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
-          if(sellerSearch == null) updateConfiguration();
-          if(sellerSearch != null) sellerSearch.execute();
+          if(mSellerSearch == null) updateConfiguration();
+          if(mSellerSearch != null) mSellerSearch.execute();
           return;
         }
       }
@@ -770,11 +513,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       /**
        * Update the login cookie, that contains session and adult information, for example.
        */
-      if(ac.getData().equals("Update login cookie")) { //$NON-NLS-1$
+      if(ac.getData().equals("Update login cookie")) {
         if(defaultUser) {
-          failString = Externalized.getString("ebayServer.cantUpdateCookieWithoutUser1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2"); //$NON-NLS-1$ //$NON-NLS-2$
+          failString = Externalized.getString("ebayServer.cantUpdateCookieWithoutUser1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
-          _signinCookie = null;
+          mSignInCookie = null;
           getNecessaryCookie(true);
           return;
         }
@@ -791,12 +534,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
      * user, then display the error, otherwise indicate that we got an
      * unexpected command.
      */
-    if(failString != null && failString.length() != 0 && defaultUser) { //$NON-NLS-1$
-      JOptionPane.showMessageDialog(null, failString, "No auction account error", JOptionPane.PLAIN_MESSAGE); //$NON-NLS-1$
+    if(failString != null && failString.length() != 0 && defaultUser) {
+      JOptionPane.showMessageDialog(null, failString, "No auction account error", JOptionPane.PLAIN_MESSAGE);
     } else {
       if (ac.getData() instanceof String) {
         String acData = (String) ac.getData();
-        ErrorManagement.logMessage("Dequeue'd unexpected command or fell through: " + ac.getCommand() + ':' + acData); //$NON-NLS-1$ //$NON-NLS-2$
+        ErrorManagement.logMessage("Dequeue'd unexpected command or fell through: " + ac.getCommand() + ':' + acData);
       } else {
         //noinspection ObjectToString
         ErrorManagement.logMessage("Can't recognize ebay-queued data: " + ac.getData());
@@ -818,35 +561,35 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
      * Not the greatest solution, but it's working okay.  A better one
      * would be great.
      */
-    if(_resultHash == null) {
-      _resultHash = new HashMap<String, Integer>();
-      _resultHash.put("you are not permitted to bid on their listings.", BID_ERROR_BANNED); //$NON-NLS-1$
-      _resultHash.put("the item is no longer available because the auction has ended.", BID_ERROR_ENDED); //$NON-NLS-1$
-      _resultHash.put("cannot proceed", BID_ERROR_CANNOT); //$NON-NLS-1$
-      _resultHash.put("problem with bid amount", BID_ERROR_AMOUNT); //$NON-NLS-1$
-      _resultHash.put("your bid must be at least ", BID_ERROR_TOO_LOW); //$NON-NLS-1$
-      _resultHash.put("you have been outbid by another bidder", BID_ERROR_OUTBID); //$NON-NLS-1$
-      _resultHash.put("your bid is confirmed!", BID_DUTCH_CONFIRMED); //$NON-NLS-1$
-      _resultHash.put("you are bidding on this multiple item auction", BID_DUTCH_CONFIRMED); //$NON-NLS-1$
-      _resultHash.put("you are the high bidder on all items you bid on", BID_DUTCH_CONFIRMED); //$NON-NLS-1$
-      _resultHash.put("you are the current high bidder", BID_WINNING); //$NON-NLS-1$
-      _resultHash.put("you purchased the item", BID_WINNING); //$NON-NLS-1$
-      _resultHash.put("the reserve price has not been met", BID_ERROR_RESERVE_NOT_MET); //$NON-NLS-1$
-      _resultHash.put("your new total must be higher than your current total", BID_ERROR_TOO_LOW_SELF); //$NON-NLS-1$
-      _resultHash.put("this exceeds or is equal to your current bid", BID_ERROR_TOO_LOW_SELF); //$NON-NLS-1$
-      _resultHash.put("you bought this item", BID_BOUGHT_ITEM); //$NON-NLS-1$
-      _resultHash.put("you committed to buy", BID_BOUGHT_ITEM); //$NON-NLS-1$
-      _resultHash.put("congratulations! you won!", BID_BOUGHT_ITEM); //$NON-NLS-1$
-      _resultHash.put("account suspended", BID_ERROR_ACCOUNT_SUSPENDED); //$NON-NLS-1$
-      _resultHash.put("to enter a higher maximum bid, please enter", BID_ERROR_TOO_LOW_SELF); //$NON-NLS-1$
-      _resultHash.put("you are registered in a country to which the seller doesn.t ship.", BID_ERROR_WONT_SHIP); //$NON-NLS-1$
-      _resultHash.put("this seller has set buyer requirements for this item and only sells to buyers who meet those requirements.", BID_ERROR_REQUIREMENTS_NOT_MET); //$NON-NLS-1$
-      //      _resultHash.put("You are the current high bidder", new Integer(BID_SELFWIN));
+    if(mResultHash == null) {
+      mResultHash = new HashMap<String, Integer>();
+      mResultHash.put("you are not permitted to bid on their listings.", BID_ERROR_BANNED);
+      mResultHash.put("the item is no longer available because the auction has ended.", BID_ERROR_ENDED);
+      mResultHash.put("cannot proceed", BID_ERROR_CANNOT);
+      mResultHash.put("problem with bid amount", BID_ERROR_AMOUNT);
+      mResultHash.put("your bid must be at least ", BID_ERROR_TOO_LOW);
+      mResultHash.put("you have been outbid by another bidder", BID_ERROR_OUTBID);
+      mResultHash.put("your bid is confirmed!", BID_DUTCH_CONFIRMED);
+      mResultHash.put("you are bidding on this multiple item auction", BID_DUTCH_CONFIRMED);
+      mResultHash.put("you are the high bidder on all items you bid on", BID_DUTCH_CONFIRMED);
+      mResultHash.put("you are the current high bidder", BID_WINNING);
+      mResultHash.put("you purchased the item", BID_WINNING);
+      mResultHash.put("the reserve price has not been met", BID_ERROR_RESERVE_NOT_MET);
+      mResultHash.put("your new total must be higher than your current total", BID_ERROR_TOO_LOW_SELF);
+      mResultHash.put("this exceeds or is equal to your current bid", BID_ERROR_TOO_LOW_SELF);
+      mResultHash.put("you bought this item", BID_BOUGHT_ITEM);
+      mResultHash.put("you committed to buy", BID_BOUGHT_ITEM);
+      mResultHash.put("congratulations! you won!", BID_BOUGHT_ITEM);
+      mResultHash.put("account suspended", BID_ERROR_ACCOUNT_SUSPENDED);
+      mResultHash.put("to enter a higher maximum bid, please enter", BID_ERROR_TOO_LOW_SELF);
+      mResultHash.put("you are registered in a country to which the seller doesn.t ship.", BID_ERROR_WONT_SHIP);
+      mResultHash.put("this seller has set buyer requirements for this item and only sells to buyers who meet those requirements.", BID_ERROR_REQUIREMENTS_NOT_MET);
+      //      mResultHash.put("You are the current high bidder", new Integer(BID_SELFWIN));
     }
 
     //"If you want to submit another bid, your new total must be higher than your current total";
     StringBuffer superRegex = new StringBuffer("(");
-    Iterator<String> it = _resultHash.keySet().iterator();
+    Iterator<String> it = mResultHash.keySet().iterator();
     while (it.hasNext()) {
       String key = it.next();
       superRegex.append(key);
@@ -858,7 +601,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
     mBidResultRegex = "(?i)" + superRegex.toString();
     mFindBidResult = Pattern.compile(mBidResultRegex);
-    _resultHash.put("sign in", BID_ERROR_CANT_SIGN_IN);
+    mResultHash.put("sign in", BID_ERROR_CANT_SIGN_IN);
 
     _etqm = new eBayTimeQueueManager();
     eQueue = new TimerHandler(_etqm);
@@ -867,7 +610,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     eQueue.start();
 
     MQFactory.getConcrete("snipes").registerListener(new SnipeListener());
-    MQFactory.getConcrete("ebay").registerListener(this); //$NON-NLS-1$
+    MQFactory.getConcrete("ebay").registerListener(this);
 
     JConfig.registerListener(this);
   }
@@ -889,7 +632,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   protected Date getOfficialTime() {
     Auctions.startBlocking();
     long localDateBeforePage = System.currentTimeMillis();
-    String timeRequest = eBayProtocol + eBayHost + eBayFile + Externalized.getString("ebayServer.timeCmd"); //$NON-NLS-1$
+    String timeRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.host") + Externalized.getString("ebayServer.file") + Externalized.getString("ebayServer.timeCmd");
 
 //  Getting the necessary cookie here causes intense slowdown which fudges the time, badly.
 //    htmlDocument = new JHTML(timeRequest, getNecessaryCookie(false).toString(), this);
@@ -898,8 +641,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     String pageStep = htmlDocument.getNextContent();
     while(result == null && pageStep != null) {
-      if(pageStep.equals(eBayPrequelTimeString) || pageStep.equals(eBayPrequelTimeString2)) {
-        result = figureDate(htmlDocument.getNextContent(), eBayOfficialTimeFormat, false);
+      if(pageStep.equals(Externalized.getString("ebayServer.timePrequel1")) || pageStep.equals(Externalized.getString("ebayServer.timePrequel2"))) {
+        result = figureDate(htmlDocument.getNextContent(), Externalized.getString("ebayServer.officialTimeFormat"), false);
       }
       pageStep = htmlDocument.getNextContent();
     }
@@ -908,10 +651,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     //  If we couldn't get a number, clear the page request time.
     if(result == null) {
-      _pageRequestTime = 0;
+      mPageRequestTime = 0;
       //  This is bad...
       ErrorManagement.logMessage(getName() + ": Error, can't accurately set delta to server's official time.");
-      _officialServerTimeDelta = 0;
+      mOfficialServerTimeDelta = 0;
     } else {
       long localDateAfterPage = System.currentTimeMillis();
 
@@ -919,7 +662,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       //  eBay's current time, minus the current time before we loaded the page, minus half the request-time
       //  tells how far off our system clock is to eBay.
       //noinspection MultiplyOrDivideByPowerOfTwo
-      _officialServerTimeDelta = (result.getTime() - localDateBeforePage) - (reqTime / 2);
+      mOfficialServerTimeDelta = (result.getTime() - localDateBeforePage) - (reqTime / 2);
     }
     return result;
   }
@@ -934,7 +677,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * string passed in, or null if no identifier could be found.
    */
   public String extractIdentifierFromURLString(String urlStyle) {
-    Pattern url = Pattern.compile(eBayParseItemURL);
+    Pattern url = Pattern.compile(Externalized.getString("ebayServer.itemNumberMatch"));
     Matcher urlMatch = url.matcher(urlStyle);
     if(urlMatch.find()) {
         String itemNum = urlMatch.group(2);
@@ -944,17 +687,17 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     if(siteAddr != null) {
       String lastPart = siteAddr.toString();
-      if(lastPart.indexOf(eBayViewItemCmd) != -1) {
-        int index = lastPart.indexOf(eBayViewItemCGI);
+      if(lastPart.indexOf(Externalized.getString("ebayServer.viewCmd")) != -1) {
+        int index = lastPart.indexOf(Externalized.getString("ebayServer.viewCGI"));
         if(index != -1) {
-          String aucId = lastPart.substring(index+eBayViewItemCGI.length());
+          String aucId = lastPart.substring(index+ Externalized.getString("ebayServer.viewCGI").length());
 
-          if (aucId.indexOf("&") != -1) { //$NON-NLS-1$
-            aucId = aucId.substring(0, aucId.indexOf("&")); //$NON-NLS-1$
+          if (aucId.indexOf("&") != -1) {
+            aucId = aucId.substring(0, aucId.indexOf("&"));
           }
 
-          if (aucId.indexOf("#") != -1) { //$NON-NLS-1$
-            aucId = aucId.substring(0, aucId.indexOf("#")); //$NON-NLS-1$
+          if (aucId.indexOf("#") != -1) {
+            aucId = aucId.substring(0, aucId.indexOf("#"));
           }
 
           return(aucId);
@@ -962,7 +705,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
     }
 
-    ErrorManagement.logDebug("extractIdentifierFromURLString failed."); //$NON-NLS-1$
+    ErrorManagement.logDebug("extractIdentifierFromURLString failed.");
     return null;
   }
 
@@ -974,7 +717,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - The real URL pointing to the item referenced by the passed in ID.
    */
   public String getStringURLFromItem(String itemID) {
-    return eBayProtocol + eBayViewHost + eBayFile + '?' + eBayViewItemCmd + eBayViewItemCGI + itemID;
+    return Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.viewHost") + Externalized.getString("ebayServer.file") + '?' + Externalized.getString("ebayServer.viewCmd") + Externalized.getString("ebayServer.viewCGI") + itemID;
   }
 
   /**
@@ -987,9 +730,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - A string containing the way to browse to the users preferred international site.
    */
   public String getBrowsableURLFromItem(String itemID) {
-    int browse_site = Integer.parseInt(JConfig.queryConfiguration(getName() + ".browse.site", "0")); //$NON-NLS-1$ //$NON-NLS-2$
+    int browse_site = Integer.parseInt(JConfig.queryConfiguration(getName() + ".browse.site", "0"));
 
-    return eBayProtocol + eBayBrowseHost + site_choices[browse_site] + eBayFile + '?' + eBayViewItemCmd + eBayViewItemCGI + itemID;
+    return Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.browseHost") + site_choices[browse_site] + Externalized.getString("ebayServer.file") + '?' + Externalized.getString("ebayServer.viewCmd") + Externalized.getString("ebayServer.viewCGI") + itemID;
   }
 
   /**
@@ -1013,15 +756,15 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, com.jbidwatcher.util.Currency inCurr, int inQuant) throws BadBidException {
-    String bidRequest = eBayProtocol + eBayBidHost + eBayV3File;
+    String bidRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
     String bidInfo;
     if(inEntry.isDutch()) {
-      bidInfo = eBayBidItem + "&co_partnerid=" + eBayItemCGI + inEntry.getIdentifier() +
+      bidInfo = Externalized.getString("ebayServer.bidCmd") + "&co_partnerid=" + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() +
                 "&fb=2" + Externalized.getString("ebayServer.quantCGI") + inQuant +
-                Externalized.getString("ebayServer.bidCGI") + inCurr.getValue(); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();
     } else {
-      bidInfo = eBayBidItem + "&co_partnerid=" + eBayItemCGI + inEntry.getIdentifier() + "&fb=2" +
-                Externalized.getString("ebayServer.bidCGI") + inCurr.getValue(); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      bidInfo = Externalized.getString("ebayServer.bidCmd") + "&co_partnerid=" + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() + "&fb=2" +
+                Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();
     }
     StringBuffer loadedPage = null;
     JHTML htmlDocument = null;
@@ -1061,7 +804,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
               //  This means we somehow failed to keep the login in place.  Bad news, in the middle of a snipe.
               ErrorManagement.logDebug("Being prompted again for sign in, retrying.");
               if(JConfig.debugging) inEntry.setLastStatus("Not done loading bid request, got re-login request...");
-              _signinCookie = null;
+              mSignInCookie = null;
               getNecessaryCookie(true);
               if(JConfig.debugging) inEntry.setLastStatus("Done re-logging in, retrying load bid request.");
               done = false;
@@ -1083,7 +826,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
       }
     } catch (IOException e) {
-      ErrorManagement.handleException("Failure to get the bid key!  BID FAILURE!", e); //$NON-NLS-1$
+      ErrorManagement.handleException("Failure to get the bid key!  BID FAILURE!", e);
     }
 
     if(htmlDocument != null) {
@@ -1094,7 +837,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         Matcher bidMatch = mFindBidResult.matcher(errMsg);
         bidMatch.find();
         String matched_error = bidMatch.group().toLowerCase();
-        throw new BadBidException(matched_error, _resultHash.get(matched_error));
+        throw new BadBidException(matched_error, mResultHash.get(matched_error));
       }
     }
 
@@ -1135,7 +878,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           long pre = System.currentTimeMillis();
           sb = AffiliateRetrieve.getAuctionViaAffiliate(cj, id);
           long post = System.currentTimeMillis();
-          _affRequestTime = (post - pre);
+          mAffiliateRequestTime = (post - pre);
         } catch (CookieJar.CookieException cje) {
           //  Cookie failure...  Ignore it and do a regular get.
         }
@@ -1148,7 +891,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         sb = getAuction(getURLFromItem(id));
         long post = System.currentTimeMillis();
         if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
-          _pageRequestTime = (post - pre);
+          mPageRequestTime = (post - pre);
         }
       } catch (FileNotFoundException ignored) {
         sb = null;
@@ -1159,7 +902,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public long getPageRequestTime() {
-    return _pageRequestTime;
+    return mPageRequestTime;
   }
 
   private boolean allowAffiliate() {
@@ -1244,17 +987,17 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       Auctions.endBlocking();
       return rval;
     }
-    ErrorManagement.logMessage("Bad/nonexistent key read in bid, or connection failure!"); //$NON-NLS-1$
+    ErrorManagement.logMessage("Bad/nonexistent key read in bid, or connection failure!");
 
     Auctions.endBlocking();
     return BID_ERROR_UNKNOWN;
   }
 
   public int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, com.jbidwatcher.util.Currency inBid, int inQuantity) {
-    String bidRequest = eBayProtocol + eBayBidHost + eBayV3File;
-    String bidInfo = eBayBidItem + eBayItemCGI + inEntry.getIdentifier() +
+    String bidRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
+    String bidInfo = Externalized.getString("ebayServer.bidCmd") + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() +
         Externalized.getString("ebayServer.quantCGI") + inQuantity +
-        Externalized.getString("ebayServer.bidCGI") + inBid.getValue(); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        Externalized.getString("ebayServer.bidCGI") + inBid.getValue();
     String bidURL = bidRequest + '?' + bidInfo;
 
     bidForm.delInput("BIN_button");
@@ -1323,7 +1066,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       Matcher bidMatch = mFindBidResult.matcher(errMsg);
       bidMatch.find();
       String matched_error = bidMatch.group().toLowerCase();
-      Integer bidResult = _resultHash.get(matched_error);
+      Integer bidResult = mResultHash.get(matched_error);
 
       if(inEntry.getTitle().toLowerCase().indexOf("test") == -1) {
         if(JBConfig.doAffiliate(inEntry.getEndDate().getTime())) {
@@ -1386,11 +1129,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - A cookie jar of all the necessary cookies to do eBay connections.
    */
   public synchronized CookieJar getNecessaryCookie(boolean force) {
-    if(_signinCookie == null || force) {
-      _signinCookie = getSignInCookie(_signinCookie);
+    if(mSignInCookie == null || force) {
+      mSignInCookie = getSignInCookie(mSignInCookie);
     }
 
-    return(_signinCookie);
+    return(mSignInCookie);
   }
 
   /**
@@ -1408,7 +1151,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
       fw.write(sb.toString());
     } catch(IOException ioe) {
-      ErrorManagement.handleException("Threw exception in dump2File!", ioe); //$NON-NLS-1$
+      ErrorManagement.handleException("Threw exception in dump2File!", ioe);
     } finally {
       if(fw != null) try { fw.close(); } catch(IOException ignored) { /* I don't care about exceptions on close. */ }
     }
@@ -1485,7 +1228,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return true;
   }
 
-  public void extractAuthorization(XMLElement auth) {
+  public void loadAuthorization(XMLElement auth) {
     String username = auth.getProperty("USER", null);
     if (username != null) {
       JConfig.setConfiguration(userCfgString, username);
@@ -1505,7 +1248,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
   }
 
-  public void setAuthorization(XMLElement auth) {
+  public void storeAuthorization(XMLElement auth) {
     if (getUserId() != null) {
       auth.setProperty("user", getUserId());
       auth.setProperty("password1", Base64.encodeString(getPassword(), false));
@@ -1551,7 +1294,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         uc_signin = cj.getAllCookiesFromPage(curForm.getCGI(), null, false);
         if (isAdult) {
           if (getAdultRedirector(uc_signin, cj)) {
-            MQFactory.getConcrete("Swing").enqueue("VALID LOGIN"); //$NON-NLS-1$ //$NON-NLS-2$
+            MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
           } else {
             //  Disable adult mode and try again.
             ErrorManagement.logMessage("Disabling 'adult' mode and retrying.");
@@ -1568,16 +1311,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
             mBadPassword = getPassword();
             mBadUsername = getUserId();
             ErrorManagement.logMessage("Username/password not valid.");
-            MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN Username/password not recognized by eBay."); //$NON-NLS-1$ //$NON-NLS-2$
+            MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN Username/password not recognized by eBay.");
           } else {
-            MQFactory.getConcrete("Swing").enqueue("VALID LOGIN"); //$NON-NLS-1$ //$NON-NLS-2$
+            MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
           }
         }
       }
     } catch (IOException e) {
       //  We don't know how far we might have gotten...  The cookies
       //  may be valid, even!  We can't assume it, though.
-      MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN " + e.getMessage()); //$NON-NLS-1$ //$NON-NLS-2$
+      MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN " + e.getMessage());
       ErrorManagement.handleException("Couldn't sign in!", e);
     }
 
@@ -1636,12 +1379,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     String msg = "Getting the sign in cookie.";
 
     if(JConfig.queryConfiguration("debug.verbose", "false").equals("true")) ErrorManagement.logDebug(msg);
-    MQFactory.getConcrete("Swing").enqueue(msg);  //$NON-NLS-1$
+    MQFactory.getConcrete("Swing").enqueue(msg);
 
     CookieJar cj = getSignInCookie(old_cj, getUserId(), getPassword());
 
     String done_msg = "Done getting the sign in cookie.";
-    MQFactory.getConcrete("Swing").enqueue(done_msg);  //$NON-NLS-1$
+    MQFactory.getConcrete("Swing").enqueue(done_msg);
     if(JConfig.queryConfiguration("debug.verbose", "false").equals("true")) ErrorManagement.logDebug(done_msg);
 
     return cj;
@@ -1661,7 +1404,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     int item_count = 0;
 
     if(allItemsOnPage == null) {
-      ErrorManagement.logDebug("No items on page!"); //$NON-NLS-1$
+      ErrorManagement.logDebug("No items on page!");
     } else {
       for(ListIterator<String> it=allItemsOnPage.listIterator(); it.hasNext(); ) {
         String url = it.next();
@@ -1676,7 +1419,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           nextURL = nextURL.replaceAll("\n|\r", "");
           gotNext = true;
         } else {
-          nextURL = ""; //$NON-NLS-1$
+          nextURL = "";
           gotNext = false;
         }
 
@@ -1697,7 +1440,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           String hasId = aucServ.extractIdentifierFromURLString(url);
 
           if (hasId != null) {
-            MQFactory.getConcrete("drop").enqueue(new DropQObject(url.trim(), category, interactive)); //$NON-NLS-1$
+            MQFactory.getConcrete("drop").enqueue(new DropQObject(url.trim(), category, interactive));
             item_count++;
           }
         }
@@ -1712,7 +1455,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *  This queue is basically only used for starting searches.
    */
   public void cancelSearches() {
-    MQFactory.getConcrete("ebay").clear(); //$NON-NLS-1$
+    MQFactory.getConcrete("ebay").clear();
   }
 
   /**
@@ -1724,13 +1467,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @param searchManager - The search manager to add these searches to.
    */
   public void addSearches(SearchManagerInterface searchManager) {
-    String doSync = JConfig.queryConfiguration(getName() + ".synchronize", "false"); //$NON-NLS-1$ //$NON-NLS-2$
+    String doSync = JConfig.queryConfiguration(getName() + ".synchronize", "false");
 
     if(!doSync.equals("ignore")) {
-      if(doSync.equalsIgnoreCase("true")) { //$NON-NLS-1$
-        _my_ebay = searchManager.addSearch("My Items", "My eBay", "", "ebay", 1, 1); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+      if(doSync.equalsIgnoreCase("true")) {
+        setMyEbay(searchManager.addSearch("My Items", "My eBay", "", "ebay", 1, 1)); //$NON-NLS-4$
       } else {
-        _my_ebay = searchManager.addSearch("My Items", "My eBay", "", "ebay", -1, 1); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+        setMyEbay(searchManager.addSearch("My Items", "My eBay", "", "ebay", -1, 1)); //$NON-NLS-4$
       }
       JConfig.setConfiguration(getName() + ".synchronize", "ignore");
     }
@@ -1750,17 +1493,17 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     CookieJar cj = getNecessaryCookie(false);
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();
-    JHTML htmlDocument = new JHTML(eBayProtocol + Externalized.getString("ebayServer.bidderNamesHost") + eBayFile + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier(), userCookie, this);
+    JHTML htmlDocument = new JHTML(Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidderNamesHost") + Externalized.getString("ebayServer.file") + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier(), userCookie, this);
 
 //    if(htmlDocument == null) {
-//      ErrorManagement.logMessage("Error getting bidder names for auction " + ae.getIdentifier()); //$NON-NLS-1$
+//      ErrorManagement.logMessage("Error getting bidder names for auction " + ae.getIdentifier());
 //      return null;
 //    }
 //
     String curName = htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.bidListPrequel"));
 
     if(curName == null) {
-      ErrorManagement.logMessage("Problem with loaded page when getting bidder names for auction " + ae.getIdentifier()); //$NON-NLS-1$
+      ErrorManagement.logMessage("Problem with loaded page when getting bidder names for auction " + ae.getIdentifier());
       return null;
     }
 
@@ -1771,12 +1514,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         outNames.add(curName);
       }
       curName = htmlDocument.getNextContent();
-      while(curName != null && ! (curName.endsWith("PDT") || curName.endsWith("PST"))) { //$NON-NLS-1$ //$NON-NLS-2$
+      while(curName != null && ! (curName.endsWith("PDT") || curName.endsWith("PST"))) {
         curName = htmlDocument.getNextContent();
       }
       if(curName != null) curName = htmlDocument.getNextContent();
       if(curName != null) {
-        if(curName.indexOf(Externalized.getString("ebayServer.earlierCheck")) != -1) curName = null; //$NON-NLS-1$
+        if(curName.indexOf(Externalized.getString("ebayServer.earlierCheck")) != -1) curName = null;
       }
     } while(curName != null);
 
@@ -1797,15 +1540,15 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();
 
-    if(userId == null || userId.equals("default")) { //$NON-NLS-1$
-      ErrorManagement.logMessage("Cannot load selling pages without at least a userid."); //$NON-NLS-1$
+    if(userId == null || userId.equals("default")) {
+      ErrorManagement.logMessage("Cannot load selling pages without at least a userid.");
       return;
     }
 
-    String myEBayURL = eBayProtocol + Externalized.getString("ebayServer.sellingListHost") + eBayV3File + //$NON-NLS-1$
-                       Externalized.getString("ebayServer.listedCGI") + //$NON-NLS-1$
+    String myEBayURL = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.sellingListHost") + Externalized.getString("ebayServer.V3file") +
+                       Externalized.getString("ebayServer.listedCGI") +
                        Externalized.getString("ebayServer.sortOrderCGI") +
-                       Externalized.getString("ebayServer.userIdCGI") + userId; //$NON-NLS-1$
+                       Externalized.getString("ebayServer.userIdCGI") + userId;
 
     JHTML htmlDocument = new JHTML(myEBayURL, userCookie, this);
 
@@ -1813,7 +1556,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       int count = addAllItemsOnPage(htmlDocument, label, userId.equals(getUserId()));
       MQFactory.getConcrete("Swing").enqueue("Loaded " + count + " items for seller " + userId);
     } else {
-      ErrorManagement.logMessage("getSellingItems failed!"); //$NON-NLS-1$
+      ErrorManagement.logMessage("getSellingItems failed!");
     }
   }
 
@@ -1830,8 +1573,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();
 
-    if(localUser == null || localUser.equals("default")) { //$NON-NLS-1$ //$NON-NLS-2$
-      ErrorManagement.logMessage("Cannot load My eBay pages without a userid and password."); //$NON-NLS-1$
+    if(localUser == null || localUser.equals("default")) {
+      ErrorManagement.logMessage("Cannot load My eBay pages without a userid and password.");
       return;
     }
 
@@ -1843,7 +1586,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       String watchingURL = Externalized.getString("ebayServer.bigWatchingURL1") + getUserId() +
               Externalized.getString("ebayServer.bigWatchingURL2") + page +
               Externalized.getString("ebayServer.bigWatchingURL3") + (page+1);
-      ErrorManagement.logDebug("Loading page " + page + " of My eBay for user " + getUserId()); //$NON-NLS-1$
+      ErrorManagement.logDebug("Loading page " + page + " of My eBay for user " + getUserId());
       ErrorManagement.logDebug("URL: " + watchingURL);
 
       JHTML htmlDocument = new JHTML(watchingURL, userCookie, this);
@@ -1858,7 +1601,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     while(!done_bidding) {
       //  Now load items the user is bidding on...
       String biddingURL = Externalized.getString("ebayServer.biddingURL");
-      ErrorManagement.logDebug("Loading page: " + biddingURL); //$NON-NLS-1$
+      ErrorManagement.logDebug("Loading page: " + biddingURL);
 
       //noinspection ReuseOfLocalVariable
       JHTML htmlDocument = new JHTML(biddingURL, userCookie, this);
@@ -1947,7 +1690,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private static void killScripts(StringBuffer sb) {
     boolean didDelete;
     do {
-      didDelete = deleteRegexPair(sb, Externalized.getString("ebayServer.stripScript"), Externalized.getString("ebayServer.stripScriptEnd")); //$NON-NLS-1$ //$NON-NLS-2$
+      didDelete = deleteRegexPair(sb, Externalized.getString("ebayServer.stripScript"), Externalized.getString("ebayServer.stripScriptEnd"));
     } while(didDelete);
   }
 
@@ -1962,7 +1705,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     //  Eliminate all comment sections.
     boolean didDelete;
     do {
-      didDelete = deleteRegexPair(sb, Externalized.getString("ebayServer.stripComment"), Externalized.getString("ebayServer.stripCommentEnd")); //$NON-NLS-1$ //$NON-NLS-2$
+      didDelete = deleteRegexPair(sb, Externalized.getString("ebayServer.stripComment"), Externalized.getString("ebayServer.stripCommentEnd"));
     } while(didDelete);
   }
 
@@ -2006,17 +1749,17 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       checkThumb(sb);
       //  We ignore the result of this, because it's just useful if it
       //  works, it's not critical.
-      deleteFirstToLast(sb, eBayDescStart, eBayMotorsDescStart, eBayDescEnd, eBayClosedDescEnd);
+      deleteFirstToLast(sb, Externalized.getString("ebayServer.description"), Externalized.getString("ebayServer.descriptionMotors"), Externalized.getString("ebayServer.descriptionEnd"), Externalized.getString("ebayServer.descriptionClosedEnd"));
 
-      deleteFirstToLast(sb, Externalized.getString("ebayServer.descStart"), eBayMotorsDescStart, Externalized.getString("ebayServer.descEnd"), eBayClosedDescEnd); //$NON-NLS-1$ //$NON-NLS-2$
+      deleteFirstToLast(sb, Externalized.getString("ebayServer.descStart"), Externalized.getString("ebayServer.descriptionMotors"), Externalized.getString("ebayServer.descEnd"), Externalized.getString("ebayServer.descriptionClosedEnd"));
 
       String skimOver = sb.toString();
 
-      Matcher startCommentSearch = Pattern.compile(Externalized.getString("ebayServer.startedRegex")).matcher(skimOver); //$NON-NLS-1$
+      Matcher startCommentSearch = Pattern.compile(Externalized.getString("ebayServer.startedRegex")).matcher(skimOver);
       if(startCommentSearch.find()) _startComment = startCommentSearch.group(1);
       else _startComment = "";
 
-      Matcher bidCountSearch = Pattern.compile(Externalized.getString("ebayServer.bidCountRegex")).matcher(skimOver); //$NON-NLS-1$
+      Matcher bidCountSearch = Pattern.compile(Externalized.getString("ebayServer.bidCountRegex")).matcher(skimOver);
       if(bidCountSearch.find()) _bidCountScript = bidCountSearch.group(1);
       else _bidCountScript = "";
 
@@ -2025,15 +1768,23 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
 
     boolean checkTitle(String auctionTitle) {
-      if(auctionTitle.startsWith(Externalized.getString("ebayServer.liveAuctionsTitle"))) { //$NON-NLS-1$
-        ErrorManagement.logMessage("JBidWatcher cannot handle live auctions!"); //$NON-NLS-1$
+      if(auctionTitle.startsWith(Externalized.getString("ebayServer.liveAuctionsTitle"))) {
+        ErrorManagement.logMessage("JBidWatcher cannot handle live auctions!");
         return false;
       }
 
-      if(auctionTitle.startsWith(Externalized.getString("ebayServer.greatCollectionsTitle"))) { //$NON-NLS-1$
-        ErrorManagement.logMessage("JBidWatcher cannot handle Great Collections items yet."); //$NON-NLS-1$
+      if(auctionTitle.startsWith(Externalized.getString("ebayServer.greatCollectionsTitle"))) {
+        ErrorManagement.logMessage("JBidWatcher cannot handle Great Collections items yet.");
         return false;
       }
+
+      String[] eBayTitles = new String[]{
+          Externalized.getString("ebayServer.titleEbay"),
+          Externalized.getString("ebayServer.titleEbay2"),
+          Externalized.getString("ebayServer.titleMotors"),
+          Externalized.getString("ebayServer.titleMotors2"),
+          Externalized.getString("ebayServer.titleDisney"),
+          Externalized.getString("ebayServer.titleCollections")};
 
       for (String eBayTitle : eBayTitles) {
         if (auctionTitle.startsWith(eBayTitle)) return true;
@@ -2057,10 +1808,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
             approxAmount = _htmlDoc.getNextContent();
           }
           //  If we still have no values visible, punt and treat it as zero.
-          if (approxAmount.indexOf(Externalized.getString("ebayServer.USD")) == -1) { //$NON-NLS-1$
-            newCur = com.jbidwatcher.util.Currency.getCurrency("$0.00"); //$NON-NLS-1$
+          if (approxAmount.indexOf(Externalized.getString("ebayServer.USD")) == -1) {
+            newCur = com.jbidwatcher.util.Currency.getCurrency("$0.00");
           } else {
-            approxAmount = approxAmount.substring(approxAmount.indexOf(Externalized.getString("ebayServer.USD"))); //$NON-NLS-1$
+            approxAmount = approxAmount.substring(approxAmount.indexOf(Externalized.getString("ebayServer.USD")));
             newCur = com.jbidwatcher.util.Currency.getCurrency(approxAmount);
           }
         }
@@ -2087,13 +1838,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
      * @param in_title - The title from the web page, to check.
      */
     private void handle_bad_title(String in_title) {
-      if(in_title.indexOf(eBayTemporarilyUnavailable) != -1) {
-        MQFactory.getConcrete("Swing").enqueue("LINK DOWN eBay (or the link to eBay) appears to be down."); //$NON-NLS-1$ //$NON-NLS-2$
-        MQFactory.getConcrete("Swing").enqueue("eBay (or the link to eBay) appears to be down for the moment."); //$NON-NLS-1$ //$NON-NLS-2$
-      } else if(in_title.indexOf(Externalized.getString("ebayServer.invalidItem")) != -1) { //$NON-NLS-1$
-        ErrorManagement.logDebug("Found bad/deleted item."); //$NON-NLS-1$
+      if(in_title.indexOf(Externalized.getString("ebayServer.unavailable")) != -1) {
+        MQFactory.getConcrete("Swing").enqueue("LINK DOWN eBay (or the link to eBay) appears to be down.");
+        MQFactory.getConcrete("Swing").enqueue("eBay (or the link to eBay) appears to be down for the moment.");
+      } else if(in_title.indexOf(Externalized.getString("ebayServer.invalidItem")) != -1) {
+        ErrorManagement.logDebug("Found bad/deleted item.");
       } else {
-        ErrorManagement.logDebug("Failed to load auction title from header: \"" + in_title + '\"'); //$NON-NLS-1$ //$NON-NLS-2$
+        ErrorManagement.logDebug("Failed to load auction title from header: \"" + in_title + '\"');
       }
     }
 
@@ -2118,7 +1869,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           outTitle.append(jh.getToken());
         }
       } while(!(jh.getTokenType() == htmlToken.HTML_ENDTAG &&
-                jh.getToken().equalsIgnoreCase("/title"))); //$NON-NLS-1$
+                jh.getToken().equalsIgnoreCase("/title")));
 
       return outTitle.toString();
     }
@@ -2126,7 +1877,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     private Pattern amountPat = Pattern.compile("(([0-9]+\\.[0-9]+|(?i)free))");
 
     private void load_shipping_insurance(com.jbidwatcher.util.Currency sampleAmount) {
-      String shipString = _htmlDocument.getNextContentAfterRegex(eBayShippingRegex);
+      String shipString = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.shipping"));
       //  Sometimes the next content might not be the shipping amount, it might be the next-next.
       Matcher amount = null;
       boolean amountFound = false;
@@ -2148,7 +1899,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       //  standard-formatted data.
       String shipStringCheck = _htmlDocument.getPrevContent(2);
 
-      String insureString = _htmlDocument.getNextContentAfterRegex(eBayInsurance);
+      String insureString = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.shippingInsurance"));
       String insuranceOptionalCheck = _htmlDocument.getNextContent();
 
       //  Default to thinking it's optional if the word 'required' isn't found.
@@ -2156,16 +1907,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       _insurance_optional = insuranceOptionalCheck == null || (insuranceOptionalCheck.toLowerCase().indexOf(Externalized.getString("ebayServer.requiredInsurance")) == -1);
 
       if(insureString != null) {
-        if(insureString.equals("-") || insureString.equals("--")) { //$NON-NLS-1$ //$NON-NLS-2$
+        if(insureString.equals("-") || insureString.equals("--")) {
           insureString = null;
         } else {
           insureString = insureString.trim();
         }
       }
 
-      if(shipStringCheck != null && !shipStringCheck.equals(eBayPayInstructions)) {
+      if(shipStringCheck != null && !shipStringCheck.equals(Externalized.getString("ebayServer.paymentInstructions"))) {
         if(shipString != null) {
-          if(shipString.equals("-")) { //$NON-NLS-1$
+          if(shipString.equals("-")) {
             shipString = null;
           } else {
             shipString = shipString.trim();
@@ -2198,24 +1949,24 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     private void load_buy_now() {
       _buy_now = com.jbidwatcher.util.Currency.NoValue();
       _buy_now_us = com.jbidwatcher.util.Currency.NoValue();
-      String buyNowString = _htmlDocument.getNextContentAfterContent(eBayBuyItNow);
+      String buyNowString = _htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.buyItNow"));
       if(buyNowString != null) {
         buyNowString = buyNowString.trim();
-        while(buyNowString.length() == 0 || buyNowString.equals(Externalized.getString("ebayServer.buyNowFor"))) { //$NON-NLS-1$ //$NON-NLS-2$
+        while(buyNowString.length() == 0 || buyNowString.equals(Externalized.getString("ebayServer.buyNowFor"))) {
           buyNowString = _htmlDocument.getNextContent().trim();
         }
       }
 
-      if(buyNowString != null && !buyNowString.equals(eBayItemEnded)) {
+      if(buyNowString != null && !buyNowString.equals(Externalized.getString("ebayServer.ended"))) {
         _buy_now = com.jbidwatcher.util.Currency.getCurrency(buyNowString);
         _buy_now_us = getUSCurrency(_buy_now, _htmlDocument);
       }
-      if(buyNowString == null || buyNowString.equals(eBayItemEnded) || _buy_now == null || _buy_now.isNull()) {
-        String altBuyNowString1 = _htmlDocument.getNextContentAfterRegexIgnoring(eBayPrice, "[Ii]tem.[Nn]umber");
+      if(buyNowString == null || buyNowString.equals(Externalized.getString("ebayServer.ended")) || _buy_now == null || _buy_now.isNull()) {
+        String altBuyNowString1 = _htmlDocument.getNextContentAfterRegexIgnoring(Externalized.getString("ebayServer.price"), "[Ii]tem.[Nn]umber");
         if(altBuyNowString1 != null) {
           altBuyNowString1 = altBuyNowString1.trim();
         }
-        if(altBuyNowString1 != null && altBuyNowString1.length() != 0) { //$NON-NLS-1$
+        if(altBuyNowString1 != null && altBuyNowString1.length() != 0) {
           _buy_now = com.jbidwatcher.util.Currency.getCurrency(altBuyNowString1);
           _buy_now_us = getUSCurrency(_buy_now, _htmlDocument);
         }
@@ -2297,14 +2048,14 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       //  down for maintenance, etc).
       String prelimTitle = _htmlDocument.getFirstContent();
       if( prelimTitle == null) {
-        prelimTitle = eBayTemporarilyUnavailable;
+        prelimTitle = Externalized.getString("ebayServer.unavailable");
       }
-      if(prelimTitle.equals(eBayAdultLoginPageTitle) || prelimTitle.indexOf("Terms of Use: ") != -1) {
-        boolean isAdult = JConfig.queryConfiguration(getName() + ".adult", "false").equals("true"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      if(prelimTitle.equals(Externalized.getString("ebayServer.adultPageTitle")) || prelimTitle.indexOf("Terms of Use: ") != -1) {
+        boolean isAdult = JConfig.queryConfiguration(getName() + ".adult", "false").equals("true");
         if(isAdult) {
           getNecessaryCookie(true);
         } else {
-          ErrorManagement.logDebug("Failed to load adult item, user not registered as Adult.  Check eBay configuration."); //$NON-NLS-1$
+          ErrorManagement.logDebug("Failed to load adult item, user not registered as Adult.  Check eBay configuration.");
         }
         finish();
         return false;
@@ -2318,14 +2069,14 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
 
       //  If we got a valid title, mark the link as up, because it worked...
-      MQFactory.getConcrete("Swing").enqueue("LINK UP"); //$NON-NLS-1$ //$NON-NLS-2$
+      MQFactory.getConcrete("Swing").enqueue("LINK UP");
 
       boolean ebayMotors = false;
-      if(prelimTitle.indexOf(Externalized.getString("ebayServer.ebayMotorsTitle")) != -1) ebayMotors = true; //$NON-NLS-1$
+      if(prelimTitle.indexOf(Externalized.getString("ebayServer.ebayMotorsTitle")) != -1) ebayMotors = true;
       //  This is mostly a hope, not a guarantee, as eBay might start
       //  cross-advertising eBay Motors in their normal pages, or
       //  something.
-      if(doesLabelExist(Externalized.getString("ebayServer.ebayMotorsTitle"))) ebayMotors = true; //$NON-NLS-1$
+      if(doesLabelExist(Externalized.getString("ebayServer.ebayMotorsTitle"))) ebayMotors = true;
 
       _end = null;
       _title = null;
@@ -2340,7 +2091,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         if(newTitleMatch.find()) {
           _title = decodeLatin(newTitleMatch.group(2));
           String endDate = newTitleMatch.group(4);
-          _end = figureDate(endDate, eBayDateFormat);
+          _end = figureDate(endDate, Externalized.getString("ebayServer.dateFormat"));
         }
       }
 
@@ -2352,7 +2103,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         //  For now, just load from the title, everything after ') - '.
         int titleIndex = prelimTitle.indexOf(") - ");
         if(titleIndex == -1) {
-          titleIndex = prelimTitle.indexOf(") -"); //$NON-NLS-1$
+          titleIndex = prelimTitle.indexOf(") -");
           //  This is an HTML title...  Suck.
           htmlTitle = true;
         }
@@ -2365,7 +2116,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
       }
 
-      if(_title.length() == 0) _title = "(bad title)"; //$NON-NLS-1$ //$NON-NLS-2$
+      if(_title.length() == 0) _title = "(bad title)";
       _title = JHTML.deAmpersand(_title);
 
       // eBay Motors titles are really a combination of the make/model,
@@ -2377,7 +2128,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
 
       //  Get the integer values (Quantity, Bidcount)
-      _quantity = getNumberFromLabel(_htmlDocument, eBayQuantity, Externalized.getString("ebayServer.postTitleIgnore"));
+      _quantity = getNumberFromLabel(_htmlDocument, Externalized.getString("ebayServer.quantity"), Externalized.getString("ebayServer.postTitleIgnore"));
 
       _fixed_price = false;
       _numBids = getBidCount(_htmlDocument, _quantity);
@@ -2390,12 +2141,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
       if(_end == null) {
         String endDate = getEndDate(prelimTitle);
-        _end = figureDate(endDate, eBayDateFormat);
+        _end = figureDate(endDate, Externalized.getString("ebayServer.dateFormat"));
       }
 
-      _start = figureDate(_htmlDocument.getNextContentAfterRegexIgnoring(eBayStartTime, Externalized.getString("ebayServer.postTitleIgnore")), eBayDateFormat);
+      _start = figureDate(_htmlDocument.getNextContentAfterRegexIgnoring(Externalized.getString("ebayServer.startTime"), Externalized.getString("ebayServer.postTitleIgnore")), Externalized.getString("ebayServer.dateFormat"));
       if(_start == null) {
-        _start = figureDate(_startComment, eBayDateFormat);
+        _start = figureDate(_startComment, Externalized.getString("ebayServer.dateFormat"));
       }
       _start = (Date)ensureSafeValue(_start, ae!=null?ae.getStartDate():null, null);
 
@@ -2412,7 +2163,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           //  The set of tags that indicate the current/starting/lowest/winning
           //  bid are 'Starts at', 'Current bid', 'Starting bid', 'Lowest bid',
           //  'Winning bid' so far.  'Starts at' is mainly for live auctions!
-          String cvtCur = _htmlDocument.getNextContentAfterRegex(eBayCurrentBid);
+          String cvtCur = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.currentBid"));
           _curBid = com.jbidwatcher.util.Currency.getCurrency(cvtCur);
           _us_cur = getUSCurrency(_curBid, _htmlDocument);
 
@@ -2423,21 +2174,21 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         //  The set of tags that indicate the current/starting/lowest/winning
         //  bid are 'Current bid', 'Starting bid', 'Lowest bid',
         //  'Winning bid' so far.
-        String cvtCur = _htmlDocument.getNextContentAfterRegex(eBayCurrentBid);
+        String cvtCur = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.currentBid"));
         _curBid = com.jbidwatcher.util.Currency.getCurrency(cvtCur);
         _us_cur = getUSCurrency(_curBid, _htmlDocument);
 
         if(_curBid == null || _curBid.isNull()) {
           if(_quantity > 1) {
-            _curBid = com.jbidwatcher.util.Currency.getCurrency(_htmlDocument.getNextContentAfterContent(eBayLowestBid));
+            _curBid = com.jbidwatcher.util.Currency.getCurrency(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.lowestBid")));
             _us_cur = getUSCurrency(_curBid, _htmlDocument);
           }
         }
 
-        _minBid = com.jbidwatcher.util.Currency.getCurrency(_htmlDocument.getNextContentAfterContent(eBayFirstBid));
+        _minBid = com.jbidwatcher.util.Currency.getCurrency(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.firstBid")));
         //  Handle odd case...
         if(_end == null) {
-          _end = figureDate(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.endsPrequel")), eBayDateFormat); //$NON-NLS-1$
+          _end = figureDate(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.endsPrequel")), Externalized.getString("ebayServer.dateFormat"));
         }
         com.jbidwatcher.util.Currency maxBid = com.jbidwatcher.util.Currency.getCurrency(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.yourMaxBid")));
 
@@ -2478,9 +2229,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         ErrorManagement.handleException("Shipping / Insurance Loading Failed", e);
       }
 
-      _seller = _htmlDocument.getNextContentAfterRegex(eBaySeller);
+      _seller = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.seller"));
       if(_seller == null) {
-        _seller = _htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.sellerInfoPrequel"), false, true); //$NON-NLS-1$
+        _seller = _htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.sellerInfoPrequel"), false, true);
       }
       if(_seller == null) {
         if(_htmlDocument.grep(Externalized.getString("ebayServer.sellerAway")) != null) {
@@ -2506,7 +2257,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
        * THIS is absurd.  This needs to be cleaned up.  -- mrs: 18-September-2003 21:08
        */
       if (_fixed_price) {
-        _highBidder = _htmlDocument.getNextContentAfterRegex(eBayBuyer);
+        _highBidder = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.buyer"));
         if (_highBidder != null) {
           _numBids = 1;
           _highBidder = _highBidder.trim();
@@ -2517,48 +2268,48 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
               _highBidderEmail = _highBidderEmail.substring(1, _highBidderEmail.length() - 1);
             }
           }
-          if (_highBidderEmail == null || _highBidderEmail.equals("(")) { //$NON-NLS-1$
-            _highBidderEmail = "(unknown)"; //$NON-NLS-1$
+          if (_highBidderEmail == null || _highBidderEmail.equals("(")) {
+            _highBidderEmail = "(unknown)";
           }
         } else {
-          _highBidder = ""; //$NON-NLS-1$
+          _highBidder = "";
         }
       } else {
         if (_quantity > 1) {
-          _highBidder = "(dutch)"; //$NON-NLS-1$
+          _highBidder = "(dutch)";
           _isDutch = true;
         } else {
-          _highBidder = ""; //$NON-NLS-1$
+          _highBidder = "";
           if (_numBids != 0) {
-            _highBidder = _htmlDocument.getNextContentAfterRegex(eBayHighBidder);
+            _highBidder = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.highBidder"));
             if (_highBidder != null) {
               _highBidder = _highBidder.trim();
 
               _highBidderEmail = _htmlDocument.getNextContentAfterContent(_highBidder, true, false);
-              if (_highBidderEmail.charAt(0) == '(' && _highBidderEmail.charAt(_highBidderEmail.length()-1) == ')' && _highBidderEmail.indexOf('@') != -1) { //$NON-NLS-1$
+              if (_highBidderEmail.charAt(0) == '(' && _highBidderEmail.charAt(_highBidderEmail.length()-1) == ')' && _highBidderEmail.indexOf('@') != -1) {
                 _highBidderEmail = _highBidderEmail.substring(1, _highBidderEmail.length() - 1);
               }
             } else {
-              _highBidder = "(unknown)"; //$NON-NLS-1$
+              _highBidder = "(unknown)";
             }
           }
         }
       }
 
-      if(doesLabelExist(Externalized.getString("ebayServer.reserveNotMet1")) || //$NON-NLS-1$
-         doesLabelExist(Externalized.getString("ebayServer.reserveNotMet2"))) { //$NON-NLS-1$
+      if(doesLabelExist(Externalized.getString("ebayServer.reserveNotMet1")) ||
+         doesLabelExist(Externalized.getString("ebayServer.reserveNotMet2"))) {
         _isReserve = true;
         _reserveMet = false;
       } else {
-        if(doesLabelExist(Externalized.getString("ebayServer.reserveMet1")) || //$NON-NLS-1$
-           doesLabelExist(Externalized.getString("ebayServer.reserveMet2"))) { //$NON-NLS-1$
+        if(doesLabelExist(Externalized.getString("ebayServer.reserveMet1")) ||
+           doesLabelExist(Externalized.getString("ebayServer.reserveMet2"))) {
           _isReserve = true;
           _reserveMet = true;
         }
       }
-      if(_highBidder.indexOf(Externalized.getString("ebayServer.keptPrivate")) != -1) { //$NON-NLS-1$
+      if(_highBidder.indexOf(Externalized.getString("ebayServer.keptPrivate")) != -1) {
         _isPrivate = true;
-        _highBidder = "(private)"; //$NON-NLS-1$
+        _highBidder = "(private)";
       }
       loadSecondaryInformation(_htmlDocument);
       try {
@@ -2575,16 +2326,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
 
     private int getBidCount(JHTML doc, int quantity) {
-      String rawBidCount = doc.getNextContentAfterRegex(eBayBidCount);
+      String rawBidCount = doc.getNextContentAfterRegex(Externalized.getString("ebayServer.bidCount"));
       int bidCount = 0;
       if(rawBidCount != null) {
         if(rawBidCount.equals(Externalized.getString("ebayServer.purchasesBidCount")) ||
            rawBidCount.endsWith(Externalized.getString("ebayServer.offerRecognition")) ||
-           rawBidCount.equals(Externalized.getString("ebayServer.offerRecognition"))) { //$NON-NLS-1$
+           rawBidCount.equals(Externalized.getString("ebayServer.offerRecognition"))) {
           _fixed_price = true;
           bidCount = -1;
         } else {
-          if(rawBidCount.equals(Externalized.getString("ebayServer.bidderListCount"))) { //$NON-NLS-1$
+          if(rawBidCount.equals(Externalized.getString("ebayServer.bidderListCount"))) {
             bidCount = Integer.parseInt(_bidCountScript);
           } else {
             bidCount = getDigits(rawBidCount);
@@ -2595,11 +2346,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       //  If we can't match any digits in the bidcount, or there is no match for the eBayBidCount regex, then
       //  this is a store or FP item.  Still true under BIBO?
       if (rawBidCount == null || _numBids == -1) {
-        _highBidder = Externalized.getString("ebayServer.fixedPrice"); //$NON-NLS-1$
+        _highBidder = Externalized.getString("ebayServer.fixedPrice");
         _fixed_price = true;
 
-        if (doesLabelExist(Externalized.getString("ebayServer.hasBeenPurchased")) || //$NON-NLS-1$
-            doesLabelPrefixExist(Externalized.getString("ebayServer.endedEarly"))) { //$NON-NLS-1$
+        if (doesLabelExist(Externalized.getString("ebayServer.hasBeenPurchased")) ||
+            doesLabelPrefixExist(Externalized.getString("ebayServer.endedEarly"))) {
           bidCount = quantity;
           _start = _end = new Date();
         } else {
@@ -2657,16 +2408,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
 
     private void extractMotorsTitle() {
-      String motorsTitle = _htmlDocument.getContentBeforeContent(eBayItemNumber); //$NON-NLS-1$
+      String motorsTitle = _htmlDocument.getContentBeforeContent(Externalized.getString("ebayServer.itemNum"));
       if(motorsTitle != null) {
         motorsTitle = motorsTitle.trim();
       }
-      if(motorsTitle != null && motorsTitle.length() != 0 && !_title.equals(motorsTitle)) { //$NON-NLS-1$
+      if(motorsTitle != null && motorsTitle.length() != 0 && !_title.equals(motorsTitle)) {
         if(motorsTitle.length() != 1 || motorsTitle.charAt(0) < HIGH_BIT_SET) {
           if(_title.length() == 0) {
             _title = decodeLatin(motorsTitle);
           } else {
-            _title = decodeLatin(motorsTitle + " (" + _title + ')'); //$NON-NLS-1$ //$NON-NLS-2$
+            _title = decodeLatin(motorsTitle + " (" + _title + ')');
           }
         }
       }
@@ -2674,16 +2425,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   private void doMyEbaySynchronize(String label) {
-    MQFactory.getConcrete("Swing").enqueue("Synchronizing with My eBay..."); //$NON-NLS-1$ //$NON-NLS-2$
+    MQFactory.getConcrete("Swing").enqueue("Synchronizing with My eBay...");
     getMyEbayItems(label);
-    MQFactory.getConcrete("Swing").enqueue("Done synchronizing with My eBay..."); //$NON-NLS-1$ //$NON-NLS-2$
+    MQFactory.getConcrete("Swing").enqueue("Done synchronizing with My eBay...");
   }
 
   private void doGetSelling(Object searcher, String label) {
     String userId = ((Searcher)searcher).getSearch();
-    MQFactory.getConcrete("Swing").enqueue("Getting Selling Items for " + userId); //$NON-NLS-1$ //$NON-NLS-2$
+    MQFactory.getConcrete("Swing").enqueue("Getting Selling Items for " + userId);
     getSellingItems(userId, label);
-    MQFactory.getConcrete("Swing").enqueue("Done Getting Selling Items for " + userId); //$NON-NLS-1$ //$NON-NLS-2$
+    MQFactory.getConcrete("Swing").enqueue("Done Getting Selling Items for " + userId);
   }
 
   protected static void doLoadAuctions() {
@@ -2694,24 +2445,24 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     if(endResult == null) return;
 
-    MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_URL, endResult, null)); //$NON-NLS-1$
+    MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_URL, endResult, null));
   }
 
   class ebayServerMenu extends ServerMenu {
     public void initialize() {
       addMenuItem("Search eBay", 'F');
-      addMenuItem("Get My eBay Items", 'M'); //$NON-NLS-1$
-      addMenuItem("Get Selling Items", 'S'); //$NON-NLS-1$
-      addMenuItem("Refresh eBay session", "Update login cookie", 'U'); //$NON-NLS-1$
-      if(JConfig.debugging) addMenuItem("[Dump eBay activity queue]", 'Q');  //$NON-NLS-1$
+      addMenuItem("Get My eBay Items", 'M');
+      addMenuItem("Get Selling Items", 'S');
+      addMenuItem("Refresh eBay session", "Update login cookie", 'U');
+      if(JConfig.debugging) addMenuItem("[Dump eBay activity queue]", 'Q');
     }
 
     public void actionPerformed(ActionEvent ae) {
       String actionString = ae.getActionCommand();
 
       //  Handle stuff which is redirected to the search manager.
-      if(actionString.equals("Search eBay")) MQFactory.getConcrete("user").enqueue("SEARCH"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-      else MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null)); //$NON-NLS-1$
+      if(actionString.equals("Search eBay")) MQFactory.getConcrete("user").enqueue("SEARCH");
+      else MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null));
     }
 
     protected ebayServerMenu(String serverName, char ch) {
@@ -2719,167 +2470,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
   }
 
-  public class JConfigEbayTab extends JConfigTab {
-    JCheckBox adultBox;
-    JCheckBox synchBox = null;
-    JTextField username;
-    JTextField password;
-    JComboBox siteSelect;
-
-    public String getTabName() { return eBayDisplayName; }
-    public void cancel() { }
-
-    public boolean apply() {
-      int selectedSite = siteSelect.getSelectedIndex();
-
-      String old_adult = JConfig.queryConfiguration(getName() + ".adult"); //$NON-NLS-1$
-      JConfig.setConfiguration(getName() + ".adult", adultBox.isSelected()?"true":"false"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-      String new_adult = JConfig.queryConfiguration(getName() + ".adult"); //$NON-NLS-1$
-      if(JConfig.queryConfiguration("prompt.ebay_synchronize", "false").equals("true")) {
-        JConfig.setConfiguration(getName() + ".synchronize", synchBox.isSelected()?"true":"false"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        if(_my_ebay == null) {
-          _my_ebay = SearchManager.getInstance().getSearchByName("My eBay");
-        }
-        if(_my_ebay != null) {
-          if(synchBox.isSelected()) {
-            _my_ebay.enable();
-          } else {
-            _my_ebay.disable();
-          }
-        }
-      }
-
-      String old_user = JConfig.queryConfiguration(getName() + ".user"); //$NON-NLS-1$
-      JConfig.setConfiguration(getName() + ".user", username.getText()); //$NON-NLS-1$
-      String new_user = JConfig.queryConfiguration(getName() + ".user"); //$NON-NLS-1$
-      String old_pass = JConfig.queryConfiguration(getName() + ".password"); //$NON-NLS-1$
-      JConfig.setConfiguration(getName() + ".password", password.getText()); //$NON-NLS-1$
-      String new_pass = JConfig.queryConfiguration(getName() + ".password"); //$NON-NLS-1$
-
-      if(selectedSite != -1) {
-        JConfig.setConfiguration(getName() + ".browse.site", Integer.toString(selectedSite)); //$NON-NLS-1$
-      }
-
-      if(old_pass == null || !new_pass.equals(old_pass) ||
-         old_user == null || !new_user.equals(old_user) ||
-         old_adult == null || !new_adult.equals(old_adult)) {
-        MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null)); //$NON-NLS-1$ //$NON-NLS-2$
-      }
-      return true;
-    }
-
-    public void updateValues() {
-      String isAdult = JConfig.queryConfiguration(getName() + ".adult", "false"); //$NON-NLS-1$ //$NON-NLS-2$
-      adultBox.setSelected(isAdult.equals("true")); //$NON-NLS-1$
-      if(JConfig.queryConfiguration("prompt.ebay_synchronize", "false").equals("true")) {
-        String doSynchronize = JConfig.queryConfiguration(getName() + ".synchronize", "false"); //$NON-NLS-1$ //$NON-NLS-2$
-
-        if(doSynchronize.equals("ignore")) {
-          if(_my_ebay != null) synchBox.setSelected(_my_ebay.isEnabled());
-        } else {
-          synchBox.setSelected(doSynchronize.equals("true")); //$NON-NLS-1$
-        }
-      }
-
-      username.setText(JConfig.queryConfiguration(getName() + ".user", "default")); //$NON-NLS-1$ //$NON-NLS-2$
-      password.setText(JConfig.queryConfiguration(getName() + ".password", "default")); //$NON-NLS-1$ //$NON-NLS-2$
-    }
-
-    private JPanel buildUsernamePanel() {
-      JPanel tp = new JPanel();
- 
-      tp.setBorder(BorderFactory.createTitledBorder("eBay User ID")); //$NON-NLS-1$
-      tp.setLayout(new BorderLayout());
-      username = new JTextField();
-      username.addMouseListener(JPasteListener.getInstance());
-
-      username.setText(JConfig.queryConfiguration(getName() + ".user", "default")); //$NON-NLS-1$ //$NON-NLS-2$
-      username.setEditable(true);
-      username.getAccessibleContext().setAccessibleName("User name to log into eBay"); //$NON-NLS-1$
-      password = new JPasswordField(JConfig.queryConfiguration(getName() + ".password")); //$NON-NLS-1$
-      password.addMouseListener(JPasteListener.getInstance());
-      password.setEditable(true);
-
-      //  Get the password from the configuration entry!  FIX
-      password.getAccessibleContext().setAccessibleName("eBay Password"); //$NON-NLS-1$
-      password.getAccessibleContext().setAccessibleDescription("This is the user password to log into eBay."); //$NON-NLS-1$
-
-      Box userBox = Box.createVerticalBox();
-      userBox.add(makeLine(new JLabel("Username: "), username)); //$NON-NLS-1$
-      userBox.add(makeLine(new JLabel("Password:  "), password)); //$NON-NLS-1$
-      tp.add(userBox);
-
-      return(tp);
-    }
-
-    private JPanel buildCheckboxPanel() {
-      String isAdult = JConfig.queryConfiguration(getName() + ".adult", "false"); //$NON-NLS-1$ //$NON-NLS-2$
-      String doSynchronize = JConfig.queryConfiguration(getName() + ".synchronize", "false"); //$NON-NLS-1$ //$NON-NLS-2$
-      JPanel tp = new JPanel();
-
-      tp.setBorder(BorderFactory.createTitledBorder("General eBay Options")); //$NON-NLS-1$
-
-      tp.setLayout(new BoxLayout(tp, BoxLayout.Y_AXIS));
-      
-      adultBox = new JCheckBox("Registered adult"); //$NON-NLS-1$
-      adultBox.setSelected(isAdult.equals("true")); //$NON-NLS-1$
-      tp.add(adultBox);
-
-      if(JConfig.queryConfiguration("prompt.ebay_synchronize", "false").equals("true")) {
-        synchBox = new JCheckBox("Synchronize w/ My eBay"); //$NON-NLS-1$
-        if(_my_ebay == null) {
-          _my_ebay = SearchManager.getInstance().getSearchByName("My eBay");
-        }
-        if(doSynchronize.equals("ignore")) {
-          if(_my_ebay != null) synchBox.setSelected(_my_ebay.isEnabled());
-        } else {
-          synchBox.setSelected(doSynchronize.equals("true")); //$NON-NLS-1$
-        }
-        tp.add(synchBox);
-      } else {
-        tp.add(new JLabel("     To have JBidwatcher regularly retrieve auctions listed on your My eBay"));
-        tp.add(new JLabel("     page, go to the Search Manager and enable the search also named 'My eBay'."));
-      }
-
-      return(tp);
-    }
-
-    private JPanel buildBrowseTargetPanel() {
-      JPanel tp = new JPanel();
-
-      tp.setBorder(BorderFactory.createTitledBorder("Browse target")); //$NON-NLS-1$
-      tp.setLayout(new BorderLayout());
-
-      String curSite = JConfig.queryConfiguration(getName() + ".browse.site", "0");
-      int realCurrentSite;
-      try {
-        realCurrentSite = Integer.parseInt(curSite);
-      } catch(Exception ignore) {
-        realCurrentSite = 0;
-      }
-      siteSelect = new JComboBox(site_choices);
-      siteSelect.setSelectedIndex(realCurrentSite);
-      tp.add(makeLine(new JLabel("Browse to site: "), siteSelect), BorderLayout.NORTH); //$NON-NLS-1$
-
-      return tp;
-    }
-
-    public JConfigEbayTab() {
-      setLayout(new BorderLayout());
-      JPanel jp = new JPanel();
-      jp.setLayout(new BorderLayout());
-      jp.add(panelPack(buildCheckboxPanel()), BorderLayout.NORTH);
-      jp.add(panelPack(buildUsernamePanel()), BorderLayout.CENTER);
-      add(jp, BorderLayout.NORTH);
-      add(panelPack(buildBrowseTargetPanel()), BorderLayout.CENTER);
-    }
-  }
-
   private static final int THREE_SECONDS = 3*Constants.ONE_SECOND;
 
   private class SnipeListener implements MessageQueue.Listener {
     public void messageAction(Object deQ) {
-      AuctionQObject ac = (AuctionQObject) deQ; //$NON-NLS-1$
+      AuctionQObject ac = (AuctionQObject) deQ;
       if (ac.getCommand() == AuctionQObject.SNIPE) {
         Snipe snipe = (Snipe) ac.getData();
         int snipeResult = snipe.fire();
@@ -2922,7 +2517,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * from the auction server via their affiliate server.
    */
   public long getAffiliateRequestTime() {
-    return _affRequestTime;
+    return mAffiliateRequestTime;
   }
 
   public String getTime() {
@@ -2957,11 +2552,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public long getServerTimeDelta() {
-    return _officialServerTimeDelta;
+    return mOfficialServerTimeDelta;
   }
 
   public TimeZone getOfficialServerTimeZone() {
-    return _officialServerTimeZone;
+    return mOfficialServerTimeZone;
   }
 
   protected Date figureDate(String endTime, String siteDateFormat) {
@@ -2984,7 +2579,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     String endTimeFmt = endTime;
     SimpleDateFormat sdf = new SimpleDateFormat(siteDateFormat, Locale.US);
 
-    sdf.set2DigitYearStart(midpointDate.getTime());
+    sdf.set2DigitYearStart(sMidpointDate.getTime());
 
     if(endTime == null) return null;
 
@@ -2995,7 +2590,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     try {
       endingDate = sdf.parse(endTimeFmt);
-      _officialServerTimeZone = sdf.getCalendar().getTimeZone();
+      mOfficialServerTimeZone = sdf.getCalendar().getTimeZone();
     } catch(java.text.ParseException e) {
       ErrorManagement.handleException("Error parsing date (" + endTimeFmt + "), setting to completed.", e);
       endingDate = new Date();
@@ -3009,5 +2604,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   public boolean validate(String username, String password) {
     return !getUserId().equals("default") && getUserId().equals(username) && getPassword().equals(password);
+  }
+
+  public Searcher getMyEbay() {
+    return mMyeBay;
+  }
+
+  public void setMyEbay(Searcher myeBay) {
+    mMyeBay = myeBay;
   }
 }

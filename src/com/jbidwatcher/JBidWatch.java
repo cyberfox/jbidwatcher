@@ -960,8 +960,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     } else {
       if(_rti != null) _rti.setVisible(false);
     }
-
-    MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_STRINGS, "Reload the strings.", null));
   }
 
   /**
