@@ -25,7 +25,6 @@ import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.ui.OptionUI;
-import com.jbidwatcher.ui.ServerMenu;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.SearchManagerInterface;
@@ -40,7 +39,6 @@ import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.auction.ThumbnailManager;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -56,9 +54,10 @@ import java.text.SimpleDateFormat;
 
 /** @noinspection OverriddenMethodCallInConstructor*/
 public final class ebayServer extends AuctionServer implements MessageQueue.Listener,CleanupHandler,JConfig.ConfigListener {
-  final static String eBayDisplayName = "eBay";
+  private final static String eBayDisplayName = "eBay";
   private final static String eBayServerName = "ebay";
 
+  private static final int THREE_SECONDS = 3 * Constants.ONE_SECOND;
   private static final int ITEMS_PER_PAGE = 100;
   private static final int YEAR_BASE = 1990;
 
@@ -130,7 +129,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return result;
   }
 
-  final static String[] site_choices = {
+  private final static String[] sSiteChoices = {
     "ebay.com",
     "ebay.de",
     "ebay.ca",
@@ -180,7 +179,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   public JConfigTab getConfigurationTab() {
     //  Always return a new one, to fix a problem on first startup.
-    return new JConfigEbayTab(this);
+    return new JConfigEbayTab(eBayDisplayName, sSiteChoices);
   }
 
   /**
@@ -732,7 +731,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   public String getBrowsableURLFromItem(String itemID) {
     int browse_site = Integer.parseInt(JConfig.queryConfiguration(getName() + ".browse.site", "0"));
 
-    return Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.browseHost") + site_choices[browse_site] + Externalized.getString("ebayServer.file") + '?' + Externalized.getString("ebayServer.viewCmd") + Externalized.getString("ebayServer.viewCGI") + itemID;
+    return Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.browseHost") + sSiteChoices[browse_site] + Externalized.getString("ebayServer.file") + '?' + Externalized.getString("ebayServer.viewCmd") + Externalized.getString("ebayServer.viewCGI") + itemID;
   }
 
   /**
@@ -2447,30 +2446,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_URL, endResult, null));
   }
-
-  class ebayServerMenu extends ServerMenu {
-    public void initialize() {
-      addMenuItem("Search eBay", 'F');
-      addMenuItem("Get My eBay Items", 'M');
-      addMenuItem("Get Selling Items", 'S');
-      addMenuItem("Refresh eBay session", "Update login cookie", 'U');
-      if(JConfig.debugging) addMenuItem("[Dump eBay activity queue]", 'Q');
-    }
-
-    public void actionPerformed(ActionEvent ae) {
-      String actionString = ae.getActionCommand();
-
-      //  Handle stuff which is redirected to the search manager.
-      if(actionString.equals("Search eBay")) MQFactory.getConcrete("user").enqueue("SEARCH");
-      else MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null));
-    }
-
-    protected ebayServerMenu(String serverName, char ch) {
-      super(serverName, ch);
-    }
-  }
-
-  private static final int THREE_SECONDS = 3*Constants.ONE_SECOND;
 
   private class SnipeListener implements MessageQueue.Listener {
     public void messageAction(Object deQ) {

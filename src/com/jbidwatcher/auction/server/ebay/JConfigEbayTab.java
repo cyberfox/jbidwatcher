@@ -2,7 +2,6 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.queue.AuctionQObject;
 import com.jbidwatcher.ui.JPasteListener;
@@ -23,9 +22,9 @@ public class JConfigEbayTab extends JConfigTab {
   JTextField username;
   JTextField password;
   JComboBox siteSelect;
-  private ebayServer mEbayServer;
+  private String mDisplayName;
 
-  public String getTabName() { return ebayServer.eBayDisplayName; }
+  public String getTabName() { return mDisplayName; }
   public void cancel() { }
 
   public boolean apply() {
@@ -34,19 +33,6 @@ public class JConfigEbayTab extends JConfigTab {
     String old_adult = JConfig.queryConfiguration(getName() + ".adult");
     JConfig.setConfiguration(getName() + ".adult", adultBox.isSelected()?"true":"false");
     String new_adult = JConfig.queryConfiguration(getName() + ".adult");
-    if(JConfig.queryConfiguration("prompt.ebay_synchronize", "false").equals("true")) {
-      JConfig.setConfiguration(getName() + ".synchronize", synchBox.isSelected()?"true":"false");
-      if(mEbayServer.getMyEbay() == null) {
-        mEbayServer.setMyEbay(SearchManager.getInstance().getSearchByName("My eBay"));
-      }
-      if(mEbayServer.getMyEbay() != null) {
-        if(synchBox.isSelected()) {
-          mEbayServer.getMyEbay().enable();
-        } else {
-          mEbayServer.getMyEbay().disable();
-        }
-      }
-    }
 
     String old_user = JConfig.queryConfiguration(getName() + ".user");
     JConfig.setConfiguration(getName() + ".user", username.getText());
@@ -70,15 +56,6 @@ public class JConfigEbayTab extends JConfigTab {
   public void updateValues() {
     String isAdult = JConfig.queryConfiguration(getName() + ".adult", "false");
     adultBox.setSelected(isAdult.equals("true"));
-    if(JConfig.queryConfiguration("prompt.ebay_synchronize", "false").equals("true")) {
-      String doSynchronize = JConfig.queryConfiguration(getName() + ".synchronize", "false");
-
-      if(doSynchronize.equals("ignore")) {
-        if(mEbayServer.getMyEbay() != null) synchBox.setSelected(mEbayServer.getMyEbay().isEnabled());
-      } else {
-        synchBox.setSelected(doSynchronize.equals("true"));
-      }
-    }
 
     username.setText(JConfig.queryConfiguration(getName() + ".user", "default"));
     password.setText(JConfig.queryConfiguration(getName() + ".password", "default"));
@@ -113,7 +90,6 @@ public class JConfigEbayTab extends JConfigTab {
 
   private JPanel buildCheckboxPanel() {
     String isAdult = JConfig.queryConfiguration(getName() + ".adult", "false");
-    String doSynchronize = JConfig.queryConfiguration(getName() + ".synchronize", "false");
     JPanel tp = new JPanel();
 
     tp.setBorder(BorderFactory.createTitledBorder("General eBay Options"));
@@ -124,26 +100,13 @@ public class JConfigEbayTab extends JConfigTab {
     adultBox.setSelected(isAdult.equals("true"));
     tp.add(adultBox);
 
-    if(JConfig.queryConfiguration("prompt.ebay_synchronize", "false").equals("true")) {
-      synchBox = new JCheckBox("Synchronize w/ My eBay");
-      if(mEbayServer.getMyEbay() == null) {
-        mEbayServer.setMyEbay(SearchManager.getInstance().getSearchByName("My eBay"));
-      }
-      if(doSynchronize.equals("ignore")) {
-        if(mEbayServer.getMyEbay() != null) synchBox.setSelected(mEbayServer.getMyEbay().isEnabled());
-      } else {
-        synchBox.setSelected(doSynchronize.equals("true"));
-      }
-      tp.add(synchBox);
-    } else {
-      tp.add(new JLabel("     To have JBidwatcher regularly retrieve auctions listed on your My eBay"));
-      tp.add(new JLabel("     page, go to the Search Manager and enable the search also named 'My eBay'."));
-    }
+    tp.add(new JLabel("     To have JBidwatcher regularly retrieve auctions listed on your My eBay"));
+    tp.add(new JLabel("     page, go to the Search Manager and enable the search also named 'My eBay'."));
 
     return(tp);
   }
 
-  private JPanel buildBrowseTargetPanel() {
+  private JPanel buildBrowseTargetPanel(String[] siteChoices) {
     JPanel tp = new JPanel();
 
     tp.setBorder(BorderFactory.createTitledBorder("Browse target"));
@@ -156,21 +119,21 @@ public class JConfigEbayTab extends JConfigTab {
     } catch(Exception ignore) {
       realCurrentSite = 0;
     }
-    siteSelect = new JComboBox(ebayServer.site_choices);
+    siteSelect = new JComboBox(siteChoices);
     siteSelect.setSelectedIndex(realCurrentSite);
     tp.add(makeLine(new JLabel("Browse to site: "), siteSelect), BorderLayout.NORTH);
 
     return tp;
   }
 
-  public JConfigEbayTab(ebayServer ebayServer) {
-    mEbayServer = ebayServer;
+  public JConfigEbayTab(String displayName, String[] choices) {
+    mDisplayName = displayName;
     setLayout(new BorderLayout());
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
     jp.add(panelPack(buildCheckboxPanel()), BorderLayout.NORTH);
     jp.add(panelPack(buildUsernamePanel()), BorderLayout.CENTER);
     add(jp, BorderLayout.NORTH);
-    add(panelPack(buildBrowseTargetPanel()), BorderLayout.CENTER);
+    add(panelPack(buildBrowseTargetPanel(choices)), BorderLayout.CENTER);
   }
 }
