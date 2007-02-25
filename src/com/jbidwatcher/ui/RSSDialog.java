@@ -16,7 +16,6 @@ import com.jbidwatcher.FilterManager;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
-import java.util.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -28,52 +27,24 @@ import java.net.UnknownHostException;
  * Time: 10:41:37 PM
  *
  */
-public class RSSDialog extends JDialog {
-  private JPanel contentPane;
-  private JButton buttonOK;
-  private boolean cancelled=false;
+public class RSSDialog extends BasicDialog {
   private JComboBox tabList = new JComboBox();
 
   public RSSDialog() {
+    setBasicContentPane(new JPanel(new SpringLayout()));
+    addBehavior();
     setupUI();
 
     setTitle("RSS Feed Information");
-    setContentPane(contentPane);
     setModal(true);
-    getRootPane().setDefaultButton(buttonOK);
-    setLocationRelativeTo(null);
-
-    buttonOK.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        onOK();
-      }
-    });
-
-    // call onCancel() when cross is clicked
-    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        onCancel();
-      }
-    });
-
-    // call onCancel() on ESCAPE
-    contentPane.registerKeyboardAction(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        onCancel();
-      }
-    }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+//    }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
   }
 
-  private void onOK() {
-    cancelled = false;
+  protected void onOK() {
     dispose();
   }
 
-  public boolean isCancelled() { return cancelled; }
-
-  private void onCancel() {
-    cancelled = true;
+  protected void onCancel() {
     setVisible(false);
   }
 
@@ -132,25 +103,22 @@ public class RSSDialog extends JDialog {
   }
 
   private void setupUI() {
-    contentPane = new JPanel(new SpringLayout());
-
-    buttonOK = new JButton();
-    buttonOK.setText("Close");
+    getButtonOK().setText("Close");
 
     JPanel bottomPanel = new JPanel();
     bottomPanel.setLayout(new BorderLayout());
-    bottomPanel.add(buttonOK, BorderLayout.CENTER);
+    bottomPanel.add(getButtonOK(), BorderLayout.CENTER);
 
     JPanel endedPanel = buildLinePanel("Subscribe to the recently ended items list.", "ended");
     JPanel bidPanel = buildLinePanel("Subscribe to items you're bidding or sniping on.", "bid");
     JPanel endingPanel = buildLinePanel("Subscribe to items closest to ending.", "ending");
 
-    contentPane.add(endedPanel);
-    contentPane.add(bidPanel);
-    contentPane.add(endingPanel);
-    //contentPane.add(JConfigTab.makeLine(new JButton("Copy"), JConfigTab.makeLine(new JLabel(" Subscribe to soonest ending in "), tabList)));
-    contentPane.add(buttonOK);
-    SpringUtilities.makeCompactGrid(contentPane, 4, 1, 6, 6, 6, 6);
+    getBasicContentPane().add(endedPanel);
+    getBasicContentPane().add(bidPanel);
+    getBasicContentPane().add(endingPanel);
+    //basicContentPane.add(JConfigTab.makeLine(new JButton("Copy"), JConfigTab.makeLine(new JLabel(" Subscribe to soonest ending in "), tabList)));
+    getBasicContentPane().add(getButtonOK());
+    SpringUtilities.makeCompactGrid(getBasicContentPane(), 4, 1, 6, 6, 6, 6);
   }
 
   private void buildTabList() {

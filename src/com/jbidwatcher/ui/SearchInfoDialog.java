@@ -12,15 +12,11 @@ import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.FilterManager;
 
 import javax.swing.*;
-import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class SearchInfoDialog extends JDialog {
-  private JPanel contentPane;
-  private JButton buttonOK;
-  private JButton buttonCancel;
+public class SearchInfoDialog extends BasicDialog {
   private JComboBox searchTypeBox;
   private JTextField searchNameField;
   private JComboBox periodList;
@@ -28,7 +24,6 @@ public class SearchInfoDialog extends JDialog {
   private JCheckBox periodEnabled;
   private JComboBox tabList;
   private JTextField searchField;
-  private boolean cancelled=false;
   private Searcher curSearch;
   private Map<String, String> curToId = null;
 
@@ -66,41 +61,23 @@ public class SearchInfoDialog extends JDialog {
   }
 
   public SearchInfoDialog() {
-    setContentPane(contentPane);
+    super();
+    JConfig.setConfiguration("ebay.currencySearch.0", "All");
+    JConfig.setConfiguration("ebay.currencySearch.1", "U.S. dollar");
+    JConfig.setConfiguration("ebay.currencySearch.2", "Canadian dollar");
+    JConfig.setConfiguration("ebay.currencySearch.3", "Pound Sterling");
+    JConfig.setConfiguration("ebay.currencySearch.5", "Australian dollar");
+    JConfig.setConfiguration("ebay.currencySearch.7", "Euro");
+    JConfig.setConfiguration("ebay.currencySearch.44", "Indian Rupee");
+    JConfig.setConfiguration("ebay.currencySearch.41", "New Taiwan dollar");
+    JConfig.setConfiguration("ebay.currencySearch.13", "Swiss franc");
+
+    addBehavior();
+    setupUI();
     setModal(true);
-    setLocationRelativeTo(null);
-    getRootPane().setDefaultButton(buttonOK);
-
-    buttonOK.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        onOK();
-      }
-    });
-
-    buttonCancel.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        onCancel();
-      }
-    });
-
-    // call onCancel() when cross is clicked
-    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        onCancel();
-      }
-    });
-
-    // call onCancel() on ESCAPE
-    contentPane.registerKeyboardAction(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        onCancel();
-      }
-    }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
   }
 
-  private void onOK() {
-    cancelled = false;
+  protected void onOK() {
     if(curSearch == null) {
       curSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), getType(), getName(), getSearch(), "ebay", getCurrency(), -1);
       SearchManager.getInstance().addSearch(curSearch);
@@ -119,13 +96,8 @@ public class SearchInfoDialog extends JDialog {
     dispose();
   }
 
-  private void onCancel() {
-    cancelled = true;
+  protected void onCancel() {
     dispose();
-  }
-
-  public boolean isCancelled() {
-    return cancelled;
   }
 
   public void prepare(Searcher s) {
@@ -174,20 +146,6 @@ public class SearchInfoDialog extends JDialog {
     System.exit(0);
   }
 
-  {
-    JConfig.setConfiguration("ebay.currencySearch.0", "All");
-    JConfig.setConfiguration("ebay.currencySearch.1", "U.S. dollar");
-    JConfig.setConfiguration("ebay.currencySearch.2", "Canadian dollar");
-    JConfig.setConfiguration("ebay.currencySearch.3", "Pound Sterling");
-    JConfig.setConfiguration("ebay.currencySearch.5", "Australian dollar");
-    JConfig.setConfiguration("ebay.currencySearch.7", "Euro");
-    JConfig.setConfiguration("ebay.currencySearch.44", "Indian Rupee");
-    JConfig.setConfiguration("ebay.currencySearch.41", "New Taiwan dollar");
-    JConfig.setConfiguration("ebay.currencySearch.13", "Swiss franc");
-
-    setupUI();
-  }
-
   private JPanel boxUp(Component a, Component b) {
     JPanel newBox = new JPanel();
     newBox.setLayout(new BoxLayout(newBox, BoxLayout.X_AXIS));
@@ -198,19 +156,11 @@ public class SearchInfoDialog extends JDialog {
   }
 
   private void setupUI() {
-    contentPane = new JPanel(new BorderLayout());
-
     final JPanel panel3 = new JPanel();
     panel3.setLayout(new BorderLayout());
 
-    buttonOK = new JButton();
-    buttonOK.setText("OK");
-
-    buttonCancel = new JButton();
-    buttonCancel.setText("Cancel");
-
-    panel3.add(boxUp(buttonOK, buttonCancel), BorderLayout.EAST);
-    contentPane.add(panel3, BorderLayout.SOUTH);
+    panel3.add(boxUp(getButtonOK(), getButtonCancel()), BorderLayout.EAST);
+    getBasicContentPane().add(panel3, BorderLayout.SOUTH);
 
     final JLabel label1 = new JLabel("Search Name: ");
     searchNameField = new JTextField(12);
@@ -247,7 +197,7 @@ public class SearchInfoDialog extends JDialog {
     form.add(new JLabel("Repeat every: "));
     form.add(boxUp(periodList, periodEnabled));
     SpringUtilities.makeCompactGrid(form, 5, 2, 6, 6, 6, 3);
-    contentPane.add(form, BorderLayout.CENTER);
+    getBasicContentPane().add(form, BorderLayout.CENTER);
   }
 
   private void buildCurrencyList(JComboBox cBox) {
