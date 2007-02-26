@@ -6,8 +6,6 @@ package com.jbidwatcher.auction.server.ebay;
  * Developed by mrs (Morgan Schweers)
  */
 
-//  TODO -- Talk about a monstrosity.  This is FAR too large.  Split into a dozen files?
-
 //  This is the concrete implementation of AuctionServer to handle
 //  parsing eBay auction pages.  There should be *ZERO* eBay specific
 //  logic outside this class.  A pipe-dream, perhaps, but it seems
@@ -26,7 +24,7 @@ import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.auction.server.BadBidException;
+import com.jbidwatcher.auction.server.Bidder;
 import com.jbidwatcher.TimerHandler;
 import com.jbidwatcher.Constants;
 import com.jbidwatcher.xml.XMLElement;
@@ -79,7 +77,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private GregorianCalendar mCal;
   private final static ebayCurrencyTables sCurrencies = new ebayCurrencyTables();
   private final ebayCleaner mCleaner;
-  private ebayBidder mBidder;
+  private Bidder mBidder;
 
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -330,7 +328,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
 
         long two_minutes = Constants.ONE_MINUTE*2;
-        AuctionQObject payload = new AuctionQObject(AuctionQObject.SNIPE, new Snipe(mLogin, snipeOn), null);
+        AuctionQObject payload = new AuctionQObject(AuctionQObject.SNIPE, new Snipe(mLogin, mBidder, snipeOn), null);
 
         _etqm.add(payload, "snipes", (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime())-two_minutes);
         _etqm.add(payload, "snipes", (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime()));
@@ -443,10 +441,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     JConfig.registerListener(this);
   }
 
-  public int buy(AuctionEntry ae, int quantity) {
-    return mBidder.buy(ae, quantity);
-  }
-
   /**
    * @brief Given a standard URL, strip it apart, and find the items
    * identifier from the standard eBay 'ViewItem' URL.
@@ -487,10 +481,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     ErrorManagement.logDebug("extractIdentifierFromURLString failed.");
     return null;
-  }
-
-  public int bid(AuctionEntry inEntry, Currency inBid, int inQuantity) {
-    return mBidder.bid(inEntry, inBid, inQuantity);
   }
 
   /**
@@ -593,13 +583,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return mLogin.getNecessaryCookie(force);
   }
 
-  //  TODO - The following are exposed to and used by the Snipe class only.  Is there another way?
-  public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr, int inQuant) throws BadBidException {
-    return mBidder.getBidForm(cj, inEntry, inCurr, inQuant);
+  public int bid(AuctionEntry inEntry, Currency inBid, int inQuantity) {
+    return mBidder.bid(inEntry, inBid, inQuantity);
   }
 
-  public int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, Currency inBid, int inQuantity) {
-    return mBidder.placeFinalBid(cj, bidForm, inEntry, inBid, inQuantity);
+  public int buy(AuctionEntry ae, int quantity) {
+    return mBidder.buy(ae, quantity);
   }
 
   public void loadAuthorization(XMLElement auth) {
@@ -630,17 +619,20 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   /**
-   * @return - The user's ID, as they entered it.
    * @brief Get the user's ID for this auction server.
+   *
    * TODO --  Fewer things should care about this.
+   *
+   * @return - The user's ID, as they entered it.
    */
   public String getUserId() {
     return JConfig.queryConfiguration(userCfgString, "default");
   }
 
   /**
-   * @return - The user's password, as they entered it.
    * @brief Get the user's password for this auction server.
+   *
+   * @return - The user's password, as they entered it.
    */
   private String getPassword() {
     return JConfig.queryConfiguration(passCfgString, "default");
@@ -692,11 +684,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if (cj != null) userCookie = cj.toString();
     JHTML htmlDocument = new JHTML(Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidderNamesHost") + Externalized.getString("ebayServer.file") + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier(), userCookie, mCleaner);
 
-//    if(htmlDocument == null) {
-//      ErrorManagement.logMessage("Error getting bidder names for auction " + ae.getIdentifier());
-//      return null;
-//    }
-//
     String curName = htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.bidListPrequel"));
 
     if(curName == null) {

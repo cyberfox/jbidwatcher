@@ -21,11 +21,9 @@ import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.queue.AuctionQObject;
 import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.*;
-import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.*;
 import com.jbidwatcher.auction.AuctionEntry;
@@ -48,10 +46,6 @@ public abstract class AuctionServer implements AuctionServerInterface {
 
   //  Note: JBidProxy
   public abstract CookieJar getNecessaryCookie(boolean force);
-
-  //  TODO - The following are exposed to and used by the Snipe class only.  Is there another way?
-  public abstract JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, com.jbidwatcher.util.Currency inCurr, int inQuant) throws BadBidException;
-  public abstract int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, Currency inBid, int inQuantity);
 
   //  UI functions
   //  Note: AuctionServerManager
@@ -335,7 +329,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
       ErrorManagement.logMessage(error);
       checkLogError(ae);
     }
-      return curAuction;
+    return curAuction;
   }
 
   private void noteRetrieveError(AuctionEntry ae) {

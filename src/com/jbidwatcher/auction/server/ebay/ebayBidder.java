@@ -1,9 +1,6 @@
 package com.jbidwatcher.auction.server.ebay;
 
-import com.jbidwatcher.auction.server.LoginManager;
-import com.jbidwatcher.auction.server.BadBidException;
-import com.jbidwatcher.auction.server.AuctionServerInterface;
-import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.auction.server.*;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.util.html.JHTML;
@@ -32,7 +29,7 @@ import java.util.Iterator;
 * Time: 1:38:12 AM
 * To change this template use File | Settings | File Templates.
 */
-public class ebayBidder {
+public class ebayBidder implements Bidder {
   private static final String srcMatch = "(?i)src=\"([^\"]*?)\"";
   private static Pattern srcPat = Pattern.compile(srcMatch);
 
@@ -222,16 +219,6 @@ public class ebayBidder {
     return AuctionServerInterface.BID_ERROR_UNKNOWN;
   }
 
-  /**
-   * @brief Perform the entire bidding process on an item.
-   *
-   * @param inEntry - The item to bid on.
-   * @param inBid - The amount to bid.
-   * @param inQuantity - The number of items to bid on.
-   *
-   * @return - A bid response code, or BID_ERROR_UNKNOWN if we can't
-   * figure out what happened.
-   */
   public int bid(AuctionEntry inEntry, com.jbidwatcher.util.Currency inBid, int inQuantity) {
     Auctions.startBlocking();
     if(JConfig.queryConfiguration("sound.enable", "false").equals("true")) MQFactory.getConcrete("sfx").enqueue("/audio/bid.mp3");
@@ -239,7 +226,7 @@ public class ebayBidder {
     try {
       //  If it's not closing within the next minute, then go ahead and try for the affiliate mode.
       if(inEntry.getEndDate().getTime() > (System.currentTimeMillis() + Constants.ONE_MINUTE)) {
-        safeGetAffiliate(mLogin.getNecessaryCookie(false), inEntry);
+        safeGetAffiliate(inEntry);
       }
     } catch (CookieJar.CookieException ignore) {
       //  We don't care that much about connection refused in this case.
@@ -291,7 +278,7 @@ public class ebayBidder {
     return handlePostBidBuyPage(cj, loadedPage, bidForm, inEntry);
   }
 
-  public void safeGetAffiliate(CookieJar cj, AuctionEntry inEntry) throws CookieJar.CookieException {
+  private void safeGetAffiliate(AuctionEntry inEntry) throws CookieJar.CookieException {
     //  This updates the cookies with the affiliate information, if it's not a test auction.
     if(inEntry.getTitle().toLowerCase().indexOf("test") == -1) {
       if(JBConfig.doAffiliate(inEntry.getEndDate().getTime())) {

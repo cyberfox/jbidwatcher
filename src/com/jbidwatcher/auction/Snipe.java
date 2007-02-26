@@ -14,10 +14,7 @@ import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.ErrorManagement;
-import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.auction.server.AuctionServerInterface;
-import com.jbidwatcher.auction.server.BadBidException;
-import com.jbidwatcher.auction.server.LoginManager;
+import com.jbidwatcher.auction.server.*;
 
 public class Snipe {
   public final static int SUCCESSFUL=0;
@@ -29,10 +26,12 @@ public class Snipe {
   private AuctionEntry m_auction;
   private JHTML.Form m_bidForm = null;
   private LoginManager m_login;
+  private Bidder m_bidder;
 
-  public Snipe(LoginManager login, AuctionEntry ae) {
+  public Snipe(LoginManager login, Bidder bidder, AuctionEntry ae) {
     m_login = login;
     m_auction = ae;
+    m_bidder = bidder;
   }
 
   public String toString() {
@@ -72,10 +71,9 @@ public class Snipe {
       }
     }
     MQFactory.getConcrete("Swing").enqueue("Sniping on " + m_auction.getTitle());
-    AuctionServer as = m_auction.getServer();
     m_auction.setLastStatus("Firing actual snipe.");
 
-    int rval = as.placeFinalBid(m_cj, m_bidForm, m_auction, m_auction.getSnipeBid(), m_auction.getSnipeQuantity());
+    int rval = m_bidder.placeFinalBid(m_cj, m_bidForm, m_auction, m_auction.getSnipeBid(), m_auction.getSnipeQuantity());
     String snipeResult = getSnipeResult(rval, m_auction.getTitle(), m_auction);
     m_auction.setLastStatus(snipeResult);
 
@@ -109,10 +107,9 @@ public class Snipe {
     //}
     int presnipeResult = SUCCESSFUL;
 
-    AuctionServer as = m_auction.getServer();
     //  Get Bid Key/Form
     try {
-      m_bidForm = as.getBidForm(m_cj, m_auction, m_auction.getSnipeBid(), m_auction.getSnipeQuantity());
+      m_bidForm = m_bidder.getBidForm(m_cj, m_auction, m_auction.getSnipeBid(), m_auction.getSnipeQuantity());
     } catch (BadBidException bbe) {
       String result = getSnipeResult(bbe.getResult(), m_auction.getTitle(), m_auction);
       m_auction.setLastStatus(result);
