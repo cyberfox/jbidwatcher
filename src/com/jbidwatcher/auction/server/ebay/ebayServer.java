@@ -474,7 +474,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         superRegex.append(')');
       }
     }
-    mBidResultRegex = "(?i)" + superRegex.toString();
+    mBidResultRegex = new StringBuilder().append("(?i)").append(superRegex).toString();
     mFindBidResult = Pattern.compile(mBidResultRegex);
     mResultHash.put("sign in", BID_ERROR_CANT_SIGN_IN);
 
@@ -574,6 +574,67 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return new ebayAuction();
   }
 
+  /**
+   * @brief Returns the amount of time it takes to retrieve a page
+   * from the auction server.
+   *
+   * @return The amount of milliseconds it takes to get a simple page
+   * from the auction server.
+   */
+  private long getSnipePadding() {
+    if(JBConfig.doAffiliate(0)) {
+      return 3;
+    }
+    return 1;
+  }
+
+  public StringBuffer getAuction(AuctionEntry ae, String id) {
+    long end_time = 1;
+    //  TODO -- Replace with a global lookup for auction entry by id.
+    if(ae != null) {
+      Date end = ae.getEndDate();
+      if(end != null) end_time = end.getTime();
+    }
+    StringBuffer sb = null;
+    if(JBConfig.doAffiliate(end_time) && allowAffiliate()) {
+      CookieJar cj = mLogin.getNecessaryCookie(false);
+      if (cj != null) {
+        try {
+          long pre = System.currentTimeMillis();
+          sb = AffiliateRetrieve.getAuctionViaAffiliate(cj, id);
+          long post = System.currentTimeMillis();
+          mAffiliateRequestTime = (post - pre);
+        } catch (CookieJar.CookieException cje) {
+          //  Cookie failure...  Ignore it and do a regular get.
+        }
+      }
+    }
+
+    if(sb == null || sb.indexOf("eBay item") == -1) {
+      try {
+        long pre = System.currentTimeMillis();
+        sb = getAuction(getURLFromItem(id));
+        long post = System.currentTimeMillis();
+        if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
+          mPageRequestTime = (post - pre);
+        }
+      } catch (FileNotFoundException ignored) {
+        sb = null;
+      }
+    }
+
+    return sb;
+  }
+
+  public long getPageRequestTime() {
+    return mPageRequestTime;
+  }
+
+  private boolean allowAffiliate() {
+    ErrorManagement.logDebug("NOT allowing affiliate mode.");
+    return false;
+  }
+
   public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, com.jbidwatcher.util.Currency inCurr, int inQuant) throws BadBidException {
     String bidRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
     String bidInfo;
@@ -665,72 +726,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     //  We don't recognize this error.  Damn.  Log it and freak.
     ErrorManagement.logFile(bidInfo, loadedPage);
-    return null;
-  }
-
-  /**
-   * @brief Returns the amount of time it takes to retrieve a page
-   * from the auction server.
-   *
-   * @return The amount of milliseconds it takes to get a simple page
-   * from the auction server.
-   */
-  public long getSnipePadding() {
-    if(JBConfig.doAffiliate(0)) {
-      return 3;
-    }
-    return 1;
-  }
-
-  public StringBuffer getAuction(AuctionEntry ae, String id) {
-    long end_time = 1;
-    //  TODO -- Replace with a global lookup for auction entry by id.
-    if(ae != null) {
-      Date end = ae.getEndDate();
-      if(end != null) end_time = end.getTime();
-    }
-    StringBuffer sb = null;
-    if(JBConfig.doAffiliate(end_time) && allowAffiliate()) {
-      CookieJar cj = getCookie();
-      if (cj != null) {
-        try {
-          long pre = System.currentTimeMillis();
-          sb = AffiliateRetrieve.getAuctionViaAffiliate(cj, id);
-          long post = System.currentTimeMillis();
-          mAffiliateRequestTime = (post - pre);
-        } catch (CookieJar.CookieException cje) {
-          //  Cookie failure...  Ignore it and do a regular get.
-        }
-      }
-    }
-
-    if(sb == null || sb.indexOf("eBay item") == -1) {
-      try {
-        long pre = System.currentTimeMillis();
-        sb = getAuction(getURLFromItem(id));
-        long post = System.currentTimeMillis();
-        if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
-          mPageRequestTime = (post - pre);
-        }
-      } catch (FileNotFoundException ignored) {
-        sb = null;
-      }
-    }
-
-    return sb;
-  }
-
-  public long getPageRequestTime() {
-    return mPageRequestTime;
-  }
-
-  private boolean allowAffiliate() {
-    ErrorManagement.logDebug("NOT allowing affiliate mode.");
-    return false;
-  }
-
-  private CookieJar getCookie() {
-    ErrorManagement.logDebug("NOT getting cookie.");
     return null;
   }
 
@@ -937,11 +932,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   public synchronized CookieJar getNecessaryCookie(boolean force) {
     return mLogin.getNecessaryCookie(force);
-  }
-
-  //  TODO - The following are exposed to and used by the Snipe class only.  Is there another way?
-  public CookieJar getSignInCookie(CookieJar old_cj) {
-    return mLogin.getSignInCookie(old_cj);
   }
 
   public void loadAuthorization(XMLElement auth) {

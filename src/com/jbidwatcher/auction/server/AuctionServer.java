@@ -50,7 +50,6 @@ public abstract class AuctionServer implements AuctionServerInterface {
   public abstract CookieJar getNecessaryCookie(boolean force);
 
   //  TODO - The following are exposed to and used by the Snipe class only.  Is there another way?
-  public abstract CookieJar getSignInCookie(CookieJar old_cj);
   public abstract JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, com.jbidwatcher.util.Currency inCurr, int inQuant) throws BadBidException;
   public abstract int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, Currency inBid, int inQuantity);
 
