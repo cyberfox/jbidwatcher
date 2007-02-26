@@ -151,7 +151,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
    *
    * @return - The full text of the auction from the server, or null if it wasn't found.
    */
-  protected abstract StringBuffer getAuction(AuctionEntry ae, String id);
+  public abstract StringBuffer getAuction(AuctionEntry ae, String id);
 
   /**
    * @brief Get the current time inline with the current thread.  This will
