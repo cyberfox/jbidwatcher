@@ -1,10 +1,10 @@
 package com.jbidwatcher.auction;
 
-import junit.framework.TestCase;
 import com.jbidwatcher.util.ByteBuffer;
 import com.jbidwatcher.util.GZip;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.auction.server.AuctionServer;
 
 import java.util.Date;
 
@@ -21,8 +21,8 @@ class MockSpecificAuction extends SpecificAuction {
     mAI = mockAuctionInfo;
   }
 
-  public boolean parseAuction(AuctionEntry ae) {
-    return true;
+  public AuctionServer.ParseErrors parseAuction(AuctionEntry ae) {
+    return AuctionServer.ParseErrors.SUCCESS;
   }
 
   public void cleanup(StringBuffer sb) {

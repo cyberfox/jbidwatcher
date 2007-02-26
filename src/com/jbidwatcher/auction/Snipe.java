@@ -17,8 +17,7 @@ import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.auction.server.BadBidException;
-import com.jbidwatcher.auction.Auctions;
-import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.server.LoginManager;
 
 public class Snipe {
   public final static int SUCCESSFUL=0;
@@ -29,8 +28,10 @@ public class Snipe {
   private CookieJar m_cj = null;
   private AuctionEntry m_auction;
   private JHTML.Form m_bidForm = null;
+  private LoginManager m_login;
 
-  public Snipe(AuctionEntry ae) {
+  public Snipe(LoginManager login, AuctionEntry ae) {
+    m_login = login;
     m_auction = ae;
   }
 
@@ -88,10 +89,9 @@ public class Snipe {
 
   private int presnipe() {
     Auctions.startBlocking();
-    AuctionServer as = m_auction.getServer();
     m_auction.setLastStatus("Preparing snipe.");
     //  Log in
-    m_cj = as.getSignInCookie(null);
+    m_cj = m_login.getSignInCookie(null);
     if (m_cj == null) {
       //  Alert somebody that we couldn't log in?
       m_auction.setLastStatus("Pre-snipe login failed.  Snipe will be retried, but is unlikely to fire.");
@@ -109,6 +109,7 @@ public class Snipe {
     //}
     int presnipeResult = SUCCESSFUL;
 
+    AuctionServer as = m_auction.getServer();
     //  Get Bid Key/Form
     try {
       m_bidForm = as.getBidForm(m_cj, m_auction, m_auction.getSnipeBid(), m_auction.getSnipeQuantity());

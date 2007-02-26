@@ -37,6 +37,13 @@ import java.net.*;
 import java.io.*;
 
 public abstract class AuctionServer implements AuctionServerInterface {
+  public enum ParseErrors {
+    SUCCESS,
+    NOT_ADULT,
+    BAD_TITLE,
+    SELLER_AWAY,
+    ERROR
+  }
   private static long sLastUpdated = 0;
 
   //  Note: JBidProxy
@@ -304,9 +311,25 @@ public abstract class AuctionServer implements AuctionServerInterface {
     curAuction.setContent(sb, false);
     String error = null;
     if (curAuction.preParseAuction()) {
-      if (curAuction.parseAuction(ae)) {
+      ParseErrors result = curAuction.parseAuction(ae);
+      if (result == ParseErrors.SUCCESS) {
         curAuction.save();
-      } else error = "Bad Parse!";
+      } else {
+        switch(result) {
+          case NOT_ADULT: {
+            boolean isAdult = JConfig.queryConfiguration(getName() + ".adult", "false").equals("true");
+            if (isAdult) {
+              getNecessaryCookie(true);
+            } else {
+              ErrorManagement.logDebug("Failed to load adult item, user possibly not marked for Mature Items access.  Check your eBay configuration.");
+            }
+          }
+          case BAD_TITLE: {
+            //  ?
+          }
+        }
+        error = "Bad Parse!";
+      }
     } else error = "Bad pre-parse!";
 
     if(error != null) {

@@ -7,12 +7,12 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.auction.CleanupHandler;
+import com.jbidwatcher.auction.server.AuctionServer;
 
 public abstract class SpecificAuction extends AuctionInfo implements CleanupHandler {
   protected JHTML _htmlDocument;
 
-  public abstract boolean parseAuction(AuctionEntry ae);
+  public abstract AuctionServer.ParseErrors parseAuction(AuctionEntry ae);
 
   protected void finish() {
     _htmlDocument = null;

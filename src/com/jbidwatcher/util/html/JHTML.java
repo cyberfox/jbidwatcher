@@ -518,7 +518,6 @@ public class JHTML implements JHTMLListener {
   public boolean isLoaded() { return m_loaded; }
 
   private void loadParseURL(String newURL, String cookie, CleanupHandler cl) {
-
     m_parser = new JHTMLParser(this);
     StringBuffer loadedPage;
 
@@ -526,9 +525,7 @@ public class JHTML implements JHTMLListener {
       URLConnection uc = Http.getPage(newURL, cookie, null, true);
       loadedPage = Http.receivePage(uc);
       if(loadedPage != null) {
-        if(cl != null) {
-          cl.cleanup(loadedPage);
-        }
+        if(cl != null) cl.cleanup(loadedPage);
         m_parser.parse(loadedPage);
         m_loaded = true;
       }
@@ -561,15 +558,5 @@ public class JHTML implements JHTMLListener {
     }
 
     return null;
-  }
-
-  public static void main(String[] args) {
-    JHTML testLoad = new JHTML(args[1], null, null);
-    JHTML.Form continueForm = testLoad.getFormWithInput("firedFilterId");
-    try {
-      System.err.println("Form == \"" + continueForm.getCGI() + '\"' );
-    } catch(Exception e) {
-      System.err.println("Caught: " + e);
-    }
   }
 }

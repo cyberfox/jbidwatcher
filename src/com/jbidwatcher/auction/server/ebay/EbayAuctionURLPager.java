@@ -12,8 +12,7 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.html.AbstractURLPager;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.ErrorManagement;
-import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.auction.CleanupHandler;
+import com.jbidwatcher.auction.server.LoginManager;
 
 public class EbayAuctionURLPager extends AbstractURLPager {
 	// constants
@@ -22,28 +21,26 @@ public class EbayAuctionURLPager extends AbstractURLPager {
 	private static final int URLSTYLE_EBAY = 1;	
 	private static final int ITEMS_PER_PAGE = 100;
 
-	private AuctionServer auctionServer;
-	CleanupHandler cleanupHandler;
+  private ebayCleaner mCleaner = new ebayCleaner();
+	private LoginManager mLogin;
 	private int urlStyle;
 
 	private JHTML lastPage;
 	private boolean itemCountSet;
 
-	public EbayAuctionURLPager(String url, AuctionServer aucServ, CleanupHandler cleanup) {
+	public EbayAuctionURLPager(String url, LoginManager aucServ) {
 		setURL(url);
 		setItemsPerPage(ITEMS_PER_PAGE);
-		auctionServer = aucServ;
-		cleanupHandler = cleanup;
+		mLogin = aucServ;
 
 		// set the item count
 		getPage(1);
 	}
 
-	public EbayAuctionURLPager(String url, int perPage, AuctionServer aucServ, CleanupHandler cleanup) {
+	public EbayAuctionURLPager(String url, int perPage, LoginManager login) {
     setURL(url);
     setItemsPerPage(perPage);
-		auctionServer = aucServ;
-		cleanupHandler = cleanup;
+		mLogin = login;
 
 		// set the item count
 		getPage(1);
@@ -87,12 +84,12 @@ public class EbayAuctionURLPager extends AbstractURLPager {
 	protected JHTML getPage(String pageURL) {
 		if(pageURL == null) return null;
 
-    CookieJar cj = auctionServer.getNecessaryCookie(false);
+    CookieJar cj = mLogin.getNecessaryCookie(false);
     String cookies = null;
     if(cj != null) cookies = cj.toString();
-    JHTML htmlDocument = new JHTML(pageURL, cookies, cleanupHandler);
+    JHTML htmlDocument = new JHTML(pageURL, cookies, mCleaner);
     	if(htmlDocument.isLoaded()) {
-    		return htmlDocument;    		
+    		return htmlDocument;
     	} else {
     		return null;
     	}
