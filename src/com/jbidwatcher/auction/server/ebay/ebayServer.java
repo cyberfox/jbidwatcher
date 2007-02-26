@@ -270,7 +270,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @brief Process an action, based on messages passed through our internal queues.
    *
    * This function is required, as an implementor of MessageQueue.Listener.
-   *
+   * TODO -- Too Long.
    */
   public void messageAction(Object deQ) {
     AuctionQObject ac = (AuctionQObject)deQ;
@@ -827,11 +827,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   /**
-   * @return - An object containing eBay's date, or null if we fail to
-   *         load or parse the 'official time' page properly.
    * @brief Go to eBay and get their official time page, parse it, and
    * mark the difference between that time and our current time
    * internally, so we know how far off this machine's time is.
+   *
+   * @return - An object containing eBay's date, or null if we fail to
+   *         load or parse the 'official time' page properly.
    */
   protected Date getOfficialTime() {
     Auctions.startBlocking();
@@ -874,9 +875,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   /**
-   * @param itemID - The eBay item ID to get a net.URL for.
-   * @return - a URL to use to pull that item.
    * @brief Given a site-dependant item ID, get the URL for that item.
+   *
+   * @param itemID - The eBay item ID to get a net.URL for.
+   *
+   * @return - a URL to use to pull that item.
    */
   protected URL getURLFromItem(String itemID) {
     return (StringTools.getURLFromString(getStringURLFromItem(itemID)));
