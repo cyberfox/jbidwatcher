@@ -455,9 +455,13 @@ class ebayAuction extends SpecificAuction {
       _end = StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat")).getDate();
     }
 
-    _start = StringTools.figureDate(_htmlDocument.getNextContentAfterRegexIgnoring(Externalized.getString("ebayServer.startTime"), Externalized.getString("ebayServer.postTitleIgnore")), Externalized.getString("ebayServer.dateFormat")).getDate();
-    if(_start == null) {
-      _start = StringTools.figureDate(_startComment, Externalized.getString("ebayServer.dateFormat")).getDate();
+    try {
+      _start = StringTools.figureDate(_htmlDocument.getNextContentAfterRegexIgnoring(Externalized.getString("ebayServer.startTime"), Externalized.getString("ebayServer.postTitleIgnore")), Externalized.getString("ebayServer.dateFormat")).getDate();
+      if (_start == null) {
+        _start = StringTools.figureDate(_startComment, Externalized.getString("ebayServer.dateFormat")).getDate();
+      }
+    } catch (NullPointerException npe) {
+      //  Don't lose the start time, if it happens to already be set somehow.
     }
     _start = (Date)ensureSafeValue(_start, ae!=null?ae.getStartDate():null, null);
 
