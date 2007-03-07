@@ -138,8 +138,8 @@ public class StringTools {
     return false;
   }
 
-  public static ZoneDate figureDate(String endTime, String siteDateFormat) {
-    return figureDate(endTime, siteDateFormat, true);
+  public static ZoneDate figureDate(String rawTime, String siteDateFormat) {
+    return figureDate(rawTime, siteDateFormat, true);
   }
 
   /**
