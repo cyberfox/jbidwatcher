@@ -89,7 +89,7 @@ public class JBidProxy extends HTTPProxyClient {
     if(relativeDocument.equals("synchronize") || relativeDocument.startsWith(syndicate)) {
       outBuf.append("Content-Type: text/xml\n");
     } else {
-      outBuf.append("Content-Type: text/html; charset=UTF-8\n");
+      outBuf.append("Content-Type: text/html; charset=").append(Externalized.getString("ebayServer.charset")).append('\n');
     }
     AuctionServer aucServ;
 
