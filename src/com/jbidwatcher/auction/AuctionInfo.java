@@ -23,15 +23,15 @@ import java.util.Date;
 
 public abstract class AuctionInfo extends XMLSerializeSimple {
   protected String _identifier=null;
+  protected boolean _insurance_optional=true;
+  protected boolean _fixed_price=false;
+  protected boolean _no_thumbnail=false;
   protected Currency _curBid=Currency.NoValue();
   protected Currency _minBid=Currency.NoValue();
   protected Currency _shipping=Currency.NoValue();
   protected Currency _insurance=Currency.NoValue();
   protected Currency _us_cur= Currency.NoValue();
   protected Currency _buy_now_us=Currency.NoValue();
-  protected boolean _insurance_optional=true;
-  protected boolean _fixed_price=false;
-  protected boolean _no_thumbnail=false;
   protected Currency _buy_now=Currency.NoValue();
   protected Date _start, _end;
   protected String _seller, _highBidder, _title, _highBidderEmail;
