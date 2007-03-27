@@ -205,8 +205,7 @@ public class auctionTableModel extends BaseTransformation {
           try {
             return aEntry.getUSCurBid().add(shippingUSD);
           } catch (Currency.CurrencyTypeException e) {
-            /* Should never happen, since we've checked the currency already.  */
-            ErrorManagement.handleException("Currency comparison threw a bad currency exception, which should be impossible.", e); //$NON-NLS-1$
+            ErrorManagement.handleException("Threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
             return Currency.NoValue();
           }
         case TableColumnController.SNIPE_TOTAL: {
@@ -219,8 +218,7 @@ public class auctionTableModel extends BaseTransformation {
           try {
             return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getSnipeBid()).add(shippingUSD2);
           } catch (Currency.CurrencyTypeException e) {
-            // Should never happen, since we've checked the currency already.
-            ErrorManagement.handleException("Currency comparison threw a bad currency exception, which should be impossible.", e); //$NON-NLS-1$
+            ErrorManagement.handleException("Currency addition or conversion threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
             return Currency.NoValue();
           }
         }
@@ -302,7 +300,7 @@ public class auctionTableModel extends BaseTransformation {
       totalSnipe = aEntry.getSnipeBid().add(shipping);
     } catch (Currency.CurrencyTypeException e) {
       /* Should never happen, since we've checked the currency already.  */
-      ErrorManagement.handleException("Currency comparison threw a bad currency exception, which should be impossible.", e); //$NON-NLS-1$
+      ErrorManagement.handleException("Currency addition threw a bad currency exception, which should be very difficult to cause to happen.", e); //$NON-NLS-1$
       return "--";
     }
 
@@ -402,16 +400,16 @@ public class auctionTableModel extends BaseTransformation {
           String fbp = aEntry.getPostiveFeedbackPercentage();
           return (fbp == null || fbp.length() == 0)?"--":(fbp+ '%');
         case TableColumnController.CUR_TOTAL:
-        	Currency shipping = aEntry.getShippingWithInsurance();
-        	if(shipping.getCurrencyType() == Currency.NONE) {
-        		return "--"; // shipping not set so cannot add up values
-        	}
-        	
-        	try {
-       			return aEntry.getCurBid().add(shipping);
+          Currency shipping = aEntry.getShippingWithInsurance();
+          if(shipping.getCurrencyType() == Currency.NONE) {
+            return "--"; // shipping not set so cannot add up values
+          }
+
+          try {
+             return aEntry.getCurBid().add(shipping);
           } catch (Currency.CurrencyTypeException e) {
             /* Should never happen, since we've checked the currency already.  */
-            ErrorManagement.handleException("Currency comparison threw a bad currency exception, which should be impossible.", e); //$NON-NLS-1$
+            ErrorManagement.handleException("Currency addition threw a bad currency exception, which is odd...", e); //$NON-NLS-1$
             return "--";
           }
         case TableColumnController.SNIPE_TOTAL:
@@ -429,25 +427,25 @@ public class auctionTableModel extends BaseTransformation {
   }
 
   public int compare(int row1, int row2, ColumnStateList columnStateList) {
-	  int result = 0;
-	  
-	  for(ListIterator<ColumnState> li = columnStateList.listIterator(); li.hasNext();) {
-		  ColumnState cs = li.next();
-		  
-		  Class type = getSortByColumnClass(cs.getColumn());
+    int result = 0;
 
-		  Object o1 = getSortByValueAt(row1, cs.getColumn());
-		  Object o2 = getSortByValueAt(row2, cs.getColumn());
-		  
-		  result = compareByClass(o1, o2, type) * cs.getSort();
-		  
-		  // The nth column is different
-		  if(result != 0) {
-			  break;
-		  }
-	  }
-	  
-	  return result;
+    for(ListIterator<ColumnState> li = columnStateList.listIterator(); li.hasNext();) {
+      ColumnState cs = li.next();
+
+      Class type = getSortByColumnClass(cs.getColumn());
+
+      Object o1 = getSortByValueAt(row1, cs.getColumn());
+      Object o2 = getSortByValueAt(row2, cs.getColumn());
+
+      result = compareByClass(o1, o2, type) * cs.getSort();
+
+      // The nth column is different
+      if(result != 0) {
+        break;
+      }
+    }
+
+    return result;
   }
 
   public boolean isCellEditable(int row, int column) {
