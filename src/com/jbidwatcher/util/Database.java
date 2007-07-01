@@ -16,18 +16,21 @@ public class Database {
   private String driver;
   private String protocol;
   private Connection mConn;
+  private boolean mNew;
 
   public static void main(String[] args) {
     try {
       Database db = new Database("/Users/mrs/.jbidwatcher");
-      dbTest(db);
+//      dbTest(db);
       db.shutdown();
     } catch(Exception e) {
       handleSQLException(e);
     }
   }
 
-  public Database(String base) throws Exception {
+  public boolean isNew() { return mNew; }
+
+  public Database(String base) throws ClassNotFoundException, IllegalAccessException, InstantiationException, SQLException {
     /* the default framework is embedded*/
     framework = JConfig.queryConfiguration("db.framework", "embedded");
     driver = JConfig.queryConfiguration("db.driver", "org.apache.derby.jdbc.EmbeddedDriver");
@@ -59,8 +62,14 @@ public class Database {
        derby.system.home points to, or the current
        directory if derby.system.home is not set.
      */
-    mConn = DriverManager.getConnection(protocol + "jbdb;create=true", props);
-    ErrorManagement.logDebug("Connected to and created database jbdb (JBidwatcher DataBase)");
+    try {
+      mConn = DriverManager.getConnection(protocol + "jbdb", props);
+      mNew = false;
+    } catch(SQLException se) {
+      mConn = DriverManager.getConnection(protocol + "jbdb;create=true", props);
+      mNew = true;
+    }
+    ErrorManagement.logDebug("Connected to " + (mNew?"and created ":"") + "database jbdb (JBidwatcher DataBase)");
 
     mConn.setAutoCommit(false);
   }
@@ -77,130 +86,80 @@ public class Database {
     return rval;
   }
 
-  public static boolean dbMake(Database db) {
-    try {
-      /*
-         Creating a statement lets us issue commands against
-         the connection.
-       */
-      Statement s = db.getStatement();
-
-      /*
-       * We create a table, add a few rows, and update one.
-       */
-      s.execute("CREATE TABLE auctions(" +
-          "id INT," +
-          "auction_id VARCHAR(40)," +
-          "title VARCHAR(255)," +
-          "start TIMESTAMP," +
-          "end TIMESTAMP," +
-          "seller VARCHAR(200)," +
-          "high_bidder VARCHAR(200)," +
-          "high_bidder_email VARCHAR(255)," +
-          "quantity INT," +
-          "bid_count INT," +
-          "insurance_optional CHAR," +
-          "fixed_price CHAR," +
-          "no_thumbnail CHAR," +
-          "dutch CHAR," +
-          "reserve CHAR," +
-          "private CHAR," +
-          "reserve_met CHAR," +
-          "has_thumbnail CHAR," +
-          "outbid CHAR," +
-          "paypal CHAR," +
-          "feedback INT," +
-          "feedback_percent DECIMAL(5,2)," +
-          "currency VARCHAR(10)," +
-          "current_bid DECIMAL(10,2)," +
-          "minimum_bid DECIMAL(10,2)," +
-          "shipping DECIMAL(10,2)," +
-          "insurance DECIMAL(10,2)," +
-          "buy_now DECIMAL(10,2)," +
-          "usd_current DECIMAL(10,2)," +
-          "usd_buy_now DECIMAL(10,2))");
-      ErrorManagement.logDebug("Created table auctions");
-    } catch(SQLException se) {
-      return false;
-    }
-    return true;
-  }
-
-
-  public static boolean dbTest(Database db) {
-    try {
-      /*
-         Creating a statement lets us issue commands against
-         the connection.
-       */
-      Statement s = db.getStatement();
-
-      /*
-         We create a table, add a few rows, and update one.
-       */
-      s.execute("create table derbyDB(num int, addr varchar(40))");
-      ErrorManagement.logDebug("Created table derbyDB");
-      s.execute("insert into derbyDB values (1956,'Webster St.')");
-      ErrorManagement.logDebug("Inserted 1956 Webster");
-      s.execute("insert into derbyDB values (1910,'Union St.')");
-      ErrorManagement.logDebug("Inserted 1910 Union");
-      s.execute("update derbyDB set num=180, addr='Grand Ave.' where num=1956");
-      ErrorManagement.logDebug("Updated 1956 Webster to 180 Grand");
-
-      s.execute("update derbyDB set num=300, addr='Lakeshore Ave.' where num=180");
-      ErrorManagement.logDebug("Updated 180 Grand to 300 Lakeshore");
-
-      /*
-         We select the rows and verify the results.
-       */
-      ResultSet rs = s.executeQuery("SELECT num, addr FROM derbyDB ORDER BY num");
-
-      if (!rs.next())
-      {
-          throw new Exception("Wrong number of rows");
-      }
-
-      if (rs.getInt(1) != 300)
-      {
-          throw new Exception("Wrong row returned");
-      }
-
-      if (!rs.next())
-      {
-          throw new Exception("Wrong number of rows");
-      }
-      if (rs.getInt(1) != 1910)
-      {
-          throw new Exception("Wrong row returned");
-      }
-
-      if (rs.next())
-      {
-          throw new Exception("Wrong number of rows");
-      }
-
-      ErrorManagement.logDebug("Verified the rows");
-
-      s.execute("drop table derbyDB");
-      ErrorManagement.logDebug("Dropped table derbyDB");
-
-      /*
-         We release the result and statement resources.
-       */
-      rs.close();
-      s.close();
-      ErrorManagement.logDebug("Closed result set and statement");
-
-      /*
-         We end the transaction and the connection.
-       */
-      db.commit();
-      ErrorManagement.logDebug("Committed transaction");
-    } catch (Throwable e) {
-      handleSQLException(e);
-    }
-    return true;
-  }
+//  public static boolean dbTest(Database db) {
+//    try {
+//      /*
+//         Creating a statement lets us issue commands against
+//         the connection.
+//       */
+//      Statement s = db.getStatement();
+//
+//      /*
+//         We create a table, add a few rows, and update one.
+//       */
+//      s.execute("create table derbyDB(num int, addr varchar(40))");
+//      ErrorManagement.logDebug("Created table derbyDB");
+//      s.execute("insert into derbyDB values (1956,'Webster St.')");
+//      ErrorManagement.logDebug("Inserted 1956 Webster");
+//      s.execute("insert into derbyDB values (1910,'Union St.')");
+//      ErrorManagement.logDebug("Inserted 1910 Union");
+//      s.execute("update derbyDB set num=180, addr='Grand Ave.' where num=1956");
+//      ErrorManagement.logDebug("Updated 1956 Webster to 180 Grand");
+//
+//      s.execute("update derbyDB set num=300, addr='Lakeshore Ave.' where num=180");
+//      ErrorManagement.logDebug("Updated 180 Grand to 300 Lakeshore");
+//
+//      /*
+//         We select the rows and verify the results.
+//       */
+//      ResultSet rs = s.executeQuery("SELECT num, addr FROM derbyDB ORDER BY num");
+//
+//      if (!rs.next())
+//      {
+//          throw new Exception("Wrong number of rows");
+//      }
+//
+//      if (rs.getInt(1) != 300)
+//      {
+//          throw new Exception("Wrong row returned");
+//      }
+//
+//      if (!rs.next())
+//      {
+//          throw new Exception("Wrong number of rows");
+//      }
+//      if (rs.getInt(1) != 1910)
+//      {
+//          throw new Exception("Wrong row returned");
+//      }
+//
+//      if (rs.next())
+//      {
+//          throw new Exception("Wrong number of rows");
+//      }
+//
+//      ErrorManagement.logDebug("Verified the rows");
+//
+////      s.execute("drop table derbyDB");
+//      ErrorManagement.logDebug("Dropped table derbyDB");
+//
+//      /*
+//         We release the result and statement resources.
+//       */
+//      rs.close();
+//      s.close();
+//      ErrorManagement.logDebug("Closed result set and statement");
+//
+//      /*
+//         We end the transaction and the connection.
+//       */
+//      db.commit();
+//      ErrorManagement.logDebug("Committed transaction");
+//    } catch (Throwable e) {
+//      handleSQLException(e);
+//    }
+//    return true;
+//  }
 
   public void commit() {
     try {
@@ -260,5 +219,9 @@ public class Database {
       ErrorManagement.logDebug(e.toString());
       e = e.getNextException();
     }
+  }
+
+  public PreparedStatement prepare(String statement) throws SQLException {
+    return mConn.prepareStatement(statement);
   }
 }
