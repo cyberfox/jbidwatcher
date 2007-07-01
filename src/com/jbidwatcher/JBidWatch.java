@@ -15,9 +15,7 @@ import com.jbidwatcher.queue.*;
 import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.xml.JTransformer;
 import com.jbidwatcher.util.html.JHTMLOutput;
-import com.jbidwatcher.util.AudioPlayer;
-import com.jbidwatcher.util.ErrorManagement;
-import com.jbidwatcher.util.RuntimeInfo;
+import com.jbidwatcher.util.*;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
@@ -27,6 +25,7 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.ThumbnailManager;
+import com.jbidwatcher.auction.AuctionDB;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 
 import java.io.*;
@@ -95,6 +94,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private static final int ONE_SECOND = Constants.ONE_SECOND;
   private static final int ONEK = 1024;
   private AudioPlayer m_ap;
+  private static AuctionDB mDB;
 
   /**
    * @brief Function to let any class tell us that the link is down or
@@ -654,13 +654,19 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     }
     setUI(null, null, UIManager.getInstalledLookAndFeels());
 
-//    try {
-//      Database db = new Database(null);
+    try {
+      Upgrader.upgrade();
+    } catch(Exception e) {
+      ErrorManagement.handleException("Upgrading error", e);
+    }
+
+    try {
+      mDB = new AuctionDB();
+      AuctionServerManager.getInstance().setDB(mDB);
 //      Database.dbTest(db);
-//      db.shutdown();
-//    } catch (Exception e) {
-//      ErrorManagement.handleException("DB error", e);
-//    }
+    } catch (Exception e) {
+      ErrorManagement.handleException("DB error", e);
+    }
 
     if(!ebayLoaded) AuctionServerManager.getInstance().addServer("ebay", new ebayServer());
 
@@ -763,8 +769,11 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     AuctionStats as = AuctionServerManager.getInstance().getStats();
     JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
     JConfig.saveConfiguration(cfgFilename);
+    mDB.shutdown();
     System.exit(0);
   }
+
+  public AuctionDB getDB() { return mDB; }
 
   static long lastTime;
 
