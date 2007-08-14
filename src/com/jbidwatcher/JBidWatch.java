@@ -1156,8 +1156,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     m_tqm.add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", now + ONE_SECOND*3, 120 * Constants.ONE_MINUTE);
     m_tqm.add(START_UPDATING, "Swing", now + (ONE_SECOND * 2 * 10));
     //m_tqm.add("http://www.jbidwatcher.com", "browse", System.currentTimeMillis() + (Constants.ONE_MINUTE / 4));
-    //m_tqm.add(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), "ebay",
-    //          System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
+    //m_tqm.add(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), "ebay", System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
 
     TimerHandler timeQueue = new TimerHandler(m_tqm);
     timeQueue.setName("SuperQueue");
