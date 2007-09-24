@@ -1649,8 +1649,4 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   public StringBuffer getBody() throws FileNotFoundException {
     return _aucServ.getAuction(StringTools.getURLFromString(getURL()));
   }
-
-  public Map<String, String> getMap() {
-    return _auction.getMap();
-  }
 }

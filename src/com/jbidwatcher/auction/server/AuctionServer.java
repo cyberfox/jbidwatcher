@@ -359,8 +359,4 @@ public abstract class AuctionServer implements AuctionServerInterface {
       MQFactory.getConcrete("Swing").enqueue("LINK DOWN Communications failure talking to the server");
     }
   }
-
-  public int getCount() {
-    return AuctionServerManager.getInstance().getDB().count();
-  }
 }

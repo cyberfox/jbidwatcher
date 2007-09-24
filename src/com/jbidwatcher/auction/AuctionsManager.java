@@ -222,17 +222,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
     return FilterManager.getInstance().getAuctionIterator();
   }
 
-  public void loadAuctionsFromDB(JSplashScreen inSplash) {
-    _splash = inSplash;
-
-    int auctionTotal = AuctionServerManager.getInstance().getDefaultServer().getCount();
-    _splash.showStatus(0);
-    _splash.setWidth(auctionTotal);
-
-    _splash.showStatus(MAX_PERCENT);
-    _splash = null;
-  }
-
   /**
    * @brief Load auctions from a save file, with a pretty splash
    * screen and everything, if necessary.

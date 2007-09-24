@@ -15,7 +15,10 @@ import com.jbidwatcher.queue.*;
 import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.xml.JTransformer;
 import com.jbidwatcher.util.html.JHTMLOutput;
-import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.AudioPlayer;
+import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.RuntimeInfo;
+import com.jbidwatcher.util.Database;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
@@ -25,7 +28,6 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.ThumbnailManager;
-import com.jbidwatcher.auction.AuctionDB;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 
 import java.io.*;
@@ -94,7 +96,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private static final int ONE_SECOND = Constants.ONE_SECOND;
   private static final int ONEK = 1024;
   private AudioPlayer m_ap;
-  private static AuctionDB mDB;
 
   /**
    * @brief Function to let any class tell us that the link is down or
@@ -655,15 +656,10 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     setUI(null, null, UIManager.getInstalledLookAndFeels());
 
     try {
-      Upgrader.upgrade();
-    } catch(Exception e) {
-      ErrorManagement.handleException("Upgrading error", e);
-    }
-
-    try {
-      mDB = new AuctionDB();
-      AuctionServerManager.getInstance().setDB(mDB);
-//      Database.dbTest(db);
+      Database db = new Database(null);
+      Database.dbTest(db);
+      Database.dbMake(db);
+      db.shutdown();
     } catch (Exception e) {
       ErrorManagement.handleException("DB error", e);
     }
@@ -769,11 +765,8 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     AuctionStats as = AuctionServerManager.getInstance().getStats();
     JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
     JConfig.saveConfiguration(cfgFilename);
-    mDB.shutdown();
     System.exit(0);
   }
-
-  public AuctionDB getDB() { return mDB; }
 
   static long lastTime;
 
@@ -1156,7 +1149,8 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     m_tqm.add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", now + ONE_SECOND*3, 120 * Constants.ONE_MINUTE);
     m_tqm.add(START_UPDATING, "Swing", now + (ONE_SECOND * 2 * 10));
     //m_tqm.add("http://www.jbidwatcher.com", "browse", System.currentTimeMillis() + (Constants.ONE_MINUTE / 4));
-    //m_tqm.add(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), "ebay", System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
+    //m_tqm.add(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), "ebay",
+    //          System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
 
     TimerHandler timeQueue = new TimerHandler(m_tqm);
     timeQueue.setName("SuperQueue");
