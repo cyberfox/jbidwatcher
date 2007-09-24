@@ -387,6 +387,11 @@ public class Currency implements Comparable {
       return new Currency(_whatCurrency, _value + addValue.getValue());
     }
 
+    //  If only one currency is known, return the result as the known currency.
+    //  TODO mrs -- validate that this is a good idea, and all the places that use this are safely going to do the right thing. 
+    if (_whatCurrency == NONE) return new Currency(addValue.getCurrencyType(), _value + addValue.getValue());
+    if (addValue.getCurrencyType() == NONE) return new Currency(_whatCurrency, _value + addValue.getValue());
+
     throw new CurrencyTypeException("Cannot add " + fullCurrencyName() + " to " + addValue.fullCurrencyName() + ".");
   }
 

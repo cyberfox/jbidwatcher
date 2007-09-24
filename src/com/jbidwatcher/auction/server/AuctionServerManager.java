@@ -15,6 +15,7 @@ import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.EntryManager;
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.AuctionDB;
 import com.jbidwatcher.config.JConfigTab;
 
 import java.util.*;
@@ -26,6 +27,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   private List<JConfigTab> mConfigTabList = null;
   private final static AuctionServerManager mInstance = new AuctionServerManager();
   private static EntryManager sEntryManager = null;
+  private AuctionDB mDB;
 
   private static final boolean sUberDebug = false;
 
@@ -122,6 +124,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
         ae.setServer(newServer);
         ae.fromXML(perEntry);
+        mDB.storeMap(ae.getMap());
         if (sEntryManager != null) {
           sEntryManager.addEntry(ae);
         }
@@ -352,5 +355,13 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       }
     }
     return outStat;
+  }
+
+  public AuctionDB getDB() {
+    return mDB;
+  }
+
+  public void setDB(AuctionDB db) {
+    mDB = db;
   }
 }

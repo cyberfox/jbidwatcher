@@ -3,7 +3,7 @@
   <!ENTITY space "<xsl:text> </xsl:text>">
   <!ENTITY bidColor "">
 ]>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:jxf="http://xml.apache.org/xalan/java/com.jbidwatcher.xml.JTransformer">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:jxf="JTransformer">
   <xsl:output method="html" indent="yes" doctype-public="-//W3C//DTD HTML 4.0 Transitional//EN"/>
   <xsl:template name="textify" match="/">
     <xsl:for-each select="jbidwatcher/auctions/server/auction">

@@ -20,6 +20,9 @@ import com.jbidwatcher.util.*;
 
 import java.io.*;
 import java.util.Date;
+import java.util.Map;
+import java.util.HashMap;
+import java.sql.Timestamp;
 
 public abstract class AuctionInfo extends XMLSerializeSimple {
   protected String _identifier=null;
@@ -78,6 +81,50 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
 
     _curBid = auctionCurBid;
     _numBids = auctionBidCount;
+  }
+
+  private String bool(boolean v) {
+    return v?"Y":"N";
+  }
+
+  public Map<String, String> getMap() {
+    HashMap<String, String> values = new HashMap<String, String>();
+    values.put("auction_id", _identifier);
+    values.put("title", _title);
+    java.sql.Timestamp start = new Timestamp(_start.getTime());
+    java.sql.Timestamp end = new Timestamp(_end.getTime());
+    values.put("start_time", start.toString());
+    values.put("end_time", end.toString());
+    values.put("seller", _seller);
+    values.put("high_bidder", _highBidder);
+    values.put("high_bidder_email", _highBidderEmail);
+    values.put("quantity", Integer.toString(_quantity));
+    values.put("bid_count", Integer.toString(_numBids));
+
+    values.put("insurance_optional", bool(_insurance_optional));
+    values.put("fixed_price", bool(_fixed_price));
+    values.put("no_thumbnail", bool(_no_thumbnail));
+    values.put("dutch", bool(_isDutch));
+    values.put("reserve", bool(_isReserve));
+    values.put("private", bool(_isPrivate));
+    values.put("reserve_met", bool(_reserveMet));
+    values.put("has_thumbnail", bool(_hasThumb));
+    values.put("outbid", bool(_outbid));
+    values.put("paypal", bool(_paypal));
+
+    values.put("feedback", Integer.toString(_feedback));
+    values.put("feedback_percent", _postivePercentage);
+
+    values.put("currency", _minBid.fullCurrencyName());
+    values.put("current_bid", Double.toString(_curBid.getValue()));
+    values.put("minimum_bid", Double.toString(_minBid.getValue()));
+    values.put("shipping", Double.toString(_shipping.getValue()));
+    values.put("insurance", Double.toString(_insurance.getValue()));
+    values.put("buy_now", Double.toString(_buy_now.getValue()));
+    values.put("usd_current", Double.toString(_us_cur.getValue()));
+    values.put("usd_buy_now", Double.toString(_buy_now_us.getValue()));
+
+    return values;
   }
 
   protected String[] infoTags = { "title", "seller", "highbidder", "bidcount", "start", "end",

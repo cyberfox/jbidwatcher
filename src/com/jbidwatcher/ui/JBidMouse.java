@@ -1139,7 +1139,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     if(bin != null && !bin.isNull()) {
       try {
         if(bin.less(bidAmount) || bin.equals(bidAmount)) {
-          int endResult = _oui.promptWithCheckbox(src, "<html><body>Your " + bidSnipe + " is over or equal to tbe Buy It Now price.<br>" +
+          int endResult = _oui.promptWithCheckbox(src, "<html><body>Your " + bidSnipe + " is over or equal to the Buy It Now price.<br>" +
                                              "If you're willing to pay this much, you can choose 'Buy'<br>" +
                                              "from the item context menu or Auction menu, and get it faster.<br>" +
                                              "<b>If you're certain you want to place the " + bidSnipe + ", click 'OK'.</b></body></html>", "Bid over BIN", "prompt." + bidSnipe + "_over_bin_confirm");
