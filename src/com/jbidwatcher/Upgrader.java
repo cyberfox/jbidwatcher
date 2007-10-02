@@ -2,10 +2,13 @@ package com.jbidwatcher;
 
 import com.jbidwatcher.util.Database;
 import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.config.JConfig;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.io.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -41,40 +44,17 @@ public class Upgrader {
         /*
         * We create a table, add a few rows, and update one.
         */
-        mS.execute("CREATE TABLE auctions(" +
-            "id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1)," +
-            "auction_id VARCHAR(40)," +
-            "title VARCHAR(255)," +
-            "start_time TIMESTAMP," +
-            "end_time TIMESTAMP," +
-            "seller VARCHAR(200)," +
-            "high_bidder VARCHAR(200)," +
-            "high_bidder_email VARCHAR(255)," +
-            "quantity INT,bid_count INT," +
-            "insurance_optional CHAR," +
-            "fixed_price CHAR," +
-            "no_thumbnail CHAR," +
-            "dutch CHAR," +
-            "reserve CHAR," +
-            "private CHAR," +
-            "reserve_met CHAR," +
-            "has_thumbnail CHAR," +
-            "outbid CHAR," +
-            "paypal CHAR," +
-            "feedback INT," +
-            "feedback_percent DECIMAL(5,2)," +
-            "currency VARCHAR(10)," +
-            "current_bid DECIMAL(10,2)," +
-            "minimum_bid DECIMAL(10,2)," +
-            "shipping DECIMAL(10,2)," +
-            "insurance DECIMAL(10,2)," +
-            "buy_now DECIMAL(10,2)," +
-            "usd_current DECIMAL(10,2)," +
-            "usd_buy_now DECIMAL(10,2))");
-        mS.execute("CREATE INDEX IDX_AuctionId ON auctions(auction_id)");
-        mS.execute("CREATE INDEX IDX_EndTime ON auctions(end_time)");
-        mS.execute("CREATE INDEX IDX_Seller ON auctions(seller)");
-        ErrorManagement.logDebug("Created table auctions");
+        String sql = StringTools.cat(StringTools.class.getResource("/jbidwatcher.sql"));
+//        if(sql == null) sql = StringTools.cat(JConfig.getCanonicalFile("jbidwatcher.sql", "jbidwatcher", true));
+        if(sql != null) {
+          String[] statements = sql.split("(?m)^$");
+          for (String statement : statements) {
+            System.err.println("sql == " + statement);
+            mS.execute(statement);
+          }
+
+          ErrorManagement.logDebug("Created table auctions");
+        }
       } else {
         ErrorManagement.logDebug("Auctions table already exists.");
       }

@@ -191,7 +191,7 @@ public class auctionTableModel extends BaseTransformation {
         case TableColumnController.BIDCOUNT: return aEntry.getNumBidders();
         case TableColumnController.JUSTPRICE: return aEntry.getUSCurBid();
         case TableColumnController.SELLER_POSITIVE_FEEDBACK: try {
-          return (int)(Double.parseDouble(aEntry.getPostiveFeedbackPercentage())*10.0);
+          return (int)(Double.parseDouble(aEntry.getPositiveFeedbackPercentage())*10.0);
         } catch(Exception e) {
           return Zero;
         }
@@ -397,7 +397,7 @@ public class auctionTableModel extends BaseTransformation {
         case TableColumnController.SELLER_FEEDBACK:
           return aEntry.getFeedbackScore();
         case TableColumnController.SELLER_POSITIVE_FEEDBACK:
-          String fbp = aEntry.getPostiveFeedbackPercentage();
+          String fbp = aEntry.getPositiveFeedbackPercentage();
           return (fbp == null || fbp.length() == 0)?"--":(fbp+ '%');
         case TableColumnController.CUR_TOTAL:
           Currency shipping = aEntry.getShippingWithInsurance();

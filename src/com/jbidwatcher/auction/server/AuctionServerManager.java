@@ -13,9 +13,9 @@ import com.jbidwatcher.xml.XMLParseException;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.auction.EntryManager;
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.AuctionDB;
 import com.jbidwatcher.config.JConfigTab;
 
 import java.util.*;

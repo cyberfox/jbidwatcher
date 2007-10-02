@@ -14,39 +14,57 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.xml.XMLSerializeSimple;
 import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.db.DBRecord;
+import com.jbidwatcher.xml.XMLElement;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
-import java.util.Map;
 import java.util.HashMap;
-import java.sql.Timestamp;
+import java.util.Map;
 
-public abstract class AuctionInfo extends XMLSerializeSimple {
-  protected String _identifier=null;
-  protected boolean _insurance_optional=true;
-  protected boolean _fixed_price=false;
-  protected boolean _no_thumbnail=false;
-  protected Currency _curBid=Currency.NoValue();
-  protected Currency _minBid=Currency.NoValue();
-  protected Currency _shipping=Currency.NoValue();
-  protected Currency _insurance=Currency.NoValue();
-  protected Currency _us_cur= Currency.NoValue();
-  protected Currency _buy_now_us=Currency.NoValue();
-  protected Currency _buy_now=Currency.NoValue();
-  protected Date _start, _end;
-  protected String _seller, _highBidder, _title, _highBidderEmail;
-  protected int _quantity, _numBids;
-  protected boolean _isDutch, _isReserve, _isPrivate, _reserveMet;
-  protected boolean _hasThumb = false;
-  protected boolean _outbid = false;
+public abstract class AuctionInfo extends HashBacked {
+  private static Map<String, String> mKeys;
 
-  protected int _feedback = 0;
-  protected String _postivePercentage = "";
-  protected String _itemLocation = "";
-  protected boolean _paypal = false;
+  private static void setupKeys() {
+    mKeys = new HashMap<String, String>();
+    mKeys.put("startDate", "started_at");
+    mKeys.put("start", "started_at");
+    mKeys.put("endDate", "ending_at");
+    mKeys.put("seller", "seller_id");
+    mKeys.put("end", "ending_at");
+    mKeys.put("highbidder", "high_bidder");
+    mKeys.put("highBidder", "high_bidder");
+    mKeys.put("highBidderEmail", "high_bidder_email");
+    mKeys.put("itemLocation", "location");
+    mKeys.put("numBids", "bid_count");
+    mKeys.put("bidcount", "bid_count");
+    mKeys.put("insurance_optional", "optional_insurance");
+    mKeys.put("insuranceOptional", "optional_insurance");
+    mKeys.put("noThumbnail", "no_thumbnail");
+    mKeys.put("reserveMet", "reserve_met");
+    mKeys.put("isReserve", "reserve");
+    mKeys.put("fixed", "fixed_price");
+    mKeys.put("fixedPrice", "fixed_price");
+    mKeys.put("isDutch", "dutch");
+    mKeys.put("reserveMet", "reserve_met");
+    mKeys.put("hasThumb", "has_thumbnail");
+    mKeys.put("currently", "current_bid");
+    mKeys.put("curBid", "current_bid");
+    mKeys.put("minimum", "minimum_bid");
+    mKeys.put("minBid", "minimum_bid");
+    mKeys.put("usprice", "usd_current");
+    mKeys.put("us_cur", "usd_current");
+    mKeys.put("buy_now_us", "usd_buy_now");
+    mKeys.put("buynow", "buy_now");
+  }
+
+  static {
+    setupKeys();
+  }
+
+  protected Seller _seller;
 
   protected static final sun.misc.BASE64Decoder b64dec = new sun.misc.BASE64Decoder();
   protected static final sun.misc.BASE64Encoder b64enc = new sun.misc.BASE64Encoder();
@@ -56,7 +74,9 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
    * @brief Empty constructor, for XML parsing.
    *
    */
-  AuctionInfo() {}
+  AuctionInfo() {
+    setTranslationTable(mKeys);
+  }
 
   /** 
    * @brief Construct a somewhat complete AuctionInfo object with all
@@ -72,152 +92,95 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
    */
   AuctionInfo(String auctionTitle, String auctionSeller, String auctionHighBidder,
                      Currency auctionCurBid, Date auctionStart, Date auctionEnd, int auctionBidCount) {
-    _title = auctionTitle.trim();
-    _highBidder = auctionHighBidder.trim();
-    _seller = auctionSeller.trim();
+    setTranslationTable(mKeys);
+    setTitle(auctionTitle.trim());
+    setHighBidder(auctionHighBidder.trim());
+    _seller = Seller.makeSeller(auctionSeller.trim());
 
-    _start = auctionStart;
-    _end = auctionEnd;
+    setStart(auctionStart);
+    setEnd(auctionEnd);
 
-    _curBid = auctionCurBid;
-    _numBids = auctionBidCount;
+    setCurBid(auctionCurBid);
+    setNumBids(auctionBidCount);
   }
 
-  private String bool(boolean v) {
-    return v?"Y":"N";
-  }
-
-  public Map<String, String> getMap() {
-    HashMap<String, String> values = new HashMap<String, String>();
-    values.put("auction_id", _identifier);
-    values.put("title", _title);
-    java.sql.Timestamp start = new Timestamp(_start.getTime());
-    java.sql.Timestamp end = new Timestamp(_end.getTime());
-    values.put("start_time", start.toString());
-    values.put("end_time", end.toString());
-    values.put("seller", _seller);
-    values.put("high_bidder", _highBidder);
-    values.put("high_bidder_email", _highBidderEmail);
-    values.put("quantity", Integer.toString(_quantity));
-    values.put("bid_count", Integer.toString(_numBids));
-
-    values.put("insurance_optional", bool(_insurance_optional));
-    values.put("fixed_price", bool(_fixed_price));
-    values.put("no_thumbnail", bool(_no_thumbnail));
-    values.put("dutch", bool(_isDutch));
-    values.put("reserve", bool(_isReserve));
-    values.put("private", bool(_isPrivate));
-    values.put("reserve_met", bool(_reserveMet));
-    values.put("has_thumbnail", bool(_hasThumb));
-    values.put("outbid", bool(_outbid));
-    values.put("paypal", bool(_paypal));
-
-    values.put("feedback", Integer.toString(_feedback));
-    values.put("feedback_percent", _postivePercentage);
-
-    values.put("currency", _minBid.fullCurrencyName());
-    values.put("current_bid", Double.toString(_curBid.getValue()));
-    values.put("minimum_bid", Double.toString(_minBid.getValue()));
-    values.put("shipping", Double.toString(_shipping.getValue()));
-    values.put("insurance", Double.toString(_insurance.getValue()));
-    values.put("buy_now", Double.toString(_buy_now.getValue()));
-    values.put("usd_current", Double.toString(_us_cur.getValue()));
-    values.put("usd_buy_now", Double.toString(_buy_now_us.getValue()));
-
-    return values;
+  public DBRecord getMap() {
+    return getBacking();
   }
 
   protected String[] infoTags = { "title", "seller", "highbidder", "bidcount", "start", "end",
                                 "currently", "dutch", "reserve", "private", "content",
                                 "shipping", "insurance", "buynow", "usprice", "fixed", "minimum",
-                                "paypal", "location", "feedback", "percentage"};
+                                "paypal", "location", "feedback", "percentage", "sellerinfo"};
   protected String[] getTags() { return infoTags; }
 
   protected void handleTag(int i, XMLElement curElement) {
     switch(i) {
-      case 0:
+      case 0:  //  Title
         if(JConfig.queryConfiguration("savefile.format", "0100").compareTo("0101") >= 0) {
-          _title = curElement.decodeString(curElement.getContents(), 0);
+          setString(infoTags[i], curElement.decodeString(curElement.getContents(), 0));
         } else {
-          _title = curElement.getContents();
+          setString(infoTags[i], curElement.getContents());
         }
         break;
-      case 1:
-        _seller = curElement.getContents();
+      case 1:  //  Seller name
+        if(_seller == null) _seller = Seller.makeSeller(curElement.getContents());
+        else _seller = _seller.makeSeller(curElement.getContents(), _seller);
         break;
-      case 2:
-        _highBidder = curElement.getContents();
-        break;
-      case 3:
-        _numBids = Integer.parseInt(curElement.getContents());
-        break;
-      case 4:
-        _start = new Date(Long.parseLong(curElement.getContents()));
-        break;
-      case 5:
-        _end = new Date(Long.parseLong(curElement.getContents()));
-        break;
-      case 6:
-        _curBid = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
-        if(_curBid.getCurrencyType() == Currency.US_DOLLAR) {
-          _us_cur = _curBid;
-        }
-        break;
-      case 7:
-        _isDutch = true;
-        _quantity = Integer.parseInt(curElement.getProperty("QUANTITY"));
-        break;
-      case 8:
-        _isReserve = true;
-        _reserveMet = "true".equals(curElement.getProperty("MET"));
-        break;
-      case 9:
-        _isPrivate = true;
-        break;
-      case 10:
-        String isCompressed = curElement.getProperty("COMPRESSED");
-
-        try {
-          if(isCompressed == null || !isCompressed.equals("true")) {
-            setRealContent(b64dec.decodeBuffer(curElement.getContents()), true);
-          } else {
-            setRealContent(GZip.uncompress(b64dec.decodeBuffer(curElement.getContents()), false), true);
-          }
-        } catch(IOException e) {
-          ErrorManagement.handleException("handleTag failed to load content.", e);
-        }
-        _loadedPage = null;
-        break;
-      case 11:  //  Shipping
-        _shipping = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
-        break;
-      case 12:  //  Insurance
-        _insurance = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
-        _insurance_optional = curElement.getProperty("OPTIONAL") == null || (curElement.getProperty("OPTIONAL").equals("true"));
-        break;
-      case 13:  //  Buy Now
-        _buy_now = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
-        break;
-      case 14:  //  Current US price
-        _us_cur = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
-        break;
-      case 15:  //  Fixed price
-        _fixed_price = true;
-        break;
-      case 16: //  Minimum price/bid
-        _minBid = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
-        break;
-      case 17: //  PayPal accepted
-        _paypal = true;
-        break;
+      case 2:  //  High bidder name
       case 18: //  Location of item
-        _itemLocation = curElement.getContents();
+        setString(infoTags[i], curElement.getContents());
+        break;
+      case 3:  //  Bid count
+        setInteger(infoTags[i], Integer.parseInt(curElement.getContents()));
+        break;
+      case 4:  //  Start date
+      case 5:  //  End date
+        setDate(infoTags[i], new Date(Long.parseLong(curElement.getContents())));
+        break;
+      case 6:  //  Current price
+      case 11: //  Shipping cost
+      case 12: //  Insurance cost
+      case 13: //  Buy Now price
+      case 14: //  Current US price
+      case 16: //  Minimum price/bid
+        Currency amount = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
+        setMonetary(infoTags[i], amount);
+        if (i == 6) {
+          if (amount.getCurrencyType() == Currency.US_DOLLAR) {
+            setMonetary("us_cur", amount);
+            setString("currency", amount.fullCurrencyName());
+          }
+          setDefaultCurrency(amount);
+        } else if(i == 12) {
+          String optional = curElement.getProperty("OPTIONAL");
+          setBoolean("insurance_optional", optional == null || (optional.equals("true")));
+        }
+        break;
+      case 7:  //  Is a dutch auction?
+      case 8:  //  Is a reserve auction?
+      case 9:  //  Is a private auction?
+      case 15: //  Fixed price
+      case 17: //  PayPal accepted
+        setBoolean(infoTags[i], true);
+        if(i==7) {
+          setInteger("quantity", Integer.parseInt(curElement.getProperty("QUANTITY")));
+        } else if(i==8) {
+          setBoolean("reserveMet", "true".equals(curElement.getProperty("MET")));
+        }
         break;
       case 19: //  Feedback score
-        _feedback = Integer.parseInt(curElement.getContents());
+        String feedback = curElement.getContents();
+        if(_seller == null) _seller = new Seller();
+        if(feedback != null) _seller.setFeedback(Integer.parseInt(feedback));
         break;
-      case 20: //  Postive feedback percentage (w/o the % sign)
-        _postivePercentage = curElement.getContents();
+      case 20: //  Positive feedback percentage (w/o the % sign)
+        String percentage = curElement.getContents();
+        if (_seller == null) _seller = new Seller();
+        _seller.setPositivePercentage(percentage);
+        break;
+      case 21: //  Seller info block
+        _seller = Seller.fromXML(curElement);
         break;
       default:
         break;
@@ -228,235 +191,100 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
 
   public XMLElement toXML() {
     XMLElement xmlResult = new XMLElement("info");
-    XMLElement xtitle, xseller, xbidcount, xstart, xend, xcontent;
-    XMLElement xcurrently, xhighbidder, xdutch, xreserve, xprivate;
-    XMLElement xshipping, xinsurance, xbuynow, xusprice, xfixed, xminbid;
-    XMLElement xlocation, xpospercent, xfeedback, xpaypal;
+    XMLElement xseller, xbidcount, xstart, xend, xdutch, xinsurance;
 
-    xtitle = new XMLElement("title");
-    xtitle.setContents(XMLElement.encodeString(_title));
-    xmlResult.addChild(xtitle);
+    addStringChild(xmlResult, "title");
 
-    xseller = new XMLElement("seller");
-    xseller.setContents(_seller);
+    xseller = _seller.toXML();
     xmlResult.addChild(xseller);
 
     xstart = new XMLElement("start");
-    xstart.setContents(Long.toString(_start.getTime()));
+    xstart.setContents(Long.toString(getStart().getTime()));
     xmlResult.addChild(xstart);
 
     xend = new XMLElement("end");
-    xend.setContents(Long.toString(_end.getTime()));
+    xend.setContents(Long.toString(getEnd().getTime()));
     xmlResult.addChild(xend);
 
     xbidcount = new XMLElement("bidcount");
-    xbidcount.setContents(Integer.toString(_numBids));
+    xbidcount.setContents(Integer.toString(getNumBids()));
     xmlResult.addChild(xbidcount);
 
-    if(_loadedPage != null) {
-      String bigEncode;
+    xinsurance = addCurrencyChild(xmlResult, "insurance");
+    if(xinsurance != null) xinsurance.setProperty("optional", isInsuranceOptional() ?"true":"false");
 
-      xcontent = new XMLElement("content");
-      xcontent.setProperty("compressed", "true");
-      bigEncode = b64enc.encode(_loadedPage.getCompressedData());
-      xcontent.setContents(bigEncode);
-      xmlResult.addChild(xcontent);
+    if(getCurBid().getCurrencyType() != Currency.US_DOLLAR) {
+      addCurrencyChild(xmlResult, "usprice");
     }
 
-    xcurrently = new XMLElement("currently");
-    xcurrently.setEmpty();
-    xcurrently.setProperty("currency", _curBid.fullCurrencyName());
-    xcurrently.setProperty("price", Double.toString(_curBid.getValue()));
-    xmlResult.addChild(xcurrently);
+    addCurrencyChild(xmlResult, "currently");
+    addCurrencyChild(xmlResult, "shipping");
+    addCurrencyChild(xmlResult, "buynow");
+    addCurrencyChild(xmlResult, "minimum");
 
-    if(_shipping != null) {
-      xshipping = new XMLElement("shipping");
-      xshipping.setEmpty();
-      xshipping.setProperty("currency", _shipping.fullCurrencyName());
-      xshipping.setProperty("price", Double.toString(_shipping.getValue()));
-      xmlResult.addChild(xshipping);
-    }
+    xdutch = addBooleanChild(xmlResult, "dutch");
+    if(xdutch != null) xdutch.setProperty("quantity", Integer.toString(getQuantity()));
 
-    if(_insurance != null) {
-      xinsurance = new XMLElement("insurance");
-      xinsurance.setEmpty();
-      xinsurance.setProperty("currency", _insurance.fullCurrencyName());
-      xinsurance.setProperty("price", Double.toString(_insurance.getValue()));
-      xinsurance.setProperty("optional", _insurance_optional?"true":"false");
-      xmlResult.addChild(xinsurance);
-    }
+    XMLElement xreserve = addBooleanChild(xmlResult, "reserve");
+    if(xreserve != null) xreserve.setProperty("met", isReserveMet() ?"true":"false");
 
-    if(_buy_now != null) {
-      xbuynow = new XMLElement("buynow");
-      xbuynow.setEmpty();
-      xbuynow.setProperty("currency", _buy_now.fullCurrencyName());
-      xbuynow.setProperty("price", Double.toString(_buy_now.getValue()));
-      xmlResult.addChild(xbuynow);
-    }
+    addBooleanChild(xmlResult, "paypal");
+    addBooleanChild(xmlResult, "fixed");
+    addBooleanChild(xmlResult, "private");
 
-    if(_curBid.getCurrencyType() != Currency.US_DOLLAR &&
-       _us_cur != null && !_us_cur.isNull()) {
-      xusprice = new XMLElement("usprice");
-      xusprice.setEmpty();
-      xusprice.setProperty("currency", _us_cur.fullCurrencyName());
-      xusprice.setProperty("price", Double.toString(_us_cur.getValue()));
-      xmlResult.addChild(xusprice);
-    }
-
-    if(_minBid != null && !_minBid.isNull()) {
-      xminbid = new XMLElement("minimum");
-      xminbid.setEmpty();
-      xminbid.setProperty("currency", _minBid.fullCurrencyName());
-      xminbid.setProperty("price", Double.toString(_minBid.getValue()));
-      xmlResult.addChild(xminbid);
-    }
-
-    if(_highBidder != null) {
-      xhighbidder = new XMLElement("highbidder");
-      xhighbidder.setContents(_highBidder);
-      xmlResult.addChild(xhighbidder);
-    }
-
-    if(_isDutch) {
-      xdutch = new XMLElement("dutch");
-      xdutch.setEmpty();
-      xdutch.setProperty("quantity", Integer.toString(_quantity));
-      xmlResult.addChild(xdutch);
-    }
-
-    if(_isReserve) {
-      xreserve = new XMLElement("reserve");
-      xreserve.setEmpty();
-      xreserve.setProperty("met", _reserveMet?"true":"false");
-      xmlResult.addChild(xreserve);
-    }
-
-    if(_isPrivate) {
-      xprivate = new XMLElement("private");
-      xprivate.setEmpty();
-      xmlResult.addChild(xprivate);
-    }
-
-    if(_fixed_price) {
-      xfixed = new XMLElement("fixed");
-      xfixed.setEmpty();
-      xmlResult.addChild(xfixed);
-    }
-
-    if(_paypal) {
-      xpaypal = new XMLElement("paypal");
-      xpaypal.setEmpty();
-      xmlResult.addChild(xpaypal);
-    }
-
-    if(_itemLocation != null && !_itemLocation.equals("")) {
-      xlocation = new XMLElement("location");
-      xlocation.setContents(_itemLocation);
-      xmlResult.addChild(xlocation);
-    }
-
-    if(_feedback != 0) {
-      xfeedback = new XMLElement("feedback");
-      xfeedback.setContents(Integer.toString(_feedback));
-      xmlResult.addChild(xfeedback);
-    }
-
-    if(_postivePercentage != null && !_postivePercentage.equals("")) {
-      xpospercent = new XMLElement("percentage");
-      xpospercent.setContents(_postivePercentage);
-      xmlResult.addChild(xpospercent);
-    }
+    addStringChild(xmlResult, "location");
+    addStringChild(xmlResult, "highbidder");
 
     return xmlResult;
   }
 
-  void setThumbnail(ByteBuffer newThumb) {
-    if (newThumb == null) {
-      _no_thumbnail = true;
-    } else {
-      saveThumbnail(newThumb);
-    }
+  public void setThumbnail(String thumbPath) {
+    if(thumbPath == null) setNoThumbnail(true);
+    setString("thumbnail", thumbPath);
   }
 
-  private void saveThumbnail(ByteBuffer thumbnail) {
-    getValidImagePath(thumbnail);
+  protected boolean hasThumbnail() {
+    String imgPath = getString("thumbnail");
+    boolean saveIfExists = false;
+
+    if(imgPath == null) {
+      imgPath = ThumbnailManager.getValidImagePath(this);
+      if(imgPath == null) return false;
+      saveIfExists = true;
+    }
+
+    File tester = new File(imgPath);
+    boolean rval= tester.exists();
+
+    if(rval && saveIfExists) setString("thumbnail", imgPath);
+
+    return rval;
   }
 
-  private String getValidImagePath(ByteBuffer buf) {
-    String outPath = JConfig.queryConfiguration("auctions.savepath");
-    String basePath = outPath + System.getProperty("file.separator") + _identifier;
-    String thumbPath = basePath + "_t.jpg";
-    String imgPath = thumbPath;
-    if(buf != null) buf.save(basePath + ".jpg");
-    File f = new File(thumbPath);
-
-    if (!f.exists()) {
-      File img = new File(basePath + ".jpg");
-      if(!img.exists()) { return null; }
-      String badConversionPath = basePath + "_b.jpg";
-      File conversionAttempted = new File(badConversionPath);
-      imgPath = basePath + ".jpg";
-
-      if (!conversionAttempted.exists()) {
-        String maxWidthString = JConfig.queryConfiguration("thumbnail.maxWidth", "256");
-        String prefWidthString = JConfig.queryConfiguration("thumbnail.prefWidth", "128");
-        String maxHeightString = JConfig.queryConfiguration("thumbnail.maxHeight", "256");
-        String prefHeightString = JConfig.queryConfiguration("thumbnail.prefWidth", "128");
-        int maxWidth = Integer.parseInt(maxWidthString);
-        int prefWidth = Integer.parseInt(prefWidthString);
-        int maxHeight = Integer.parseInt(maxHeightString);
-        int prefHeight = Integer.parseInt(prefHeightString);
-        if (IconFactory.resizeImage(imgPath, thumbPath, maxWidth, prefWidth, maxHeight, prefHeight)) {
-          imgPath = thumbPath;
-        } else {
-          try {
-            //  Create a mark file that notes that the thumbnail was
-            //  attempted to be created, and failed.  It'll default to
-            //  using the standard image file.
-            conversionAttempted.createNewFile();
-          } catch (IOException e) {
-            ErrorManagement.handleException("Can't create 'bad' lock file.", e);
-          }
-        }
-      }
+  protected String getThumbnail() {
+    //  Bad optimization -- BUGBUG -- mrs: 21-March-2004 18:28
+    //  If it doesn't have a thumbnail, we check.
+    if(!hasThumb()) {
+      if(!hasThumbnail()) return null;
     }
-    return imgPath;
+
+    setHasThumb(true);
+
+    return "file:" + getString("thumbnail");
   }
 
   public void save() {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
-    if(outPath != null) {
-      if(JConfig.queryConfiguration("store.auctionHTML", "true").equals("true")) {
-        String filePath = outPath + System.getProperty("file.separator") + _identifier + ".html.gz";
+    if (outPath != null) {
+      if (JConfig.queryConfiguration("store.auctionHTML", "true").equals("true")) {
+        String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
 
-        if(_loadedPage != null) {
+        if (_loadedPage != null) {
           _loadedPage.save(filePath);
         }
       }
     }
     _loadedPage = null;
-  }
-
-  protected boolean hasThumbnail() {
-    String imgPath = getValidImagePath(null);
-    if(imgPath == null) return false;
-    File tester = new File(imgPath);
-
-    return tester.exists();
-  }
-
-  String getThumbnail() {
-    //  Bad optimization -- BUGBUG -- mrs: 21-March-2004 18:28
-    //  If it doesn't have a thumbnail, we check.
-    if(!_hasThumb) {
-      if(!hasThumbnail()) return null;
-    }
-
-    _hasThumb = true;
-
-    String imgPath = getValidImagePath(null);
-
-    return "file:" + imgPath;
   }
 
   private GZip loadFile(String fileName) {
@@ -498,7 +326,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
 
       if(outPath != null) {
         if(final_data) {
-          String filePath = outPath + System.getProperty("file.separator") + _identifier + ".html.gz";
+          String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
           _loadedPage.save(filePath);
           _loadedPage = null;
         }
@@ -509,7 +337,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
   GZip getRealContent() {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
     if(outPath != null) {
-      String filePath = outPath + System.getProperty("file.separator") + _identifier + ".html.gz";
+      String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
       ErrorManagement.logDebug("filePath = " + filePath);
       return loadFile(filePath);
     }
@@ -520,7 +348,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
     setRealContent(inContent, final_data);
   }
 
-  StringBuffer getContent() {
+  protected StringBuffer getContent() {
     StringBuffer sb;
 
     if(_loadedPage != null) {
@@ -533,7 +361,7 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
       if(gz != null) {
         sb = gz.getUncompressedData();
         ErrorManagement.logDebug("Turned the uncompressed data into a StringBuffer!");
-        if(sb == null) ErrorManagement.logDebug(" Failed to uncompress for id " + _identifier);
+        if(sb == null) ErrorManagement.logDebug(" Failed to uncompress for id " + getIdentifier());
       } else {
         sb = new StringBuffer("Error getting real content.");
       }
@@ -541,53 +369,85 @@ public abstract class AuctionInfo extends XMLSerializeSimple {
     return(sb);
   }
 
-  public void setIdentifier(String id) { _identifier = id; }
-  public String getIdentifier() { return _identifier; }
+  public String getIdentifier() { return getString("identifier"); }
+  public String getTitle() { return getString("title"); }
+  public String getHighBidder() { return getString("highBidder"); }
+  public String getHighBidderEmail() { return getString("highBidderEmail"); }
+  public String getItemLocation() { return getString("itemLocation", ""); }
 
-  Currency getCurBid() { return(_curBid); }
-  Currency getUSCurBid() {
-    Currency rval = Currency.NoValue();
-    if (_us_cur != null && !_us_cur.isNull()) {
-      rval = _us_cur;
-    } else if(_curBid.getCurrencyType() == Currency.US_DOLLAR) {
-      rval = _curBid;
+  public Currency getCurBid() { return getMonetary("curBid"); }
+  public Currency getUSCurBid() {
+    if (getCurBid().getCurrencyType() == Currency.US_DOLLAR) {
+      return getCurBid();
     }
-    return rval;
+    return getMonetary("us_cur", Currency.US_DOLLAR);
   }
-  Currency getMinBid() { if(_minBid != null) return(_minBid); else return _curBid; }
 
-  Currency getShipping() { return _shipping; }
-  Currency getInsurance() { return _insurance; }
-  boolean getInsuranceOptional() { return _insurance_optional; }
-  Currency getBuyNow() { return _buy_now; }
+  public Currency getMinBid() { return getMonetary("minBid", getCurBid()); }
+  public Currency getShipping() { return getMonetary("shipping"); }
+  public Currency getInsurance() { return getMonetary("insurance"); }
+  public Currency getBuyNow() { return getMonetary("buy_now"); }
 
-  int getQuantity() { return(_quantity); }
-  int getNumBidders() { return(_numBids); }
+  public int getQuantity() { return getInteger("quantity"); }
+  public int getNumBidders() { return getInteger("numBids"); }
+  public int getNumBids() { return getInteger("numBids"); }
 
-  String getSeller() { return(_seller); }
-  String getHighBidder() { return(_highBidder); }
-  String getHighBidderEmail() { return(_highBidderEmail); }
-  String getTitle() { return(_title); }
+  Date getStartDate() { return getDate("start"); }  //  getDate
+  Date getEndDate() { return getDate("end"); }      //  getDate
 
-  Date getStartDate() { return(_start); }
-  Date getEndDate() { return(_end); }
+  boolean isDutch() { return getBoolean("isDutch"); }
+  boolean isReserve() { return getBoolean("isReserve"); }
+  boolean isPrivate() { return getBoolean("isPrivate"); }
+  protected boolean isFixedPrice() { return getBoolean("fixed_price"); }
+  boolean isReserveMet() { return getBoolean("reserveMet"); }
+  boolean isOutbid() { return getBoolean("outbid"); }
+  boolean hasPaypal() { return getBoolean("paypal"); }
+  boolean hasThumb() { return getBoolean("has_thumbnail"); }
+  boolean isInsuranceOptional() { return getBoolean("insurance_optional", true); }
+  protected boolean hasNoThumbnail() { return getBoolean("noThumbnail"); }
 
-  boolean isDutch() { return(_isDutch); }
-  boolean isReserve() { return(_isReserve); }
-  boolean isPrivate() { return(_isPrivate); }
+  public String getSeller() { if (_seller != null) return (_seller.getSeller()); else return "(unknown)"; }
+  public String getPositiveFeedbackPercentage() { if (_seller != null) return _seller.getPositivePercentage(); else return "n/a"; }
+  int getFeedbackScore() { if(_seller != null) return _seller.getFeedback(); else return 0; }
 
-  boolean isFixed() { return(_fixed_price); }
+  public Currency getUSCur() { return getMonetary("us_cur", Currency.US_DOLLAR); }
+  public Currency getBuyNowUS() { return getMonetary("buy_now_us", Currency.US_DOLLAR); }
 
-  boolean isReserveMet() { return(_reserveMet); }
+  public Date getStart() { return getDate("start"); }
+  public Date getEnd() { return getDate("end"); }
 
-  boolean isOutbid() { return(_outbid); }
+  public void setIdentifier(String id) { setString("identifier", id); }
+  protected void setHighBidder(String highBidder) { setString("highBidder", highBidder); }
+  protected void setTitle(String title) { setString("title", title); }
+  protected void setHighBidderEmail(String highBidderEmail) { setString("highBidderEmail", highBidderEmail); }
+  protected void setItemLocation(String itemLocation) { setString("itemLocation", itemLocation); }
 
-  boolean hasPaypal() { return _paypal; }
-  String getItemLocation() { return _itemLocation; }
-  String getPostiveFeedbackPercentage() { return _postivePercentage; }
-  int getFeedbackScore() { return _feedback; }
+  protected void setInsuranceOptional(boolean insuranceOptional) { setBoolean("insuranceOptional", insuranceOptional); }
+  protected void setFixedPrice(boolean fixedPrice) { setBoolean("fixedPrice", fixedPrice); }
+  protected void setNoThumbnail(boolean noThumbnail) { setBoolean("noThumbnail", noThumbnail); }
+
+  protected void setCurBid(Currency curBid) {       setMonetary("curBid", curBid); }
+  protected void setMinBid(Currency minBid) {       setMonetary("minBid", minBid); }
+  protected void setShipping(Currency shipping) {   setMonetary("shipping", shipping); }
+  protected void setInsurance(Currency insurance) { setMonetary("insurance", insurance); }
+  protected void setUSCur(Currency USCur) {         setMonetary("us_cur", USCur); }
+  protected void setBuyNowUS(Currency buyNowUS) {   setMonetary("buy_now_us", buyNowUS); }
+  protected void setBuyNow(Currency buyNow) {       setMonetary("buy_now", buyNow); }
+
+  protected void setStart(Date start) { setDate("start", start); }
+  protected void setEnd(Date end) { setDate("end", end); }
+
+  protected void setQuantity(int quantity) { setInteger("quantity", quantity); }
+  protected void setNumBids(int numBids) { setInteger("numBids", numBids); }
+
+  protected void setDutch(boolean dutch) { setBoolean("isDutch", dutch); }
+  protected void setReserve(boolean isReserve) { setBoolean("isReserve", isReserve); }
+  protected void setPrivate(boolean isPrivate) { setBoolean("private", isPrivate); }
+  protected void setReserveMet(boolean reserveMet) { setBoolean("reserveMet", reserveMet); }
+  protected void setHasThumb(boolean hasThumb) { setBoolean("hasThumb", hasThumb); }
+  protected void setOutbid(boolean outbid) { setBoolean("outbid", outbid); }
+  protected void setPaypal(boolean paypal) { setBoolean("paypal", paypal); }
 
   public abstract ByteBuffer getSiteThumbnail();
-
   public abstract ByteBuffer getAlternateSiteThumbnail();
 }

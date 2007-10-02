@@ -49,7 +49,7 @@ class MockSpecificAuction extends SpecificAuction {
   }
 
   public void setThumbnail(ByteBuffer newThumb) {
-    mAI.setThumbnail(newThumb);
+    ThumbnailManager.setThumbnail(mAI, newThumb);
   }
 
   public void save() {
@@ -112,8 +112,8 @@ class MockSpecificAuction extends SpecificAuction {
     return mAI.getInsurance();
   }
 
-  public boolean getInsuranceOptional() {
-    return mAI.getInsuranceOptional();
+  public boolean isInsuranceOptional() {
+    return mAI.isInsuranceOptional();
   }
 
   public Currency getBuyNow() {
@@ -165,7 +165,7 @@ class MockSpecificAuction extends SpecificAuction {
   }
 
   public boolean isFixed() {
-    return mAI.isFixed();
+    return mAI.isFixedPrice();
   }
 
   public boolean isReserveMet() {
@@ -184,8 +184,8 @@ class MockSpecificAuction extends SpecificAuction {
     return mAI.getItemLocation();
   }
 
-  public String getPostiveFeedbackPercentage() {
-    return mAI.getPostiveFeedbackPercentage();
+  public String getPositiveFeedbackPercentage() {
+    return mAI.getPositiveFeedbackPercentage();
   }
 
   public int getFeedbackScore() {

@@ -1,11 +1,15 @@
 package com.jbidwatcher.util;
 
-import java.net.URL;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.*;
-import java.text.SimpleDateFormat;
 
 public class StringTools {
   private static final int YEAR_BASE = 1990;
@@ -179,5 +183,42 @@ public class StringTools {
       tz = null;
     }
     return (new ZoneDate(tz, endingDate));
+  }
+
+  public static String cat(URL loadFrom) {
+    byte[] buf = new byte[65536];
+    try {
+      InputStream is = loadFrom.openStream();
+      int bytes_read = is.read(buf);
+      if(bytes_read == buf.length) {
+        ErrorManagement.logDebug("File to load is exactly 64K or larger than 64K.  This method does not support that.");
+        return null;
+      }
+      return new String(buf, 0, bytes_read);
+    } catch (IOException e) {
+      ErrorManagement.handleException("Failed to load " + loadFrom.toString(), e);
+    }
+    return null;
+  }
+
+  public static String cat(String filename) {
+    File fp = new File(filename);
+    byte[][] buffer = new byte[1][];
+
+    cat(fp, buffer);
+
+    return new String(buffer[0]);
+  }
+
+  public static void cat(File fp, byte[][] buf) {
+    try {
+      buf[0] = new byte[(int)fp.length()];
+      FileInputStream fis = new FileInputStream(fp);
+      int read = fis.read(buf[0], 0, (int)fp.length());
+      if(read != fp.length()) ErrorManagement.logDebug("Couldn't read any data from " + fp.getName());
+      fis.close();
+    } catch(IOException e) {
+      ErrorManagement.handleException("Can't read file " + fp.getName(), e);
+    }
   }
 }

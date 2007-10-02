@@ -232,8 +232,8 @@ public class AuctionEntryTest extends TestCase {
     assertEquals("Test County, USA", mAE.getItemLocation());
   }
 
-  public void testGetPostiveFeedbackPercentage() throws Exception {
-    assertEquals("99.6%", mAE.getPostiveFeedbackPercentage());
+  public void testGetPositiveFeedbackPercentage() throws Exception {
+    assertEquals("99.6%", mAE.getPositiveFeedbackPercentage());
   }
 
   public void testGetFeedbackScore() throws Exception {

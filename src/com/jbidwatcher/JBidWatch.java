@@ -16,6 +16,7 @@ import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.xml.JTransformer;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
@@ -25,7 +26,6 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.ThumbnailManager;
-import com.jbidwatcher.auction.AuctionDB;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 
 import java.io.*;
@@ -661,7 +661,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     }
 
     try {
-      mDB = new AuctionDB();
+      mDB = new AuctionDB("auctions");
       AuctionServerManager.getInstance().setDB(mDB);
 //      Database.dbTest(db);
     } catch (Exception e) {

@@ -17,6 +17,7 @@ import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.EventLogger;
 import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.util.db.DBRecord;
 
 import java.util.Date;
 import java.util.Map;
@@ -286,7 +287,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
       if(_aucServ != null) {
         _identifier = _aucServ.extractIdentifierFromURLString(auctionIdentifier);
         _auction = _aucServ.createAuction(_identifier);
-//        _auction = _aucServ.createAuction(StringTools.getURLFromString(auctionIdentifier), _identifier);
+//        _auction = _aucServ.createAuction(StringTools.getURLFromString(auctionIdentifier), mIdentifier);
 
         _needsUpdate = false;
         _isLoaded = true;
@@ -1576,7 +1577,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
     return _auction.getShipping();
   }
   public Currency getInsurance() { return _auction.getInsurance(); }
-  public boolean getInsuranceOptional() { return _auction.getInsuranceOptional(); }
+  public boolean getInsuranceOptional() { return _auction.isInsuranceOptional(); }
   public Currency getBuyNow() { return _auction.getBuyNow(); }
 
   public int getQuantity() { return _auction.getQuantity(); }
@@ -1599,7 +1600,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   public boolean isReserveMet() { return _auction.isReserveMet(); }
   public boolean isPrivate() { return _auction.isPrivate(); }
 
-  public boolean isFixed() { return _auction.isFixed(); }
+  public boolean isFixed() { return _auction.isFixedPrice(); }
 
   public boolean isOutbid() { return _auction.isOutbid(); }
 
@@ -1609,7 +1610,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
 
   public boolean hasPaypal() { return _auction.hasPaypal(); }
   public String getItemLocation() { return _auction.getItemLocation(); }
-  public String getPostiveFeedbackPercentage() { return _auction.getPostiveFeedbackPercentage(); }
+  public String getPositiveFeedbackPercentage() { return _auction.getPositiveFeedbackPercentage(); }
   public int getFeedbackScore() { return _auction.getFeedbackScore(); }
 
   public void setErrorPage(StringBuffer page) {
@@ -1650,7 +1651,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
     return _aucServ.getAuction(StringTools.getURLFromString(getURL()));
   }
 
-  public Map<String, String> getMap() {
+  public DBRecord getMap() {
     return _auction.getMap();
   }
 }

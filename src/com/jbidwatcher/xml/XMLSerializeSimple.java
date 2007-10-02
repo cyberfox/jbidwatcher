@@ -5,6 +5,8 @@ package com.jbidwatcher.xml;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.util.Currency;
+
 import java.util.Iterator;
 
 public abstract class XMLSerializeSimple implements XMLSerialize {

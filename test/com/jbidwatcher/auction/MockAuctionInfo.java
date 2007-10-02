@@ -18,35 +18,35 @@ class MockAuctionInfo extends AuctionInfo {
   }
 
   public MockAuctionInfo() {
-    _identifier = "12345678";
-    _curBid = Currency.getCurrency("$9.99");
-    _minBid = Currency.getCurrency("$9.99");
-    _shipping = Currency.getCurrency("$1.99");
-    _insurance = Currency.getCurrency("$0.99");
-    _us_cur = Currency.getCurrency("$9.99");
-    _buy_now_us = Currency.getCurrency("$19.99");
-    _insurance_optional = false;
-    _fixed_price = false;
-    _no_thumbnail = true;
-    _buy_now = Currency.getCurrency("$19.99");
-    _start = new Date(truncThousands(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 6));
-    _end = new Date(truncThousands(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
-    _seller = "cyberfox";
-    _highBidder = "test-jbidwatcher-bids";
-    _title = "A test auction.";
-    _highBidderEmail = null;
-    _quantity = 1;
-    _numBids = 1;
-    _isDutch = false;
-    _isReserve = false;
-    _isPrivate = false;
-    _reserveMet = false;
-    _hasThumb = false;
-    _outbid = false;
-    _feedback = 139;
-    _postivePercentage = "99.6%";
-    _itemLocation = "Test County, USA";
-    _paypal = true;
+    setIdentifier("12345678");
+    setCurBid(Currency.getCurrency("$9.99"));
+    setMinBid(Currency.getCurrency("$9.99"));
+    setShipping(Currency.getCurrency("$1.99"));
+    setInsurance(Currency.getCurrency("$0.99"));
+    setUSCur(Currency.getCurrency("$9.99"));
+    setBuyNowUS(Currency.getCurrency("$19.99"));
+    setInsuranceOptional(false);
+    setFixedPrice(false);
+    setNoThumbnail(true);
+    setBuyNow(Currency.getCurrency("$19.99"));
+    setStart(new Date(truncThousands(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 6)));
+    setEnd(new Date(truncThousands(System.currentTimeMillis() + 1000 * 60 * 60 * 24)));
+    _seller = Seller.makeSeller("cyberfox");
+    _seller.setFeedback(139);
+    _seller.setPositivePercentage("99.6%");
+    setHighBidder("test-jbidwatcher-bids");
+    setTitle("A test auction.");
+    setHighBidderEmail(null);
+    setQuantity(1);
+    setNumBids(1);
+    setDutch(false);
+    setReserve(false);
+    setPrivate(false);
+    setReserveMet(false);
+    setHasThumb(false);
+    setOutbid(false);
+    setItemLocation("Test County, USA");
+    setPaypal(true);
     _loadedPage = null;
   }
 

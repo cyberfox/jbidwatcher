@@ -119,19 +119,7 @@ public class JBidProxy extends HTTPProxyClient {
     if(fp.exists()) {
       outbuf.append("Content-Type: image/jpeg\n");
       outbuf.append("Content-Length: ").append(fp.length()).append('\n');
-      cat(fp, buf);
-    }
-  }
-
-  private void cat(File fp, byte[][] buf) {
-    try {
-      buf[0] = new byte[(int)fp.length()];
-      FileInputStream fis = new FileInputStream(fp);
-      int read = fis.read(buf[0], 0, (int)fp.length());
-      if(read != fp.length()) ErrorManagement.logDebug("Couldn't read any data from " + fp.getName());
-      fis.close();
-    } catch(IOException e) {
-      ErrorManagement.handleException("Can't read file " + fp.getName(), e);
+      StringTools.cat(fp, buf);
     }
   }
 

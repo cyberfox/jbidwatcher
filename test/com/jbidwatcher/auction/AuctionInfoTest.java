@@ -91,7 +91,7 @@ public class AuctionInfoTest extends TestCase {
     public void testGetItemLocation() throws Exception {
     }
 
-    public void testGetPostiveFeedbackPercentage() throws Exception {
+    public void testGetPositiveFeedbackPercentage() throws Exception {
     }
 
     public void testGetFeedbackScore() throws Exception {
