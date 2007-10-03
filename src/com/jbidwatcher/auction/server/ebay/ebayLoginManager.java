@@ -192,7 +192,7 @@ public class ebayLoginManager implements LoginManager {
             cj = getSignInCookie(cj, username, password);
             //  Re-enable adult mode if logging in via non-adult mode still failed...
             if(cj == null) {
-              JConfig.setConfiguration(siteId + ".adult", "true");
+              JConfig.setConfiguration(mSiteName + ".adult", "true");
             }
             return cj;
           }

@@ -13,7 +13,6 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.config.JConfigTab;
-import com.jbidwatcher.config.JBConfig;
 import com.jbidwatcher.queue.*;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
@@ -35,6 +34,7 @@ import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.io.FileNotFoundException;
 
 /** @noinspection OverriddenMethodCallInConstructor*/
 public final class ebayServer extends AuctionServer implements MessageQueue.Listener,JConfig.ConfigListener {
@@ -526,19 +526,17 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public StringBuffer getAuction(String id) {
-    StringBuffer sb = null;
+    StringBuffer sb;
 
-    if(sb == null || sb.indexOf("eBay item") == -1) {
-      try {
-        long pre = System.currentTimeMillis();
-        sb = getAuction(getURLFromItem(id));
-        long post = System.currentTimeMillis();
-        if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
-          mPageRequestTime = (post - pre);
-        }
-      } catch (FileNotFoundException ignored) {
-        sb = null;
+    try {
+      long pre = System.currentTimeMillis();
+      sb = getAuction(getURLFromItem(id));
+      long post = System.currentTimeMillis();
+      if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
+        mPageRequestTime = (post - pre);
       }
+    } catch (FileNotFoundException ignored) {
+      sb = null;
     }
 
     return sb;

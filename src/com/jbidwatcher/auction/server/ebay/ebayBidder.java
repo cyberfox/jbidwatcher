@@ -9,16 +9,13 @@ import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.config.JBConfig;
 import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.Constants;
 
 import java.net.URLConnection;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -30,9 +27,6 @@ import java.util.Iterator;
 * To change this template use File | Settings | File Templates.
 */
 public class ebayBidder implements Bidder {
-  private static final String srcMatch = "(?i)src=\"([^\"]*?)\"";
-  private static Pattern srcPat = Pattern.compile(srcMatch);
-
   private LoginManager mLogin;
   private HashMap<String, Integer> mResultHash = null;
   private String mBidResultRegex = null;
@@ -54,7 +48,7 @@ public class ebayBidder implements Bidder {
       mResultHash.put("problem with bid amount", AuctionServer.BID_ERROR_AMOUNT);
       mResultHash.put("your bid must be at least ", AuctionServer.BID_ERROR_TOO_LOW);
       mResultHash.put("you have been outbid by another bidder", AuctionServer.BID_ERROR_OUTBID);
-      mResultHash.put("you've been outbid by another bidder", new Integer(BID_ERROR_OUTBID)); //$NON-NLS-1$
+      mResultHash.put("you've been outbid by another bidder", ebayServer.BID_ERROR_OUTBID);
       mResultHash.put("your bid is confirmed!", AuctionServer.BID_DUTCH_CONFIRMED);
       mResultHash.put("you are bidding on this multiple item auction", AuctionServer.BID_DUTCH_CONFIRMED);
       mResultHash.put("you are the high bidder on all items you bid on", AuctionServer.BID_DUTCH_CONFIRMED);
@@ -157,7 +151,6 @@ public class ebayBidder implements Bidder {
               done = false;
               post = false;
             }
-            checked_reminder = true;
           }
         }
       }
@@ -179,7 +172,7 @@ public class ebayBidder implements Bidder {
         if (amount != null) {
           String orMore = htmlDocument.getNextContent();
           if (orMore != null && orMore.indexOf("or more") != -1) {
-            throw new BadBidException("Enter " + amount + orMore, BID_ERROR_TOO_LOW);
+            throw new BadBidException("Enter " + amount + orMore, ebayServer.BID_ERROR_TOO_LOW);
           }
         }
       }
@@ -309,10 +302,10 @@ public class ebayBidder implements Bidder {
 
       int result = 0;
       if (bidResult != null) {
-        result = bidResult.intValue();
-        if (result == BID_ERROR_BANNED ||
-            result == BID_ERROR_WONT_SHIP ||
-            result == BID_ERROR_REQUIREMENTS_NOT_MET) {
+        result = bidResult;
+        if (result == ebayServer.BID_ERROR_BANNED ||
+            result == ebayServer.BID_ERROR_WONT_SHIP ||
+            result == ebayServer.BID_ERROR_REQUIREMENTS_NOT_MET) {
           inEntry.setErrorPage(loadedPage);
         }
       } else {
@@ -320,7 +313,7 @@ public class ebayBidder implements Bidder {
         if (amount != null) {
           String orMore = htmlDocument.getNextContent();
           if (orMore != null && orMore.indexOf("or more") != -1) {
-            result = BID_ERROR_TOO_LOW;
+            result = ebayServer.BID_ERROR_TOO_LOW;
           }
         }
       }

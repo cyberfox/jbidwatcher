@@ -397,11 +397,11 @@ public abstract class AuctionInfo extends HashBacked {
 
   boolean isDutch() { return getBoolean("isDutch"); }
   boolean isReserve() { return getBoolean("isReserve"); }
-  boolean isPrivate() { return getBoolean("isPrivate"); }
+  protected boolean isPrivate() { return getBoolean("isPrivate"); }
   protected boolean isFixedPrice() { return getBoolean("fixed_price"); }
   boolean isReserveMet() { return getBoolean("reserveMet"); }
   boolean isOutbid() { return getBoolean("outbid"); }
-  boolean hasPaypal() { return getBoolean("paypal"); }
+  protected boolean hasPaypal() { return getBoolean("paypal"); }
   boolean hasThumb() { return getBoolean("has_thumbnail"); }
   boolean isInsuranceOptional() { return getBoolean("insurance_optional", true); }
   protected boolean hasNoThumbnail() { return getBoolean("noThumbnail"); }
