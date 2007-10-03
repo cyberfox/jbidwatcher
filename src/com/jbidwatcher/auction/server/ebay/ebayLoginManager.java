@@ -64,7 +64,7 @@ public class ebayLoginManager implements LoginManager {
     }
   }
 
-  private URLConnection checkFollowRedirector(URLConnection current, CookieJar cj, String lookFor) throws IOException {
+  private URLConnection checkFollowRedirector(URLConnection current, CookieJar cj, String lookFor) throws IOException, CaptchaException {
     StringBuffer signed_in = Http.receivePage(current);
     if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-a1.html", signed_in);
 
@@ -108,7 +108,7 @@ public class ebayLoginManager implements LoginManager {
 
   //  Get THAT page, which is actually (usually) a 'redirector' page with a meta-refresh
   //  and a clickable link in case meta-refresh doesn't work.
-  private boolean getAdultRedirector(URLConnection uc_signin, CookieJar cj) throws IOException {
+  private boolean getAdultRedirector(URLConnection uc_signin, CookieJar cj) throws IOException, CaptchaException {
     uc_signin = checkFollowRedirector(uc_signin, cj, "Adult");
     return uc_signin != null && getAdultConfirmation(uc_signin, cj);
 
@@ -189,7 +189,12 @@ public class ebayLoginManager implements LoginManager {
             //  Disable adult mode and try again.
             ErrorManagement.logMessage("Disabling 'adult' mode and retrying.");
             JConfig.setConfiguration(mSiteName + ".adult", "false");
-            return getSignInCookie(cj, username, password);
+            cj = getSignInCookie(cj, username, password);
+            //  Re-enable adult mode if logging in via non-adult mode still failed...
+            if(cj == null) {
+              JConfig.setConfiguration(siteId + ".adult", "true");
+            }
+            return cj;
           }
         } else {
           StringBuffer confirm = Http.receivePage(uc_signin);
@@ -197,11 +202,6 @@ public class ebayLoginManager implements LoginManager {
           JHTML doc = new JHTML(confirm);
           if (checkSecurityConfirmation(doc)) {
             cj = null;
-          } else if (doc.grep("Your sign in information is not valid.") != null) {
-            mBadPassword = getPassword();
-            mBadUsername = getUserId();
-            ErrorManagement.logMessage("Username/password not valid.");
-            MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN Username/password not recognized by eBay.");
           } else {
             MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
           }
@@ -212,6 +212,12 @@ public class ebayLoginManager implements LoginManager {
       //  may be valid, even!  We can't assume it, though.
       MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN " + e.getMessage());
       ErrorManagement.handleException("Couldn't sign in!", e);
+      cj = null;
+    } catch(CaptchaException ce) {
+      MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's increased security monitoring has been triggered, JBidwatcher cannot log in for a while.");
+      notifySecurityIssue();
+      ErrorManagement.handleException("Couldn't sign in, captcha interference!", ce);
+      cj = null;
     }
 
     return cj;
@@ -228,14 +234,27 @@ public class ebayLoginManager implements LoginManager {
         "eBay.  Please fix it in the eBay tab in the Configuration Manager.");
   }
 
-  private boolean checkSecurityConfirmation(JHTML doc) throws IOException {
-    if (doc.grep("Security Confirmation") != null) {
+  public class CaptchaException extends Exception {
+    private String _associatedString;
+
+    public CaptchaException(String inString) {
+      _associatedString = inString;
+    }
+    public String toString() {
+      return _associatedString;
+    }
+  }
+
+  private boolean checkSecurityConfirmation(JHTML doc) throws IOException, CaptchaException {
+    if(doc.grep("Security.Measure") != null ||
+       doc.grep("Enter verification code:") != null ||
+       doc.grep("please enter the verification code") != null) {
       ErrorManagement.logMessage("eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       notifySecurityIssue();
       mBadPassword = getPassword();
       mBadUsername = getUserId();
-      throw new IOException("Failed eBay security check (captcha).");
+      throw new CaptchaException("Failed eBay security check/captcha; verification code required.");
     }
 
     if (doc.grep("Your sign in information is not valid.") != null) {

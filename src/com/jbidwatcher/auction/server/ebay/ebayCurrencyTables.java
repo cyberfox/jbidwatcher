@@ -35,17 +35,19 @@ public class ebayCurrencyTables {
         { new Currency("CAD99.99"), new Currency( "CAD1.00") },
         { Currency.NoValue(), new Currency("CAD2.50") } };
 
-  private static Currency[][] uk_incrementTable = {
-          { new Currency(   "GBP1.00"), new Currency( "GBP0.05") },
-          { new Currency(   "GBP5.00"), new Currency( "GBP0.20") },
-          { new Currency(  "GBP15.00"), new Currency( "GBP0.50") },
-          { new Currency(  "GBP60.00"), new Currency( "GBP1.00") },
-          { new Currency( "GBP150.00"), new Currency( "GBP2.00") },
-          { new Currency( "GBP300.00"), new Currency( "GBP5.00") },
-          { new Currency( "GBP600.00"), new Currency("GBP10.00") },
-          { new Currency("GBP1500.00"), new Currency("GBP25.00") },
-          { new Currency("GBP3000.00"), new Currency("GBP50.00") },
-          { Currency.NoValue(), new Currency("GBP100.00") } };
+    // eBay.co.uk increments change *at* the boundary regardless of what the documentation
+    // may say: http://pages.ebay.co.uk/help/buy/bid-increments.html
+    private static Currency[][] uk_incrementTable = {
+        { new Currency(   "GBP0.99"), new Currency( "GBP0.05") },
+        { new Currency(   "GBP4.99"), new Currency( "GBP0.20") },
+        { new Currency(  "GBP14.99"), new Currency( "GBP0.50") },
+        { new Currency(  "GBP59.99"), new Currency( "GBP1.00") },
+        { new Currency( "GBP149.99"), new Currency( "GBP2.00") },
+        { new Currency( "GBP299.99"), new Currency( "GBP5.00") },
+        { new Currency( "GBP599.99"), new Currency("GBP10.00") },
+        { new Currency("GBP1499.99"), new Currency("GBP25.00") },
+        { new Currency("GBP2999.99"), new Currency("GBP50.00") },
+        { Currency.NoValue(), new Currency("GBP100.00") } };
 
   private static Currency[][] fr_incrementTable = {
             { new Currency(    "FRF4.99"), new Currency( "FRF0.25") },

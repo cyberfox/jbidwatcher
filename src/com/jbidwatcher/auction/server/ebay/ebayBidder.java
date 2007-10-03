@@ -54,6 +54,7 @@ public class ebayBidder implements Bidder {
       mResultHash.put("problem with bid amount", AuctionServer.BID_ERROR_AMOUNT);
       mResultHash.put("your bid must be at least ", AuctionServer.BID_ERROR_TOO_LOW);
       mResultHash.put("you have been outbid by another bidder", AuctionServer.BID_ERROR_OUTBID);
+      mResultHash.put("you've been outbid by another bidder", new Integer(BID_ERROR_OUTBID)); //$NON-NLS-1$
       mResultHash.put("your bid is confirmed!", AuctionServer.BID_DUTCH_CONFIRMED);
       mResultHash.put("you are bidding on this multiple item auction", AuctionServer.BID_DUTCH_CONFIRMED);
       mResultHash.put("you are the high bidder on all items you bid on", AuctionServer.BID_DUTCH_CONFIRMED);
@@ -69,7 +70,6 @@ public class ebayBidder implements Bidder {
       mResultHash.put("to enter a higher maximum bid, please enter", AuctionServer.BID_ERROR_TOO_LOW_SELF);
       mResultHash.put("you are registered in a country to which the seller doesn.t ship.", AuctionServer.BID_ERROR_WONT_SHIP);
       mResultHash.put("this seller has set buyer requirements for this item and only sells to buyers who meet those requirements.", AuctionServer.BID_ERROR_REQUIREMENTS_NOT_MET);
-      //      mResultHash.put("You are the current high bidder", new Integer(BID_SELFWIN));
     }
 
     //"If you want to submit another bid, your new total must be higher than your current total";
@@ -147,12 +147,14 @@ public class ebayBidder implements Bidder {
         }
 
         if(!checked_reminder) {
-          if(htmlDocument.grep("Buying.Reminder") != null) {
+          if(htmlDocument.grep(Externalized.getString("ebayServer.warningPage")) != null) {
+            checked_reminder = true;
             JHTML.Form continueForm = htmlDocument.getFormWithInput("firedFilterId");
             if(continueForm != null) {
               inEntry.setLastStatus("Trying to 'continue' for the actual bid.");
               pageName = continueForm.getCGI();
               pageName = pageName.replaceFirst("%[A-F][A-F0-9]%A0", "%A0");
+              done = false;
               post = false;
             }
             checked_reminder = true;
@@ -172,6 +174,14 @@ public class ebayBidder implements Bidder {
         bidMatch.find();
         String matched_error = bidMatch.group().toLowerCase();
         throw new BadBidException(matched_error, mResultHash.get(matched_error));
+      } else {
+        String amount = htmlDocument.getNextContentAfterRegex("Enter");
+        if (amount != null) {
+          String orMore = htmlDocument.getNextContent();
+          if (orMore != null && orMore.indexOf("or more") != -1) {
+            throw new BadBidException("Enter " + amount + orMore, BID_ERROR_TOO_LOW);
+          }
+        }
       }
     }
 
@@ -266,29 +276,27 @@ public class ebayBidder implements Bidder {
     if(JConfig.debugging) inEntry.setLastStatus("Loading post-bid data.");
     JHTML htmlDocument = new JHTML(loadedPage);
 
-    if(htmlDocument.grep("Buying.Reminder") != null) {
-      JHTML.Form continueForm = htmlDocument.getFormWithInput("firedFilterId");
-      if(continueForm != null) {
-        try {
-          inEntry.setLastStatus("Trying to 'continue' to the bid result page.");
-          String cgi = continueForm.getCGI();
-          //  For some reason, the continue page represents the currency as
-          //  separated from the amount with a '0xA0' character.  When encoding,
-          //  this becomes...broken somehow, and adds an extra character, which
-          //  does not work when bidding.
-          cgi = cgi.replaceFirst("%[A-F][A-F0-9]%A0", "%A0");
-          URLConnection huc = cj.getAllCookiesFromPage(cgi, null, false);
-          //  We failed to load, entirely.  Punt.
-          if (huc == null) return AuctionServerInterface.BID_ERROR_CONNECTION;
+    JHTML.Form continueForm = htmlDocument.getFormWithInput("firedFilterId");
+    if(continueForm != null) {
+      try {
+        inEntry.setLastStatus("Trying to 'continue' to the bid result page.");
+        String cgi = continueForm.getCGI();
+        //  For some reason, the continue page represents the currency as
+        //  separated from the amount with a '0xA0' character.  When encoding,
+        //  this becomes...broken somehow, and adds an extra character, which
+        //  does not work when bidding.
+        cgi = cgi.replaceFirst("%[A-F][A-F0-9]%A0", "%A0");
+        URLConnection huc = cj.getAllCookiesFromPage(cgi, null, false);
+        //  We failed to load, entirely.  Punt.
+        if (huc == null) return AuctionServerInterface.BID_ERROR_CONNECTION;
 
-          loadedPage = Http.receivePage(huc);
-          //  We failed to load.  Punt.
-          if (loadedPage == null) return AuctionServerInterface.BID_ERROR_CONNECTION;
+        loadedPage = Http.receivePage(huc);
+        //  We failed to load.  Punt.
+        if (loadedPage == null) return AuctionServerInterface.BID_ERROR_CONNECTION;
 
-          htmlDocument = new JHTML(loadedPage);
-        } catch(Exception ignored) {
-          return AuctionServerInterface.BID_ERROR_CONNECTION;
-        }
+        htmlDocument = new JHTML(loadedPage);
+      } catch(Exception ignored) {
+        return AuctionServerInterface.BID_ERROR_CONNECTION;
       }
     }
 
@@ -299,9 +307,27 @@ public class ebayBidder implements Bidder {
       String matched_error = bidMatch.group().toLowerCase();
       Integer bidResult = mResultHash.get(matched_error);
 
+      int result = 0;
+      if (bidResult != null) {
+        result = bidResult.intValue();
+        if (result == BID_ERROR_BANNED ||
+            result == BID_ERROR_WONT_SHIP ||
+            result == BID_ERROR_REQUIREMENTS_NOT_MET) {
+          inEntry.setErrorPage(loadedPage);
+        }
+      } else {
+        String amount = htmlDocument.getNextContentAfterRegex("Enter");
+        if (amount != null) {
+          String orMore = htmlDocument.getNextContent();
+          if (orMore != null && orMore.indexOf("or more") != -1) {
+            result = BID_ERROR_TOO_LOW;
+          }
+        }
+      }
+
       if(JConfig.debugging) inEntry.setLastStatus("Done loading post-bid data.");
 
-      if(bidResult != null) return bidResult;
+      if(bidResult != null) return result;
     }
 
     // Skipping the userID and Password, so this can be submitted as

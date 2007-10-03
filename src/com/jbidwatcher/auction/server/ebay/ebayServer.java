@@ -30,7 +30,6 @@ import com.jbidwatcher.Constants;
 import com.jbidwatcher.xml.XMLElement;
 
 import javax.swing.*;
-import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -301,7 +300,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         return;
       case AuctionQObject.LOAD_MYITEMS:
         if(defaultUser) {
-          failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
+          failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           doMyEbaySynchronize(ac.getLabel());
           return;
@@ -354,7 +353,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       if(ac.getData().equals("Get My eBay Items")) {
         //  TODO -- Mark 'My eBay' search as having run (update 'last run').
         if(defaultUser) {
-          failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
+          failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           doMyEbaySynchronize(null);
           return;
@@ -366,7 +365,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
        */
       if(ac.getData().equals("Get Selling Items")) {
         if(defaultUser) {
-          failString = Externalized.getString("ebayServer.cantLoadSellerWithoutUser1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
+          failString = Externalized.getString("ebayServer.cantLoadSellerWithoutUser1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           if(mSellerSearch == null) updateConfiguration();
           if(mSellerSearch != null) mSellerSearch.execute();
@@ -379,7 +378,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
        */
       if(ac.getData().equals("Update login cookie")) {
         if(defaultUser) {
-          failString = Externalized.getString("ebayServer.cantUpdateCookieWithoutUser1") + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
+          failString = Externalized.getString("ebayServer.cantUpdateCookieWithoutUser1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           mLogin.resetCookie();
           mLogin.getNecessaryCookie(true);
@@ -796,16 +795,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   protected Date getOfficialTime() {
     Auctions.startBlocking();
     long localDateBeforePage = System.currentTimeMillis();
-    String timeRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.host") + Externalized.getString("ebayServer.file") + Externalized.getString("ebayServer.timeCmd");
+    String timeRequest = Externalized.getString("ebayServer.timeURL");
 
-//  Getting the necessary cookie here causes intense slowdown which fudges the time, badly.
+    //  Getting the necessary cookie here causes intense slowdown which fudges the time, badly.
     JHTML htmlDocument = new JHTML(timeRequest, null, mCleaner);
     ZoneDate result = null;
 
     String pageStep = htmlDocument.getNextContent();
     while (result == null && pageStep != null) {
       if (pageStep.equals(Externalized.getString("ebayServer.timePrequel1")) || pageStep.equals(Externalized.getString("ebayServer.timePrequel2"))) {
-        result = StringTools.figureDate(htmlDocument.getNextContent(), Externalized.getString("ebayServer.officialTimeFormat"), false);
+        result = StringTools.figureDate(htmlDocument.getNextContent(), Externalized.getString("ebayServer.officialTimeFormat"), false, false);
       }
       pageStep = htmlDocument.getNextContent();
     }
