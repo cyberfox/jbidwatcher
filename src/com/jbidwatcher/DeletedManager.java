@@ -25,7 +25,7 @@ public class DeletedManager implements XMLSerialize {
   public int clearDeleted() {
     int rval = _deletedItems.size();
 
-    _deletedItems = new TreeMap();
+    _deletedItems = new TreeMap<String, Long>();
 
     return rval;
   }
@@ -65,7 +65,7 @@ public class DeletedManager implements XMLSerialize {
   public void delete(String id) {
     if(!isDeleted(id)) {
       killFiles(id);
-      _deletedItems.put(id, new Long(System.currentTimeMillis()));
+      _deletedItems.put(id, System.currentTimeMillis());
     }
   }
 
@@ -91,7 +91,7 @@ public class DeletedManager implements XMLSerialize {
           when = Long.parseLong(strDel);
         }
         if(when > past) {
-          _deletedItems.put(delEntry.getContents(), new Long(when));
+          _deletedItems.put(delEntry.getContents(), when);
         }
       }
     }

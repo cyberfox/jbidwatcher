@@ -99,12 +99,6 @@ public class Snipe {
       return RESNIPE;
     }
 
-    //  Get Affiliate Page if necessary.
-    //try {
-    //  as.safeGetAffiliate(m_cj, m_auction);
-    //} catch (CookieJar.CookieException ignore) {
-    //  //  Ignore this, it just means we won't get the affiliate bonus for it.
-    //}
     int presnipeResult = SUCCESSFUL;
 
     //  Get Bid Key/Form

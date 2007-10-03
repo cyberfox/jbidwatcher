@@ -58,7 +58,7 @@ public class MockAuctionServer extends AuctionServer {
     }
   }
 
-  public StringBuffer getAuction(AuctionEntry ae, String id) {
+  public StringBuffer getAuction(String id) {
     addCall("getAuction");
     StringBuffer sb = null;
     try {
