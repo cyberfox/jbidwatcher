@@ -142,21 +142,23 @@ public class StringTools {
     return false;
   }
 
-  public static ZoneDate figureDate(String rawTime, String siteDateFormat) {
-    return figureDate(rawTime, siteDateFormat, true);
+  public static ZoneDate figureDate(String rawTime, String siteDateFormat, boolean ignore_badformat) {
+      return figureDate(rawTime, siteDateFormat, true, ignore_badformat);
   }
 
   /**
    * @param endTime        - The string containing the human-readable time to be parsed.
    * @param siteDateFormat - The format describing the human-readable time.
    * @param strip_high     - Whether or not to strip high characters.
+   * @param ignore_badformat - Return null if the date is in a bad format.
+   *
    * @return - The date/time in Date format that was represented by
    *         the human readable date string.
    * @brief Use the date parsing code to figure out the time an
    * auction ends (also used to parse the 'official' time) from the
    * web page.
    */
-  public static ZoneDate figureDate(String endTime, String siteDateFormat, boolean strip_high) {
+  public static ZoneDate figureDate(String endTime, String siteDateFormat, boolean strip_high, boolean ignore_badformat) {
     String endTimeFmt = endTime;
     SimpleDateFormat sdf = new SimpleDateFormat(siteDateFormat, Locale.US);
 
@@ -167,10 +169,10 @@ public class StringTools {
     if (strip_high) {
       endTimeFmt = StringTools.stripHigh(endTime, siteDateFormat);
     }
-    return parseDateZone(sdf, endTimeFmt);
+    return parseDateZone(sdf, endTimeFmt, ignore_badformat);
   }
 
-  private static ZoneDate parseDateZone(SimpleDateFormat sdf, String endTimeFmt) {
+    private static ZoneDate parseDateZone(SimpleDateFormat sdf, String endTimeFmt, boolean ignore_badformat) {
     Date endingDate;
     TimeZone tz;
 
@@ -178,8 +180,12 @@ public class StringTools {
       endingDate = sdf.parse(endTimeFmt);
       tz = sdf.getCalendar().getTimeZone();
     } catch (java.text.ParseException e) {
-      ErrorManagement.handleException("Error parsing date (" + endTimeFmt + "), setting to completed.", e);
-      endingDate = new Date();
+      if(!ignore_badformat) {
+        ErrorManagement.handleException("Error parsing date (" + endTimeFmt + "), setting to completed.", e);
+        endingDate = new Date();
+      } else {
+        endingDate = null;
+      }
       tz = null;
     }
     return (new ZoneDate(tz, endingDate));

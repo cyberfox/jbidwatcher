@@ -29,7 +29,7 @@ public class JConfigGeneralTab extends JConfigTab {
   private JCheckBox doVersionUpdateCheckBox;
   private JCheckBox debuggingBox;
   private JCheckBox loggingBox;
-  //private JCheckBox affiliateBox;
+  private JCheckBox affiliateBox;
   private JCheckBox ignoreDeletedBox;
   private JCheckBox allowConfigUpdateBox;
   private JCheckBox allowArchival;
@@ -65,6 +65,7 @@ public class JConfigGeneralTab extends JConfigTab {
           "Comment",
           "Copy"
   };
+  private static boolean enable_affiliate_configuration=false;
 
   public String getTabName() {
     return "General";
@@ -81,7 +82,7 @@ public class JConfigGeneralTab extends JConfigTab {
     if(!loggingBox.isSelected()) {
       ErrorManagement.closeLog();
     }
-    //JConfig.setConfiguration("ebay.affiliate", affiliateBox.isSelected() ? "true" : "false");
+    if(affiliateBox != null) JConfig.setConfiguration("ebay.affiliate", affiliateBox.isSelected() ? "true" : "false");
     JConfig.setConfiguration("deleted.ignore", ignoreDeletedBox.isSelected() ? "true" : "false");
 
     JConfig.setConfiguration("limits.enabled", limitsBox.isSelected() ? "true" : "false");
@@ -149,7 +150,7 @@ public class JConfigGeneralTab extends JConfigTab {
     String doUpdates = JConfig.queryConfiguration("updates.enabled", "true");
     String doDebugging = JConfig.queryConfiguration("debugging", "false");
     String doLogging = JConfig.queryConfiguration("logging", "true");
-    //String doaffiliate = JConfig.queryConfiguration("ebay.affiliate", "false");
+    String doaffiliate = JConfig.queryConfiguration("ebay.affiliate", "true");
     String doIgnoreDeleted = JConfig.queryConfiguration("deleted.ignore", "true");
     String doAllowConfigUpdates = JConfig.queryConfiguration("updates.allowConfig", "true");
     String doSpendingLimits = JConfig.queryConfiguration("limits.enabled", "false");
@@ -163,7 +164,7 @@ public class JConfigGeneralTab extends JConfigTab {
     doVersionUpdateCheckBox.setSelected(doUpdates.equals("true"));
     debuggingBox.setSelected(doDebugging.equals("true"));
     loggingBox.setSelected(doLogging.equals("true"));
-    //affiliateBox.setSelected(doaffiliate.equals("true"));
+    if (affiliateBox != null) affiliateBox.setSelected(doaffiliate.equals("true"));
     ignoreDeletedBox.setSelected(doIgnoreDeleted.equals("true"));
     allowConfigUpdateBox.setSelected(doAllowConfigUpdates.equals("true"));
     allowArchival.setSelected(doArchival.equals("true"));
@@ -259,9 +260,16 @@ public class JConfigGeneralTab extends JConfigTab {
     loggingBox.setToolTipText("Enable logging to error[.###].log files in the JBidwatcher home directory.");
     tp.add(loggingBox);
 
-    //affiliateBox = new JCheckBox("Enable Affiliate Use");
-    //affiliateBox.setToolTipText("<html><body>Enable/disable using the affiliate program on bids placed through the program.<br>If on, the author makes a few nickels per bid placed through JBidwatcher, at no cost to you.</body></html>");
-    //tp.add(affiliateBox);
+    if(enable_affiliate_configuration) {
+      affiliateBox = new JCheckBox("Enable Browse-To via Affiliate");
+    } else {
+      affiliateBox = null;
+    }
+    if (affiliateBox != null) affiliateBox.setToolTipText("<html><body>" +
+        "Enable/disable using the affiliate program when browsing to an item through the program.<br>" +
+        "If enabled, the author may make a few nickels, at no cost to you.  More info in Help | FAQ." +
+        "</body></html>");
+    if (affiliateBox != null) tp.add(affiliateBox);
 
     ignoreDeletedBox = new JCheckBox("Ignore deleted items in search results");
     ignoreDeletedBox.setToolTipText("<html><body>Ignore previously deleted items when loading in the results from a search.<br>This prevents having to delete the same items repeatedly, every time a search executes.<br>STRONGLY recommended.</body></html>");

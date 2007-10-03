@@ -44,8 +44,10 @@ public class JHTMLParser {
     int firstClose=0;
     int charStep, start=0;
     char ch, prev = '\0', next = '\0';
-    int bufLen=trueBuffer.length();
     boolean spitNextTag = false;
+
+    trueBuffer = new StringBuffer(trueBuffer.toString().replaceAll("(<nobr>|</nobr>)", ""));
+    int bufLen = trueBuffer.length();
 
     for(charStep=0; charStep<bufLen; charStep++) {
       ch = trueBuffer.charAt(charStep);

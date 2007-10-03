@@ -333,17 +333,8 @@ public class JBidProxy extends HTTPProxyClient {
       sbOut.append("<hr><br>");
       AuctionServer aucServ = ae.getServer();
       try {
-        StringBuffer sb = null;
-        if(JConfig.queryConfiguration("server.browseAffiliate", "true").equals("true")) {
-          sb = ae.getBody();
-          if (sb != null) {
-            sbOut.append(sb);
-          }
-        }
-        if(sb == null) {
-          //  TODO -- This is nauseating.  Fix it.
-          sbOut.append(checkError(aucServ.getAuction(StringTools.getURLFromString(aucServ.getBrowsableURLFromItem(ae.getIdentifier())))));
-        }
+        //  TODO -- This is nauseating.  Fix it.
+        sbOut.append(checkError(aucServ.getAuction(StringTools.getURLFromString(aucServ.getBrowsableURLFromItem(ae.getIdentifier())))));
       } catch (FileNotFoundException ignored) {
         sbOut.append("<b><i>Item no longer appears on the server.</i></b><br>\n");
       }

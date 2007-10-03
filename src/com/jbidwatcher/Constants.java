@@ -6,19 +6,22 @@ package com.jbidwatcher;
  */
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Constants {
 /** Program identifaction constants, so we change the version and such
  * in just one place.
  */
   public static final String PROGRAM_NAME = "JBidWatcher";
-  public static final String PROGRAM_VERS = "1.0";
+  public static final String PROGRAM_VERS = "1.0.2";
 /** The clock format to use everywhere, when referring to remote times.
  */
   public static final SimpleDateFormat remoteClockFormat = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss z");
   public static final SimpleDateFormat localClockFormat = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss z");
+  public static final Date FAR_FUTURE = new Date(Long.MAX_VALUE);
+  public static final Date LONG_AGO = new Date(Long.MIN_VALUE);
 
-/** The URL to use when checking for updates.
+  /** The URL to use when checking for updates.
  */
   public static final String UPDATE_URL = "http://www.jbidwatcher.com/jbidwatcher.xml";
 /** One second in microseconds.
@@ -41,7 +44,7 @@ public class Constants {
   public static final int ONE_HOUR= 60 * ONE_MINUTE;
 /** One day in microseconds.
  */
-  public static final int ONE_DAY= 24 * ONE_HOUR;
+  public static final long ONE_DAY= 24 * ONE_HOUR;
 /** What port to listen on, by default.
  */
   public static final int DEFAULT_SERVER_PORT = 9099;
@@ -50,7 +53,7 @@ public class Constants {
   public static final String DEFAULT_SERVER_PORT_STRING = "9099";
 /** What browser to pretend to be, when talking to the auction servers.
  */
-  public static final String FAKE_BROWSER = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.6) Gecko/20050317 Firefox/1.0.2";
+  public static final String FAKE_BROWSER = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6";
 /** Indicates that there is no popup context for this action.  Used to
  * prepend to menu and button actions which do the same as popup
  * actions, but need to operate on selection lists.;

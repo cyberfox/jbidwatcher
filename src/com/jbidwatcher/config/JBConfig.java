@@ -35,7 +35,7 @@ public class JBConfig extends JConfig implements MessageQueue.Listener {
       // program.
       return JConfig.queryConfiguration("ebay.affiliate", "true").equals("true") && ((end_time - Constants.ONE_MINUTE * 5) > System.currentTimeMillis());
     }
-    return JConfig.queryConfiguration("ebay.affiliate", "false").equals("true") && JConfig.queryConfiguration("ebay.affiliate.override", "false").equals("true");
+    return JConfig.queryConfiguration("ebay.affiliate", "true").equals("true");
   }
 
   public static String getBrowserCommand() {

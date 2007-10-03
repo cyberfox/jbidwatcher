@@ -32,7 +32,7 @@ import java.text.SimpleDateFormat;
 /** @noinspection Singleton*/
 public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager {
   private static AuctionsManager _instance = null;
-  DeletedManager _deleted = null;
+  private DeletedManager _deleted = null;
   private int _auctionCount = 0;
   private JSplashScreen _splash = null;
   private FilterManager _filter;
@@ -108,8 +108,9 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    */
   private void checkSnapshot() {
     if( (_lastCheckpointed + _checkpointFrequency) < System.currentTimeMillis() ) {
-      saveAuctions();
       _lastCheckpointed = System.currentTimeMillis();
+      saveAuctions();
+      System.gc();
     }
   }
 
@@ -404,8 +405,16 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
       preserveFiles(saveFilename);
     }
 
-    System.gc();
     return saveDone;
+  }
+
+  public int clearDeleted() {
+    int rval = _deleted.clearDeleted();
+
+    saveAuctions();
+    System.gc();
+
+    return rval;
   }
 
   private static void ensureDirectories(String saveFilename) {

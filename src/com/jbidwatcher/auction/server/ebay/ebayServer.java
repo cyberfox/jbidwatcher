@@ -62,9 +62,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private TimerHandler eQueue;
   private Map<String, AuctionQObject> snipeMap = new HashMap<String, AuctionQObject>();
 
-  /**< The amount of time it takes to request an item via their affiliate program. */
-  private long mAffiliateRequestTime =0;
-
   /**< The full amount of time it takes to request a single page from this site. */
   private long mPageRequestTime =0;
 
@@ -526,33 +523,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * from the auction server.
    */
   private long getSnipePadding() {
-    if(JBConfig.doAffiliate(0)) {
-      return 3;
-    }
     return 1;
   }
 
-  public StringBuffer getAuction(AuctionEntry ae, String id) {
-    long end_time = 1;
-    //  TODO -- Replace with a global lookup for auction entry by id.
-    if(ae != null) {
-      Date end = ae.getEndDate();
-      if(end != null) end_time = end.getTime();
-    }
+  public StringBuffer getAuction(String id) {
     StringBuffer sb = null;
-    if(JBConfig.doAffiliate(end_time) && allowAffiliate()) {
-      CookieJar cj = mLogin.getNecessaryCookie(false);
-      if (cj != null) {
-        try {
-          long pre = System.currentTimeMillis();
-          sb = AffiliateRetrieve.getAuctionViaAffiliate(cj, id);
-          long post = System.currentTimeMillis();
-          mAffiliateRequestTime = (post - pre);
-        } catch (CookieJar.CookieException cje) {
-          //  Cookie failure...  Ignore it and do a regular get.
-        }
-      }
-    }
 
     if(sb == null || sb.indexOf("eBay item") == -1) {
       try {
@@ -572,11 +547,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   public long getPageRequestTime() {
     return mPageRequestTime;
-  }
-
-  private boolean allowAffiliate() {
-    ErrorManagement.logDebug("NOT allowing affiliate mode.");
-    return false;
   }
 
   public synchronized CookieJar getNecessaryCookie(boolean force) {
@@ -758,17 +728,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
       }
     }
-  }
-
-  /**
-   * @brief Returns the amount of time it takes to retrieve an item
-   * from the auction server via their affiliate program.
-   *
-   * @return The amount of milliseconds it takes to get an item
-   * from the auction server via their affiliate server.
-   */
-  public long getAffiliateRequestTime() {
-    return mAffiliateRequestTime;
   }
 
   public String getTime() {

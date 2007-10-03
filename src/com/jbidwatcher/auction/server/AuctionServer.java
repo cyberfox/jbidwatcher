@@ -140,12 +140,11 @@ public abstract class AuctionServer implements AuctionServerInterface {
   /**
    * Get the full text of an auction from the auction server.
    *
-   * @param ae - The AuctionEntry for an existing auction; only used in affiliate mode.
    * @param id - The item id for the item to retrieve from the server.
    *
    * @return - The full text of the auction from the server, or null if it wasn't found.
    */
-  public abstract StringBuffer getAuction(AuctionEntry ae, String id);
+  public abstract StringBuffer getAuction(String id);
 
   /**
    * @brief Get the current time inline with the current thread.  This will
@@ -210,12 +209,15 @@ public abstract class AuctionServer implements AuctionServerInterface {
     StringBuffer loadedPage;
 
     try {
-      String cookie = null;
       CookieJar curCook = getNecessaryCookie(false);
+      URLConnection uc;
       if(curCook != null) {
-        cookie = curCook.toString();
+        uc = curCook.getAllCookiesFromPage(auctionURL.toString(), null, false, null);
+      } else {
+        uc = Http.makeRequest(auctionURL, null);
       }
-      loadedPage = Http.receivePage(Http.makeRequest(auctionURL, cookie));
+      loadedPage = Http.receivePage(uc);
+      if(loadedPage != null && loadedPage.length() == 0) loadedPage = null;
     } catch(FileNotFoundException fnfe) {
       ErrorManagement.logDebug("Item not found: " + auctionURL.toString());
       throw fnfe;
@@ -248,7 +250,9 @@ public abstract class AuctionServer implements AuctionServerInterface {
       AuctionServerManager.getInstance().addEntry(inEntry);
       MQFactory.getConcrete("Swing").enqueue("LINK UP");
     } else {
-      inEntry.setLastStatus("Failed to load from server!");
+      if(!inEntry.getLastStatus().equals("Seller away - item unavailable.")) {
+        inEntry.setLastStatus("Failed to load from server!");
+      }
       inEntry.setInvalid();
     }
 
@@ -263,10 +267,11 @@ public abstract class AuctionServer implements AuctionServerInterface {
    * @param auctionURL - The URL to load the auction from.
    * @param item_id - The item # to associate this returned info with.
    * @param ae - An object to notify when an error occurs.
+   *
    * @return - An object containing the information extracted from the auction.
    */
   private AuctionInfo loadAuction(URL auctionURL, String item_id, AuctionEntry ae) {
-    StringBuffer sb = getAuction(ae, item_id);
+    StringBuffer sb = getAuction(item_id);
 
     if (sb == null) {
       try {

@@ -23,7 +23,7 @@
 #
 
 JAR = jar
-VER = 1.0
+VER = 1.0.2
 JAVAC = javac
 PRODUCT= JBidWatcher
 TARSRC = jbidwatcher-$(VER)

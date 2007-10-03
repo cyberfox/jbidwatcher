@@ -186,14 +186,6 @@ public class ebayBidder implements Bidder {
   public int buy(AuctionEntry ae, int quantity) {
     String buyRequest = "http://offer.ebay.com/ws/eBayISAPI.dll?MfcISAPICommand=BinConfirm&fb=1&co_partnerid=&item=" + ae.getIdentifier() + "&quantity=" + quantity;
 
-    //  This updates the cookies with the affiliate information, if it's not a test auction.
-    if(ae.getTitle().toLowerCase().indexOf("test") == -1) {
-      if(JBConfig.doAffiliate(ae.getEndDate().getTime())) {
-        //  Ignoring the result as it's just called to trigger affiliate mode.
-        ae.getServer().getAuction(ae, ae.getIdentifier());
-      }
-    }
-
     StringBuffer sb;
 
     try {
@@ -223,14 +215,6 @@ public class ebayBidder implements Bidder {
     Auctions.startBlocking();
     if(JConfig.queryConfiguration("sound.enable", "false").equals("true")) MQFactory.getConcrete("sfx").enqueue("/audio/bid.mp3");
 
-    try {
-      //  If it's not closing within the next minute, then go ahead and try for the affiliate mode.
-      if(inEntry.getEndDate().getTime() > (System.currentTimeMillis() + Constants.ONE_MINUTE)) {
-        safeGetAffiliate(inEntry);
-      }
-    } catch (CookieJar.CookieException ignore) {
-      //  We don't care that much about connection refused in this case.
-    }
     JHTML.Form bidForm;
 
     try {
@@ -278,17 +262,6 @@ public class ebayBidder implements Bidder {
     return handlePostBidBuyPage(cj, loadedPage, bidForm, inEntry);
   }
 
-  private void safeGetAffiliate(AuctionEntry inEntry) throws CookieJar.CookieException {
-    //  This updates the cookies with the affiliate information, if it's not a test auction.
-    if(inEntry.getTitle().toLowerCase().indexOf("test") == -1) {
-      if(JBConfig.doAffiliate(inEntry.getEndDate().getTime())) {
-        if(JConfig.debugging) inEntry.setLastStatus("Loading item...");
-        inEntry.getServer().getAuction(inEntry, inEntry.getIdentifier());
-        if(JConfig.debugging) inEntry.setLastStatus("Done loading item...");
-      }
-    }
-  }
-
   private int handlePostBidBuyPage(CookieJar cj, StringBuffer loadedPage, JHTML.Form bidForm, AuctionEntry inEntry) {
     if(JConfig.debugging) inEntry.setLastStatus("Loading post-bid data.");
     JHTML htmlDocument = new JHTML(loadedPage);
@@ -325,31 +298,6 @@ public class ebayBidder implements Bidder {
       bidMatch.find();
       String matched_error = bidMatch.group().toLowerCase();
       Integer bidResult = mResultHash.get(matched_error);
-
-      if(inEntry.getTitle().toLowerCase().indexOf("test") == -1) {
-        if(JBConfig.doAffiliate(inEntry.getEndDate().getTime())) {
-          List<String> images = htmlDocument.getAllImages();
-          for (String tag : images) {
-            Matcher tagMatch = srcPat.matcher(tag);
-            if (tagMatch.find()) {
-              int retry = 2;
-              do {
-                StringBuffer result = null;
-                try {
-                  result = mLogin.getNecessaryCookie(false).getAllCookiesAndPage(tagMatch.group(1), "http://offer.ebay.com/ws/eBayISAPI.dll", false);
-                } catch (CookieJar.CookieException ignored) {
-                  //  Ignore connection refused errors.
-                }
-                if (result == null) {
-                  retry--;
-                } else {
-                  retry = 0;
-                }
-              } while (retry != 0);
-            }
-          }
-        }
-      }
 
       if(JConfig.debugging) inEntry.setLastStatus("Done loading post-bid data.");
 

@@ -39,8 +39,11 @@ public class JTabPopupMenu extends JContext {
     JPopupMenu myPopup = new JPopupMenu();
 
     Collection<String> nameCollection = TableColumnController.getInstance().getColumnNames();
+    ArrayList<String> sortedNames = new ArrayList<String>(nameCollection);
+    Collections.sort(sortedNames);
+
     customize = new JMenu("Custom Columns");
-    for (String s : nameCollection) {
+    for (String s : sortedNames) {
       JCheckBoxMenuItem colMenuItem = new JCheckBoxMenuItem(s);
       colMenuItem.setActionCommand('~' + s);
       customize.add(colMenuItem).addActionListener(this);

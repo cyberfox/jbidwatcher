@@ -63,6 +63,9 @@
               <td width="11%" align="right" class="{$item_class}"><xsl:value-of select="info/currently/@currency"/>&space;<xsl:value-of select="info/currently/@price"/></td>
               <td width="11%" align="right" class="{$item_class}">
                 <xsl:choose>
+                  <xsl:when test="snipe">
+                    Snipe: <xsl:value-of select="snipe/@quantity"/> @ <xsl:value-of select="snipe/@currency"/>&space;<xsl:value-of select="snipe/@price"/>
+                  </xsl:when>
                   <xsl:when test="bid">
                     <xsl:value-of select="bid/@quantity"/> @ <xsl:value-of select="bid/@currency"/>&space;<xsl:value-of select="bid/@price"/>
                   </xsl:when>

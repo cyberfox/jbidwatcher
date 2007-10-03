@@ -185,7 +185,11 @@ public class Auctions implements TimerHandler.WakeupProcess {
    */
   public boolean anySnipes() {
     Object result = _tSort.find(new Comparison() {
-      public boolean match(Object o) { return ((AuctionEntry)o).isSniped(); }
+      public boolean match(Object o) {
+
+        AuctionEntry ae = ((AuctionEntry) o);
+        return ae.isSniped() && !ae.isEnded();
+      }
     });
     return result != null;
   }

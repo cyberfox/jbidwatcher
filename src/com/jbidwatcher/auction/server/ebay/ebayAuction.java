@@ -403,7 +403,7 @@ class ebayAuction extends SpecificAuction {
       if(newTitleMatch.find()) {
         setTitle(decodeLatin(newTitleMatch.group(2)));
         String endDate = newTitleMatch.group(4);
-        setEnd(StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat")).getDate());
+        setEnd(StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat"), true).getDate());
       }
     }
 
@@ -453,13 +453,13 @@ class ebayAuction extends SpecificAuction {
 
     if(getEnd() == null) {
       String endDate = getEndDate(prelimTitle);
-      setEnd(StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat")).getDate());
+      setEnd(StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat"), true).getDate());
     }
 
     try {
-      setStart(StringTools.figureDate(_htmlDocument.getNextContentAfterRegexIgnoring(Externalized.getString("ebayServer.startTime"), Externalized.getString("ebayServer.postTitleIgnore")), Externalized.getString("ebayServer.dateFormat")).getDate());
+        setStart(StringTools.figureDate(_htmlDocument.getNextContentAfterRegexIgnoring(Externalized.getString("ebayServer.startTime"), Externalized.getString("ebayServer.postTitleIgnore")), Externalized.getString("ebayServer.dateFormat"), true).getDate());
       if (getStart() == null) {
-        setStart(StringTools.figureDate(_startComment, Externalized.getString("ebayServer.dateFormat")).getDate());
+        setStart(StringTools.figureDate(_startComment, Externalized.getString("ebayServer.dateFormat"), true).getDate());
       }
     } catch (NullPointerException npe) {
       //  Don't lose the start time, if it happens to already be set somehow.
@@ -504,7 +504,7 @@ class ebayAuction extends SpecificAuction {
       setMinBid(Currency.getCurrency(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.firstBid"))));
       //  Handle odd case...
       if(getEnd() == null) {
-        setEnd(StringTools.figureDate(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.endsPrequel")), Externalized.getString("ebayServer.dateFormat")).getDate());
+        setEnd(StringTools.figureDate(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.endsPrequel")), Externalized.getString("ebayServer.dateFormat"), true).getDate());
       }
       Currency maxBid = Currency.getCurrency(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.yourMaxBid")));
 

@@ -9,6 +9,7 @@ import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.Constants;
 
 import java.util.*;
 import java.text.SimpleDateFormat;
@@ -353,6 +354,7 @@ public class auctionTableModel extends BaseTransformation {
 
           return neverBid;
         case TableColumnController.TIME_LEFT: {
+          if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE)) return "N/A";
           String endTime = aEntry.getTimeLeft();
           if(endTime.equals(AuctionEntry.endedAuction)) {
             SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
@@ -364,6 +366,7 @@ public class auctionTableModel extends BaseTransformation {
           return endTime;
         }
         case TableColumnController.END_DATE: {
+          if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE)) return "N/A";
           String endTime;
           SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
           endTime = fmt.format(aEntry.getEndDate());
@@ -391,6 +394,7 @@ public class auctionTableModel extends BaseTransformation {
         case TableColumnController.ITEM_LOCATION:
           return aEntry.getItemLocation();
         case TableColumnController.BIDCOUNT:
+          if(aEntry.getNumBidders() < 0) return "(FP)";
           return Integer.toString(aEntry.getNumBidders());
         case TableColumnController.JUSTPRICE:
           return aEntry.getCurBid();
@@ -400,18 +404,16 @@ public class auctionTableModel extends BaseTransformation {
           String fbp = aEntry.getPositiveFeedbackPercentage();
           return (fbp == null || fbp.length() == 0)?"--":(fbp+ '%');
         case TableColumnController.CUR_TOTAL:
-          Currency shipping = aEntry.getShippingWithInsurance();
+	  Currency shipping = aEntry.getShippingWithInsurance();
           if(shipping.getCurrencyType() == Currency.NONE) {
-            return "--"; // shipping not set so cannot add up values
+	    return "--"; // shipping not set so cannot add up values
           }
-
           try {
-             return aEntry.getCurBid().add(shipping);
+            return aEntry.getCurBid().add(shipping);
           } catch (Currency.CurrencyTypeException e) {
-            /* Should never happen, since we've checked the currency already.  */
             ErrorManagement.handleException("Currency addition threw a bad currency exception, which is odd...", e); //$NON-NLS-1$
-            return "--";
           }
+          return "--";
         case TableColumnController.SNIPE_TOTAL:
           return formatTotalSnipe(aEntry, errorNote);
         default:

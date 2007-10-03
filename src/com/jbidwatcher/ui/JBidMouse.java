@@ -41,8 +41,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private RSSDialog _rssDialog = null;
   private static StringBuffer _colorHelp = null;
   private static StringBuffer _aboutText = null;
-  private static StringBuffer _affiliateText = null;
-  private static StringBuffer _noaffiliateText = null;
   private static StringBuffer _faqText = null;
 
   private boolean _in_deleting = false;
@@ -100,10 +98,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       DoSearch();
     } else if(commandStr.equals("About")) {
       DoAbout();
-    } else if(commandStr.equals("Affiliate")) {
-      DoAffiliate();
-    } else if(commandStr.equals("NoAffiliate")) {
-      DoNoAffiliate();
     } else if(commandStr.equals("FAQ")) {
       DoFAQ();
     } else if(commandStr.equals("Configure")) {
@@ -561,21 +555,21 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       prompt = "<html><body>";
     }
     if(forRSS) {
-      prompt += "<B>" + stripHigh(ae.getTitle()) + "</B><br>";
+      prompt += "<b>" + stripHigh(ae.getTitle()) + "</b> (" + ae.getIdentifier() + ")<br>";
     } else {
-      prompt += "<B>" + ae.getTitle() + "</B><br>";
+      prompt += "<b>" + ae.getTitle() + "</b> (" + ae.getIdentifier() + ")<br>";
     }
     prompt += "<table>";
     if(ae.getThumbnail() != null) {
-      if(forRSS) {
+      if (forRSS) {
         try {
           InetAddress thisIp = InetAddress.getLocalHost();
           prompt += newRow + "<img src=\"http://" + thisIp.getHostAddress() + ":" + JConfig.queryConfiguration("server.port", "9099") + "/" + ae.getIdentifier() + ".jpg\">" + newCol + "<table>";
           addedThumbnail = true;
         } catch (UnknownHostException e) {
-		  //  Couldn't find THIS host?!?  Perhaps that means we're not online?
-		  ErrorManagement.logMessage("Unknown host trying to look up the local host.  Is the network off?");
-		}
+          //  Couldn't find THIS host?!?  Perhaps that means we're not online?
+          ErrorManagement.logMessage("Unknown host trying to look up the local host.  Is the network off?");
+        }
       } else {
         prompt += newRow + "<img src=\"" + ae.getThumbnail() + "\">" + newCol + "<table>";
         addedThumbnail = true;
@@ -625,9 +619,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     if(!ae.isFixed() && !ae.getBuyNow().isNull()) {
       if(ae.isEnded()) {
-        prompt += "<B>You could have used Buy It Now for " + ae.getBuyNow() + "<B><br>";
+        prompt += "<b>You could have used Buy It Now for " + ae.getBuyNow() + "</b><br>";
       } else {
-        prompt += "<B>Or you could buy it now, for " + ae.getBuyNow() + ".</B><br>";
+        prompt += "<b>Or you could buy it now, for " + ae.getBuyNow() + ".</b><br>";
         prompt += "Note: <i>To 'Buy Now' through this program,<br>      select 'Buy from the context menu.</i><br>";
       }
     }
@@ -639,7 +633,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     if(ae.getComment() != null) {
       prompt += "<br><u>Comment</u><br>";
 
-      prompt += "<B>" + ae.getComment() + "</B><br>";
+      prompt += "<b>" + ae.getComment() + "</b><br>";
     }
 
     prompt += "<b><u>Events</u></b><blockquote>" + ae.getLastStatus(true) + "</blockquote>";
@@ -684,11 +678,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       return;
     }
 
-	  if (len == 0) {
-      showSimpleInformation(ae, src);
-    } else {
-      showComplexInformation(rowList);
-    }
+    showComplexInformation(rowList);
   }
 
   private void showSimpleInformation(AuctionEntry ae, Component src) {
@@ -990,11 +980,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
           bidAmount = bidAmount.subtract(shipping);
         }
       }
-      if(checkBinBid(ae, bidAmount, src, "snipe")) {
-        ae.prepareSnipe(bidAmount, Integer.parseInt(snipeQuant));
-      } else {
-        return;
-      }
+      ae.prepareSnipe(bidAmount, Integer.parseInt(snipeQuant));
     } catch(NumberFormatException nfe) {
       JOptionPane.showMessageDialog(src, "You have entered a bad price for your snipe.\n" +
                                     snipeAmount + " is not a valid snipe.\n" +
@@ -1129,31 +1115,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
                                     "Bad bid value", JOptionPane.PLAIN_MESSAGE);
       return;
     }
-    if(checkBinBid(ae, bidAmount, src, "bid")) {
-      MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, Integer.parseInt(endResult[1])), "none"));
-    }
-  }
-
-  private boolean checkBinBid(AuctionEntry ae, Currency bidAmount, Component src, String bidSnipe) {
-    Currency bin = ae.getBuyNow();
-    if(bin != null && !bin.isNull()) {
-      try {
-        if(bin.less(bidAmount) || bin.equals(bidAmount)) {
-          int endResult = _oui.promptWithCheckbox(src, "<html><body>Your " + bidSnipe + " is over or equal to the Buy It Now price.<br>" +
-                                             "If you're willing to pay this much, you can choose 'Buy'<br>" +
-                                             "from the item context menu or Auction menu, and get it faster.<br>" +
-                                             "<b>If you're certain you want to place the " + bidSnipe + ", click 'OK'.</b></body></html>", "Bid over BIN", "prompt." + bidSnipe + "_over_bin_confirm");
-
-			return endResult != JOptionPane.CANCEL_OPTION && endResult != JOptionPane.CLOSED_OPTION;
-		}
-      } catch(Currency.CurrencyTypeException cte) {
-        //  This wouldn't make much sense...
-        ErrorManagement.handleException("Very strange, the BIN has a different currency that the bid!", cte);
-        //  Don't fail this, it's too strange a situation, and will confuse the user.  Let it go through.
-        //        return false;
-      }
-    }
-    return true;
+    MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, Integer.parseInt(endResult[1])), "none"));
   }
 
   private void DoShowInBrowser(Component src, AuctionEntry inAuction) {
@@ -1274,6 +1236,24 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
   }
 
+  private void DoSetNotEnded(Component c_src, AuctionEntry whichAuction) {
+    int[] rowList = getPossibleRows();
+
+    if (rowList.length != 0) {
+      int i;
+
+      for (i = 0; i < rowList.length; i++) {
+        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
+
+        tempEntry.setEnded(false);
+        tempEntry.setNeedsUpdate();
+      }
+    } else {
+      whichAuction.setEnded(false);
+      whichAuction.setNeedsUpdate();
+    }
+  }
+
   private void DoResetServerTime() {
     //  Always resets the server time based on the 'default' server.
     MQFactory.getConcrete("user").enqueue(GET_SERVER_TIME);
@@ -1294,32 +1274,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       aboutFrame = _oui.showTextDisplay(_aboutText!=null?_aboutText:badAbout, aboutBoxSize, "About " + Constants.PROGRAM_NAME + "...");
     } else {
       aboutFrame.setVisible(true);
-    }
-  }
-
-  private void DoAffiliate() {
-    Dimension affBoxSize = new Dimension(495, 445);
-
-    if(_affiliateText == null) {
-      _affiliateText = JBHelp.loadHelp("/help/affiliate.jbh", Constants.PROGRAM_NAME + " Request");
-    }
-
-    if(_affiliateText != null) {
-      _oui.showTextDisplayWithButtons(_affiliateText, affBoxSize, Constants.PROGRAM_NAME + " Request", "ebay.affiliate", "Accept", "true", "Decline", "false");
-      JConfig.setConfiguration("prompt.affiliate", "false");
-    }
-  }
-
-  private void DoNoAffiliate() {
-    Dimension affBoxSize = new Dimension(495, 445);
-
-    if(_noaffiliateText == null) {
-      _noaffiliateText = JBHelp.loadHelp("/help/no_affiliate.jbh", Constants.PROGRAM_NAME + " Appreciation");
-    }
-
-    if(_noaffiliateText != null) {
-      _oui.showTextDisplay(_noaffiliateText, affBoxSize, Constants.PROGRAM_NAME + " Appreciation");
-      JConfig.setConfiguration("informed.affiliate_over", "true");
     }
   }
 
@@ -1377,6 +1331,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DoSave(Component src) {
     boolean didSave = AuctionsManager.getInstance().saveAuctions();
+    System.gc();
+
     if(didSave) {
 //      JOptionPane.showMessageDialog(src, "Auctions Saved!", "Save Complete", JOptionPane.INFORMATION_MESSAGE);
       _oui.promptWithCheckbox(src, "Auctions saved!", "Save Complete", "prompt.savecomplete", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
@@ -1532,33 +1488,42 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     JConfig.setConfiguration("background", MultiSnipe.makeRGB(bgColor));
   }
 
+  private void DoClearDeleted(Component src) {
+    int clearedCount = AuctionsManager.getInstance().clearDeleted();
+
+    _oui.promptWithCheckbox(src, "Cleared " + clearedCount + " deleted entries.", "Clear Complete", "prompt.clear_complete", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
+  }
+
   protected void buildMenu(JPopupMenu menu) {
     menu.add(makeMenuItem("Snipe")).addActionListener(this);
+    menu.add(makeMenuItem("Cancel snipe")).addActionListener(this);
+    menu.add(new JPopupMenu.Separator());
+
     menu.add(makeMenuItem("Bid")).addActionListener(this);
     menu.add(makeMenuItem("Buy")).addActionListener(this);
-    menu.add(makeMenuItem("Cancel snipe")).addActionListener(this);
     menu.add(new JPopupMenu.Separator());
 
     menu.add(makeMenuItem("Update auction", "Update")).addActionListener(this);
     menu.add(makeMenuItem("Show information", "Information")).addActionListener(this);
-    menu.add(makeMenuItem("Show last error", "ShowError")).addActionListener(this);
     menu.add(makeMenuItem("Show in browser", "Browse")).addActionListener(this);
     //menu.add(makeMenuItem("Add Up Prices", "Sum")).addActionListener(this);
-    menu.add(makeMenuItem("Set Shipping", "Shipping")).addActionListener(this);
     menu.add(new JPopupMenu.Separator());
-    JMenu comment = new JMenu("Comments");
+
+    tabMenu = new JMenu("Send to...");
+    menu.add(tabMenu);
+    JMenu comment = new JMenu("Comments...");
     comment.add(makeMenuItem("Write", "Comment")).addActionListener(this);
     comment.add(makeMenuItem("Read", "View Comment")).addActionListener(this);
     comment.add(makeMenuItem("Delete", "Delete Comment")).addActionListener(this);
     menu.add(comment);
+    JMenu advanced = new JMenu("Advanced...");
+    advanced.add(makeMenuItem("Set Shipping", "Shipping")).addActionListener(this);
+    advanced.add(makeMenuItem("Show last error", "ShowError")).addActionListener(this);
+    advanced.add(makeMenuItem("Mark as not ended", "NotEnded")).addActionListener(this);
+    menu.add(advanced);
     menu.add(new JPopupMenu.Separator());
-    tabMenu = new JMenu("Send to...");
-    menu.add(tabMenu);
-    //menu.add(makeMenuItem("Reset server time", "Resync")).addActionListener(this);
-    //menu.add(new JPopupMenu.Separator());
+
     menu.add(makeMenuItem("Delete")).addActionListener(this);
-    //menu.add(new JPopupMenu.Separator());
-    //menu.add(makeMenuItem("Exit")).addActionListener(this);
   }
 
   protected void beforePopup(JPopupMenu jp, MouseEvent e) {
@@ -1617,7 +1582,12 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     if(ae != null) {
       if(ae.getComment() != null) rename("Write", "Edit");
       if(!ae.isSniped()) disable("Cancel snipe");
-      if(!ae.isEnded()) disable("complete");
+      if(!ae.isEnded()) {
+        disable("complete");
+        disable("Mark as not ended");
+      } else {
+        enable("Mark as not ended");
+      }
 
       if(ae.isSeller() || ae.isEnded()) {
         disable("Buy");
@@ -1659,6 +1629,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       if(!anySniped) disable("Cancel snipe");
       if(anyFixed || anyEnded) disable("Snipe");
       if(!anyCurrent) enable("complete");
+      if(anyEnded) enable("Mark as not ended"); else disable("Mark as not ended");
       rename("Snipe", "Multisnipe");
     }
 
@@ -1681,6 +1652,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
     if(actionString.equals("Save")) DoSave(c_src);
     else if(actionString.equals("Load")) DoLoad(null);
+    else if(actionString.equals("Clear Deleted")) DoClearDeleted(c_src);
     else if(actionString.equals("Configure")) DoConfigure();
     else if(actionString.equals("Check Updates")) DoCheckUpdates();
     else if(actionString.equals("Check For Updates")) DoCheckUpdates();
@@ -1711,6 +1683,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Bid")) DoBid(c_src, whichAuction);
     else if(actionString.equals("Buy")) DoBuy(c_src, whichAuction);
     else if(actionString.equals("Shipping")) DoShipping(c_src, whichAuction);
+    else if(actionString.equals("NotEnded")) DoSetNotEnded(c_src, whichAuction);
     else if(actionString.equals("Snipe")) DoSnipe(c_src, whichAuction);
     else if(actionString.equals("Multiple Snipe")) DoMultiSnipe(c_src);
 

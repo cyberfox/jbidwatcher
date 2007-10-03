@@ -16,7 +16,7 @@ import java.util.HashMap;
 /**
  * The GUI Menu bar. This will create the menu bar for the application.
  *
- * @version $Revision: 1.36 $
+ * @version $Revision: 1.38 $
  */
 public class JBidMenuBar extends JMenuBar {
   protected static JBidMenuBar _instance;
@@ -115,6 +115,7 @@ public class JBidMenuBar extends JMenuBar {
     }
 
     makeMenuItem(inMenu, "Check For Updates", KeyEvent.VK_U);
+    makeMenuItem(inMenu, "Clear deleted tracking", "Clear Deleted", KeyEvent.VK_D, KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     if(!Platform.isMac()) inMenu.add(new JSeparator());
     makeMenuItem(
         inMenu,
@@ -184,9 +185,12 @@ public class JBidMenuBar extends JMenuBar {
     }
 
     inMenu.add(new JSeparator());
-    makeMenuItem(inMenu, "Bid", 'B');
     makeMenuItem(inMenu, "Snipe", 'S', KeyStroke.getKeyStroke(KeyEvent.VK_E, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     makeMenuItem(inMenu, "Multiple Snipe", 'i');
+    makeMenuItem(inMenu, "Cancel snipe", 'C');
+    inMenu.add(new JSeparator());
+    makeMenuItem(inMenu, "Bid", 'B');
+    makeMenuItem(inMenu, "Buy", 'y');
     inMenu.add(new JSeparator());
     makeMenuItem(inMenu, "Update", 'U');
     makeMenuItem(inMenu, "Show Information", "Information", 'I');
@@ -194,7 +198,6 @@ public class JBidMenuBar extends JMenuBar {
     makeMenuItem(inMenu, "Show in browser", "Browse", 'b', KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 //    makeMenuItem(inMenu, "Show status", "Status", 't');
     inMenu.add(new JSeparator());
-    makeMenuItem(inMenu, "Cancel snipe", 'C');
     makeMenuItem(inMenu, "Make comment", "Comment", 'M');
     makeMenuItem(inMenu, "View Comment", 'V');
   }

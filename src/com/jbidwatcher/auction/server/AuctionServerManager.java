@@ -191,11 +191,14 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         aucCount += aucList.size();
 
         for (AuctionEntry ae : aucList) {
-          serverChild.addChild(ae.toXML());
+          try {
+            serverChild.addChild(ae.toXML());
+          } catch(Exception e) {
+            ErrorManagement.handleException("Exception trying to save auction " + ae.getIdentifier() + " (" + ae.getTitle() + ") -- Not saving", e);
+          }
         }
       }
       xmlResult.addChild(serverChild);
-
     }
 
     xmlResult.setProperty("count", Integer.toString(aucCount));

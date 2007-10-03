@@ -991,16 +991,12 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       }
 
       public void handleQuit() {
-        if(AuctionsManager.getInstance().anySnipes()) {
+        if(!(JConfig.queryConfiguration("prompt.snipe_quit", "false").equals("true")) &&
+            (AuctionsManager.getInstance().anySnipes())) {
           MQFactory.getConcrete("Swing").enqueue(QUIT_MSG);
           //  Please wait, we'll be ready to quit shortly.
           throw new IllegalStateException("Ne changez pas mains, il viendra bient�t.");
         } else {
-          //  Known bug -- If the user has said, 'Never show me this
-          //  prompt' for the outstanding snipes warning, we will
-          //  still go to that code path on shutdown if there are
-          //  outstanding snipes.  A 'would we show this message'
-          //  function would be cool. -- mrs: 24-November-2003 00:31
           internal_shutdown();
         }
       }
@@ -1130,22 +1126,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     //m_tqm.add(JBidMouse.ADD_AUCTION + "5582606163", "user", System.currentTimeMillis() + (Constants.ONE_MINUTE / 2));
 
     long now = System.currentTimeMillis();
-    //  Don't show the affiliate question on the first run.
-    if(JConfig.queryConfiguration("first.run", "true").equals("false")) {
-      //  Don't show it for pre-releases.
-      if(Constants.PROGRAM_VERS.indexOf("pre") == -1) {
-        //  Don't show it if the user has already turned it on, or has already seen it.
-        if(JConfig.queryConfiguration("ebay.affiliate", "false").equals("false") &&
-           JConfig.queryConfiguration("prompt.affiliate", "true").equals("true")) {
-          if(JConfig.queryConfiguration("ebay.affiliate.override", "false").equals("true")) m_tqm.add("Affiliate", "user", now + (ONE_SECOND * 5));
-        }
-      }
-    }
-
-    if(JConfig.queryConfiguration("ebay.affiliate", "false").equals("true") &&
-       JConfig.queryConfiguration("informed.affiliate_over", "false").equals("false")) {
-      m_tqm.add("NoAffiliate", "user", now + (ONE_SECOND * 5));
-    }
 
     if(JConfig.queryConfiguration("updates.enabled", "true").equals("true")) {
       m_tqm.add("CHECK", "update", now + (ONE_SECOND * 10));

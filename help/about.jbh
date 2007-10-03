@@ -1,10 +1,9 @@
-<HTML><HEAD><TITLE><%title%></TITLE></HEAD>
-<BODY>
-<table border=0 cellspacing=0 cellpadding=0 cols=2 width="100%"><tr><td width=72 valign=top><a href="http://www.jbidwatcher.com"><img src="<%jay%>"></a></td><td><%pname%> (<%ver%>) - A program to manage auction bids!<br><br>
-Hint: Try dragging and dropping from the Firefox or IE 'location' bar (or from any link to an auction) onto <%pname%>...<br></td></tr></table>
-<h2>Personal/Financial Note</h2>I'm a very happy user of <A HREF="https://www.paypal.com/auction/pal=cyberfox%40users.sourceforge.net" target="_blank">PayPal</A>, and recommend them for your auction payment needs.<br><br>If you're already a PayPal member, and find JBidWatcher really useful, you could <a href="<%donate%>">donate a small sum of money</a>, for which I would be extremely grateful.<br><br>
-For more information and hints about the program, or to report bugs or request features, visit the JBidwatcher homepage, by clicking on Jay, above, or going to <a href="http://www.jbidwatcher.com">http://www.jbidwatcher.com</a> in your browser.<br><br>
-As the number of users has grown, my ability to reply to every email has decreased.  I really do try, and I love hearing from people using my program, but I can't promise I'll always respond.  Feel free, in any case, to <a href="mailto:jbcomments@vixen.com">email me</a> with comments, positive and negative, about the program!<br>
-<center>--  <i>Morgan Schweers</i> <a href="mailto:jbcomments@vixen.com"><img src="<%head%>"></a></center>
-</BODY>
-</HTML>
+<html><head><title><%title%></title></head>
+<body>
+<table border=0 cellspacing=0 cellpadding=0 cols=2 width="100%"><tr><td width=72 valign=top><a href="http://www.jbidwatcher.com"><img src="<%jay%>"></a></td><td><%pname%> (<%ver%>) - A program to manage auction bids!<br><br>by Morgan Schweers</td></tr></table><br>
+Look in <a href="/FAQ">Help | FAQ</a> for many useful hints.  For even more information and hints, including a <a href="http://www.jbidwatcher.com/help/faq.shtml">new, different FAQ</a>, or to report bugs or request features, please visit the JBidwatcher homepage by clicking on Jay, above, or going to <a href="http://www.jbidwatcher.com">http://www.jbidwatcher.com</a> in your browser.  <b>New, as of JBidwatcher 1.0.1, there are also <a href="http://forum.jbidwatcher.com">JBidwatcher community forums</a> available for everyone's participation!</b><br>
+<h2>Personal/Financial Note</h2>I'm a very happy user of <a href="https://www.paypal.com/auction/pal=cyberfox%40users.sourceforge.net" target="_blank">PayPal</A>, and recommend them for your auction payment needs.<br><br>If you're already a PayPal member, and find JBidWatcher especially useful, you could <a href="<%donate%>">donate a small sum of money</a>, for which I am always grateful.<br><br>
+Unfortunately as the number of users has grown, my ability to reply to every email has decreased.  I really do try, and I love hearing from people using my program, but I can't promise I'll always respond.  Feel free, in any case, to <a href="mailto:jbcomments@vixen.com">email me</a> with comments, positive and negative, about the program!<br>
+<center>--  <i>Morgan Schweers, CyberFOX!</i> <a href="mailto:jbcomments@vixen.com"><img src="<%head%>"></a></center>
+</body>
+</html>

@@ -150,7 +150,7 @@ public class Http {
    * @brief Retrieve raw data from an already existing URL connection.
    * 
    * @param uc - The URLConnection to pull the data from.
-   * 
+   *
    * @return - A structure containing the raw data and the length.
    */
   public static ByteBuffer receiveData(URLConnection uc) throws IOException {
@@ -172,10 +172,21 @@ public class Http {
       offset += count;
       count = is.read(mainBuf, offset, curMax-offset);
     }
+    is.close();
     return new ByteBuffer(mainBuf, offset);
   }
 
   public static StringBuffer receivePage(URLConnection uc) throws IOException {
+    ByteBuffer buff;
+
+    buff = receiveData(uc);
+
+    if(buff == null) return null;
+
+    return new StringBuffer(new String(buff.getData(), 0, buff.getLength()));
+  }
+
+  public static StringBuffer receivePage_old(URLConnection uc) throws IOException {
     StringBuffer loadUp = new StringBuffer();
 
     BufferedReader br = null;

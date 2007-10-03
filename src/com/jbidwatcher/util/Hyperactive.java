@@ -21,8 +21,11 @@ public class Hyperactive implements HyperlinkListener {
   public void hyperlinkUpdate(HyperlinkEvent e) {
     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
       String desc = e.getDescription();
-      if(desc != null && desc.startsWith("#")) {
+      if(desc != null)
+      if (desc.startsWith("#")) {
         _pane.scrollToReference(desc.substring(1));
+      } else if (desc.startsWith("/")) {
+        MQFactory.getConcrete("user").enqueue(desc.substring(1));
       } else {
         try {
           MQFactory.getConcrete("browse").enqueue(e.getDescription());

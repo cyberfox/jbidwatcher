@@ -408,13 +408,17 @@ public class Currency implements Comparable {
    * @throws CurrencyTypeException if the two objects are of different currencies.
    */
   public Currency subtract(Currency subValue) throws CurrencyTypeException {
-    if(subValue == null) throw new CurrencyTypeException("Cannot add null Currency.");
+    if(subValue == null) throw new CurrencyTypeException("Cannot subtract null Currency.");
 
     if(subValue.getCurrencyType() == _whatCurrency) {
       return new Currency(_whatCurrency, _value - subValue.getValue());
     }
 
-    throw new CurrencyTypeException("Cannot add " + fullCurrencyName() + " to " + subValue.fullCurrencyName() + ".");
+    //  If only one currency is known, return the result as the known currency.
+    if(_whatCurrency == NONE) return new Currency(subValue.getCurrencyType(), _value - subValue.getValue());
+    if(subValue.getCurrencyType() == NONE) return new Currency(_whatCurrency, _value - subValue.getValue());
+
+    throw new CurrencyTypeException("Cannot subtract " + fullCurrencyName() + " from " + subValue.fullCurrencyName() + ".");
   }
 
   public int getCurrencyType() { return _whatCurrency; }
@@ -515,7 +519,7 @@ public class Currency implements Comparable {
     otherValue = (Currency)inValue;
 
     sameCurrency = (otherValue.getCurrencyType() == _whatCurrency);
-    sameValue = ((int)otherValue.getValue()*1000) == ((int)_value*1000);
+    sameValue = ((int)(otherValue.getValue()*1000)) == ((int)(_value*1000));
 
     return(sameCurrency && sameValue);
   }
@@ -547,7 +551,7 @@ public class Currency implements Comparable {
       throw new CurrencyTypeException("Cannot compare different currencies.");
     }
 
-    lowerValue = Double.compare( (double)((int)otherValue.getValue()*1000), (double)(int)_value*1000) == 1;
+    lowerValue = Double.compare( (double)((int)(otherValue.getValue()*1000)), (double)(int)(_value*1000)) == 1;
 
     return(lowerValue);
   }

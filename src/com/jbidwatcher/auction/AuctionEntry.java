@@ -1563,7 +1563,20 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @param inAI - The AuctionInfo object to make the new core data.
    */
-  public void setAuctionInfo(AuctionInfo inAI) { _auction = inAI; checkHighBidder(false); checkSeller(); checkEnded(); }
+  public void setAuctionInfo(AuctionInfo inAI) {
+    //  If the end date has changed, let's reschedule the snipes for the new end date...?
+    if(!_auction.getEndDate().equals(inAI.getEndDate())) {
+      Currency saveSnipeBid = _snipeBid;
+      int saveSnipeQuantity = _snipeQuantity;
+      prepareSnipe(null);
+      prepareSnipe(saveSnipeBid, saveSnipeQuantity);
+    }
+    _auction = inAI;
+
+    checkHighBidder(false);
+    checkSeller();
+    checkEnded();
+  }
 
   /* Accessor functions that are passed through directly down
    * to the internal AuctionInfo object.
@@ -1589,10 +1602,21 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   public String getHighBidderEmail() { return _auction.getHighBidderEmail(); }
   public String getTitle() { return _auction.getTitle(); }
 
-  private static final Date TIMESTART = new Date(0);
+  public Date getStartDate() {
+    if (_auction != null && _auction.getStartDate() != null) {
+      return _auction.getStartDate();
+    } else {
+      return Constants.LONG_AGO;
+    }
+  }
 
-  public Date getStartDate() { return _auction.getStartDate(); }
-  public Date getEndDate() { if(_auction != null) return _auction.getEndDate(); else return TIMESTART; }
+  public Date getEndDate() {
+    if(_auction != null && _auction.getEndDate() != null) {
+      return _auction.getEndDate();
+    } else {
+      return Constants.FAR_FUTURE;
+    }
+  }
   public Date getSnipeDate() { return new Date(_auction.getEndDate().getTime() - getSnipeTime()); }
 
   public boolean isDutch() { return _auction.isDutch(); }

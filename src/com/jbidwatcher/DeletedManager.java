@@ -16,10 +16,18 @@ import java.io.File;
  * @brief Manage deleted items, so they are not added again.
  */
 public class DeletedManager implements XMLSerialize {
-  private Map<String, Date> _deletedItems = null;
+  private Map<String, Long> _deletedItems = null;
 
   public DeletedManager() {
-    _deletedItems = new TreeMap<String, Date>();
+    _deletedItems = new TreeMap<String, Long>();
+  }
+
+  public int clearDeleted() {
+    int rval = _deletedItems.size();
+
+    _deletedItems = new TreeMap();
+
+    return rval;
   }
 
   public boolean isDeleted(String id) {
@@ -57,7 +65,7 @@ public class DeletedManager implements XMLSerialize {
   public void delete(String id) {
     if(!isDeleted(id)) {
       killFiles(id);
-      _deletedItems.put(id, new Date());
+      _deletedItems.put(id, new Long(System.currentTimeMillis()));
     }
   }
 
@@ -65,19 +73,26 @@ public class DeletedManager implements XMLSerialize {
     //  A lack of deleted entries is not a failure.
     if(deletedEntries == null) return;
 
+    long now = System.currentTimeMillis();
+    //  60 days ago is the cut off point for keeping deleted entries around.
+    long past = now - (Constants.ONE_DAY * 60);
+
     //  Walk over all the deleted entries and store them.
     Iterator<XMLElement> delWalk = deletedEntries.getChildren();
     while(delWalk.hasNext()) {
       XMLElement delEntry = delWalk.next();
       if(delEntry.getTagName().equals("delentry")) {
+        long when;
+
         String strDel = delEntry.getProperty("when");
-        Date whenDeleted;
         if(strDel == null) {
-          whenDeleted = new Date();
+          when = now;
         } else {
-          whenDeleted = new Date(Long.parseLong(strDel));
+          when = Long.parseLong(strDel);
         }
-        _deletedItems.put(delEntry.getContents(), whenDeleted);
+        if(when > past) {
+          _deletedItems.put(delEntry.getContents(), new Long(when));
+        }
       }
     }
   }
@@ -86,7 +101,7 @@ public class DeletedManager implements XMLSerialize {
     XMLElement xmlResult = new XMLElement("deleted");
     for (String delId : _deletedItems.keySet()) {
       XMLElement entry = new XMLElement("delentry");
-      entry.setProperty("when", Long.toString((_deletedItems.get(delId)).getTime()));
+      entry.setProperty("when", _deletedItems.get(delId).toString());
       entry.setContents(delId);
       xmlResult.addChild(entry);
     }

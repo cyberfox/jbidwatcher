@@ -1,4 +1,4 @@
-<HTML><HEAD><TITLE><%title%></TITLE></HEAD><BODY><a name="top"></a>
+<html><head><title><%title%></title></head><body><a name="top"></a>
 <%pname%> (<%ver%>) - Frequently Asked Questions<br>
 <i>(Culled from emails to my users.)</i><br><br><u>Table of Contents</u><br>
 <%toc%>
@@ -6,7 +6,7 @@
 <%que 0%>How do I customize the tabs and columns?
 <%ans%>This is more of a hint than a FAQ.  Try right-clicking (or control-click
 on Mac OS X) on the tab name.  There's a whole set of controls for columns and
-tabs available, but not obvious.
+tabs available, but they're not well exposed.
 <%end%>
 
 <%que 1%>I'm 'Not logged in...', why?
@@ -101,11 +101,15 @@ available.  The DTD for the auctions save data is kept on the
 www.jbidwatcher.com server, so as long as Excel has a net connection
 it should be able to load it.  All you need to do is drag
 <pre><%auctions_save%></pre>(your auctions save file) onto Excel, and
-drop it.  Excel should automatically load the XML into columns.
+drop it.  Excel should automatically load the XML into columns.<br>
+<br>The other option is to right-click (or control click under Mac OS X) on
+the tab name itself, and there should be an option 'Export', which will save
+all the information in the currently visible columns for all the rows in the
+current table out as a CSV file.
 <%end%>
 
 <%que 10%>Can I add searches that are more specific than <%pname%> lets me?
-<%ans%>Yes!  The <b>Search Manager</b> has a special feature named
+<%ans%>Yes!  The <b><a href="/SEARCH">Search Manager</a></b> has a special feature named
 'URL Load', which lets you input a URL to load all the items from.<br>
 
 <br>How does this work?<br>
@@ -119,17 +123,17 @@ under Display.  There, that's the perfect search.<br>
 
 <br>Now, go to your browsers 'Location' bar, where there's a very
 complex URL.  Copy that URL into your platforms clipboard, and go to
-the <b>Search Manager</b>.  (The binoculars on the toolbar, or <b>Edit
-| Find</b>).  Under <i>Add & Execute New Search</i>, there is a
-drop-down box.  Select <i>URL Load</i> from the list, and paste the
-URL you copied before into the text entry field right next to the drop
-down box.  Now click <i>Search</i> to save it and run it immediately,
-or <i>Add</i> to just add it to your available searches without doing
-it yet.  Both buttons will add an entry named <b>New Search</b> in the
-<i>Saved Searches</i> box, which you can later edit and rename to a
-more recognizable title.<br>
+the <b><a href="/SEARCH">Search Manager</a></b>.  (The binoculars on the toolbar, or <b>Edit
+| Find</b>).  Click the <i>New</i> button.  Give the new search a name, and
+change the Search Type to <i>URL Load</i> from the dropdown, and paste the
+URL you copied before into the Search: field.  Enter in a tab for where this
+search is to store its results, either picking an existing one, or entering
+a new tab name.  Now click <i>OK</i> to save it.  There will now be a line in the
+Search Manager with the name you gave it.  You can just double-click that line, and
+it'll run that search.  You can go back in and change anything except the search
+type later.<br>
 
-<br>You're done, you've added a complex search into <%pname%>!
+<br><i>You're done, you've added a complex search into <%pname%></i>!
 <%end%>
 
 <%que 11%>What's the checkbox for "Registered Adult" for?
@@ -141,22 +145,10 @@ eBay as an adult in order to determine what type of login to do, so it
 can monitor and bid/snipe on adult items as well.
 <%end%>
 
-<%que 12%>How do spending limits work?
-<%ans%>They don't yet, unfortunately.  I'm having issues with figuring
-out how to handle multi-currency with them in a user-friendly
-fashion.<br>
-<br>Spending limits will limit the amount you can spend
-(easily changable, but requires that you consciously do so) by
-limiting the amount of bids you can place.  It will presume during an
-auction that your bid will go to its max, but once the auction is over
-it will only look at the final amount it cost.  The idea is that when
-placing a bid/snipe, it will pop up a message saying, 'This bid/snipe
-is over your spending limits, and has been denied.'  It's more for
-people who are concerned that they won't realize how much they are
-spending on eBay in a given amount of time, and want to limit
-themselves, but don't want to hassle with keeping track themselves of
-how much they've spent.
-<%end%>
+<%que 12%>How do I get items into JBidwatcher from my browser?
+<%ans%>Try dragging and dropping from the Firefox, IE, or Safari 'location' bar,
+or from any link to an auction onto the main display of JBidwatcher.  It should
+add the item into JBidwatcher's list of monitored auctions!<%end%>
 
 <%que 13%>How often does it update the items I'm watching or sniping on?
 <%ans%>About once every half hour, and then once a minute through the
@@ -209,6 +201,4 @@ including JBidwatcher, until they wake up again.  Often they will shut down
 their network connections, too, until they wake.  This means JBidwatcher will
 <b><i>not</i></b> be able to snipe while the computer is asleep.  Make sure to
 disable sleep mode well in advance of any snipes you want JBidwatcher to fire.<%end%>
-
-<center>--  Morgan Schweers, Cyber<B>FOX</B>!</center>
-</BODY></HTML>
+</body></html>

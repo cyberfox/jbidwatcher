@@ -77,8 +77,8 @@ public class HTMLDump {
     } else {
       outValue.append(createTD("8%", "center", ae.getNumBidders(), color));
     }
-    outValue.append(createTD("11%", "center", ae.getStartDate().toString().substring(4), color));
-    outValue.append(createTD("18%", "center", ae.getEndDate().toString().substring(4), color));
+    outValue.append(createTD("11%", "center", formatDate(ae.getStartDate()), color));
+    outValue.append(createTD("18%", "center", formatDate(ae.getEndDate()), color));
     String snipeLink = ae.getTimeLeft();
     if(!snipeLink.equals("Auction ended.")) {
       snipeLink = "<a href=\"snipe?id=" + ae.getIdentifier() + "\">" + ae.getTimeLeft() + "</a>";
@@ -87,6 +87,11 @@ public class HTMLDump {
     outValue.append("</TR></TABLE>");
 
     return outValue.toString();
+  }
+
+  public String formatDate(Date value) {
+    if(value == null || value.equals(Constants.FAR_FUTURE) || value.equals(Constants.LONG_AGO)) return "N/A";
+    return value.toString().substring(4);
   }
 
   public StringBuffer createFullTable(Iterator<AuctionEntry> aucIterate) {
