@@ -354,7 +354,8 @@ public class auctionTableModel extends BaseTransformation {
 
           return neverBid;
         case TableColumnController.TIME_LEFT: {
-          if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE)) return "N/A";
+          if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE))
+            return "N/A";
           String endTime = aEntry.getTimeLeft();
           if(endTime.equals(AuctionEntry.endedAuction)) {
             SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
@@ -366,7 +367,8 @@ public class auctionTableModel extends BaseTransformation {
           return endTime;
         }
         case TableColumnController.END_DATE: {
-          if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE)) return "N/A";
+          if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE))
+            return "N/A";
           String endTime;
           SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
           endTime = fmt.format(aEntry.getEndDate());

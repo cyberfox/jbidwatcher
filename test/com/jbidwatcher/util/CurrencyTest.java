@@ -47,8 +47,8 @@ public class CurrencyTest extends TestCase {
 
   public void testConvertToUSD() throws Exception {
     Currency usd1 = Currency.getCurrency("$1.00");
-    Currency cad1 = Currency.getCurrency("c$1.23");
-    Currency tst1 = Currency.getCurrency("c$4.92");
+    Currency cad1 = Currency.getCurrency("CAD 1.23");
+    Currency tst1 = Currency.getCurrency("CAD 4.92");
     Currency cvt1 = Currency.convertToUSD(usd1, cad1, tst1);
     assertEquals(cvt1, Currency.getCurrency("$4.00"));
   }

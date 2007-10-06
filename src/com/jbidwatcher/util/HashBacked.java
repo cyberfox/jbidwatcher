@@ -7,7 +7,6 @@ import com.jbidwatcher.util.db.DBRecord;
 import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 /**
@@ -20,12 +19,14 @@ import java.text.SimpleDateFormat;
 public abstract class HashBacked extends XMLSerializeSimple {
   private static final DBRecord EMPTY = new DBRecord();
   private DBRecord mBacking = EMPTY;
-  private static SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+  private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
   private Map<String, String> mTranslationTable;
   private String mDefaultCurrency;
 
   public HashBacked() {
+    mDateFormat.setTimeZone(TimeZone.getDefault());
     mBacking = new DBRecord();
+    mDefaultCurrency = Currency.getCurrency("$1.00").fullCurrencyName();
   }
 
   public void setTranslationTable(Map<String, String> table) { mTranslationTable = table; }
@@ -66,6 +67,8 @@ public abstract class HashBacked extends XMLSerializeSimple {
     if (c.isNull())
       set(key, null);
     else {
+      //  Only set the default currency to some non-USD currency if a non-USD currency is being passed in.
+      if(!c.fullCurrencyName().equals(mDefaultCurrency) && c.getCurrencyType() != Currency.US_DOLLAR) setDefaultCurrency(c);
       set(key, Double.toString(c.getValue()));
     }
   }
@@ -78,25 +81,28 @@ public abstract class HashBacked extends XMLSerializeSimple {
     if (date == null || date.getTime() < 0) {
       set(key, null);
     } else {
-      sDateFormat.setTimeZone(TimeZone.getDefault());
-      set(key, sDateFormat.format(date));
+      set(key, mDateFormat.format(date));
     }
   }
 
   public Date getDate(String key) {
     String s_value = get(key);
-    if (s_value == null) {
+    if (s_value == null || s_value.length() == 0) {
       return null;
     } else {
       try {
-        sDateFormat.setTimeZone(TimeZone.getDefault());
-        return sDateFormat.parse(s_value);
-      } catch (ParseException e) {
+        return mDateFormat.parse(s_value);
+      } catch (Exception e) {
         return null;
       }
     }
   }
 
+  public Integer getInteger(String key, Integer fallback) {
+    Integer result = getInteger(key);
+    if(result == null) return fallback;
+    return result;
+  }
   public Integer getInteger(String key) {
     String s_value = get(key);
     if (s_value == null)

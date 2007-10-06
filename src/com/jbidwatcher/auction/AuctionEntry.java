@@ -1438,6 +1438,8 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
         dateDiff = 0;
       }
 
+      if(dateDiff > Constants.ONE_DAY * 60) return "N/A";
+
       if(dateDiff >= 0) {
         long days = dateDiff / (Constants.ONE_DAY);
         dateDiff -= days * (Constants.ONE_DAY);
@@ -1597,25 +1599,27 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   public int getNumBidders() { return _auction.getNumBidders(); }
 
 
-  public String getSeller() { return _auction.getSeller(); }
+  public String getSeller() { return _auction.getSellerName(); }
   public String getHighBidder() { return _auction.getHighBidder(); }
   public String getHighBidderEmail() { return _auction.getHighBidderEmail(); }
   public String getTitle() { return _auction.getTitle(); }
 
   public Date getStartDate() {
     if (_auction != null && _auction.getStartDate() != null) {
-      return _auction.getStartDate();
-    } else {
-      return Constants.LONG_AGO;
+      Date start = _auction.getStartDate();
+      if(start != null) return start;
     }
+
+    return Constants.LONG_AGO;
   }
 
   public Date getEndDate() {
     if(_auction != null && _auction.getEndDate() != null) {
-      return _auction.getEndDate();
-    } else {
-      return Constants.FAR_FUTURE;
+      Date end = _auction.getEndDate();
+      if(end != null) return end;
     }
+
+    return Constants.FAR_FUTURE;
   }
   public Date getSnipeDate() { return new Date(_auction.getEndDate().getTime() - getSnipeTime()); }
 

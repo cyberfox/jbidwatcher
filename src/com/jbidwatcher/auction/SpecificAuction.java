@@ -10,12 +10,12 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.auction.server.AuctionServer;
 
 public abstract class SpecificAuction extends AuctionInfo implements CleanupHandler {
-  protected JHTML _htmlDocument;
+  protected JHTML mDocument;
 
   public abstract AuctionServer.ParseErrors parseAuction(AuctionEntry ae);
 
   protected void finish() {
-    _htmlDocument = null;
+    mDocument = null;
   }
 
   public boolean preParseAuction() {
@@ -24,16 +24,16 @@ public abstract class SpecificAuction extends AuctionInfo implements CleanupHand
 
     cleanup(sb);
 
-    _htmlDocument = new JHTML(sb);
+    mDocument = new JHTML(sb);
 
     return true;
   }
 
   protected boolean doesLabelExist(String label) {
-    return (_htmlDocument.lookup(label, false) != null);
+    return (mDocument.lookup(label, false) != null);
   }
 
   protected boolean doesLabelPrefixExist(String label) {
-    return (_htmlDocument.find(label, false) != null);
+    return (mDocument.find(label, false) != null);
   }
 }

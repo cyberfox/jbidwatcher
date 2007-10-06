@@ -128,8 +128,8 @@ class MockSpecificAuction extends SpecificAuction {
     return mAI.getNumBidders();
   }
 
-  public String getSeller() {
-    return mAI.getSeller();
+  public String getSellerName() {
+    return mAI.getSellerName();
   }
 
   public String getHighBidder() {

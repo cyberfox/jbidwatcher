@@ -142,8 +142,8 @@ public class StringTools {
     return false;
   }
 
-  public static ZoneDate figureDate(String rawTime, String siteDateFormat, boolean ignore_badformat) {
-      return figureDate(rawTime, siteDateFormat, true, ignore_badformat);
+  public static ZoneDate figureDate(String rawTime, String siteDateFormat) {
+      return figureDate(rawTime, siteDateFormat, true, true);
   }
 
   /**
@@ -164,7 +164,7 @@ public class StringTools {
 
     sdf.set2DigitYearStart(sMidpointDate.getTime());
 
-    if (endTime == null) return null;
+    if (endTime == null) return sNullZoneDate;
 
     if (strip_high) {
       endTimeFmt = StringTools.stripHigh(endTime, siteDateFormat);
@@ -172,7 +172,9 @@ public class StringTools {
     return parseDateZone(sdf, endTimeFmt, ignore_badformat);
   }
 
-    private static ZoneDate parseDateZone(SimpleDateFormat sdf, String endTimeFmt, boolean ignore_badformat) {
+  private static final ZoneDate sNullZoneDate = new ZoneDate(null, null);
+
+  private static ZoneDate parseDateZone(SimpleDateFormat sdf, String endTimeFmt, boolean ignore_badformat) {
     Date endingDate;
     TimeZone tz;
 

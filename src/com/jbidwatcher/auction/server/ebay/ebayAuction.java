@@ -1,7 +1,6 @@
 package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.Seller;
 import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.auction.ThumbnailManager;
 import com.jbidwatcher.auction.server.AuctionServer;
@@ -193,7 +192,7 @@ class ebayAuction extends SpecificAuction {
   private Pattern amountPat = Pattern.compile("(([0-9]+\\.[0-9]+|(?i)free))");
 
   private void load_shipping_insurance(com.jbidwatcher.util.Currency sampleAmount) {
-    String shipString = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.shipping"));
+    String shipString = mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.shipping"));
     //  Sometimes the next content might not be the shipping amount, it might be the next-next.
     Matcher amount = null;
     boolean amountFound = false;
@@ -201,7 +200,7 @@ class ebayAuction extends SpecificAuction {
       amount = amountPat.matcher(shipString);
       amountFound = amount.find();
       if (!amountFound) {
-        shipString = _htmlDocument.getNextContent();
+        shipString = mDocument.getNextContent();
         amount = amountPat.matcher(shipString);
         if (shipString != null) amountFound = amount.find();
       }
@@ -213,10 +212,10 @@ class ebayAuction extends SpecificAuction {
     //  Instructions', in which case, the shipping and handling
     //  came from their instructions box, not the
     //  standard-formatted data.
-    String shipStringCheck = _htmlDocument.getPrevContent(2);
+    String shipStringCheck = mDocument.getPrevContent(2);
 
-    String insureString = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.shippingInsurance"));
-    String insuranceOptionalCheck = _htmlDocument.getNextContent();
+    String insureString = mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.shippingInsurance"));
+    String insuranceOptionalCheck = mDocument.getNextContent();
 
     //  Default to thinking it's optional if the word 'required' isn't found.
     //  You don't want to make people think it's required if it's not.
@@ -266,13 +265,13 @@ class ebayAuction extends SpecificAuction {
     setBuyNow(Currency.NoValue());
     setBuyNowUS(zeroDollars);
 
-    String altBuyNowString1 = _htmlDocument.getNextContentAfterRegexIgnoring(Externalized.getString("ebayServer.price"), "([Ii]tem.[Nn]umber|^\\s*[0-9]+\\s*$)");
+    String altBuyNowString1 = mDocument.getNextContentAfterRegexIgnoring(Externalized.getString("ebayServer.price"), "([Ii]tem.[Nn]umber|^\\s*[0-9]+\\s*$)");
     if(altBuyNowString1 != null) {
       altBuyNowString1 = altBuyNowString1.trim();
     }
     if(altBuyNowString1 != null && altBuyNowString1.length() != 0) {
       setBuyNow(Currency.getCurrency(altBuyNowString1));
-      setBuyNowUS(getUSCurrency(getBuyNow(), _htmlDocument));
+      setBuyNowUS(getUSCurrency(getBuyNow(), mDocument));
     }
   }
 
@@ -382,10 +381,10 @@ class ebayAuction extends SpecificAuction {
     }
 
     //  Get the integer values (Quantity, Bidcount)
-    setQuantity(getNumberFromLabel(_htmlDocument, Externalized.getString("ebayServer.quantity"), Externalized.getString("ebayServer.postTitleIgnore")));
+    setQuantity(getNumberFromLabel(mDocument, Externalized.getString("ebayServer.quantity"), Externalized.getString("ebayServer.postTitleIgnore")));
 
     setFixedPrice(false);
-    setNumBids(getBidCount(_htmlDocument, getQuantity()));
+    setNumBids(getBidCount(mDocument, getQuantity()));
 
     try {
       load_buy_now();
@@ -397,7 +396,7 @@ class ebayAuction extends SpecificAuction {
       establishCurrentBidFixedPrice(ae);
     } else {
       Currency maxBid = establishCurrentBid(ae);
-      setOutbid(_htmlDocument.grep(Externalized.getString("ebayServer.outbid")) != null);
+      setOutbid(mDocument.grep(Externalized.getString("ebayServer.outbid")) != null);
       setMaxBidFromServer(ae, maxBid);
     }
 
@@ -417,7 +416,7 @@ class ebayAuction extends SpecificAuction {
     checkReserve();
     checkPrivate();
 
-    loadOptionalInformation(_htmlDocument);
+    loadOptionalInformation(mDocument);
     checkThumbnail();
 
     finish();
@@ -430,7 +429,7 @@ class ebayAuction extends SpecificAuction {
    * @return - The preliminary extraction of the title, in its entirety, for later parsing.  null if a failure occurred.
    */
   private String checkTitle() {
-    String prelimTitle = _htmlDocument.getFirstContent();
+    String prelimTitle = mDocument.getFirstContent();
     if( prelimTitle == null) {
       prelimTitle = Externalized.getString("ebayServer.unavailable");
     }
@@ -471,7 +470,7 @@ class ebayAuction extends SpecificAuction {
         if (newTitleMatch.find()) {
           setTitle(decodeLatin(newTitleMatch.group(1)));
           String endDate = newTitleMatch.group(4);
-          if(getEnd() != null) setEnd(StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat"), true).getDate());
+          if(getEnd() != null) setEnd(StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat")).getDate());
         }
       }
 
@@ -490,7 +489,7 @@ class ebayAuction extends SpecificAuction {
 
         //  Always convert, at this point, from iso-8859-1 (iso latin-1) to UTF-8.
         if(htmlTitle) {
-          setTitle(decodeLatin(buildTitle(_htmlDocument)));
+          setTitle(decodeLatin(buildTitle(mDocument)));
         } else {
           setTitle(decodeLatin(prelimTitle.substring(titleIndex+4).trim()));
         }
@@ -517,23 +516,23 @@ class ebayAuction extends SpecificAuction {
    * @param ae - The old auction, in case we need to fall back because we can't figure out the ending date.
    */
   private void checkDates(String prelimTitle, AuctionEntry ae) {
-    setStart(StringTools.figureDate(_htmlDocument.getNextContentAfterRegexIgnoring(Externalized.getString("ebayServer.startTime"), Externalized.getString("ebayServer.postTitleIgnore")), Externalized.getString("ebayServer.dateFormat"), false).getDate());
+    setStart(StringTools.figureDate(mDocument.getNextContentAfterRegexIgnoring(Externalized.getString("ebayServer.startTime"), Externalized.getString("ebayServer.postTitleIgnore")), Externalized.getString("ebayServer.dateFormat")).getDate());
     if (getStart() == null) {
-      setStart(StringTools.figureDate(_startComment, Externalized.getString("ebayServer.dateFormat"), false).getDate());
+      setStart(StringTools.figureDate(_startComment, Externalized.getString("ebayServer.dateFormat")).getDate());
     }
     setStart((Date) ensureSafeValue(getStart(), ae != null ? ae.getStartDate() : null, null));
 
     if (getEnd() == null) {
       String endDate = getEndDate(prelimTitle);
-      setEnd(StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat"), true).getDate());
+      setEnd(StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat")).getDate());
     }
 
     //  Handle odd case...
     if (getEnd() == null) {
-      setEnd(StringTools.figureDate(_htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.endsPrequel")), Externalized.getString("ebayServer.dateFormat"), true).getDate());
+      setEnd(StringTools.figureDate(mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.endsPrequel")), Externalized.getString("ebayServer.dateFormat")).getDate());
       if (getEnd() == null) {
-        String postContent = _htmlDocument.getNextContent().replaceAll("[()]", "");
-        setEnd(StringTools.figureDate(postContent, Externalized.getString("ebayServer.dateFormat"), true).getDate());
+        String postContent = mDocument.getNextContent().replaceAll("[()]", "");
+        setEnd(StringTools.figureDate(postContent, Externalized.getString("ebayServer.dateFormat")).getDate());
       }
     }
 
@@ -548,12 +547,12 @@ class ebayAuction extends SpecificAuction {
       }
     } else {
       if(ae != null) setEnd(ae.getEndDate());
-      if(_htmlDocument.grep(Externalized.getString("ebayServer.ended")) != null) {
+      if(mDocument.grep(Externalized.getString("ebayServer.ended")) != null) {
         if(ae != null) ae.setEnded(true);
         setEnd(new Date());
       } else {
         if(isFixedPrice()) {
-          String durationRaw = _htmlDocument.getNextContentAfterContent("Duration:");
+          String durationRaw = mDocument.getNextContentAfterContent("Duration:");
           if(durationRaw != null) {
             String duration = durationRaw.replaceAll("[^0-9]", "");
             long days = Long.parseLong(duration);
@@ -598,19 +597,19 @@ class ebayAuction extends SpecificAuction {
     //  The set of tags that indicate the current/starting/lowest/winning
     //  bid are 'Current bid', 'Starting bid', 'Lowest bid',
     //  'Winning bid' so far.
-    String cvtCur = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.currentBid"));
+    String cvtCur = mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.currentBid"));
     setCurBid(Currency.getCurrency(cvtCur));
-    setUSCur(getUSCurrency(getCurBid(), _htmlDocument));
+    setUSCur(getUSCurrency(getCurBid(), mDocument));
 
     if(getCurBid() == null || getCurBid().isNull()) {
       if(getQuantity() > 1) {
-        setCurBid(Currency.getCurrency(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.lowestBid"))));
-        setUSCur(getUSCurrency(getCurBid(), _htmlDocument));
+        setCurBid(Currency.getCurrency(mDocument.getNextContentAfterContent(Externalized.getString("ebayServer.lowestBid"))));
+        setUSCur(getUSCurrency(getCurBid(), mDocument));
       }
     }
 
-    setMinBid(Currency.getCurrency(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.firstBid"))));
-    Currency maxBid = Currency.getCurrency(_htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.yourMaxBid")));
+    setMinBid(Currency.getCurrency(mDocument.getNextContentAfterContent(Externalized.getString("ebayServer.firstBid"))));
+    Currency maxBid = Currency.getCurrency(mDocument.getNextContentAfterContent(Externalized.getString("ebayServer.yourMaxBid")));
 
     setMinBid((Currency)ensureSafeValue(getMinBid(), ae!=null?ae.getMinBid()  :Currency.NoValue(), Currency.NoValue()));
     setCurBid((Currency)ensureSafeValue(getCurBid(), ae!=null?ae.getCurBid()  :Currency.NoValue(), Currency.NoValue()));
@@ -619,7 +618,7 @@ class ebayAuction extends SpecificAuction {
     if(getNumBids() == 0 && (getMinBid() == null || getMinBid().isNull())) setMinBid(getCurBid());
 
     if(getMinBid() == null || getMinBid().isNull()) {
-      String original = _htmlDocument.grep(Externalized.getString("ebayServer.originalBid"));
+      String original = mDocument.grep(Externalized.getString("ebayServer.originalBid"));
       if(original != null) {
         Pattern bidPat = Pattern.compile(Externalized.getString("ebayServer.originalBid"));
         Matcher bidMatch = bidPat.matcher(original);
@@ -640,9 +639,9 @@ class ebayAuction extends SpecificAuction {
       //  The set of tags that indicate the current/starting/lowest/winning
       //  bid are 'Starts at', 'Current bid', 'Starting bid', 'Lowest bid',
       //  'Winning bid' so far.  'Starts at' is mainly for live auctions!
-      String cvtCur = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.currentBid"));
+      String cvtCur = mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.currentBid"));
       setCurBid(Currency.getCurrency(cvtCur));
-      setUSCur(getUSCurrency(getCurBid(), _htmlDocument));
+      setUSCur(getUSCurrency(getCurBid(), mDocument));
 
       setCurBid((Currency)ensureSafeValue(getCurBid(), ae!=null?ae.getCurBid()  :Currency.NoValue(), Currency.NoValue()));
       setUSCur((Currency)ensureSafeValue(getUSCur(), ae!=null?ae.getUSCurBid():zeroDollars, Currency.NoValue()));
@@ -650,26 +649,23 @@ class ebayAuction extends SpecificAuction {
   }
 
   private boolean checkSeller(AuctionEntry ae) {
-
-    String sellerName = _htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.seller"));
+    String sellerName = mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.seller"));
     if(sellerName == null) {
-      sellerName = _htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.sellerInfoPrequel"), false, true);
+      sellerName = mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.sellerInfoPrequel"));
     }
-    if(_seller == null) {
-      if(_htmlDocument.grep(Externalized.getString("ebayServer.sellerAway")) != null) {
+
+    if(sellerName == null) {
+      if(mDocument.grep(Externalized.getString("ebayServer.sellerAway")) != null) {
         if(ae != null) {
           ae.setLastStatus("Seller away - item unavailable.");
         }
         finish();
-//        return AuctionServer.ParseErrors.SELLER_AWAY;
         return true;
       } else {
         sellerName = "(unknown)";
       }
     }
-    sellerName = sellerName.trim();
-
-    _seller = Seller.makeSeller(sellerName);
+    setSellerName(sellerName);
 
     return false;
   }
@@ -712,11 +708,11 @@ class ebayAuction extends SpecificAuction {
      * THIS is absurd.  This needs to be cleaned up.  -- mrs: 18-September-2003 21:08
      */
     if (isFixedPrice()) {
-      setHighBidder(_htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.buyer")));
+      setHighBidder(mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.buyer")));
       if (getHighBidder() != null) {
         setNumBids(1);
         setHighBidder(getHighBidder().trim());
-        setHighBidderEmail(_htmlDocument.getNextContentAfterContent(getHighBidder(), true, false));
+        setHighBidderEmail(mDocument.getNextContentAfterContent(getHighBidder(), true, false));
         if (getHighBidderEmail() != null) {
           setHighBidderEmail(getHighBidderEmail().trim());
           if (getHighBidderEmail().charAt(0) == '(' && getHighBidderEmail().charAt(getHighBidderEmail().length()-1) == ')' && getHighBidderEmail().indexOf('@') != -1) {
@@ -736,11 +732,11 @@ class ebayAuction extends SpecificAuction {
       } else {
         setHighBidder("");
         if (getNumBids() != 0) {
-          setHighBidder(_htmlDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.highBidder")));
+          setHighBidder(mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.highBidder")));
           if (getHighBidder() != null) {
             setHighBidder(getHighBidder().trim());
 
-            setHighBidderEmail(_htmlDocument.getNextContentAfterContent(getHighBidder(), true, false));
+            setHighBidderEmail(mDocument.getNextContentAfterContent(getHighBidder(), true, false));
             if (getHighBidderEmail().charAt(0) == '(' && getHighBidderEmail().charAt(getHighBidderEmail().length()-1) == ')' && getHighBidderEmail().indexOf('@') != -1) {
               setHighBidderEmail(getHighBidderEmail().substring(1, getHighBidderEmail().length() - 1));
             }
@@ -837,7 +833,7 @@ class ebayAuction extends SpecificAuction {
   }
 
   private void extractMotorsTitle() {
-    String motorsTitle = _htmlDocument.getContentBeforeContent(Externalized.getString("ebayServer.itemNum"));
+    String motorsTitle = mDocument.getContentBeforeContent(Externalized.getString("ebayServer.itemNum"));
     if(motorsTitle != null) {
       motorsTitle = motorsTitle.trim();
     }

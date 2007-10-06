@@ -388,12 +388,12 @@ public abstract class AuctionInfo extends HashBacked {
   public Currency getInsurance() { return getMonetary("insurance"); }
   public Currency getBuyNow() { return getMonetary("buy_now"); }
 
-  public int getQuantity() { return getInteger("quantity"); }
-  public int getNumBidders() { return getInteger("numBids"); }
-  public int getNumBids() { return getInteger("numBids"); }
+  public int getQuantity() { return getInteger("quantity", 1); }
+  public int getNumBidders() { return getInteger("numBids", 0); }
+  public int getNumBids() { return getNumBidders(); }
 
-  Date getStartDate() { return getDate("start"); }  //  getDate
-  Date getEndDate() { return getDate("end"); }      //  getDate
+  Date getStartDate() { return getDate("start"); }
+  Date getEndDate() { return getDate("end"); }
 
   boolean isDutch() { return getBoolean("isDutch"); }
   boolean isReserve() { return getBoolean("isReserve"); }
@@ -406,9 +406,18 @@ public abstract class AuctionInfo extends HashBacked {
   boolean isInsuranceOptional() { return getBoolean("insurance_optional", true); }
   protected boolean hasNoThumbnail() { return getBoolean("noThumbnail"); }
 
-  public String getSeller() { if (_seller != null) return (_seller.getSeller()); else return "(unknown)"; }
+  public String getSellerName() { if (_seller != null) return (_seller.getSeller()); else return "(unknown)"; }
+  public Seller getSeller() { return _seller; }
   public String getPositiveFeedbackPercentage() { if (_seller != null) return _seller.getPositivePercentage(); else return "n/a"; }
   int getFeedbackScore() { if(_seller != null) return _seller.getFeedback(); else return 0; }
+
+  protected void setSellerName(String sellerName) {
+    if(_seller == null) {
+      _seller = Seller.makeSeller(sellerName.trim());
+    } else {
+      _seller = _seller.makeSeller(sellerName, _seller);
+    }
+  }
 
   public Currency getUSCur() { return getMonetary("us_cur", Currency.US_DOLLAR); }
   public Currency getBuyNowUS() { return getMonetary("buy_now_us", Currency.US_DOLLAR); }
