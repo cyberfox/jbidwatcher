@@ -70,11 +70,9 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
       if (o1 == null) return -1;
       if (o2 == null) return 1;
 
-      AuctionEntry a1 = (AuctionEntry) o1;
-      AuctionEntry a2 = (AuctionEntry) o2;
-      int result = a1.getEndDate().compareTo(a2.getEndDate());
+      int result = o1.getEndDate().compareTo(o2.getEndDate());
       if (result == 0) {
-        result = a1.compareTo(a2);
+        result = o1.compareTo(o2);
       }
       return result;
     }
@@ -85,30 +83,24 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * is queried about any of those fields.
    * 
    */
-  private AuctionInfo _auction = null;
-  /** The server-specific auction identifier, i.e. an auction number,
-   * or string of characters that uniquely identifies that auction on
-   * the auction server.
-   * 
-   */
-  private String _identifier = null;
+  private AuctionInfo mAuction = null;
 
   /**
    * A logging class for keeping track of events.
    *
    * @see com.jbidwatcher.util.EventLogger
    */
-  private EventLogger entryEvents = null;
+  private EventLogger mEntryEvents = null;
 
   /**
    * Allow the user to add a personal comment about this auction.
    */
-  private String _comment = null;
+  private String mComment = null;
 
   /**
    * Shipping amount, overrides AuctionInfo shipping amount if present.
    */
-  private Currency _shipping = null;
+  private Currency mShipping = null;
 
   /**
    * Has this auction already ended?  We keep track of this, so we
@@ -116,155 +108,154 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * Date object, and comparing.  Once it's ended, it's forevermore
    * ended.
    */
-  private boolean _auctionEnded=false;
+  private boolean mComplete =false;
 
   /**
    * Are we in the middle of updating?  This should probably be
    * synchronized, and therefore a Boolean.  BUGBUG -- mrs: 01-January-2003 23:59
    */
-  private boolean _isUpdating=false;
+  private boolean mUpdating =false;
 
   /**
    * Is it time to update this AuctionEntry?  This is used for things
    * like sniping, where we want an immediate update afterwards.
    */
-  private boolean _needsUpdate=false;
+  private boolean mNeedsUpdate =false;
 
   /**
    * Force an update despite ended status, for the post-end update,
    * and for user-initiated updates of ended auctions.
    */
-  private boolean _forceUpdate=false;
+  private boolean mForceUpdate =false;
 
   /**
    * Have we ever obtained this auction data from the server?
    */
-  private boolean _isLoaded=false;
+  private boolean mLoaded =false;
 
   /**
    * If this auction is part of a multiple-snipe, this value will not
    * be null, and will point to a MultiSnipe object.
    */
-  private MultiSnipe _snipeMulti=null;
+  private MultiSnipe mMultiSnipe =null;
 
   /**
    * Is the data reasonably synchronized with the server?  (When the
    * site stops providing the data, or an error occurs when retrieving
    * this auction, this will be true.)
    */
-  private boolean _invalid=false;
+  private boolean mInvalid =false;
 
   /**
    * Is the current user the high bidder?  This is a tougher problem
    * for servers where the user is multiple users, so it hasn't been
    * addressed yet.  FUTURE FEATURE -- mrs: 02-January-2003 00:15
    */
-  private boolean _isHighBidder=false;
+  private boolean mHighBidder =false;
 
   /**
-   * Is the current user the seller?  Same caveats as _isHighBidder.
+   * Is the current user the seller?  Same caveats as mHighBidder.
    */
-  private boolean _isSeller=false;
+  private boolean mSeller =false;
 
   /**
    * What is the maximum amount the user bid on the last time they bid?
    */
-  private Currency _bid = Currency.NoValue();
+  private Currency mBid = Currency.NoValue();
 
   /**
    * How much is the snipe set for, if anything.  This is also used to
    * determine if a snipe is set at all for this auction.
    */
-  private Currency _snipeBid = Currency.NoValue();
+  private Currency mSnipe = Currency.NoValue();
 
   /**
    * How much was a cancelled snipe for?  (Recordkeeping)
    */
-  private Currency _cancelSnipeBid = null;
+  private Currency mCancelSnipeBid = null;
 
   /**
    * How many items were bid on the last time the user bid?
    */
-  private int _bidQuantity=1;
+  private int mBidQuantity =1;
 
   /**
    * How many items are to be sniped on, when the snipe fires?
    */
-  private int _snipeQuantity=1;
+  private int mSnipeQuantity =1;
 
   /**
    * How many items are to be sniped on, but were cancelled?
    */
-  private int _cancelSnipeQuant=1;
+  private int mCancelSnipeQuant =1;
 
   /**
    * What AuctionServer is responsible for handling this
    * AuctionEntry's actions?
    */
-  private AuctionServer _aucServ=null;
+  private AuctionServer mServer =null;
 
   /**
    * The last time this auction was bid on.  Not presently used,
    * although set, saved, and loaded consistently.
    */
-  private long _whenBid=0;
+  private long mBidAt =0;
 
   /**
    * The last time this auction was updated from the server.
    */
-  private long _lastUpdated=0;
+  private long mLastUpdatedAt =0;
 
   /**
-   * Starting _quickerUpdateStart milliseconds from the end of the
+   * Starting mQuickerUpdateStart milliseconds from the end of the
    * auction, it will start triggering an update of the auction from
    * the server once every minute.  Currently set so that at half an
    * hour from the end of the auction, start updating every minute.
    */
-  private long _quickerUpdateStart = Constants.THIRTY_MINUTES;
+  private long mQuickerUpdateStart = Constants.THIRTY_MINUTES;
 
   /**
-   * Every _updateFrequency milliseconds it will trigger an update of
+   * Every mUpdateFrequency milliseconds it will trigger an update of
    * the auction from the server.
    */
-  private long _updateFrequency = Constants.FORTY_MINUTES;
+  private long mUpdateFrequency = Constants.FORTY_MINUTES;
 
   /**
    * Delta in time from the end of the auction that sniping will
    * occur at.  It's possible to set a different snipe time for each
    * auction, although it's not presently implemented through any UI.
    */
-  private long _snipeAt = -1;
+  private long mSnipeAt = -1;
 
   /**
    * Default delta in time from the end of the auction that sniping
    * will occur at.  This valus can be read and modified by
    * getDefaultSnipeTime() & setDefaultSnipeTime().
    */
-  private static long _defaultSnipeAt = Constants.THIRTY_SECONDS;
+  private static long mDefaultSnipeAt = Constants.THIRTY_SECONDS;
 
   /**
    * The time at which this will cease being a 'recently added'
    * auction.  Usually set to five minutes after the construction.
    */
-  private long _justAdded = 0;
+  private long mAddedRecently = 0;
 
   /**
    * The time at which this wll cease being paused for update.  This
    * allows the 'Stop' button to work properly.
    */
-  private long _dontUpdate = 0;
+  private long mDontUpdate = 0;
 
   /**
    * The category this belongs in, usually used for tab names, and fitting in search results.
    */
-  private String _category = null;
+  private String mCategory = null;
 
   /**
    * Whether the 'category' information is sticky (i.e. overrides 'deleted', 'selling', etc.)
    */
-  private boolean _sticky = false;
-  private StringBuffer _lastErrorPage = null;
-  private boolean _shippingSet = false;
+  private boolean mSticky = false;
+  private StringBuffer mLastErrorPage = null;
 
   /**
    * Does all the jobs of the constructors, so that the constructors
@@ -277,29 +268,27 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
 
   private synchronized void prepareAuctionEntry(String auctionIdentifier) {
-    _lastUpdated = 0;
-    _needsUpdate = true;
+    mLastUpdatedAt = 0;
+    mNeedsUpdate = true;
 
     // We handle URL identifiers differently than just an auction
     // identifier, so we can create an AuctionEntry with either.
     if(auctionIdentifier.startsWith("http")) {
-      _aucServ = AuctionServerManager.getInstance().getServerForUrlString(auctionIdentifier);
-      if(_aucServ != null) {
-        _identifier = _aucServ.extractIdentifierFromURLString(auctionIdentifier);
-        _auction = _aucServ.createAuction(_identifier);
-//        _auction = _aucServ.createAuction(StringTools.getURLFromString(auctionIdentifier), mIdentifier);
+      mServer = AuctionServerManager.getInstance().getServerForUrlString(auctionIdentifier);
+      if(mServer != null) {
+        String id = mServer.extractIdentifierFromURLString(auctionIdentifier);
+        mAuction = mServer.createAuction(id);
 
-        _needsUpdate = false;
-        _isLoaded = true;
+        mNeedsUpdate = false;
+        mLoaded = true;
       }
     } else {
-      _aucServ = AuctionServerManager.getInstance().getServerForIdentifier(auctionIdentifier);
+      mServer = AuctionServerManager.getInstance().getServerForIdentifier(auctionIdentifier);
 
-      if(_aucServ != null) {
-        _auction = _aucServ.createAuction(auctionIdentifier);
+      if(mServer != null) {
+        mAuction = mServer.createAuction(auctionIdentifier);
 
-        _isLoaded = true;
-        _identifier = auctionIdentifier;
+        mLoaded = true;
       }
     }
 
@@ -309,11 +298,10 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
      * isn't loaded.  This will fail out the init process, and this 
      * will never be added to the items list. 
      */
-    if(_auction == null || _aucServ == null) {
-      _identifier = null;
-      _isLoaded = false;
+    if(mAuction == null || mServer == null) {
+      mLoaded = false;
     } else {
-      entryEvents = new EventLogger(getIdentifier(), getTitle());
+      mEntryEvents = new EventLogger(getIdentifier(), getTitle());
       checkHighBidder(true);
       checkSeller();
       checkEnded();
@@ -331,7 +319,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
   public AuctionEntry(String auctionIdentifier) {
     checkConfigurationSnipeTime();
-    _justAdded = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
+    mAddedRecently = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
     prepareAuctionEntry(auctionIdentifier);
   }
 
@@ -346,16 +334,16 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
 
   /**
    * @brief Look up to see if the auction is ended yet, just sets
-   * _auctionEnded if it is.
+   * mComplete if it is.
    */
   private void checkEnded() {
-    if(!_auctionEnded) {
+    if(!mComplete) {
       Date serverTime = new Date(System.currentTimeMillis() +
-                                 _aucServ.getServerTimeDelta());
+                                 mServer.getServerTimeDelta());
 
       //  If we're past the end time, update once, and never again.
       if(serverTime.after(getEndDate())) {
-        _auctionEnded = true;
+        mComplete = true;
       }
     }
   }
@@ -368,7 +356,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @return The server that this auction entry is associated with.
    */
-  public AuctionServer getServer() { return(_aucServ); }
+  public AuctionServer getServer() { return(mServer); }
   /**
    * @brief Set the auction server for this entry.
    *
@@ -376,7 +364,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @param newServer - The server to associate with this auction entry.
    */
-  public void setServer(AuctionServer newServer) { _aucServ = newServer; }
+  public void setServer(AuctionServer newServer) { mServer = newServer; }
 
   /**
    * @brief Query whether this entry has ever been loaded from the server.
@@ -389,7 +377,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    *
    * @return Whether this entry has ever been loaded from the server.
    */
-  public boolean isLoaded()    { return(_isLoaded); }
+  public boolean isLoaded()    { return(mLoaded); }
 
   /**
    * @brief Check if the current snipe value would be a valid bid currently.
@@ -398,7 +386,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * increment over the current high bid.  Returns false otherwise.
    */
   public boolean isSnipeValid() {
-    Currency minIncrement = _aucServ.getMinimumBidIncrement(getCurBid(), getNumBidders());
+    Currency minIncrement = mServer.getMinimumBidIncrement(getCurBid(), getNumBidders());
     Currency nextBid = Currency.NoValue();
     boolean rval = false;
 
@@ -420,7 +408,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @return Whether there is a snipe waiting on this auction.
    */
-  public boolean isSniped()    { return(_snipeBid != null && !_snipeBid.isNull()); }
+  public boolean isSniped()    { return(mSnipe != null && !mSnipe.isNull()); }
 
   /**
    * @brief Check if this auction is part of a snipe group.
@@ -433,7 +421,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @return Whether this auction is one of a multisnipe group, where
    * each auction is sniped on until one is won.
    */
-  public boolean isMultiSniped()    { return(_snipeMulti != null); }
+  public boolean isMultiSniped()    { return(mMultiSnipe != null); }
 
   /**
    * @brief Check if the user has ever placed a bid (or completed
@@ -442,7 +430,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @return Whether the user has ever actually submitted a bid to the
    * server for this auction.
    */
-  public boolean isBidOn() { return(_bid != null && !_bid.isNull()); }
+  public boolean isBidOn() { return(mBid != null && !mBid.isNull()); }
 
   /**
    * @brief Check if we are in the midst of updating this auction.
@@ -454,7 +442,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    *
    * @return Whether the update for this auction is in progress.
    */
-  public boolean isUpdating()  { return(_isUpdating); }
+  public boolean isUpdating()  { return(mUpdating); }
 
   /**
    * @brief Check if the current user is the high bidder on this
@@ -466,7 +454,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @return Whether the current user is the high bidder.
    */
-  public boolean isHighBidder() { return _isHighBidder; }
+  public boolean isHighBidder() { return mHighBidder; }
 
   /**
    * @brief Check if the current user is the seller for this auction.
@@ -477,7 +465,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @return Whether the current user is the seller.
    */
-  public boolean isSeller() { return _isSeller; }
+  public boolean isSeller() { return mSeller; }
 
   /**
    * @brief What was the highest amount actually submitted to the
@@ -489,7 +477,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    *
    * @return The highest amount bid through this program.
    */
-  public Currency getBid()  { return _bid; }
+  public Currency getBid()  { return mBid; }
 
   /**
    * @brief Set the highest amount actually submitted to the server as a bid.
@@ -498,13 +486,13 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
   public void setBid(Currency highBid)  {
     if(highBid == null) {
-      _bid = Currency.NoValue();
+      mBid = Currency.NoValue();
     } else {
-      _bid = highBid;
+      mBid = highBid;
     }
   }
 
-  public void setBidQuantity(int quant) { _bidQuantity = quant; }
+  public void setBidQuantity(int quant) { mBidQuantity = quant; }
 
   /**
    * @brief What is the amount that will be sniped when the snipe
@@ -513,7 +501,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @return The amount that will be submitted as a bid when it is
    * time to snipe.
    */
-  public Currency getSnipeBid() { return _snipeBid; }
+  public Currency getSnipeBid() { return mSnipe; }
 
   /**
    * @brief What number of items will be sniped for when the snipe is
@@ -521,7 +509,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @return The count of items to bid on in the snipe.
    */
-  public int getSnipeQuantity() { return _snipeQuantity; }
+  public int getSnipeQuantity() { return mSnipeQuantity; }
 
   /**
    * @brief What was the most recent number of items actually
@@ -529,7 +517,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @return The count of items bid on the last time a user bid.
    */
-  public int getBidQuantity()   { return _bidQuantity; }
+  public int getBidQuantity()   { return mBidQuantity; }
 
   /**
    * @brief Set this auction as being part of a multi-snipe set,
@@ -546,20 +534,20 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
   public void setMultiSnipe(MultiSnipe inMS) {
     //  Shortcut: if no change, leave.
-    if(_snipeMulti != inMS) {
+    if(mMultiSnipe != inMS) {
       //  If there was a different MultiSnipe before, remove this from it.
-      if(_snipeMulti != null) {
-        _snipeMulti.remove(this);
+      if(mMultiSnipe != null) {
+        mMultiSnipe.remove(this);
       }
-      _snipeMulti = inMS;
+      mMultiSnipe = inMS;
       //  If we weren't just deleting, then prepare the new snipe, and
       //  add to the multi-snipe group.
-      if(_snipeMulti != null) {
+      if(mMultiSnipe != null) {
         if(!isSniped()) {
-          prepareSnipe(_snipeMulti.getSnipeValue(this));
+          prepareSnipe(mMultiSnipe.getSnipeValue(this));
         }
-        _snipeMulti.add(this);
-        addMulti(_snipeMulti);
+        mMultiSnipe.add(this);
+        addMulti(mMultiSnipe);
       }
     }
 
@@ -594,14 +582,14 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    *
    * @return - A multisnipe object or null if there isn't any multisnipe set.
    */
-  public MultiSnipe getMultiSnipe() { return _snipeMulti; }
+  public MultiSnipe getMultiSnipe() { return mMultiSnipe; }
 
   /**
    * @brief Check if the configuration has a 'snipemilliseconds'
    * entry, and update the default if it does.
    */
   private void checkConfigurationSnipeTime() {
-    _defaultSnipeAt = getGlobalSnipeTime();
+    mDefaultSnipeAt = getGlobalSnipeTime();
   }
 
   /**
@@ -612,8 +600,8 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * snipe should fire.
    */
   public static long getDefaultSnipeTime() {
-    _defaultSnipeAt = getGlobalSnipeTime();
-    return _defaultSnipeAt;
+    mDefaultSnipeAt = getGlobalSnipeTime();
+    return mDefaultSnipeAt;
   }
 
   /**
@@ -626,7 +614,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
   public static void setDefaultSnipeTime(long newSnipeAt) {
     JConfig.setConfiguration("snipemilliseconds", Long.toString(newSnipeAt));
-    _defaultSnipeAt = newSnipeAt;
+    mDefaultSnipeAt = newSnipeAt;
   }
 
   /**
@@ -637,7 +625,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * snipe will be fired.
    */
   public long getSnipeTime() {
-    return hasDefaultSnipeTime()?_defaultSnipeAt:_snipeAt;
+    return hasDefaultSnipeTime()? mDefaultSnipeAt : mSnipeAt;
   }
 
   /**
@@ -646,7 +634,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @return False if the snipe time for this auction has been specially set.
    */
   public boolean hasDefaultSnipeTime() {
-    return(_snipeAt == -1);
+    return(mSnipeAt == -1);
   }
 
   /**
@@ -658,7 +646,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * value is set to -1, it will reinstate the default time.
    */
   public void setSnipeTime(long newSnipeTime) {
-    _snipeAt = newSnipeTime;
+    mSnipeAt = newSnipeTime;
   }
 
   /**
@@ -668,7 +656,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @return The time at which this entry is no longer new.
    */
   public long getJustAdded() {
-    return _justAdded;
+    return mAddedRecently;
   }
 
   /**
@@ -676,7 +664,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @return The unique identifier for this auction.
    */
-  public String getIdentifier() { return _identifier; }
+  public String getIdentifier() { if(mAuction == null) return null; else return mAuction.getIdentifier(); }
 
   ///////////////////////////
   //  Actual logic functions
@@ -695,19 +683,19 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
     if(numBidders > 0) {
       //  TODO -- This is silly.  Why should the AuctionEntry know about doing a network check?
       if(isOutbid() && doNetworkCheck) {
-        _aucServ.updateHighBid(this);
+        mServer.updateHighBid(this);
       }
       if(isBidOn() && isPrivate()) {
         Currency curBid = getCurBid();
         try {
-          if(curBid.less(_bid)) _isHighBidder = true;
+          if(curBid.less(mBid)) mHighBidder = true;
         } catch(Currency.CurrencyTypeException cte) {
           /* Should never happen...?  */
           ErrorManagement.handleException("This should never happen (bad Currency at this point!).", cte);
         }
-        if(curBid.equals(_bid)) {
-          _isHighBidder = numBidders == 1;
-          //  _isHighBidder == false means that there are multiple bidders, and the price that
+        if(curBid.equals(mBid)) {
+          mHighBidder = numBidders == 1;
+          //  mHighBidder == false means that there are multiple bidders, and the price that
           //  two (this user, and one other) bid are exactly the same.  How
           //  do we know who's first, given that it's a private auction?
           //
@@ -718,8 +706,8 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
         if(!isDutch()) {
           String localUserId;
 
-          localUserId = _aucServ.getUserId().trim();
-          _isHighBidder = localUserId.equalsIgnoreCase(getHighBidder());
+          localUserId = mServer.getUserId().trim();
+          mHighBidder = localUserId.equalsIgnoreCase(getHighBidder());
         }
       }
     }
@@ -730,16 +718,16 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * auction.
    */
   private void checkDutchHighBidder() {
-    _isHighBidder = _aucServ.isHighDutch(this);
+    mHighBidder = mServer.isHighDutch(this);
   }
 
   /**
    * @brief Set the flags if the current user is the seller in this auction.
    */
   private void checkSeller() {
-    String localUserId = _aucServ.getUserId();
+    String localUserId = mServer.getUserId();
 
-    _isSeller = localUserId.equalsIgnoreCase(getSeller());
+    mSeller = localUserId.equalsIgnoreCase(getSeller());
   }
 
   ////////////////////////////
@@ -756,40 +744,40 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
   public synchronized boolean checkUpdate() {
     long curTime = System.currentTimeMillis();
-    if(_justAdded != 0) {
-      if(curTime > _justAdded) _justAdded = 0;
+    if(mAddedRecently != 0) {
+      if(curTime > mAddedRecently) mAddedRecently = 0;
     }
 
-    if(_dontUpdate != 0) {
-      if(curTime > _dontUpdate) {
-        _dontUpdate = 0;
+    if(mDontUpdate != 0) {
+      if(curTime > mDontUpdate) {
+        mDontUpdate = 0;
       } else {
         return false;
       }
     }
 
-    if(!_needsUpdate) {
-      if(!_isUpdating && !_auctionEnded) {
-        long serverTime = curTime + _aucServ.getServerTimeDelta();
+    if(!mNeedsUpdate) {
+      if(!mUpdating && !mComplete) {
+        long serverTime = curTime + mServer.getServerTimeDelta();
 
         //  If we're past the end time, update once, and never again.
         if(serverTime > getEndDate().getTime()) {
-          _needsUpdate = true;
+          mNeedsUpdate = true;
         } else {
-          if( _updateFrequency != Constants.ONE_MINUTE ) {
-            if( (getEndDate().getTime() - _quickerUpdateStart) < serverTime) {
-              _updateFrequency = Constants.ONE_MINUTE;
-              _needsUpdate = true;
+          if( mUpdateFrequency != Constants.ONE_MINUTE ) {
+            if( (getEndDate().getTime() - mQuickerUpdateStart) < serverTime) {
+              mUpdateFrequency = Constants.ONE_MINUTE;
+              mNeedsUpdate = true;
             }
           }
-          if( (_lastUpdated + _updateFrequency) < curTime) {
-            _needsUpdate = true;
+          if( (mLastUpdatedAt + mUpdateFrequency) < curTime) {
+            mNeedsUpdate = true;
           }
         }
       }
     }
 
-    return _needsUpdate;
+    return mNeedsUpdate;
   }
 
   /**
@@ -797,20 +785,20 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    *
    * @return The last time it was updated, plus the update frequency.
    */
-  public long getNextUpdate() { return ((_lastUpdated==0)?System.currentTimeMillis():_lastUpdated) + _updateFrequency; }
+  public long getNextUpdate() { return ((mLastUpdatedAt ==0)?System.currentTimeMillis(): mLastUpdatedAt) + mUpdateFrequency; }
 
   /**
    * @brief Mark this entry as being not-invalid.
    */
   public void clearInvalid() {
-    _invalid = false;
+    mInvalid = false;
   }
 
   /**
    * @brief Mark this entry as being invalid for some reason.
    */
   public void setInvalid() {
-    _invalid = true;
+    mInvalid = true;
   }
 
   /**
@@ -819,7 +807,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @return - True if this auction is considered invalid, false if it's okay.
    */
   public boolean isInvalid() {
-    return(_invalid);
+    return(mInvalid);
   }
 
   /**
@@ -830,9 +818,9 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
   public void setComment(String newComment) {
     if(newComment.trim().equals(""))
-      _comment = null;
+      mComment = null;
     else
-      _comment = newComment;
+      mComment = newComment;
   }
 
   /**
@@ -841,7 +829,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @return Any comment the user may have stored about this item.
    */
   public String getComment() {
-    return _comment;
+    return mComment;
   }
 
   /**
@@ -850,12 +838,11 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @param inStatus - A string that explains what the event is.
    */
   public void setLastStatus(String inStatus) {
-    entryEvents.setLastStatus(inStatus);
+    mEntryEvents.setLastStatus(inStatus);
   }
 
   public void setShipping(Currency newShipping) {
-    _shippingSet = true;
-    _shipping = newShipping;
+    mShipping = newShipping;
   }
 
   /**
@@ -877,11 +864,11 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @return A string with all the event information included.
    */
   public String getLastStatus(boolean bulk) {
-    return entryEvents.getLastStatus(bulk);
+    return mEntryEvents.getLastStatus(bulk);
   }
 
   public int getStatusCount() {
-    return entryEvents.getStatusCount();
+    return mEntryEvents.getStatusCount();
   }
   //////////////////////////
   //  XML Handling functions
@@ -899,37 +886,35 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   protected void handleTag(int tagId, XMLElement curElement) {
     switch(tagId) {
       case 0:  //  Get the general auction information
-        _auction = _aucServ.getNewSpecificAuction();
-        _auction.setIdentifier(_identifier);
-        _auction.fromXML(curElement);
+        mAuction.fromXML(curElement);
         break;
       case 1:  //  Get bid info
         Currency bidAmount = Currency.getCurrency(curElement.getProperty("CURRENCY"),
                                           curElement.getProperty("PRICE"));
         setBid(bidAmount);
-        _bidQuantity = Integer.parseInt(curElement.getProperty("QUANTITY"));
+        mBidQuantity = Integer.parseInt(curElement.getProperty("QUANTITY"));
         if(curElement.getProperty("WHEN", null) != null) {
-          _whenBid = Long.parseLong(curElement.getProperty("WHEN"));
+          mBidAt = Long.parseLong(curElement.getProperty("WHEN"));
         }
         break;
       case 2:  //  Get the snipe info together
         Currency snipeAmount = Currency.getCurrency(curElement.getProperty("CURRENCY"),
                                             curElement.getProperty("PRICE"));
         prepareSnipe(snipeAmount, Integer.parseInt(curElement.getProperty("QUANTITY")));
-        _snipeAt = Long.parseLong(curElement.getProperty("SECONDSPRIOR"));
+        mSnipeAt = Long.parseLong(curElement.getProperty("SECONDSPRIOR"));
         break;
       case 3:
-        _auctionEnded = true;
+        mComplete = true;
         break;
       case 4:
-        _invalid = true;
+        mInvalid = true;
         break;
       case 5:
-        _comment = curElement.getContents();
+        mComment = curElement.getContents();
         break;
       case 6:
-        entryEvents = new EventLogger(getIdentifier(), getTitle());
-        entryEvents.fromXML(curElement);
+        mEntryEvents = new EventLogger(getIdentifier(), getTitle());
+        mEntryEvents.fromXML(curElement);
         break;
       case 7:
         MultiSnipe ms;
@@ -946,13 +931,12 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
         setMultiSnipe(ms);
         break;
       case 8:
-        _shipping = Currency.getCurrency(curElement.getProperty("CURRENCY"),
+        mShipping = Currency.getCurrency(curElement.getProperty("CURRENCY"),
                                          curElement.getProperty("PRICE"));
-        _shippingSet = curElement.getProperty("OVERRIDDEN", "false").equals("true");
         break;
       case 9:
-        _category = curElement.getContents();
-        _sticky = curElement.getProperty("STICKY", "false").equals("true");
+        mCategory = curElement.getContents();
+        mSticky = curElement.getProperty("STICKY", "false").equals("true");
         break;
       default:
         break;
@@ -975,16 +959,16 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
     XMLElement xbid, xsnipe, xcomplete, xinvalid, xcomment, xlog, xmulti, xshipping, xcategory;
 
     xmlResult.setProperty("id", getIdentifier());
-    xmlResult.addChild(_auction.toXML());
+    xmlResult.addChild(mAuction.toXML());
 
     if(isBidOn()) {
       xbid = new XMLElement("bid");
       xbid.setEmpty();
-      xbid.setProperty("quantity", Integer.toString(_bidQuantity));
-      xbid.setProperty("currency", _bid.fullCurrencyName());
-      xbid.setProperty("price", Double.toString(_bid.getValue()));
-      if(_whenBid != 0) {
-        xbid.setProperty("when", Long.toString(_whenBid));
+      xbid.setProperty("quantity", Integer.toString(mBidQuantity));
+      xbid.setProperty("currency", mBid.fullCurrencyName());
+      xbid.setProperty("price", Double.toString(mBid.getValue()));
+      if(mBidAt != 0) {
+        xbid.setProperty("when", Long.toString(mBidAt));
       }
       xmlResult.addChild(xbid);
     }
@@ -992,10 +976,10 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
     if(isSniped()) {
       xsnipe = new XMLElement("snipe");
       xsnipe.setEmpty();
-      xsnipe.setProperty("quantity", Integer.toString(_snipeQuantity));
-      xsnipe.setProperty("currency", _snipeBid.fullCurrencyName());
-      xsnipe.setProperty("price", Double.toString(_snipeBid.getValue()));
-      xsnipe.setProperty("secondsprior", Long.toString(_snipeAt));
+      xsnipe.setProperty("quantity", Integer.toString(mSnipeQuantity));
+      xsnipe.setProperty("currency", mSnipe.fullCurrencyName());
+      xsnipe.setProperty("price", Double.toString(mSnipe.getValue()));
+      xsnipe.setProperty("secondsprior", Long.toString(mSnipeAt));
       xmlResult.addChild(xsnipe);
     }
 
@@ -1011,41 +995,40 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
       xmlResult.addChild(xmulti);
     }
 
-    if(_auctionEnded) {
+    if(mComplete) {
       xcomplete = new XMLElement("complete");
       xcomplete.setEmpty();
       xmlResult.addChild(xcomplete);
     }
 
-    if(_invalid) {
+    if(mInvalid) {
       xinvalid = new XMLElement("invalid");
       xinvalid.setEmpty();
       xmlResult.addChild(xinvalid);
     }
 
-    if(_comment != null) {
+    if(mComment != null) {
       xcomment = new XMLElement("comment");
-      xcomment.setContents(_comment);
+      xcomment.setContents(mComment);
       xmlResult.addChild(xcomment);
     }
 
-    if(_category != null) {
+    if(mCategory != null) {
       xcategory = new XMLElement("category");
-      xcategory.setContents(_category);
-      xcategory.setProperty("sticky", _sticky?"true":"false");
+      xcategory.setContents(mCategory);
+      xcategory.setProperty("sticky", mSticky ?"true":"false");
       xmlResult.addChild(xcategory);
     }
 
-    if(_shipping != null) {
+    if(mShipping != null) {
       xshipping = new XMLElement("shipping");
       xshipping.setEmpty();
-      xshipping.setProperty("currency", _shipping.fullCurrencyName());
-      xshipping.setProperty("price", Double.toString(_shipping.getValue()));
-      if(_shippingSet) xshipping.setProperty("overridden", "true");
+      xshipping.setProperty("currency", mShipping.fullCurrencyName());
+      xshipping.setProperty("price", Double.toString(mShipping.getValue()));
       xmlResult.addChild(xshipping);
     }
 
-    xlog = entryEvents.toXML();
+    xlog = mEntryEvents.toXML();
     if(xlog != null) {
       xmlResult.addChild(xlog);
     }
@@ -1061,18 +1044,19 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   public void fromXML(XMLElement inXML) {
     String inID = inXML.getProperty("ID", null);
     if(inID != null) {
-      _identifier = inID;
+      mAuction = mServer.getNewSpecificAuction();
+      mAuction.setIdentifier(inID);
 
       super.fromXML(inXML);
 
-      _isLoaded = false;
+      mLoaded = false;
 
-      _lastUpdated = 0;
+      mLastUpdatedAt = 0;
 
-      if(!_auctionEnded) setNeedsUpdate();
+      if(!mComplete) setNeedsUpdate();
 
-      if(entryEvents == null) {
-        entryEvents = new EventLogger(getIdentifier(), getTitle());
+      if(mEntryEvents == null) {
+        mEntryEvents = new EventLogger(getIdentifier(), getTitle());
       }
       checkHighBidder(false);
       checkSeller();
@@ -1127,16 +1111,16 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
     if(isSniped()) {
       long endDate, curDate, adjustedDate;
 
-      endDate = _auction.getEndDate().getTime();
-      curDate = _aucServ.getAdjustedTime();
+      endDate = mAuction.getEndDate().getTime();
+      curDate = mServer.getAdjustedTime();
 
       //  If the auction hasn't ended already...
       if(endDate > curDate) {
-        //  _snipeAt / 1000 seconds before the end of the auction.
+        //  mSnipeAt / 1000 seconds before the end of the auction.
         if(hasDefaultSnipeTime()) {
-          adjustedDate = curDate + _defaultSnipeAt;
+          adjustedDate = curDate + mDefaultSnipeAt;
         } else {
-          adjustedDate = curDate + _snipeAt;
+          adjustedDate = curDate + mSnipeAt;
         }
 
         shouldSnipe = (adjustedDate >= endDate);
@@ -1154,7 +1138,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @return - true if a snipe was cancelled, false otherwise.
    */
-  public boolean snipeCancelled() { return _cancelSnipeBid != null; }
+  public boolean snipeCancelled() { return mCancelSnipeBid != null; }
 
   /**
    * @brief Return the amount that the snipe bid was for, before it
@@ -1162,7 +1146,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @return - A currency amount that was set to snipe, but cancelled.
    */
-  public Currency getCancelledSnipe() { return _cancelSnipeBid; }
+  public Currency getCancelledSnipe() { return mCancelSnipeBid; }
 
   /**
    * @brief Return the quantity that the snipe bid was for, before it
@@ -1170,7 +1154,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * 
    * @return - A number of items (for dutch only) that were to be bid on.
    */
-  public int getCancelledSnipeQuantity() { return _cancelSnipeQuant; }
+  public int getCancelledSnipeQuantity() { return mCancelSnipeQuant; }
 
   /**
    * @brief Stop any snipe prepared on this auction.  If the auction is
@@ -1183,8 +1167,8 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
     if(isSniped()) {
       setLastStatus("Cancelling snipe.");
       if(after_end) {
-        _cancelSnipeBid = _snipeBid;
-        _cancelSnipeQuant = _snipeQuantity;
+        mCancelSnipeBid = mSnipe;
+        mCancelSnipeQuant = mSnipeQuantity;
       }
     }
 
@@ -1192,33 +1176,33 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   }
 
   public void snipeCompleted() {
-    setBid(_snipeBid);
-    _bidQuantity = _snipeQuantity;
-    _needsUpdate = true;
-    _snipeBid = Currency.NoValue();
-    _snipeQuantity = 0;
+    setBid(mSnipe);
+    mBidQuantity = mSnipeQuantity;
+    mNeedsUpdate = true;
+    mSnipe = Currency.NoValue();
+    mSnipeQuantity = 0;
   }
 
   /**
    * @brief Completely update auction info from the server for this auction.
    */
   public void update() {
-    _isUpdating=true;
-    _needsUpdate = false;
+    mUpdating =true;
+    mNeedsUpdate = false;
     MQFactory.getConcrete("redraw").enqueue(this);
-    _forceUpdate = false;
+    mForceUpdate = false;
 
     // We REALLY don't want to leave an auction in the 'updating'
     // state.  It does bad things.
     try {
-      _aucServ.reloadAuction(this);
+      mServer.reloadAuction(this);
     } catch(Exception e) {
       ErrorManagement.handleException("Unexpected exception during auction reload/update.", e);
     }
-    _lastUpdated = System.currentTimeMillis();
-    _isUpdating=false;
+    mLastUpdatedAt = System.currentTimeMillis();
+    mUpdating =false;
     MQFactory.getConcrete("redraw").enqueue(this);
-    _justAdded = 0;
+    mAddedRecently = 0;
     try {
       checkHighBidder(true);
       if(isDutch()) checkDutchHighBidder();
@@ -1226,7 +1210,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
       ErrorManagement.handleException("Unexpected exception during high bidder check.", e);
     }
     checkSeller();
-    if (_auctionEnded) {
+    if (mComplete) {
       //  If the auction is really completed now, and it was part of a
       //  multisnipe group, let's check if it's been won.  If it has,
       //  tell the MultiSnipe object that one has been won, so it can
@@ -1245,13 +1229,13 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
       }
     } else {
       Date serverTime = new Date(System.currentTimeMillis() +
-                                 _aucServ.getServerTimeDelta());
+                                 mServer.getServerTimeDelta());
 
       //  If we're past the end time, update once, and never again.
       if (serverTime.after(getEndDate())) {
-        _auctionEnded = true;
-        _needsUpdate = true;
-        _forceUpdate = true;
+        mComplete = true;
+        mNeedsUpdate = true;
+        mForceUpdate = true;
       }
     }
   }
@@ -1268,13 +1252,13 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @param quantity The number of items they want to snipe for.
    */
   public void prepareSnipe(Currency snipe, int quantity) {
-    _snipeBid = snipe;
-    _snipeQuantity = quantity;
+    mSnipe = snipe;
+    mSnipeQuantity = quantity;
 
     if(snipe == null || snipe.isNull()) {
-      MQFactory.getConcrete(_aucServ.getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
+      MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
     } else {
-      MQFactory.getConcrete(_aucServ.getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
+      MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
     }
     MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");
   }
@@ -1301,11 +1285,11 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
   public int bid(Currency bid, int bidQuantity) {
     setBid(bid);
-    _whenBid = System.currentTimeMillis();
+    mBidAt = System.currentTimeMillis();
 
     ErrorManagement.logDebug("Bidding " + bid + " on " + bidQuantity + " item[s] of (" + getIdentifier() + ")-" + getTitle());
 
-    return(_aucServ.bid(this, bid, bidQuantity));
+    return(mServer.bid(this, bid, bidQuantity));
   }
 
   /**
@@ -1319,9 +1303,9 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
     Currency bin = getBuyNow();
     if(bin != null && !bin.isNull()) {
       setBid(getBuyNow());
-      _whenBid = System.currentTimeMillis();
+      mBidAt = System.currentTimeMillis();
       ErrorManagement.logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
-      return _aucServ.buy(this, quant);
+      return mServer.buy(this, quant);
     }
     return AuctionServer.BID_ERROR_NOT_BIN;
   }
@@ -1329,7 +1313,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   /**
    * @brief This auction entry needs to be updated.
    */
-  public void setNeedsUpdate() { _needsUpdate = true; }
+  public void setNeedsUpdate() { mNeedsUpdate = true; }
 
   /**
    * @brief Make this auction update despite being ended.
@@ -1337,14 +1321,14 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * Clear the 'dont update' flag for this, because this is always a
    * user-forced update message.
    */
-  public void forceUpdate() { _forceUpdate = true; _dontUpdate = 0; _needsUpdate = true; }
+  public void forceUpdate() { mForceUpdate = true; mDontUpdate = 0; mNeedsUpdate = true; }
 
   /**
    * @brief Get the category associated with the auction entry.
    * 
    * @return - A category, or null if none has been assigned.
    */
-  public String getCategory() { return _category; }
+  public String getCategory() { return mCategory; }
 
   /**
    * @brief Set the category associated with the auction entry.  If the
@@ -1353,8 +1337,8 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * @param newCategory - The new category to associate this item with.
    */
   public void setCategory(String newCategory) {
-    _category = newCategory;
-    if(isEnded()) _sticky = true;
+    mCategory = newCategory;
+    if(isEnded()) mSticky = true;
   }
 
   /**
@@ -1362,7 +1346,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    *
    * @return true if the entry is sticky, false otherwise.
    */
-  public boolean isSticky() { return _sticky; }
+  public boolean isSticky() { return mSticky; }
 
   /**
    * @brief Set the sticky flag on or off.
@@ -1372,14 +1356,14 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    *
    * @param beSticky - Whether or not this entry should be sticky.
    */
-  public void setSticky(boolean beSticky) { _sticky = beSticky; }
+  public void setSticky(boolean beSticky) { mSticky = beSticky; }
 
   /**
    * @brief This auction entry does NOT need to be updated.
    */
   public void clearNeedsUpdate() {
-    _needsUpdate = false;
-    _lastUpdated = System.currentTimeMillis();
+    mNeedsUpdate = false;
+    mLastUpdatedAt = System.currentTimeMillis();
   }
 
   /**
@@ -1387,7 +1371,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    * completed, etc.
    */
   public void pauseUpdate() {
-    _dontUpdate = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
+    mDontUpdate = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
   }
 
   /**
@@ -1395,7 +1379,7 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    *
    * @return - Whether updates for this item are paused.
    */
-  public boolean isPaused() { return _dontUpdate != 0; }
+  public boolean isPaused() { return mDontUpdate != 0; }
 
   public static final String endedAuction = "Auction ended.";
   private static final String mf_min_sec = "{6}{2,number,##}m, {7}{3,number,##}s";
@@ -1425,8 +1409,8 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
   public String getTimeLeft() {
     long rightNow = System.currentTimeMillis();
-    long officialDelta = _aucServ.getServerTimeDelta();
-    long pageReqTime = _aucServ.getPageRequestTime();
+    long officialDelta = mServer.getServerTimeDelta();
+    long pageReqTime = mServer.getPageRequestTime();
     boolean use_detailed = JConfig.queryConfiguration("timeleft.detailed", "false").equals("true");
 
     if(!isEnded()) {
@@ -1482,10 +1466,10 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   }
 
   //  Is only set for updates, not for loads?
-  public boolean isEnded() { return _auctionEnded; }
-  public void setEnded(boolean ended) { _auctionEnded = ended; }
+  public boolean isEnded() { return mComplete; }
+  public void setEnded(boolean ended) { mComplete = ended; }
 
-  public boolean isUpdateForced() { return _forceUpdate; }
+  public boolean isUpdateForced() { return mForceUpdate; }
 
   /**
    * @brief Do a 'standard' compare to another AuctionEntry object.
@@ -1567,13 +1551,13 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
    */
   public void setAuctionInfo(AuctionInfo inAI) {
     //  If the end date has changed, let's reschedule the snipes for the new end date...?
-    if(!_auction.getEndDate().equals(inAI.getEndDate())) {
-      Currency saveSnipeBid = _snipeBid;
-      int saveSnipeQuantity = _snipeQuantity;
+    if(!mAuction.getEndDate().equals(inAI.getEndDate())) {
+      Currency saveSnipeBid = mSnipe;
+      int saveSnipeQuantity = mSnipeQuantity;
       prepareSnipe(null);
       prepareSnipe(saveSnipeBid, saveSnipeQuantity);
     }
-    _auction = inAI;
+    mAuction = inAI;
 
     checkHighBidder(false);
     checkSeller();
@@ -1583,30 +1567,30 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   /* Accessor functions that are passed through directly down
    * to the internal AuctionInfo object.
    */
-  public Currency getCurBid() { return _auction.getCurBid(); }
-  public Currency getUSCurBid() { return _auction.getUSCurBid(); }
-  public Currency getMinBid() { return _auction.getMinBid(); }
+  public Currency getCurBid() { return mAuction.getCurBid(); }
+  public Currency getUSCurBid() { return mAuction.getUSCurBid(); }
+  public Currency getMinBid() { return mAuction.getMinBid(); }
 
   public Currency getShipping() {
-    if(_shipping != null) return _shipping;
-    return _auction.getShipping();
+    if(mShipping != null) return mShipping;
+    return mAuction.getShipping();
   }
-  public Currency getInsurance() { return _auction.getInsurance(); }
-  public boolean getInsuranceOptional() { return _auction.isInsuranceOptional(); }
-  public Currency getBuyNow() { return _auction.getBuyNow(); }
+  public Currency getInsurance() { return mAuction.getInsurance(); }
+  public boolean getInsuranceOptional() { return mAuction.isInsuranceOptional(); }
+  public Currency getBuyNow() { return mAuction.getBuyNow(); }
 
-  public int getQuantity() { return _auction.getQuantity(); }
-  public int getNumBidders() { return _auction.getNumBidders(); }
+  public int getQuantity() { return mAuction.getQuantity(); }
+  public int getNumBidders() { return mAuction.getNumBidders(); }
 
 
-  public String getSeller() { return _auction.getSellerName(); }
-  public String getHighBidder() { return _auction.getHighBidder(); }
-  public String getHighBidderEmail() { return _auction.getHighBidderEmail(); }
-  public String getTitle() { return _auction.getTitle(); }
+  public String getSeller() { return mAuction.getSellerName(); }
+  public String getHighBidder() { return mAuction.getHighBidder(); }
+  public String getHighBidderEmail() { return mAuction.getHighBidderEmail(); }
+  public String getTitle() { return mAuction.getTitle(); }
 
   public Date getStartDate() {
-    if (_auction != null && _auction.getStartDate() != null) {
-      Date start = _auction.getStartDate();
+    if (mAuction != null && mAuction.getStartDate() != null) {
+      Date start = mAuction.getStartDate();
       if(start != null) return start;
     }
 
@@ -1614,39 +1598,39 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   }
 
   public Date getEndDate() {
-    if(_auction != null && _auction.getEndDate() != null) {
-      Date end = _auction.getEndDate();
+    if(mAuction != null && mAuction.getEndDate() != null) {
+      Date end = mAuction.getEndDate();
       if(end != null) return end;
     }
 
     return Constants.FAR_FUTURE;
   }
-  public Date getSnipeDate() { return new Date(_auction.getEndDate().getTime() - getSnipeTime()); }
+  public Date getSnipeDate() { return new Date(mAuction.getEndDate().getTime() - getSnipeTime()); }
 
-  public boolean isDutch() { return _auction.isDutch(); }
-  public boolean isReserve() { return _auction.isReserve(); }
-  public boolean isReserveMet() { return _auction.isReserveMet(); }
-  public boolean isPrivate() { return _auction.isPrivate(); }
+  public boolean isDutch() { return mAuction.isDutch(); }
+  public boolean isReserve() { return mAuction.isReserve(); }
+  public boolean isReserveMet() { return mAuction.isReserveMet(); }
+  public boolean isPrivate() { return mAuction.isPrivate(); }
 
-  public boolean isFixed() { return _auction.isFixedPrice(); }
+  public boolean isFixed() { return mAuction.isFixedPrice(); }
 
-  public boolean isOutbid() { return _auction.isOutbid(); }
+  public boolean isOutbid() { return mAuction.isOutbid(); }
 
-  public StringBuffer getContent() { return _auction.getContent(); }
+  public StringBuffer getContent() { return mAuction.getContent(); }
 
-  public String getThumbnail() { return _auction.getThumbnail(); }
+  public String getThumbnail() { return mAuction.getThumbnail(); }
 
-  public boolean hasPaypal() { return _auction.hasPaypal(); }
-  public String getItemLocation() { return _auction.getItemLocation(); }
-  public String getPositiveFeedbackPercentage() { return _auction.getPositiveFeedbackPercentage(); }
-  public int getFeedbackScore() { return _auction.getFeedbackScore(); }
+  public boolean hasPaypal() { return mAuction.hasPaypal(); }
+  public String getItemLocation() { return mAuction.getItemLocation(); }
+  public String getPositiveFeedbackPercentage() { return mAuction.getPositiveFeedbackPercentage(); }
+  public int getFeedbackScore() { return mAuction.getFeedbackScore(); }
 
   public void setErrorPage(StringBuffer page) {
-    _lastErrorPage = page;
+    mLastErrorPage = page;
   }
 
   public StringBuffer getErrorPage() {
-    return _lastErrorPage;
+    return mLastErrorPage;
   }
 
   public Currency getShippingWithInsurance() {
@@ -1668,18 +1652,20 @@ public class AuctionEntry extends XMLSerializeSimple implements Comparable {
   }
 
   public boolean isShippingOverridden() {
-    return _shippingSet;
+    return mShipping != null && !mShipping.isNull();
   }
 
   public String getURL() {
-    return _aucServ.getStringURLFromItem(_identifier);
+    return mServer.getStringURLFromItem(mAuction.getIdentifier());
   }
 
   public StringBuffer getBody() throws FileNotFoundException {
-    return _aucServ.getAuction(StringTools.getURLFromString(getURL()));
+    return mServer.getAuction(StringTools.getURLFromString(getURL()));
   }
 
   public DBRecord getMap() {
-    return _auction.getMap();
+    return mAuction.getMap();
   }
+
+
 }
