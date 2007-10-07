@@ -388,13 +388,13 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     Currency bestValue;
 
     if(!checkEntry.isSniped()) {
-      if(checkEntry.isBidOn() && !checkEntry.isEnded()) {
+      if(checkEntry.isBidOn() && !checkEntry.isComplete()) {
         bestValue = checkEntry.getBid();
       } else {
         bestValue = checkEntry.getCurBid();
       }
     } else {
-      bestValue = checkEntry.getSnipeBid();
+      bestValue = checkEntry.getSnipe();
     }
     return(bestValue);
   }
@@ -593,7 +593,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
 
     if(ae.isSniped()) {
-      prompt += newRow + "Sniped for" + newCol + ae.getSnipeBid() + endRow;
+      prompt += newRow + "Sniped for" + newCol + ae.getSnipe() + endRow;
       if(ae.getSnipeQuantity() != 1) {
         prompt += newRow + "Quantity of" + newCol + ae.getSnipeQuantity() + endRow;
       }
@@ -607,7 +607,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       prompt += newRow + "Insurance (" + (ae.getInsuranceOptional()?"optional":"required") + ")" + newCol + ae.getInsurance() + endRow;
     }
     prompt += newRow + "Seller" + newCol + ae.getSeller() + endRow;
-    if(ae.isEnded()) {
+    if(ae.isComplete()) {
       prompt += newRow + "Listing ended at " + newCol + ae.getEndDate() + endRow;
     } else {
       prompt += newRow + "Listing ends at" + newCol + ae.getEndDate() + endRow;
@@ -618,7 +618,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     prompt += "</table>";
 
     if(!ae.isFixed() && !ae.getBuyNow().isNull()) {
-      if(ae.isEnded()) {
+      if(ae.isComplete()) {
         prompt += "<b>You could have used Buy It Now for " + ae.getBuyNow() + "</b><br>";
       } else {
         prompt += "<b>Or you could buy it now, for " + ae.getBuyNow() + ".</b><br>";
@@ -626,7 +626,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       }
     }
 
-    if(ae.isEnded()) {
+    if(ae.isComplete()) {
       prompt += "<i>Listing is ended.</i><br>";
     }
 
@@ -781,7 +781,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
         return;
       }
 
-      if(tempAE.isEnded()) {
+      if(tempAE.isComplete()) {
         JOptionPane.showMessageDialog(src, "You cannot place a multi-snipe on a set of entries that include an ended auction",
                                       "Snipe error", JOptionPane.PLAIN_MESSAGE);
         return;
@@ -940,7 +940,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       return;
     }
 
-    if(ae.isEnded()) {
+    if(ae.isComplete()) {
       JOptionPane.showMessageDialog(src, "You cannot place a snipe on an ended auction",
                                     "Snipe error", JOptionPane.PLAIN_MESSAGE);
       return;
@@ -994,7 +994,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     //  if(JConfig.queryConfiguration("message.sniped", null) == null) { ... }
     FilterManager.getInstance().redrawEntry(ae);
-    _oui.promptWithCheckbox(src, "Sniped for: " + ae.getSnipeBid(), "Snipe Alert", "message.sniped", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
+    _oui.promptWithCheckbox(src, "Sniped for: " + ae.getSnipe(), "Snipe Alert", "message.sniped", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
   }
 
   private void DoShipping(Component src, AuctionEntry ae) {
@@ -1046,7 +1046,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       return true;
     }
 
-    if(ae.isEnded()) {
+    if(ae.isComplete()) {
       JOptionPane.showMessageDialog(src, "You cannot place a bid on an ended auction",
                                     "Bid error", JOptionPane.PLAIN_MESSAGE);
       return true;
@@ -1186,7 +1186,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     while(stepThrough.hasNext()) {
       AuctionEntry ae = stepThrough.next();
-      if(!ae.isEnded()) {
+      if(!ae.isComplete()) {
         ae.setNeedsUpdate();
       }
     }
@@ -1206,7 +1206,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
       while(stepThrough.hasNext()) {
         AuctionEntry ae = stepThrough.next();
-        if(!ae.isEnded()) {
+        if(!ae.isComplete()) {
           ae.clearNeedsUpdate();
           ae.pauseUpdate();
         }
@@ -1224,7 +1224,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
         AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
 
         tempEntry.setNeedsUpdate();
-        if(tempEntry.isEnded() || tempEntry.isPaused()) {
+        if(tempEntry.isComplete() || tempEntry.isPaused()) {
           tempEntry.forceUpdate();
         }
       }
@@ -1245,11 +1245,11 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       for (i = 0; i < rowList.length; i++) {
         AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
 
-        tempEntry.setEnded(false);
+        tempEntry.setComplete(false);
         tempEntry.setNeedsUpdate();
       }
     } else {
-      whichAuction.setEnded(false);
+      whichAuction.setComplete(false);
       whichAuction.setNeedsUpdate();
     }
   }
@@ -1582,14 +1582,14 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     if(ae != null) {
       if(ae.getComment() != null) rename("Write", "Edit");
       if(!ae.isSniped()) disable("Cancel snipe");
-      if(!ae.isEnded()) {
+      if(!ae.isComplete()) {
         disable("complete");
         disable("Mark as not ended");
       } else {
         enable("Mark as not ended");
       }
 
-      if(ae.isSeller() || ae.isEnded()) {
+      if(ae.isSeller() || ae.isComplete()) {
         disable("Buy");
         disable("Bid");
         disable("Snipe");
@@ -1622,8 +1622,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
         AuctionEntry step = (AuctionEntry) line;
         if (step.isSniped()) anySniped = true;
         if (step.isFixed()) anyFixed = true;
-        if (step.isEnded()) anyEnded = true;
-        if (!step.isEnded()) anyCurrent = true;
+        if (step.isComplete()) anyEnded = true;
+        if (!step.isComplete()) anyCurrent = true;
       }
 
       if(!anySniped) disable("Cancel snipe");

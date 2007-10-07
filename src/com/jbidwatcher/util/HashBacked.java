@@ -146,7 +146,7 @@ public abstract class HashBacked extends XMLSerializeSimple {
   }
 
   public String get(String key) {
-    if (mTranslationTable.containsKey(key)) {
+    if (mTranslationTable != null && mTranslationTable.containsKey(key)) {
       key = mTranslationTable.get(key);
     }
 
@@ -154,7 +154,7 @@ public abstract class HashBacked extends XMLSerializeSimple {
   }
 
   public void set(String key, String value) {
-    if (mTranslationTable.containsKey(key)) {
+    if (mTranslationTable != null && mTranslationTable.containsKey(key)) {
       key = mTranslationTable.get(key);
     }
     mBacking.put(key, value);

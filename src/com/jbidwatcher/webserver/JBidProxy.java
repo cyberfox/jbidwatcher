@@ -373,12 +373,12 @@ public class JBidProxy extends HTTPProxyClient {
     while(!done && aucIterate.hasNext()) {
       AuctionEntry addme = aucIterate.next();
       if(checkEnded)
-        if(addme.isEnded())
+        if(addme.isComplete())
           allEnded.add(addme);
         else
           done = true;
 
-      if(checkEnding && !addme.isEnded()) {
+      if(checkEnding && !addme.isComplete()) {
         count++;
         allEnded.add(addme);
         if(count >= Constants.SYNDICATION_ITEM_COUNT) done = true;

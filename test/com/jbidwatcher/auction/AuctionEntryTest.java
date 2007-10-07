@@ -51,7 +51,7 @@ public class AuctionEntryTest extends TestCase {
   }
 
   public void testGetSnipeBid() throws Exception {
-    assertEquals(mAE.getSnipeBid(), Currency.NoValue());
+    assertEquals(mAE.getSnipe(), Currency.NoValue());
   }
 
   public void testGetSnipeQuantity() throws Exception {
@@ -147,7 +147,7 @@ public class AuctionEntryTest extends TestCase {
   }
 
   public void testSetEnded() throws Exception {
-    assertFalse(mAE.isEnded());
+    assertFalse(mAE.isComplete());
   }
 
   private static final int NOT_FIXED_PRICE=1;

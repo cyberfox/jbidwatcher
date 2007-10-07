@@ -182,9 +182,9 @@ public class AuctionsUIModel {
     Currency bestValue;
 
     if (checkEntry.isSniped()) {
-      bestValue = checkEntry.getSnipeBid();
+      bestValue = checkEntry.getSnipe();
     } else {
-      if(checkEntry.isBidOn() && !checkEntry.isEnded()) {
+      if(checkEntry.isBidOn() && !checkEntry.isComplete()) {
         bestValue = checkEntry.getBid();
       } else {
         bestValue = checkEntry.getCurBid();

@@ -183,7 +183,7 @@ public class auctionTableModel extends BaseTransformation {
           Currency bid = aEntry.isBidOn()?aEntry.getBid(): Currency.NoValue();
           return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), bid);
         case TableColumnController.SNIPE:
-          Currency snipe = aEntry.isSniped()?aEntry.getSnipeBid(): Currency.NoValue();
+          Currency snipe = aEntry.isSniped()?aEntry.getSnipe(): Currency.NoValue();
           return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), snipe);
         case TableColumnController.COMMENT:String s = aEntry.getComment(); return (s==null?"":s);
         case TableColumnController.END_DATE:return aEntry.getEndDate();
@@ -217,7 +217,7 @@ public class auctionTableModel extends BaseTransformation {
 
           Currency shippingUSD2 = Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getShippingWithInsurance());
           try {
-            return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getSnipeBid()).add(shippingUSD2);
+            return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getSnipe()).add(shippingUSD2);
           } catch (Currency.CurrencyTypeException e) {
             ErrorManagement.handleException("Currency addition or conversion threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
             return Currency.NoValue();
@@ -234,12 +234,12 @@ public class auctionTableModel extends BaseTransformation {
 
   private Currency getMaxOrSnipe(AuctionEntry aEntry) {
     if(aEntry.isSniped()) {
-      return aEntry.getSnipeBid();
+      return aEntry.getSnipe();
     }
     if(aEntry.isBidOn()) {
       return aEntry.getBid();
     }
-    if(aEntry.snipeCancelled() && aEntry.isEnded()) {
+    if(aEntry.snipeCancelled() && aEntry.isComplete()) {
       return aEntry.getCancelledSnipe();
     }
     return Currency.NoValue();
@@ -255,7 +255,7 @@ public class auctionTableModel extends BaseTransformation {
     if(aEntry.isBidOn()) {
       return formatBid(aEntry, errorNote);
     }
-    if(aEntry.snipeCancelled() && aEntry.isEnded()) {
+    if(aEntry.snipeCancelled() && aEntry.isComplete()) {
       return errorNote + '(' + aEntry.getCancelledSnipe() + ')';
     }
     return neverBid;
@@ -275,15 +275,15 @@ public class auctionTableModel extends BaseTransformation {
 
     if(aEntry.isMultiSniped()) {
       if(aEntry.isSnipeValid() || aEntry.isDutch()) {
-        return errorNote + "Multi: " + aEntry.getSnipeBid() + snipeCount;
+        return errorNote + "Multi: " + aEntry.getSnipe() + snipeCount;
       } else {
-        return errorNote + "Multi: (" + aEntry.getSnipeBid() + snipeCount + ')';
+        return errorNote + "Multi: (" + aEntry.getSnipe() + snipeCount + ')';
       }
     } else {
       if(aEntry.isSnipeValid() || aEntry.isDutch()) {
-        return errorNote + aEntry.getSnipeBid().toString() + snipeCount;
+        return errorNote + aEntry.getSnipe().toString() + snipeCount;
       } else {
-        return errorNote + '(' + aEntry.getSnipeBid() + snipeCount + ')';
+        return errorNote + '(' + aEntry.getSnipe() + snipeCount + ')';
       }
     }
   }
@@ -291,14 +291,14 @@ public class auctionTableModel extends BaseTransformation {
   private String formatTotalSnipe(AuctionEntry aEntry, String errorNote) {
     if(!aEntry.isSniped()) return "--";
     Currency shipping = aEntry.getShippingWithInsurance();
-    if (shipping.getCurrencyType() == Currency.NONE || aEntry.getSnipeBid().getCurrencyType() == Currency.NONE) {
+    if (shipping.getCurrencyType() == Currency.NONE || aEntry.getSnipe().getCurrencyType() == Currency.NONE) {
       return "--"; // shipping not set so cannot add up values
     }
 
     Currency totalSnipe;
 
     try {
-      totalSnipe = aEntry.getSnipeBid().add(shipping);
+      totalSnipe = aEntry.getSnipe().add(shipping);
     } catch (Currency.CurrencyTypeException e) {
       /* Should never happen, since we've checked the currency already.  */
       ErrorManagement.handleException("Currency addition threw a bad currency exception, which should be very difficult to cause to happen.", e); //$NON-NLS-1$
@@ -348,7 +348,7 @@ public class auctionTableModel extends BaseTransformation {
           if (aEntry.isSniped()) {
             return formatSnipe(aEntry, errorNote);
           }
-          if(aEntry.snipeCancelled() && aEntry.isEnded()) {
+          if(aEntry.snipeCancelled() && aEntry.isComplete()) {
             return errorNote + '(' + aEntry.getCancelledSnipe() + ')';
           }
 
@@ -360,7 +360,7 @@ public class auctionTableModel extends BaseTransformation {
           if(endTime.equals(AuctionEntry.endedAuction)) {
             SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
             endTime = fmt.format(aEntry.getEndDate());
-            if(!aEntry.isEnded()) {
+            if(!aEntry.isComplete()) {
               endTime = "<html><body color=\"red\">" + endTime + "</body></html>";
             }
           }

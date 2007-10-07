@@ -541,14 +541,14 @@ class ebayAuction extends SpecificAuction {
       if (getEnd().getTime() > System.currentTimeMillis()) {
         //  Item is not ended yet.
         if (ae != null) {
-          ae.setEnded(false);
+          ae.setComplete(false);
           ae.setSticky(false);
         }
       }
     } else {
       if(ae != null) setEnd(ae.getEndDate());
       if(mDocument.grep(Externalized.getString("ebayServer.ended")) != null) {
-        if(ae != null) ae.setEnded(true);
+        if(ae != null) ae.setComplete(true);
         setEnd(new Date());
       } else {
         if(isFixedPrice()) {

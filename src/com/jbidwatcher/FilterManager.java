@@ -286,7 +286,7 @@ public class FilterManager implements MessageQueue.Listener {
       if(ae.isSeller()) {
         return findSellerList();
       }
-      if(ae.isEnded()) {
+      if(ae.isComplete()) {
         return findCompletedList();
       }
     }

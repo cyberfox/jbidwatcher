@@ -32,7 +32,7 @@ public class Seller {
       try {
         sDB = new AuctionDB("sellers");
       } catch (Exception e) {
-        ErrorManagement.handleException("Can't access the sellers table.", e);
+//        ErrorManagement.handleException("Can't access the sellers table.", e);
       }
     }
   }

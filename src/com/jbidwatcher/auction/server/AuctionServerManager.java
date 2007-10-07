@@ -332,7 +332,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     synchronized (aucList) {
       outStat._count = aucList.size();
       for (AuctionEntry ae : aucList) {
-        if (ae.isEnded()) {
+        if (ae.isComplete()) {
           outStat._completed++;
         } else {
           long thisTime = ae.getEndDate().getTime();

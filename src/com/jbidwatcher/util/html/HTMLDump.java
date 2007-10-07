@@ -58,7 +58,7 @@ public class HTMLDump {
     String savecolor = color;
     String highBid;
     if(ae.isSniped()) {
-      highBid = "<a href=\"cancelSnipe?id=" + ae.getIdentifier() + "\">" + ae.getSnipeBid().toString() + "</a>";
+      highBid = "<a href=\"cancelSnipe?id=" + ae.getIdentifier() + "\">" + ae.getSnipe().toString() + "</a>";
       color = "blue";
     } else {
       if(ae.isBidOn()) {

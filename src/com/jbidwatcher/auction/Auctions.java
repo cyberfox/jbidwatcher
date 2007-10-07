@@ -188,7 +188,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
       public boolean match(Object o) {
 
         AuctionEntry ae = ((AuctionEntry) o);
-        return ae.isSniped() && !ae.isEnded();
+        return ae.isSniped() && !ae.isComplete();
       }
     });
     return result != null;
@@ -224,7 +224,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
   private boolean doUpdate(AuctionEntry ae) {
     String titleWithComment = getTitleAndComment(ae);
 
-    if(!ae.isEnded() || ae.isUpdateForced()) {
+    if(!ae.isComplete() || ae.isUpdateForced()) {
       MQFactory.getConcrete("Swing").enqueue("Updating " + titleWithComment);
       ae.update();
       Auctions newAuction = FilterManager.getInstance().refilterAuction(ae, false);
