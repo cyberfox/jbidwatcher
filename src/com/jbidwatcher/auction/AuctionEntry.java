@@ -6,12 +6,15 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.Constants;
+import com.jbidwatcher.search.Category;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.queue.AuctionQObject;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.db.DBRecord;
+import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.xml.XMLElement;
 
 import java.io.FileNotFoundException;
@@ -44,6 +47,8 @@ public class AuctionEntry extends HashBacked implements Comparable {
   public static final int SUCC_HIGHBID=0, SUCC_OUTBID=1, FAIL_ENDED=2;
   public static final int FAIL_CONNECT=3, FAIL_PARSE=4, FAIL_BADMULTI=5;
 
+  private static AuctionDB sDB;
+  
   /**
    * @brief Set a status message, and mark that the connection is currently invalid.
    */
@@ -528,10 +533,9 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * not set, return a standard 30 seconds.
    */
   private static long getGlobalSnipeTime() {
-    String strConfigSnipeAt;
     long snipeTime;
 
-    strConfigSnipeAt = JConfig.queryConfiguration("snipemilliseconds");
+    String strConfigSnipeAt = JConfig.queryConfiguration("snipemilliseconds");
     if(strConfigSnipeAt != null) {
       snipeTime = Long.parseLong(strConfigSnipeAt);
     } else {
@@ -554,6 +558,8 @@ public class AuctionEntry extends HashBacked implements Comparable {
    */
   private void checkConfigurationSnipeTime() {
     mDefaultSnipeAt = getGlobalSnipeTime();
+    if(sDB == null) sDB = setTable("entries");
+    setDB(sDB);
   }
 
   /**
@@ -668,9 +674,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
         }
       } else {
         if(!isDutch()) {
-          String localUserId;
-
-          localUserId = mServer.getUserId().trim();
+          String localUserId = mServer.getUserId().trim();
           mHighBidder = localUserId.equalsIgnoreCase(getHighBidder());
         }
       }
@@ -781,7 +785,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * we effectively delete the comment.
    */
   public void setComment(String newComment) {
-    if(newComment.trim().equals(""))
+    if(newComment.trim().length() == 0)
       mComment = null;
     else
       mComment = newComment;
@@ -921,13 +925,12 @@ public class AuctionEntry extends HashBacked implements Comparable {
    */
   public XMLElement toXML() {
     XMLElement xmlResult = new XMLElement("auction");
-    XMLElement xbid, xsnipe, xcomplete, xinvalid, xcomment, xlog, xmulti, xshipping, xcategory;
 
     xmlResult.setProperty("id", getIdentifier());
     xmlResult.addChild(mAuction.toXML());
 
     if(isBidOn()) {
-      xbid = new XMLElement("bid");
+      XMLElement xbid = new XMLElement("bid");
       xbid.setEmpty();
       xbid.setProperty("quantity", Integer.toString(mBidQuantity));
       xbid.setProperty("currency", mBid.fullCurrencyName());
@@ -939,7 +942,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
     }
 
     if(isSniped()) {
-      xsnipe = new XMLElement("snipe");
+      XMLElement xsnipe = new XMLElement("snipe");
       xsnipe.setEmpty();
       xsnipe.setProperty("quantity", Integer.toString(mSnipeQuantity));
       xsnipe.setProperty("currency", getSnipe().fullCurrencyName());
@@ -951,7 +954,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
     if(isMultiSniped()) {
       MultiSnipe outMS = getMultiSnipe();
 
-      xmulti = new XMLElement("multisnipe");
+      XMLElement xmulti = new XMLElement("multisnipe");
       xmulti.setEmpty();
       xmulti.setProperty("subtractshipping", Boolean.toString(outMS.subtractShipping()));
       xmulti.setProperty("color", outMS.getColorString());
@@ -961,39 +964,39 @@ public class AuctionEntry extends HashBacked implements Comparable {
     }
 
     if(isComplete()) {
-      xcomplete = new XMLElement("complete");
+      XMLElement xcomplete = new XMLElement("complete");
       xcomplete.setEmpty();
       xmlResult.addChild(xcomplete);
     }
 
     if(isInvalid()) {
-      xinvalid = new XMLElement("invalid");
+      XMLElement xinvalid = new XMLElement("invalid");
       xinvalid.setEmpty();
       xmlResult.addChild(xinvalid);
     }
 
     if(getComment() != null) {
-      xcomment = new XMLElement("comment");
+      XMLElement xcomment = new XMLElement("comment");
       xcomment.setContents(getComment());
       xmlResult.addChild(xcomment);
     }
 
     if(getCategory() != null) {
-      xcategory = new XMLElement("category");
+      XMLElement xcategory = new XMLElement("category");
       xcategory.setContents(getCategory());
       xcategory.setProperty("sticky", isSticky() ?"true":"false");
       xmlResult.addChild(xcategory);
     }
 
     if(getShipping() != null) {
-      xshipping = new XMLElement("shipping");
+      XMLElement xshipping = new XMLElement("shipping");
       xshipping.setEmpty();
       xshipping.setProperty("currency", getShipping().fullCurrencyName());
       xshipping.setProperty("price", Double.toString(getShipping().getValue()));
       xmlResult.addChild(xshipping);
     }
 
-    xlog = mEntryEvents.toXML();
+    XMLElement xlog = mEntryEvents.toXML();
     if(xlog != null) {
       xmlResult.addChild(xlog);
     }
@@ -1074,14 +1077,13 @@ public class AuctionEntry extends HashBacked implements Comparable {
     boolean shouldSnipe = false;
 
     if(isSniped()) {
-      long endDate, curDate, adjustedDate;
-
-      endDate = mAuction.getEndDate().getTime();
-      curDate = mServer.getAdjustedTime();
+      long endDate = mAuction.getEndDate().getTime();
+      long curDate = mServer.getAdjustedTime();
 
       //  If the auction hasn't ended already...
       if(endDate > curDate) {
         //  mSnipeAt / 1000 seconds before the end of the auction.
+        long adjustedDate;
         if(hasDefaultSnipeTime()) {
           adjustedDate = curDate + mDefaultSnipeAt;
         } else {
@@ -1288,12 +1290,14 @@ public class AuctionEntry extends HashBacked implements Comparable {
    */
   public void forceUpdate() { mForceUpdate = true; mDontUpdate = 0; mNeedsUpdate = true; }
 
+  Category mCategory;
+
   /**
    * @brief Get the category this belongs in, usually used for tab names, and fitting in search results.
    *
    * @return - A category, or null if none has been assigned.
    */
-  public String getCategory() { return getString("category"); }
+  public String getCategory() { return mCategory.getName(); }
 
   /**
    * @brief Set the category associated with the auction entry.  If the
@@ -1302,7 +1306,8 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * @param newCategory - The new category to associate this item with.
    */
   public void setCategory(String newCategory) {
-    setString("category", newCategory);
+    mCategory = Category.findCategory(newCategory);
+    setInteger("category_id", mCategory.getId());
     if(isComplete()) setSticky(true);
   }
 
@@ -1638,5 +1643,10 @@ public class AuctionEntry extends HashBacked implements Comparable {
   public Currency getSnipe() { return mSnipe; }
   protected void setSnipe(Currency snipe) {
     mSnipe = snipe;
+  }
+
+  public DBRecord getMap() {
+    setInteger("auction_id", mAuction.getId());
+    return getBacking();
   }
 }

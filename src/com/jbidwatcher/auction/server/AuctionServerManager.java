@@ -124,7 +124,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
         ae.setServer(newServer);
         ae.fromXML(perEntry);
-        mDB.storeMap(ae.getMap());
+        ae.create();
         if (sEntryManager != null) {
           sEntryManager.addEntry(ae);
         }

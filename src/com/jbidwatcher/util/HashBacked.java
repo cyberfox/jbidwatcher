@@ -3,14 +3,15 @@ package com.jbidwatcher.util;
 import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.xml.XMLSerializeSimple;
 import com.jbidwatcher.util.db.DBRecord;
+import com.jbidwatcher.util.db.AuctionDB;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 import java.text.SimpleDateFormat;
+import java.sql.SQLException;
 
 /**
- * Created by IntelliJ IDEA.
  * User: Morgan
  * Date: Sep 30, 2007
  * Time: 1:54:43 PM
@@ -22,8 +23,21 @@ public abstract class HashBacked extends XMLSerializeSimple {
   private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
   private Map<String, String> mTranslationTable;
   private String mDefaultCurrency;
+  protected Integer mId;
+  protected AuctionDB mDB = null;
 
-  public HashBacked() {
+  protected void setDB(AuctionDB db) { mDB = db; }
+  protected AuctionDB setTable(String tableName) {
+    if(mDB == null) try {
+      mDB = new AuctionDB(tableName);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return mDB;
+  }
+
+  protected HashBacked() {
     mDateFormat.setTimeZone(TimeZone.getDefault());
     mBacking = new DBRecord();
     mDefaultCurrency = Currency.getCurrency("$1.00").fullCurrencyName();
@@ -198,5 +212,22 @@ public abstract class HashBacked extends XMLSerializeSimple {
     return xadd;
   }
 
+  public Integer getId() {
+    if(mId == null) {
+      create();
+    }
+    return mId;
+  }
+
+  public void create() {
+    String id = mDB.storeMap(getBacking());
+    if(id != null && id.length() != 0) {
+      mId = Integer.parseInt(id);
+    } else {
+      mId = null;
+    }
+  }
+
   protected DBRecord getBacking() { return mBacking; }
+  protected void setBacking(DBRecord newRecord) { mBacking = newRecord; }
 }

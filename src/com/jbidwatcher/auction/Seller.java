@@ -1,6 +1,5 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.db.DBRecord;
 import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.xml.XMLElement;
@@ -9,14 +8,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
-* User: Morgan
-* Date: Sep 29, 2007
-* Time: 7:27:30 PM
-* To change this template use File | Settings | File Templates.
-*/
+ * User: Morgan
+ * Date: Sep 29, 2007
+ * Time: 7:27:30 PM
+ * To change this template use File | Settings | File Templates.
+ */
 public class Seller {
-  static Map<String,Seller> mSellerMap = new HashMap<String,Seller>();
+  static Map<String, Seller> mSellerMap = new HashMap<String,Seller>();
   String mSeller;
   String mPositivePercentage;
   int mFeedback;
@@ -25,6 +23,12 @@ public class Seller {
 
   public Seller() {
     establishSellerDatabase();
+  }
+
+  private Seller(DBRecord record) {
+    mSeller = record.get("seller");
+    try { mFeedback = Integer.parseInt(record.get("feedback")); } catch(Exception e) { mFeedback = 0; }
+    mPositivePercentage = record.get("feedback_percentage");
   }
 
   private static void establishSellerDatabase() {
@@ -41,9 +45,16 @@ public class Seller {
     establishSellerDatabase();
     Seller existing_seller = mSellerMap.get(sellerName);
     if(existing_seller == null) {
-    //  This should look up the seller in the database, so there's only one instance of any given seller.
-      Seller rval = new Seller();
-      rval.setSeller(sellerName);
+      DBRecord existing = sDB.findByColumn("seller", sellerName);
+      Seller rval;
+
+      if(existing != null) {
+        rval = new Seller(existing);
+      } else {
+        //  This should look up the seller in the database, so there's only one instance of any given seller.
+        rval = new Seller();
+        rval.setSeller(sellerName);
+      }
 
       mSellerMap.put(sellerName, rval);
       return rval;
@@ -54,14 +65,18 @@ public class Seller {
 
   public Integer getId() {
     if(mId == null) {
-      String id = sDB.storeMap(getMap());
-      if(id != null && id.length() != 0) {
-        mId = Integer.parseInt(id);
-      } else {
-        mId = null;
-      }
+      create();
     }
     return mId;
+  }
+
+  private void create() {
+    String id = sDB.storeMap(getMap());
+    if(id != null && id.length() != 0) {
+      mId = Integer.parseInt(id);
+    } else {
+      mId = null;
+    }
   }
 
   public DBRecord getMap() {

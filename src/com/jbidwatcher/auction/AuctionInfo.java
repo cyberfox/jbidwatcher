@@ -16,6 +16,7 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.db.DBRecord;
+import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.xml.XMLElement;
 
 import java.io.File;
@@ -70,12 +71,15 @@ public abstract class AuctionInfo extends HashBacked {
   protected static final sun.misc.BASE64Encoder b64enc = new sun.misc.BASE64Encoder();
   protected GZip _loadedPage = null;
 
+  private static AuctionDB sDB = null;
   /**
    * @brief Empty constructor, for XML parsing.
    *
    */
-  AuctionInfo() {
+  protected AuctionInfo() {
     setTranslationTable(mKeys);
+    if(sDB == null) sDB = setTable("auctions");
+    setDB(sDB);
   }
 
   /** 
@@ -90,9 +94,10 @@ public abstract class AuctionInfo extends HashBacked {
    * @param auctionEnd - The end time for the auction.
    * @param auctionBidCount - The number of bids that have been placed so far.
    */
-  AuctionInfo(String auctionTitle, String auctionSeller, String auctionHighBidder,
+  protected AuctionInfo(String auctionTitle, String auctionSeller, String auctionHighBidder,
                      Currency auctionCurBid, Date auctionStart, Date auctionEnd, int auctionBidCount) {
     setTranslationTable(mKeys);
+    setTable("auctions");
     setTitle(auctionTitle.trim());
     setHighBidder(auctionHighBidder.trim());
     _seller = Seller.makeSeller(auctionSeller.trim());
@@ -191,26 +196,25 @@ public abstract class AuctionInfo extends HashBacked {
 
   public XMLElement toXML() {
     XMLElement xmlResult = new XMLElement("info");
-    XMLElement xseller, xbidcount, xstart, xend, xdutch, xinsurance;
 
     addStringChild(xmlResult, "title");
 
-    xseller = _seller.toXML();
+    XMLElement xseller = _seller.toXML();
     xmlResult.addChild(xseller);
 
-    xstart = new XMLElement("start");
+    XMLElement xstart = new XMLElement("start");
     xstart.setContents(Long.toString(getStart().getTime()));
     xmlResult.addChild(xstart);
 
-    xend = new XMLElement("end");
+    XMLElement xend = new XMLElement("end");
     xend.setContents(Long.toString(getEnd().getTime()));
     xmlResult.addChild(xend);
 
-    xbidcount = new XMLElement("bidcount");
+    XMLElement xbidcount = new XMLElement("bidcount");
     xbidcount.setContents(Integer.toString(getNumBids()));
     xmlResult.addChild(xbidcount);
 
-    xinsurance = addCurrencyChild(xmlResult, "insurance");
+    XMLElement xinsurance = addCurrencyChild(xmlResult, "insurance");
     if(xinsurance != null) xinsurance.setProperty("optional", isInsuranceOptional() ?"true":"false");
 
     if(getCurBid().getCurrencyType() != Currency.US_DOLLAR) {
@@ -222,7 +226,7 @@ public abstract class AuctionInfo extends HashBacked {
     addCurrencyChild(xmlResult, "buynow");
     addCurrencyChild(xmlResult, "minimum");
 
-    xdutch = addBooleanChild(xmlResult, "dutch");
+    XMLElement xdutch = addBooleanChild(xmlResult, "dutch");
     if(xdutch != null) xdutch.setProperty("quantity", Integer.toString(getQuantity()));
 
     XMLElement xreserve = addBooleanChild(xmlResult, "reserve");
