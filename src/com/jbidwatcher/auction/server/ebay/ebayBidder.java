@@ -42,17 +42,20 @@ public class ebayBidder implements Bidder {
      */
     if(mResultHash == null) {
       mResultHash = new HashMap<String, Integer>();
-      mResultHash.put("you are not permitted to bid on their listings.", AuctionServer.BID_ERROR_BANNED);
+      mResultHash.put("you('re| are) not permitted to bid on their listings.", AuctionServer.BID_ERROR_BANNED);
       mResultHash.put("the item is no longer available because the auction has ended.", AuctionServer.BID_ERROR_ENDED);
       mResultHash.put("cannot proceed", AuctionServer.BID_ERROR_CANNOT);
       mResultHash.put("problem with bid amount", AuctionServer.BID_ERROR_AMOUNT);
       mResultHash.put("your bid must be at least ", AuctionServer.BID_ERROR_TOO_LOW);
-      mResultHash.put("you have been outbid by another bidder", AuctionServer.BID_ERROR_OUTBID);
-      mResultHash.put("you've been outbid by another bidder", ebayServer.BID_ERROR_OUTBID);
+      mResultHash.put("you('ve| have) been outbid by another bidder", AuctionServer.BID_ERROR_OUTBID);
+      mResultHash.put("you('ve| have) just been outbid", ebayServer.BID_ERROR_OUTBID);
       mResultHash.put("your bid is confirmed!", AuctionServer.BID_DUTCH_CONFIRMED);
-      mResultHash.put("you are bidding on this multiple item auction", AuctionServer.BID_DUTCH_CONFIRMED);
-      mResultHash.put("you are the high bidder on all items you bid on", AuctionServer.BID_DUTCH_CONFIRMED);
-      mResultHash.put("you are the current high bidder", AuctionServer.BID_WINNING);
+      mResultHash.put("you('re| are) bidding on this multiple item auction", AuctionServer.BID_DUTCH_CONFIRMED);
+      mResultHash.put("you('re| are) the high bidder on all items you bid on", AuctionServer.BID_DUTCH_CONFIRMED);
+      mResultHash.put("you('re| are) the current high bidder", AuctionServer.BID_WINNING);
+      mResultHash.put("you('re| are) the first bidder", AuctionServer.BID_WINNING);
+      mResultHash.put("you('re| are) the high bidder and currently in the lead", AuctionServer.BID_WINNING);
+      mResultHash.put("you('re| are) currently the highest bidder", AuctionServer.BID_WINNING);
       mResultHash.put("you purchased the item", AuctionServer.BID_WINNING);
       mResultHash.put("the reserve price has not been met", AuctionServer.BID_ERROR_RESERVE_NOT_MET);
       mResultHash.put("your new total must be higher than your current total", AuctionServer.BID_ERROR_TOO_LOW_SELF);
@@ -166,7 +169,7 @@ public class ebayBidder implements Bidder {
         Matcher bidMatch = mFindBidResult.matcher(errMsg);
         bidMatch.find();
         String matched_error = bidMatch.group().toLowerCase();
-        throw new BadBidException(matched_error, mResultHash.get(matched_error));
+        throw new BadBidException(matched_error, getMatchedResult(matched_error));
       } else {
         String amount = htmlDocument.getNextContentAfterRegex("Enter");
         if (amount != null) {
@@ -183,6 +186,14 @@ public class ebayBidder implements Bidder {
 
     //  We don't recognize this error.  Damn.  Log it and freak.
     ErrorManagement.logFile(bidInfo, loadedPage);
+    return null;
+  }
+
+  private Integer getMatchedResult(String matched_text) {
+    for (String regex : mResultHash.keySet()) {
+      if(matched_text.matches(regex)) return mResultHash.get(regex);
+    }
+
     return null;
   }
 
@@ -298,7 +309,7 @@ public class ebayBidder implements Bidder {
       Matcher bidMatch = mFindBidResult.matcher(errMsg);
       bidMatch.find();
       String matched_error = bidMatch.group().toLowerCase();
-      Integer bidResult = mResultHash.get(matched_error);
+      Integer bidResult = getMatchedResult(matched_error);
 
       int result = 0;
       if (bidResult != null) {
