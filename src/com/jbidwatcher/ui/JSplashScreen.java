@@ -5,17 +5,21 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.border.*;
+import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.queue.MessageQueue;
 
-public class JSplashScreen extends Window {
+import javax.swing.*;
+import javax.swing.border.BevelBorder;
+import java.awt.*;
+
+public class JSplashScreen extends Window implements MessageQueue.Listener {
   JProgressBar statusBar;
 
   // JNews's constructor
   public JSplashScreen(ImageIcon CoolPicture) {
     super(new Frame());
 
+    MQFactory.getConcrete("splash").registerListener(this);
     // Create a JPanel so we can use a BevelBorder
     JPanel PanelForBorder=new JPanel(new BorderLayout());
     PanelForBorder.setLayout(new BorderLayout());
@@ -58,6 +62,28 @@ public class JSplashScreen extends Window {
     public synchronized void run() {
       setVisible(false);
       dispose();
+    }
+  }
+
+  private int parseInt(String s) {
+    try {
+      return Integer.parseInt(s);
+    } catch (NumberFormatException nfe) {
+      //  don't really do anything, since this isn't critical.
+    }
+    return 0;
+  }
+
+  public void messageAction(Object deQ) {
+    String msg = (String) deQ;
+    if(msg.startsWith("SET ")) {
+      int amount = parseInt(msg.substring(4));
+      showStatus(amount);
+    } else if(msg.startsWith("WIDTH ")) {
+      int width = parseInt(msg.substring(6));
+      setWidth(width);
+    } else if(msg.equals("CLOSE")) {
+      close();
     }
   }
 }

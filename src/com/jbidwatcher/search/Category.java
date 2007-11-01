@@ -19,13 +19,10 @@ public class Category extends HashBacked {
   private static AuctionDB sDB = null;
 
   private Category(String name) {
-    if(sDB == null) sDB = setTable("categories");
-    setDB(sDB);
     setString("name", name);
   }
 
   private Category(DBRecord base) {
-    setTable("categories");
     setBacking(base);
   }
 
@@ -44,11 +41,8 @@ public class Category extends HashBacked {
       DBRecord existing = sDB.findByColumn("name", newCategory);
       if(existing != null) {
         rval = new Category(existing);
-        rval.setDB(sDB);
       } else {
         rval = new Category(newCategory);
-        rval.setDB(sDB);
-        rval.create();
       }
 
       categories.put(newCategory, rval);

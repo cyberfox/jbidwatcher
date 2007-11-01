@@ -6,14 +6,12 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.Constants;
-import com.jbidwatcher.search.Category;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.queue.AuctionQObject;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.util.*;
-import com.jbidwatcher.util.db.DBRecord;
 import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.xml.XMLElement;
 
@@ -38,17 +36,16 @@ import java.util.TreeMap;
  *
  * This is not descended from AuctionInfo because the actual type of
  * AuctionInfo varies per server.
- * 
+ *
  * @author Morgan Schweers
  * @see AuctionInfo
  * @see SpecificAuction
  */
-public class AuctionEntry extends HashBacked implements Comparable {
+public class AuctionEntry extends ActiveRecord implements Comparable {
   public static final int SUCC_HIGHBID=0, SUCC_OUTBID=1, FAIL_ENDED=2;
   public static final int FAIL_CONNECT=3, FAIL_PARSE=4, FAIL_BADMULTI=5;
+  private Category mCategory;
 
-  private static AuctionDB sDB;
-  
   /**
    * @brief Set a status message, and mark that the connection is currently invalid.
    */
@@ -81,7 +78,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /** All the auction-independant information like high bidder's name,
    * seller's name, etc...  This is directly queried when this object
    * is queried about any of those fields.
-   * 
+   *
    */
   private AuctionInfo mAuction = null;
 
@@ -240,7 +237,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * become simple calls to this function.  Presets up all the
    * necessary variables, loads any data in, sets the lastUpdated
    * flag, all the timers, retrieves the auction if necessary.
-   * 
+   *
    * @param auctionIdentifier - Each auction site has an identifier that
    *                            is used to key the auction.
    */
@@ -273,8 +270,8 @@ public class AuctionEntry extends HashBacked implements Comparable {
     /**
      * Note that a bad auction (couldn't get an auction server, or a
      * specific auction info object) doesn't have an identifier, and
-     * isn't loaded.  This will fail out the init process, and this 
-     * will never be added to the items list. 
+     * isn't loaded.  This will fail out the init process, and this
+     * will never be added to the items list.
      */
     if(mAuction == null || mServer == null) {
       mLoaded = false;
@@ -291,8 +288,8 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /** Construct an AuctionEntry from just the ID, loading all necessary info
    * from the server.
-   * 
-   * @param auctionIdentifier The auction ID, from which the entire 
+   *
+   * @param auctionIdentifier The auction ID, from which the entire
    *     AuctionEntry is built by loading data from the server.
    */
   public AuctionEntry(String auctionIdentifier) {
@@ -331,7 +328,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Return the server associated with this entry.
-   * 
+   *
    * @return The server that this auction entry is associated with.
    */
   public AuctionServer getServer() { return(mServer); }
@@ -339,14 +336,14 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * @brief Set the auction server for this entry.
    *
    * This is solely used when serializing in.
-   * 
+   *
    * @param newServer - The server to associate with this auction entry.
    */
   public void setServer(AuctionServer newServer) { mServer = newServer; }
 
   /**
    * @brief Query whether this entry has ever been loaded from the server.
-   * 
+   *
    * Really shouldn't be necessary, but is.  If we try to create an
    * AuctionEntry with a bad identifier, that doesn't match any
    * server, or isn't 'live' on the auction server, we need an error
@@ -383,7 +380,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Check if the user has an outstanding snipe on this auction.
-   * 
+   *
    * @return Whether there is a snipe waiting on this auction.
    */
   public boolean isSniped() { return(getSnipe() != null && !getSnipe().isNull()); }
@@ -395,7 +392,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * then it automatically cancels all the rest of the snipes.  This
    * lets users snipe on (say) five auctions, even though they only
    * want one of the items.
-   * 
+   *
    * @return Whether this auction is one of a multisnipe group, where
    * each auction is sniped on until one is won.
    */
@@ -404,7 +401,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /**
    * @brief Check if the user has ever placed a bid (or completed
    * snipe) on this auction.
-   * 
+   *
    * @return Whether the user has ever actually submitted a bid to the
    * server for this auction.
    */
@@ -412,7 +409,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Check if we are in the midst of updating this auction.
-   * 
+   *
    * Not necessary, as the only place it should be used is internally,
    * but it's now being used by auctionTableModel to identify when a
    * specific item is being updated.  It lets the item # be a nice red,
@@ -429,7 +426,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * This should eventually handle multiple users per server, so that
    * users can have multiple identities per auction site.
    * FUTURE FEATURE -- mrs: 02-January-2003 01:25
-   * 
+   *
    * @return Whether the current user is the high bidder.
    */
   public boolean isHighBidder() { return mHighBidder; }
@@ -440,7 +437,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * This should eventually handle multiple users per server, so that
    * users can have multiple identities per auction site.
    * FUTURE FEATURE -- mrs: 02-January-2003 01:25
-   * 
+   *
    * @return Whether the current user is the seller.
    */
   public boolean isSeller() { return mSeller; }
@@ -448,7 +445,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /**
    * @brief What was the highest amount actually submitted to the
    * server as a bid?
-   * 
+   *
    * With some auction servers, it might be possible to find out how
    * much the user bid, but in general presume this value is only set
    * by bidding through this program, or firing a snipe.
@@ -459,7 +456,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Set the highest amount actually submitted to the server as a bid.
-   * 
+   *
    * @param highBid - The new high bid value to set for this auction.
    */
   public void setBid(Currency highBid)  {
@@ -475,7 +472,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /**
    * @brief What number of items will be sniped for when the snipe is
    * fired?
-   * 
+   *
    * @return The count of items to bid on in the snipe.
    */
   public int getSnipeQuantity() { return mSnipeQuantity; }
@@ -483,7 +480,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /**
    * @brief What was the most recent number of items actually
    * submitted to the server as part of a bid?
-   * 
+   *
    * @return The count of items bid on the last time a user bid.
    */
   public int getBidQuantity()   { return mBidQuantity; }
@@ -528,7 +525,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Get the default snipe time as configured.
-   * 
+   *
    * @return - The default snipe time from the configuration.  If it's
    * not set, return a standard 30 seconds.
    */
@@ -558,8 +555,6 @@ public class AuctionEntry extends HashBacked implements Comparable {
    */
   private void checkConfigurationSnipeTime() {
     mDefaultSnipeAt = getGlobalSnipeTime();
-    if(sDB == null) sDB = setTable("entries");
-    setDB(sDB);
   }
 
   /**
@@ -622,7 +617,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /**
    * @brief Get the time when this entry will no longer be considered
    * 'newly added', or null if it's been cleared, or is already past.
-   * 
+   *
    * @return The time at which this entry is no longer new.
    */
   public long getJustAdded() {
@@ -631,7 +626,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief What is the auction's unique identifier on that server?
-   * 
+   *
    * @return The unique identifier for this auction.
    */
   public String getIdentifier() { if(mAuction == null) return null; else return mAuction.getIdentifier(); }
@@ -706,7 +701,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    *
    * PMD bitches long and hard about assigning to null repeatedly in
    * this function.  Any way to clean that up? -- mrs: 23-February-2003 22:28
-   * 
+   *
    * @return Whether or not it's time to retrieve the updated state of
    * this auction.
    */
@@ -780,7 +775,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Store a user-specified comment about this item.
-   * 
+   *
    * @param newComment - The comment to keep track of.  If it's empty,
    * we effectively delete the comment.
    */
@@ -793,7 +788,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Get any user-specified comment regarding this auction.
-   * 
+   *
    * @return Any comment the user may have stored about this item.
    */
   public String getComment() {
@@ -802,7 +797,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Add an auction-specific status message into its own event log.
-   * 
+   *
    * @param inStatus - A string that explains what the event is.
    */
   public void setLastStatus(String inStatus) {
@@ -816,7 +811,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /**
    * @brief Get a plain version of the event list, where each line is
    * a seperate event, including the title and identifier.
-   * 
+   *
    * @return A string with all the event information included.
    */
   public String getLastStatus() { return getLastStatus(false); }
@@ -825,10 +820,10 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * (bulk) version which doesn't include the title and identifier,
    * since those are set by the AuctionEntry itself, and are based
    * on its own data.
-   * 
+   *
    * @param bulk - Whether to use the plain version (false) or the
    * minimized version (true).
-   * 
+   *
    * @return A string with all the event information included.
    */
   public String getLastStatus(boolean bulk) {
@@ -847,7 +842,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /**
    * @brief XML load-handling.  It would be really nice to be able to
    * abstract this for all the classes that serialize to XML.
-   * 
+   *
    * @param tagId - The index into 'entryTags' for the current tag.
    * @param curElement - The current XML element that we're loading from.
    */
@@ -919,7 +914,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * children all of the values that need storing for this item.
    *
    * This would be so much more useful if it were 'standard'.
-   * 
+   *
    * @return An XMLElement containing as children, all of the key
    * values associated with this auction entry.
    */
@@ -1006,7 +1001,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Load auction entries from an XML element.
-   * 
+   *
    * @param inXML - The XMLElement that contains the items to load.
    */
   public void fromXML(XMLElement inXML) {
@@ -1042,7 +1037,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    *
    * This keeps track of ALL multisnipes, so that they can be
    * loaded/saved okay, as well as checked to remove.
-   * 
+   *
    * @param newMS - The newly created multisnipe to add.
    */
   private void addMulti(MultiSnipe newMS) {
@@ -1055,9 +1050,9 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Figure out what Multisnipe is associated with a given 'id'.
-   * 
+   *
    * @param id - The unique ID's associated with all multisnipes.
-   * 
+   *
    * @return - A multisnipe (or null if none found) that is associated
    * with the passed in Multisnipe ID.
    */
@@ -1070,7 +1065,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Determine if it is time to trigger this auctions snipe or not.
-   * 
+   *
    * @return True if it is time to snipe, false otherwise.
    */
   public boolean checkSnipe() {
@@ -1102,7 +1097,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Return whether this entry ever had a snipe cancelled or not.
-   * 
+   *
    * @return - true if a snipe was cancelled, false otherwise.
    */
   public boolean snipeCancelled() { return mCancelSnipeBid != null; }
@@ -1110,7 +1105,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /**
    * @brief Return the amount that the snipe bid was for, before it
    * was cancelled.
-   * 
+   *
    * @return - A currency amount that was set to snipe, but cancelled.
    */
   public Currency getCancelledSnipe() { return mCancelSnipeBid; }
@@ -1118,7 +1113,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /**
    * @brief Return the quantity that the snipe bid was for, before it
    * was cancelled.
-   * 
+   *
    * @return - A number of items (for dutch only) that were to be bid on.
    */
   public int getCancelledSnipeQuantity() { return mCancelSnipeQuant; }
@@ -1214,7 +1209,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    *
    * This needs to be enhanced to work with multiple items, and
    * different snipe times.
-   * 
+   *
    * @param snipe The amount of money the user wishes to bid at the last moment.
    * @param quantity The number of items they want to snipe for.
    */
@@ -1233,7 +1228,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
   /** @brief Actually bid on a single item for a given price.
    *
    * Also called by the snipe() function, to actually bid.
-   * 
+   *
    * @param bid - The amount of money to bid on 1 of this item.
    *
    * @return The result of the bid attempt.
@@ -1244,7 +1239,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Bid a given price on an arbitrary number of a particular item.
-   * 
+   *
    * @param bid - The amount of money being bid.
    * @param bidQuantity - The number of items being bid on.
    *
@@ -1290,14 +1285,15 @@ public class AuctionEntry extends HashBacked implements Comparable {
    */
   public void forceUpdate() { mForceUpdate = true; mDontUpdate = 0; mNeedsUpdate = true; }
 
-  Category mCategory;
-
   /**
    * @brief Get the category this belongs in, usually used for tab names, and fitting in search results.
    *
    * @return - A category, or null if none has been assigned.
    */
-  public String getCategory() { return mCategory.getName(); }
+  public String getCategory() {
+    if(mCategory != null) return mCategory.getName();
+    return "(unknown)";
+  }
 
   /**
    * @brief Set the category associated with the auction entry.  If the
@@ -1306,8 +1302,12 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * @param newCategory - The new category to associate this item with.
    */
   public void setCategory(String newCategory) {
-    mCategory = Category.findCategory(newCategory);
-    setInteger("category_id", mCategory.getId());
+    Category c = Category.findFirstByName(newCategory);
+    if(c == null) {
+      c = Category.findOrCreateByName(newCategory);
+    }
+    setInteger("category_id", c.getId());
+    mCategory = c;
     if(isComplete()) setSticky(true);
   }
 
@@ -1374,7 +1374,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
 
   /**
    * @brief Determine the amount of time left, and format it prettily.
-   * 
+   *
    * @return A nicely formatted string showing how much time is left
    * in this auction.
    */
@@ -1448,7 +1448,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    *    Otherwise (EXACTLY equal dates!), order by identifier.
    *
    * @param other - The AuctionEntry to compare to.
-   * 
+   *
    * @return - -1 for lesser, 0 for equal, 1 for greater.
    */
   public int compareTo(Object other) {
@@ -1513,7 +1513,7 @@ public class AuctionEntry extends HashBacked implements Comparable {
    * @brief Force this auction to use a particular set of auction
    * information for it's core data (like seller's name, current high
    * bid, etc.).
-   * 
+   *
    * @param inAI - The AuctionInfo object to make the new core data.
    */
   public void setAuctionInfo(AuctionInfo inAI) {
@@ -1645,8 +1645,26 @@ public class AuctionEntry extends HashBacked implements Comparable {
     mSnipe = snipe;
   }
 
-  public DBRecord getMap() {
-    setInteger("auction_id", mAuction.getId());
-    return getBacking();
+  /*************************/
+  /* Database access stuff */
+  /*************************/
+
+  public String saveDB() {
+    String id = super.saveDB();
+    mAuction.saveDB();
+    return id;
+  }
+
+  private static AuctionDB sDB;
+  protected static String getTableName() { return "entries"; }
+  protected AuctionDB getDatabase() {
+    if(sDB == null) {
+      sDB = openDB(getTableName());
+    }
+    return sDB;
+  }
+
+  public static AuctionEntry findFirstBy(String key, String value) {
+    return (AuctionEntry)ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
   }
 }

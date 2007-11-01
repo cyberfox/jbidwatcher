@@ -660,14 +660,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       ErrorManagement.handleException("Upgrading error", e);
     }
 
-    try {
-      mDB = new AuctionDB("auctions");
-      AuctionServerManager.getInstance().setDB(mDB);
-//      Database.dbTest(db);
-    } catch (Exception e) {
-      ErrorManagement.handleException("DB error", e);
-    }
-
     if(!ebayLoaded) AuctionServerManager.getInstance().addServer("ebay", new ebayServer());
 
     loadProxySettings();
@@ -1079,7 +1071,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     FilterManager.getInstance().loadFilters();
 
     aucManager = AuctionsManager.getInstance();
-    aucManager.loadAuctions(inSplash);
+    aucManager.loadAuctions();
     //  This needs to be after the auction manager, so that all the
     //  auction servers that are loaded by loading auctions will be
     //  available to add searches if they need to.

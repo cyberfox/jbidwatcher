@@ -18,7 +18,6 @@ import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.xml.XMLParseException;
-import com.jbidwatcher.ui.JSplashScreen;
 import com.jbidwatcher.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
@@ -34,7 +33,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
   private static AuctionsManager _instance = null;
   private DeletedManager _deleted = null;
   private int _auctionCount = 0;
-  private JSplashScreen _splash = null;
   private FilterManager _filter;
 
   //  Checkpoint (save) every N minutes where N is configurable.
@@ -42,6 +40,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
   private long _lastCheckpointed = 0;
   private static final int AUCTIONCOUNT = 100;
   private static final int MAX_PERCENT = AUCTIONCOUNT;
+  private boolean mDoSplash = false;
 
   /**
    * @brief AuctionsManager is a singleton, there should only be one
@@ -162,9 +161,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    * @param ae - The auction entry to add.
    */
   public void addEntry(AuctionEntry ae) {
-    if(_splash != null) {
-      _splash.showStatus(++_auctionCount);
-    }
+    if(mDoSplash) MQFactory.getConcrete("splash").enqueue("SET " + Integer.toString(++_auctionCount));
 
     FilterManager.getInstance().addAuction(ae);
   }
@@ -223,15 +220,15 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
     return FilterManager.getInstance().getAuctionIterator();
   }
 
-  public void loadAuctionsFromDB(JSplashScreen inSplash) {
-    _splash = inSplash;
-
+  /**
+   * todo - Write up the code to load the auctions from the DB at startup...
+   */
+  public void loadAuctionsFromDB() {
     int auctionTotal = AuctionServerManager.getInstance().getDefaultServer().getCount();
-    _splash.showStatus(0);
-    _splash.setWidth(auctionTotal);
+    MQFactory.getConcrete("splash").enqueue("SET 0");
+    MQFactory.getConcrete("splash").enqueue("WIDTH " + auctionTotal);
 
-    _splash.showStatus(MAX_PERCENT);
-    _splash = null;
+    MQFactory.getConcrete("splash").enqueue("SET 100");
   }
 
   /**
@@ -241,10 +238,9 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    * I'd like to abstract this, and make it work with arbitrary
    * streams, so that we could send an XML file of auctions over a
    * network to sync between JBidwatcher instances.
-   *
-   * @param inSplash - The splash screen to update as we go.
    */
-  public void loadAuctions(JSplashScreen inSplash) {
+  public void loadAuctions() {
+    mDoSplash = true;
     XMLElement xmlFile = new XMLElement(true);
     String loadFile = JConfig.queryConfiguration("savefile", "auctions.xml");
     String oldLoad = loadFile;
@@ -253,8 +249,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
     if(!loadFile.equals(oldLoad)) {
       JConfig.setConfiguration("savefile", loadFile);
     }
-
-    _splash = inSplash;
 
     File toLoad = new File(loadFile);
     if(toLoad.exists() && toLoad.length() != 0) {
@@ -273,17 +267,16 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
       ErrorManagement.logDebug("JBW: Failed to load saved auctions, the auctions file is probably not there yet.");
       ErrorManagement.logDebug("JBW: This is not an error, unless you're constantly getting it.");
     }
-
-    _splash = null;
+    mDoSplash = false;
   }
 
   private void loadXMLFromFile(String loadFile, XMLElement xmlFile) throws IOException {
     InputStreamReader isr = new InputStreamReader(new FileInputStream(loadFile));
-    _splash.setWidth(MAX_PERCENT);
+    MQFactory.getConcrete("splash").enqueue("WIDTH " + MAX_PERCENT);
+    MQFactory.getConcrete("splash").enqueue("SET " + MAX_PERCENT / 2);
 
-    _splash.showStatus(MAX_PERCENT/2);
     xmlFile.parseFromReader(isr);
-    _splash.showStatus(MAX_PERCENT);
+    MQFactory.getConcrete("splash").enqueue("SET " + MAX_PERCENT);
 
     XMLElement auctionsXML = null;
     String formatVersion = "0090";
@@ -304,8 +297,9 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
     int auctionTotal = 0;
     if(auctionQuantity != null) {
       auctionTotal = Integer.parseInt(auctionQuantity);
-      _splash.showStatus(0);
-      _splash.setWidth(auctionTotal);
+      MQFactory.getConcrete("splash").enqueue("SET 0");
+      MQFactory.getConcrete("splash").enqueue("WIDTH " + auctionTotal);
+
       _auctionCount = 0;
     }
 
