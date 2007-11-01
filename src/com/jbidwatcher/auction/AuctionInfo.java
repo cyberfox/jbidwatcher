@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class AuctionInfo extends HashBacked {
+public abstract class AuctionInfo extends ActiveRecord {
   private static Map<String, String> mKeys;
 
   private static void setupKeys() {
@@ -71,15 +71,12 @@ public abstract class AuctionInfo extends HashBacked {
   protected static final sun.misc.BASE64Encoder b64enc = new sun.misc.BASE64Encoder();
   protected GZip _loadedPage = null;
 
-  private static AuctionDB sDB = null;
   /**
    * @brief Empty constructor, for XML parsing.
    *
    */
   protected AuctionInfo() {
     setTranslationTable(mKeys);
-    if(sDB == null) sDB = setTable("auctions");
-    setDB(sDB);
   }
 
   /** 
@@ -97,7 +94,6 @@ public abstract class AuctionInfo extends HashBacked {
   protected AuctionInfo(String auctionTitle, String auctionSeller, String auctionHighBidder,
                      Currency auctionCurBid, Date auctionStart, Date auctionEnd, int auctionBidCount) {
     setTranslationTable(mKeys);
-    setTable("auctions");
     setTitle(auctionTitle.trim());
     setHighBidder(auctionHighBidder.trim());
     _seller = Seller.makeSeller(auctionSeller.trim());
@@ -463,4 +459,17 @@ public abstract class AuctionInfo extends HashBacked {
 
   public abstract ByteBuffer getSiteThumbnail();
   public abstract ByteBuffer getAlternateSiteThumbnail();
+
+  private static AuctionDB sDB;
+  protected static String getTableName() { return "auctions"; }
+  protected AuctionDB getDatabase() {
+    if (sDB == null) {
+      sDB = openDB(getTableName());
+    }
+    return sDB;
+  }
+
+  public static AuctionInfo findFirstBy(String key, String value) {
+    return (AuctionInfo)ActiveRecord.findFirstBy(AuctionInfo.class, key, value);
+  }
 }

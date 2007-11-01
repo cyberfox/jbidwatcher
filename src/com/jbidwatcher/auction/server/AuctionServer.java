@@ -366,6 +366,6 @@ public abstract class AuctionServer implements AuctionServerInterface {
   }
 
   public int getCount() {
-    return AuctionServerManager.getInstance().getDB().count();
+    return new AuctionEntry().count();
   }
 }

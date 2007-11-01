@@ -14,7 +14,7 @@ import java.util.Map;
  * Wrap the auction information up in a database.
  */
 public class AuctionDB {
-  private static class TypeColumn {
+  private class TypeColumn {
     private String mType;
     private Integer mIndex;
 
@@ -84,6 +84,20 @@ public class AuctionDB {
     }
   }
 
+  public DBRecord findFirstBy(String key, String value) {
+    return findFirstBy(key + " = '" + value + "'");
+  }
+
+  public DBRecord findFirstBy(String conditions) {
+    try {
+      ResultSet rs = mS.executeQuery("select * FROM " + mTableName + " WHERE " + conditions);
+      return getFirstResult(rs);
+    } catch (SQLException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      return null;
+    }
+  }
+
   public List<DBRecord> findAll(String query) {
     try {
       ResultSet rs = mS.executeQuery(query);
@@ -122,9 +136,20 @@ public class AuctionDB {
     return rval;
   }
 
+  public String insertOrUpdate(DBRecord row) {
+    String value = row.get("id");
+    return updateMap(mTableName, "id", value, row);
+  }
+
+
   public String updateMap(String tableName, String columnKey, String value, DBRecord newRow) {
-    DBRecord oldRow = getOldRow(tableName, columnKey, value, true);
-    if(oldRow == null) return storeMap(newRow);
+    DBRecord oldRow = null;
+    if(value != null) {
+      oldRow = getOldRow(tableName, columnKey, value, true);
+    }
+    if(value == null || oldRow == null) {
+      return storeMap(newRow);
+    }
 
     String sql = createPreparedUpdate(tableName, oldRow, newRow);
     if(sql == null) return null;

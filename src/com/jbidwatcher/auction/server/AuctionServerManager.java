@@ -13,7 +13,6 @@ import com.jbidwatcher.xml.XMLParseException;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.auction.EntryManager;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.config.JConfigTab;
@@ -27,7 +26,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   private List<JConfigTab> mConfigTabList = null;
   private final static AuctionServerManager mInstance = new AuctionServerManager();
   private static EntryManager sEntryManager = null;
-  private AuctionDB mDB;
 
   private static final boolean sUberDebug = false;
 
@@ -69,9 +67,9 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     mServerList = new ArrayList<AuctionServerListEntry>();
   }
 
-  /** 
+  /**
    * @brief Load all the auction servers.
-   * 
+   *
    * BUGBUG - Refactor this to use the XMLSerializeSimple if at all possible!
    *
    * @param inXML - The XML source to load from.
@@ -124,7 +122,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
         ae.setServer(newServer);
         ae.fromXML(perEntry);
-        ae.create();
+        ae.saveDB();
         if (sEntryManager != null) {
           sEntryManager.addEntry(ae);
         }
@@ -134,7 +132,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     }
   }
 
-  /** 
+  /**
    * @brief Serialize access to the time updating function, so that
    * everybody in the world doesn't try to update the time all at
    * once, like they used to.  Four threads trying to update the time
@@ -358,13 +356,5 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       }
     }
     return outStat;
-  }
-
-  public AuctionDB getDB() {
-    return mDB;
-  }
-
-  public void setDB(AuctionDB db) {
-    mDB = db;
   }
 }
