@@ -12,12 +12,11 @@ import com.jbidwatcher.util.db.AuctionDB;
  * To change this template use File | Settings | File Templates.
  */
 public class Category extends ActiveRecord {
-  public Category(String name) {
-    setString("name", name);
+  public Category() {
   }
 
-  private Category(DBRecord r) {
-    setBacking(r);
+  public Category(String name) {
+    setString("name", name);
   }
 
   public static Category findFirstByName(String name) {

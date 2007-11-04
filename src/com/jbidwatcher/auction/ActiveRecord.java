@@ -53,8 +53,10 @@ public abstract class ActiveRecord extends HashBacked {
       throw new RuntimeException("Can't instantiate " + c.getName(), e);
     }
     DBRecord result = getTable(found).findFirstBy(key, value);
-    if (result != null) {
+    if (result != null && result.size() != 0) {
       ((ActiveRecord)found).setBacking(result);
+    } else {
+      found = null;
     }
     return found;
   }
