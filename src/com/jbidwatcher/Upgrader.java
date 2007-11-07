@@ -45,7 +45,7 @@ public class Upgrader {
         * We create a table, add a few rows, and update one.
         */
         String sql = StringTools.cat(StringTools.class.getResource("/jbidwatcher.sql"));
-//        if(sql == null) sql = StringTools.cat(JConfig.getCanonicalFile("jbidwatcher.sql", "jbidwatcher", true));
+        if(sql == null) sql = StringTools.cat(JConfig.getCanonicalFile("jbidwatcher.sql", "jbidwatcher", true));
         if(sql != null) {
           String[] statements = sql.split("(?m)^$");
           for (String statement : statements) {

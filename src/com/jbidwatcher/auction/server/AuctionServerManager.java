@@ -185,6 +185,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       serverChild.setProperty("name", aucServ.getName());
       aucServ.storeAuthorization(serverChild);
 
+      if(aucList == null) return null;
       synchronized (aucList) {
         aucCount += aucList.size();
 
@@ -327,6 +328,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     long lastEndedTime = Long.MAX_VALUE;
     long lastSnipeTime = Long.MAX_VALUE;
 
+    if(aucList == null) return null;
     synchronized (aucList) {
       outStat._count = aucList.size();
       for (AuctionEntry ae : aucList) {

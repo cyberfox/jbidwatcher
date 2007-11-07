@@ -194,6 +194,7 @@ public class StringTools {
   }
 
   public static String cat(URL loadFrom) {
+    if(loadFrom == null) return null;
     byte[] buf = new byte[65536];
     try {
       InputStream is = loadFrom.openStream();
