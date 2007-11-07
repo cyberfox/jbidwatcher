@@ -91,6 +91,7 @@ class ebayAuction extends SpecificAuction {
     String[] eBayTitles = new String[]{
         Externalized.getString("ebayServer.titleEbay"),
         Externalized.getString("ebayServer.titleEbay2"),
+        Externalized.getString("ebayServer.titleEbay3"),
         Externalized.getString("ebayServer.titleMotors"),
         Externalized.getString("ebayServer.titleMotors2"),
         Externalized.getString("ebayServer.titleDisney"),

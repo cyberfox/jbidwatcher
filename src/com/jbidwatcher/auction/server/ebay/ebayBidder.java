@@ -70,7 +70,7 @@ public class ebayBidder implements Bidder {
     }
 
     //"If you want to submit another bid, your new total must be higher than your current total";
-    StringBuffer superRegex = new StringBuffer("(");
+    StringBuffer superRegex = new StringBuffer(".*(");
     Iterator<String> it = mResultHash.keySet().iterator();
     while (it.hasNext()) {
       String key = it.next();
@@ -78,10 +78,11 @@ public class ebayBidder implements Bidder {
       if(it.hasNext()) {
         superRegex.append('|');
       } else {
-        superRegex.append(')');
+        superRegex.append(").*");
       }
     }
-    mBidResultRegex = new StringBuilder().append("(?i)").append(superRegex).toString();
+    mBidResultRegex = new StringBuilder().append("(?msi)").append(superRegex).toString();
+    mBidResultRegex = mBidResultRegex.replace(" ", "\\s+");
     mFindBidResult = Pattern.compile(mBidResultRegex);
     mResultHash.put("sign in", AuctionServer.BID_ERROR_CANT_SIGN_IN);
   }
@@ -191,7 +192,8 @@ public class ebayBidder implements Bidder {
 
   private Integer getMatchedResult(String matched_text) {
     for (String regex : mResultHash.keySet()) {
-      if(matched_text.matches(regex)) return mResultHash.get(regex);
+      String hacked = "(?msi).*" + regex.replace(" ", "\\s+") + ".*";
+      if(matched_text.matches(hacked)) return mResultHash.get(regex);
     }
 
     return null;
