@@ -49,12 +49,12 @@ public class Seller {
       DBRecord existing = sDB.findByColumn("seller", sellerName);
       Seller rval;
 
-      if(existing != null) {
-        rval = new Seller(existing);
-      } else {
-        //  This should look up the seller in the database, so there's only one instance of any given seller.
+      if (existing == null || existing.isEmpty()) {
+      //  This should look up the seller in the database, so there's only one instance of any given seller.
         rval = new Seller();
         rval.setSeller(sellerName);
+      } else {
+        rval = new Seller(existing);
       }
 
       mSellerMap.put(sellerName, rval);
