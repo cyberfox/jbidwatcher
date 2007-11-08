@@ -60,7 +60,7 @@ public class ebayBidder implements Bidder {
       mResultHash.put("the reserve price has not been met", AuctionServer.BID_ERROR_RESERVE_NOT_MET);
       mResultHash.put("your new total must be higher than your current total", AuctionServer.BID_ERROR_TOO_LOW_SELF);
       mResultHash.put("this exceeds or is equal to your current bid", AuctionServer.BID_ERROR_TOO_LOW_SELF);
-      mResultHash.put("you bought this item", AuctionServer.BID_BOUGHT_ITEM);
+      mResultHash.put("you (just )?bought this item", AuctionServer.BID_BOUGHT_ITEM);
       mResultHash.put("you committed to buy", AuctionServer.BID_BOUGHT_ITEM);
       mResultHash.put("congratulations! you won!", AuctionServer.BID_BOUGHT_ITEM);
       mResultHash.put("account suspended", AuctionServer.BID_ERROR_ACCOUNT_SUSPENDED);
