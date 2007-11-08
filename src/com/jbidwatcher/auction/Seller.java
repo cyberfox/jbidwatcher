@@ -1,7 +1,8 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.util.db.DBRecord;
+import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.db.AuctionDB;
+import com.jbidwatcher.util.db.DBRecord;
 import com.jbidwatcher.xml.XMLElement;
 
 import java.util.HashMap;
@@ -36,7 +37,7 @@ public class Seller {
       try {
         sDB = new AuctionDB("sellers");
       } catch (Exception e) {
-//        ErrorManagement.handleException("Can't access the sellers table.", e);
+        ErrorManagement.handleException("Can't access the sellers table.", e);
       }
     }
   }
