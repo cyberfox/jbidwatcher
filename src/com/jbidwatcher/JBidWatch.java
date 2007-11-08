@@ -761,11 +761,8 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     AuctionStats as = AuctionServerManager.getInstance().getStats();
     JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
     JConfig.saveConfiguration(cfgFilename);
-    mDB.shutdown();
     System.exit(0);
   }
-
-  public AuctionDB getDB() { return mDB; }
 
   static long lastTime;
 
