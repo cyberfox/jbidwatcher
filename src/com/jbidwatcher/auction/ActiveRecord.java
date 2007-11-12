@@ -4,6 +4,10 @@ import com.jbidwatcher.util.HashBacked;
 import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.util.db.DBRecord;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Provides utility methods for database-backed objects.
  *
@@ -42,22 +46,84 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   public String saveDB() {
-    return getDatabase().insertOrUpdate(getBacking());
+    if(!isDirty()) return get("id");
+    String id = getDatabase().insertOrUpdate(getBacking());
+    set("id", id);
+    return id;
   }
 
-  protected static Object findFirstBy(Class c, String key, String value) {
-    Object found;
+  protected static ActiveRecord findFirstBy(Class klass, String key, String value) {
+    ActiveRecord cached = cached(klass, key, value);
+    if(cached != null) return cached;
+
+    ActiveRecord found;
     try {
-      found = c.newInstance();
+      found = (ActiveRecord)klass.newInstance();
     } catch (Exception e) {
-      throw new RuntimeException("Can't instantiate " + c.getName(), e);
+      throw new RuntimeException("Can't instantiate " + klass.getName(), e);
     }
     DBRecord result = getTable(found).findFirstBy(key, value);
     if (result != null && result.size() != 0) {
-      ((ActiveRecord)found).setBacking(result);
+      found.setBacking(result);
     } else {
       found = null;
     }
+    if(found != null) cache(klass, key, value, found);
     return found;
   }
+
+  private static Map<Class, Map<String, ActiveRecord>> sCache;
+
+  private static Map<String, ActiveRecord> getCache(Class klass) {
+    if (sCache == null) {
+      sCache = new HashMap<Class, Map<String, ActiveRecord>>();
+    }
+    Map<String, ActiveRecord> klassCache = sCache.get(klass);
+    if(klassCache == null) {
+      klassCache = new HashMap<String, ActiveRecord>();
+      sCache.put(klass, klassCache);
+    }
+    return klassCache;
+  }
+
+  private static ActiveRecord cached(Class klass, String key, String value) {
+    String combined = key + ':' + value;
+    return getCache(klass).get(combined);
+  }
+
+  private static void cache(Class klass, String key, String value, ActiveRecord result) {
+    String combined = key + ':' + value;
+    getCache(klass).put(combined, result);
+  }
+
+  public static void precache(Class klass, String key) {
+    try {
+      ActiveRecord o = (ActiveRecord) klass.newInstance();
+      List<DBRecord> results = getTable(o).findAll();
+      for (DBRecord record : results) {
+        ActiveRecord row = (ActiveRecord) klass.newInstance();
+        row.setBacking(record);
+        cache(klass, key, row.get(key), row);
+      }
+    } catch (Exception e) {
+      //  Ignore, as this is just for pre-caching...
+    }
+  }
+
+  public static void saveCached() {
+    if(sCache == null) return;
+
+    for(Class klass:sCache.keySet()) {
+      Map<String, ActiveRecord> klassCache = sCache.get(klass);
+      for(ActiveRecord record : klassCache.values()) {
+        if(record != null && record.isDirty()) record.saveDB();
+      }
+    }
+  }
+
+  public static void precache(Class klass) {
+    precache(klass, "id");
+  }
+
+  public Integer getId() { return getInteger("id"); }
 }
