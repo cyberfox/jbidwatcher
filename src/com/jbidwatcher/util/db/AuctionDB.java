@@ -85,7 +85,7 @@ public class AuctionDB {
   }
 
   public DBRecord findFirstBy(String key, String value) {
-    return findFirstBy(key + " = '" + value + "'");
+    return findByColumn(key, value);
   }
 
   public DBRecord findFirstBy(String conditions) {
@@ -96,6 +96,10 @@ public class AuctionDB {
       e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
       return null;
     }
+  }
+
+  public List<DBRecord> findAll() {
+    return findAll("SELECT * FROM " + mTableName);
   }
 
   public List<DBRecord> findAll(String query) {
@@ -141,7 +145,6 @@ public class AuctionDB {
     return updateMap(mTableName, "id", value, row);
   }
 
-
   public String updateMap(String tableName, String columnKey, String value, DBRecord newRow) {
     DBRecord oldRow = null;
     if(value != null) {
@@ -157,14 +160,7 @@ public class AuctionDB {
     try {
       PreparedStatement ps = mDB.prepare(sql);
 
-      int column = 1;
-      for(String key: newRow.keySet()) {
-        if (newRow.get(key) != null) {
-          if(!setColumn(ps, column++, key, newRow.get(key))) {
-            ErrorManagement.logMessage("Error from columns: (" + column + "," + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
-          }
-        }
-      }
+      setPreparedUpdate(ps, tableName, oldRow, newRow);
       ps.execute();
       mDB.commit();
       return findKeys(ps);
@@ -184,16 +180,19 @@ public class AuctionDB {
 
   private DBRecord getOldRow(String tableName, String columnKey, String value, boolean forUpdate) {
     DBRecord oldRow = null;
+    String statement = "(uninitialized)";
+
     try {
-      String statement = "SELECT * FROM " + tableName;
-      if(forUpdate) statement += " FOR UPDATE";
+      statement = "SELECT * FROM " + tableName;
       statement += " WHERE " + columnKey + " = ?";
+      if (forUpdate) statement += " FOR UPDATE";
       PreparedStatement ps = mDB.prepare(statement);
       setColumn(ps, 1, columnKey, value);
       ResultSet rs = ps.executeQuery();
       oldRow = getFirstResult(rs);
     } catch (SQLException e) {
-      ErrorManagement.handleException("Can't get row" + (forUpdate? " for update":"") + " (columnKey = '" + value +"'.", e);
+      System.err.println(statement);
+      ErrorManagement.handleException("Can't get row" + (forUpdate? " for update":"") + " (" + columnKey + " = '" + value +"').", e);
     }
     return oldRow;
   }
@@ -270,6 +269,24 @@ public class AuctionDB {
       }
     }
     return anyKeys?update.toString():null;
+  }
+
+  private boolean setPreparedUpdate(PreparedStatement ps, String tableName, DBRecord oldRow, DBRecord newRow) {
+    boolean errors = false;
+    int column = 1;
+    for (String key : newRow.keySet()) {
+      String newVal = newRow.get(key);
+      String oldVal = oldRow.get(key);
+      if (!(newVal == null && oldVal == null)) {
+        if (newVal == null || oldVal == null || !newVal.equals(oldVal)) {
+          if(!setColumn(ps, column++, key, newRow.get(key))) {
+            ErrorManagement.logMessage("Error from columns: (" + column + "," + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
+            errors = true;
+          }
+        }
+      }
+    }
+    return errors;
   }
 
   private boolean setColumn(PreparedStatement ps, int column, String key, String val) {

@@ -222,6 +222,7 @@ public class Database {
   }
 
   public PreparedStatement prepare(String statement) throws SQLException {
+    System.err.println("preparing " + statement);
     return mConn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS);
   }
 }
