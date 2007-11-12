@@ -31,9 +31,9 @@ class MockAuctionInfo extends AuctionInfo {
     setBuyNow(Currency.getCurrency("$19.99"));
     setStart(new Date(truncThousands(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 6)));
     setEnd(new Date(truncThousands(System.currentTimeMillis() + 1000 * 60 * 60 * 24)));
-    _seller = Seller.makeSeller("cyberfox");
-    _seller.setFeedback(139);
-    _seller.setPositivePercentage("99.6%");
+    mSeller = Seller.makeSeller("cyberfox");
+    mSeller.setFeedback(139);
+    mSeller.setPositivePercentage("99.6%");
     setHighBidder("test-jbidwatcher-bids");
     setTitle("A test auction.");
     setHighBidderEmail(null);
@@ -47,7 +47,7 @@ class MockAuctionInfo extends AuctionInfo {
     setOutbid(false);
     setItemLocation("Test County, USA");
     setPaypal(true);
-    _loadedPage = null;
+    mLoadedPage = null;
   }
 
   public ByteBuffer getSiteThumbnail() {
