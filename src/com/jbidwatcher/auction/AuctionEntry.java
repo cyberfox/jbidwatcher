@@ -1291,8 +1291,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @return - A category, or null if none has been assigned.
    */
   public String getCategory() {
-    if(mCategory != null) return mCategory.getName();
-    return "(unknown)";
+    if(mCategory == null) {
+      String category_id = get("category_id");
+      if(category_id != null) {
+        mCategory = Category.findFirstBy("id", category_id);
+      }
+    }
+    return mCategory != null ? mCategory.getName() : "(unknown)";
   }
 
   /**
@@ -1518,13 +1523,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public void setAuctionInfo(AuctionInfo inAI) {
     //  If the end date has changed, let's reschedule the snipes for the new end date...?
-    if(!mAuction.getEndDate().equals(inAI.getEndDate())) {
+    if(mAuction != null && !mAuction.getEndDate().equals(inAI.getEndDate())) {
       Currency saveSnipeBid = getSnipe();
       int saveSnipeQuantity = mSnipeQuantity;
       prepareSnipe(null);
       prepareSnipe(saveSnipeBid, saveSnipeQuantity);
     }
     mAuction = inAI;
+    setInteger("auction_id", mAuction.getId());
 
     checkHighBidder(false);
     checkSeller();
@@ -1650,8 +1656,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   /*************************/
 
   public String saveDB() {
+    String auction_id = mAuction.saveDB();
+    if(auction_id != null) set("auction_id", auction_id);
     String id = super.saveDB();
-    mAuction.saveDB();
+    set("id", id);
     return id;
   }
 
