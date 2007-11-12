@@ -327,11 +327,11 @@ class ebayAuction extends SpecificAuction {
     try {
       String score = getResult(doc, Externalized.getString("ebayServer.feedbackRegex"), 1);
       if(score != null && StringTools.isNumberOnly(score)) {
-        _seller.setFeedback(Integer.parseInt(score));
+        mSeller.setFeedback(Integer.parseInt(score));
       }
 
       String percentage = getResult(doc, Externalized.getString("ebayServer.feedbackPercentageRegex"), 1);
-      if(percentage != null) _seller.setPositivePercentage(percentage);
+      if(percentage != null) mSeller.setPositivePercentage(percentage);
 
       String location = doc.getNextContentAfterRegex(Externalized.getString("ebayServer.itemLocationRegex"));
       if(location != null) {
