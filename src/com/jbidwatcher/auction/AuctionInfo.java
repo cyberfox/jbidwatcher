@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class AuctionInfo extends ActiveRecord {
+public class AuctionInfo extends ActiveRecord {
   private static Map<String, String> mKeys;
 
   private static void setupKeys() {
@@ -65,17 +65,17 @@ public abstract class AuctionInfo extends ActiveRecord {
     setupKeys();
   }
 
-  protected Seller _seller;
+  protected Seller mSeller;
 
   protected static final sun.misc.BASE64Decoder b64dec = new sun.misc.BASE64Decoder();
   protected static final sun.misc.BASE64Encoder b64enc = new sun.misc.BASE64Encoder();
-  protected GZip _loadedPage = null;
+  protected GZip mLoadedPage = null;
 
   /**
    * @brief Empty constructor, for XML parsing.
    *
    */
-  protected AuctionInfo() {
+  public AuctionInfo() {
     setTranslationTable(mKeys);
   }
 
@@ -96,7 +96,7 @@ public abstract class AuctionInfo extends ActiveRecord {
     setTranslationTable(mKeys);
     setTitle(auctionTitle.trim());
     setHighBidder(auctionHighBidder.trim());
-    _seller = Seller.makeSeller(auctionSeller.trim());
+    setSellerName(auctionSeller.trim());
 
     setStart(auctionStart);
     setEnd(auctionEnd);
@@ -125,8 +125,7 @@ public abstract class AuctionInfo extends ActiveRecord {
         }
         break;
       case 1:  //  Seller name
-        if(_seller == null) _seller = Seller.makeSeller(curElement.getContents());
-        else _seller = _seller.makeSeller(curElement.getContents(), _seller);
+        setSellerName(curElement.getContents());
         break;
       case 2:  //  High bidder name
       case 18: //  Location of item
@@ -172,16 +171,16 @@ public abstract class AuctionInfo extends ActiveRecord {
         break;
       case 19: //  Feedback score
         String feedback = curElement.getContents();
-        if(_seller == null) _seller = new Seller();
-        if(feedback != null) _seller.setFeedback(Integer.parseInt(feedback));
+        if(mSeller == null) mSeller = new Seller();
+        if(feedback != null) mSeller.setFeedback(Integer.parseInt(feedback));
         break;
       case 20: //  Positive feedback percentage (w/o the % sign)
         String percentage = curElement.getContents();
-        if (_seller == null) _seller = new Seller();
-        _seller.setPositivePercentage(percentage);
+        if (mSeller == null) mSeller = new Seller();
+        mSeller.setPositivePercentage(percentage);
         break;
       case 21: //  Seller info block
-        _seller = Seller.fromXML(curElement);
+        mSeller = Seller.newFromXML(curElement);
         break;
       default:
         break;
@@ -195,9 +194,10 @@ public abstract class AuctionInfo extends ActiveRecord {
 
     addStringChild(xmlResult, "title");
 
-    XMLElement xseller = _seller.toXML();
-    xmlResult.addChild(xseller);
-
+    if(mSeller != null) {
+      XMLElement xseller = mSeller.toXML();
+      xmlResult.addChild(xseller);
+    }
     XMLElement xstart = new XMLElement("start");
     xstart.setContents(Long.toString(getStart().getTime()));
     xmlResult.addChild(xstart);
@@ -279,12 +279,12 @@ public abstract class AuctionInfo extends ActiveRecord {
       if (JConfig.queryConfiguration("store.auctionHTML", "true").equals("true")) {
         String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
 
-        if (_loadedPage != null) {
-          _loadedPage.save(filePath);
+        if (mLoadedPage != null) {
+          mLoadedPage.save(filePath);
         }
       }
     }
-    _loadedPage = null;
+    mLoadedPage = null;
   }
 
   private GZip loadFile(String fileName) {
@@ -321,14 +321,14 @@ public abstract class AuctionInfo extends ActiveRecord {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
 
     if(changedContent != null) {
-      _loadedPage = new GZip();
-      _loadedPage.setData(changedContent);
+      mLoadedPage = new GZip();
+      mLoadedPage.setData(changedContent);
 
       if(outPath != null) {
         if(final_data) {
           String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
-          _loadedPage.save(filePath);
-          _loadedPage = null;
+          mLoadedPage.save(filePath);
+          mLoadedPage = null;
         }
       }
     }
@@ -341,7 +341,7 @@ public abstract class AuctionInfo extends ActiveRecord {
       ErrorManagement.logDebug("filePath = " + filePath);
       return loadFile(filePath);
     }
-    return _loadedPage;
+    return mLoadedPage;
   }
 
   public void setContent(StringBuffer inContent, boolean final_data) {
@@ -351,12 +351,12 @@ public abstract class AuctionInfo extends ActiveRecord {
   protected StringBuffer getContent() {
     StringBuffer sb;
 
-    if(_loadedPage != null) {
-      StringBuffer outSB = _loadedPage.getUncompressedData(false);
-      if(outSB == null) outSB = new StringBuffer("_loadedPage.getUncompressedData is null");
+    if(mLoadedPage != null) {
+      StringBuffer outSB = mLoadedPage.getUncompressedData(false);
+      if(outSB == null) outSB = new StringBuffer("mLoadedPage.getUncompressedData is null");
       sb = outSB;
     } else {
-      ErrorManagement.logDebug("_loadedPage is null, returning the 'real' cached copy!");
+      ErrorManagement.logDebug("mLoadedPage is null, returning the 'real' cached copy!");
       GZip gz = getRealContent();
       if(gz != null) {
         sb = gz.getUncompressedData();
@@ -406,17 +406,28 @@ public abstract class AuctionInfo extends ActiveRecord {
   boolean isInsuranceOptional() { return getBoolean("insurance_optional", true); }
   protected boolean hasNoThumbnail() { return getBoolean("noThumbnail"); }
 
-  public String getSellerName() { if (_seller != null) return (_seller.getSeller()); else return "(unknown)"; }
-  public Seller getSeller() { return _seller; }
-  public String getPositiveFeedbackPercentage() { if (_seller != null) return _seller.getPositivePercentage(); else return "n/a"; }
-  int getFeedbackScore() { if(_seller != null) return _seller.getFeedback(); else return 0; }
+  public String getSellerName() {
+    if (mSeller == null) {
+      String seller_id = get("seller_id");
+      if(seller_id != null) mSeller = Seller.findFirstBy("id", seller_id);
+    }
+
+    return mSeller != null ? (mSeller.getSeller()) : "(unknown)";
+  }
+
+  public Seller getSeller() { return mSeller; }
+  public String getPositiveFeedbackPercentage() { if (mSeller != null) return mSeller.getPositivePercentage(); else return "n/a"; }
+  int getFeedbackScore() { if(mSeller != null) return mSeller.getFeedback(); else return 0; }
 
   protected void setSellerName(String sellerName) {
-    if(_seller == null) {
-      _seller = Seller.makeSeller(sellerName.trim());
+    if(sellerName == null || sellerName.length() == 0) return;
+
+    if(mSeller == null) {
+      mSeller = Seller.makeSeller(sellerName.trim());
     } else {
-      _seller = _seller.makeSeller(sellerName, _seller);
+      mSeller = mSeller.makeSeller(sellerName, mSeller);
     }
+    setInteger("seller_id", mSeller.getId());
   }
 
   public Currency getUSCur() { return getMonetary("us_cur", Currency.US_DOLLAR); }
@@ -457,8 +468,8 @@ public abstract class AuctionInfo extends ActiveRecord {
   protected void setOutbid(boolean outbid) { setBoolean("outbid", outbid); }
   protected void setPaypal(boolean paypal) { setBoolean("paypal", paypal); }
 
-  public abstract ByteBuffer getSiteThumbnail();
-  public abstract ByteBuffer getAlternateSiteThumbnail();
+  public ByteBuffer getSiteThumbnail() { return null; }
+  public ByteBuffer getAlternateSiteThumbnail() { return null; }
 
   private static AuctionDB sDB;
   protected static String getTableName() { return "auctions"; }
