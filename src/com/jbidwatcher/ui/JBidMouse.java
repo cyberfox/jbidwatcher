@@ -681,18 +681,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     showComplexInformation(rowList);
   }
 
-  private void showSimpleInformation(AuctionEntry ae, Component src) {
-    String prompt = buildInfoHTML(ae, true);
-    JOptionPane jopInfo = new JOptionPane(prompt, JOptionPane.INFORMATION_MESSAGE);
-    JDialog jdInfo = jopInfo.createDialog(src, "Auction Information");
-    jdInfo.addWindowListener(new WindowAdapter() {
-        public void windowDeactivated(WindowEvent ev) {
-          ev.getWindow().toFront();
-        }
-      });
-    jdInfo.setVisible(true);
-  }
-
   private void showComplexInformation(int[] rowList) {
     StringBuffer prompt = new StringBuffer();
     for (int aRowList : rowList) {
@@ -1508,6 +1496,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     menu.add(makeMenuItem("Show in browser", "Browse")).addActionListener(this);
     //menu.add(makeMenuItem("Add Up Prices", "Sum")).addActionListener(this);
     menu.add(new JPopupMenu.Separator());
+    menu.add(makeMenuItem("Set Shipping", "Shipping")).addActionListener(this);
+    menu.add(new JPopupMenu.Separator());
 
     tabMenu = new JMenu("Send to...");
     menu.add(tabMenu);
@@ -1517,7 +1507,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     comment.add(makeMenuItem("Delete", "Delete Comment")).addActionListener(this);
     menu.add(comment);
     JMenu advanced = new JMenu("Advanced...");
-    advanced.add(makeMenuItem("Set Shipping", "Shipping")).addActionListener(this);
     advanced.add(makeMenuItem("Show last error", "ShowError")).addActionListener(this);
     advanced.add(makeMenuItem("Mark as not ended", "NotEnded")).addActionListener(this);
     menu.add(advanced);
