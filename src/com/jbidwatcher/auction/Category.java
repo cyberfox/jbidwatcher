@@ -1,7 +1,9 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.util.db.DBRecord;
 import com.jbidwatcher.util.db.AuctionDB;
+
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Category DB accessor.
@@ -40,7 +42,6 @@ public class Category extends ActiveRecord {
   }
 
   public String getName() { return getString("name"); }
-  public int getId() { return getInteger("id"); }
 
   private static AuctionDB sDB;
   protected static String getTableName() { return "categories"; }
