@@ -5,37 +5,42 @@ package com.jbidwatcher;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.platform.Platform;
-import com.jbidwatcher.platform.Tray;
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.config.JConfigTab;
-import com.jbidwatcher.config.JConfigFrame;
-import com.jbidwatcher.config.JBConfig;
-import com.jbidwatcher.queue.*;
-import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.xml.JTransformer;
-import com.jbidwatcher.util.html.JHTMLOutput;
-import com.jbidwatcher.util.*;
-import com.jbidwatcher.util.db.AuctionDB;
-import com.jbidwatcher.ui.*;
-import com.jbidwatcher.webserver.JBidProxy;
-import com.jbidwatcher.webserver.SimpleProxy;
-import com.jbidwatcher.search.SearchManager;
+import com.jbidwatcher.auction.ActiveRecord;
+import com.jbidwatcher.auction.AuctionsManager;
+import com.jbidwatcher.auction.ThumbnailManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionStats;
-import com.jbidwatcher.auction.AuctionsManager;
-import com.jbidwatcher.auction.ThumbnailManager;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
+import com.jbidwatcher.config.JBConfig;
+import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.config.JConfigFrame;
+import com.jbidwatcher.config.JConfigTab;
+import com.jbidwatcher.platform.Platform;
+import com.jbidwatcher.platform.Tray;
+import com.jbidwatcher.queue.*;
+import com.jbidwatcher.search.SearchManager;
+import com.jbidwatcher.ui.*;
+import com.jbidwatcher.util.AudioPlayer;
+import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.RuntimeInfo;
+import com.jbidwatcher.util.db.AuctionDB;
+import com.jbidwatcher.util.html.JHTMLOutput;
+import com.jbidwatcher.webserver.JBidProxy;
+import com.jbidwatcher.webserver.SimpleProxy;
+import com.jbidwatcher.xml.JTransformer;
+import com.jbidwatcher.xml.XMLElement;
 
-import java.io.*;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
-import java.net.*;
 
 /**
  * @file   JBidWatch.java
@@ -731,6 +736,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * if there are any outstanding snipes.
    */
   public void shutdown() {
+    ActiveRecord.saveCached();
     if(AuctionsManager.getInstance().anySnipes()) {
       OptionUI oui = new OptionUI();
     //  Use the right parent!  FIXME -- mrs: 17-February-2003 23:53
