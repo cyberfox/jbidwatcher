@@ -5,20 +5,19 @@ package com.jbidwatcher.auction.server;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.queue.MessageQueue;
+import com.jbidwatcher.auction.*;
+import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.xml.XMLSerialize;
-import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.xml.XMLParseException;
+import com.jbidwatcher.queue.MessageQueue;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.auction.EntryManager;
-import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.config.JConfigTab;
+import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.xml.XMLParseException;
+import com.jbidwatcher.xml.XMLSerialize;
 
+import java.net.URL;
 import java.util.*;
-import java.net.*;
 
 public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener {
   private Map<AuctionServer, List<AuctionEntry>> mServerAuctionList;
@@ -112,6 +111,11 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   private void getServerAuctionEntries(AuctionServer newServer, XMLElement perServer) {
+    ActiveRecord.precache(Seller.class);
+    ActiveRecord.precache(Category.class);
+    ActiveRecord.precache(AuctionInfo.class, "identifier");
+    ActiveRecord.precache(AuctionEntry.class, "auction_id");
+
     try {
       newServer.loadAuthorization(perServer);
 
@@ -120,9 +124,20 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         XMLElement perEntry = entryStep.next();
         AuctionEntry ae = new AuctionEntry();
 
-        ae.setServer(newServer);
-        ae.fromXML(perEntry);
-        ae.saveDB();
+        AuctionInfo ai = AuctionInfo.findFirstBy("identifier", perEntry.getProperty("ID"));
+        AuctionEntry dbAE = null;
+        if(ai != null) {
+          dbAE = AuctionEntry.findFirstBy("auction_id", Integer.toString(ai.getId()));
+        }
+        if(dbAE != null) {
+          ae = dbAE;
+          ae.setServer(newServer);
+          ae.setAuctionInfo(ai);
+        } else {
+          ae.setServer(newServer);
+          ae.fromXML(perEntry);
+          ae.saveDB();
+        }
         if (sEntryManager != null) {
           sEntryManager.addEntry(ae);
         }
