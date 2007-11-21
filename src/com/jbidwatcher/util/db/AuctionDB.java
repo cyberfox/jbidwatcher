@@ -70,6 +70,10 @@ public class AuctionDB {
     mDB.shutdown();
   }
 
+  public void commit() {
+    mDB.commit();
+  }
+
   public DBRecord find(int id) {
     return findFirst("SELECT * FROM " + mTableName + " where id = " + id);
   }
@@ -142,6 +146,7 @@ public class AuctionDB {
 
   public String insertOrUpdate(DBRecord row) {
     String value = row.get("id");
+    if(value != null && value.length() == 0) value = null;
     return updateMap(mTableName, "id", value, row);
   }
 
@@ -206,6 +211,7 @@ public class AuctionDB {
 
       int column = 1;
       for(String key: newRow.keySet()) {
+        if(key.equals("id")) continue;        
         if (newRow.get(key) != null) {
           if(!setColumn(ps, column++, key, newRow.get(key))) {
             ErrorManagement.logDebug("Error from columns: (" + column + ", " + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
@@ -236,6 +242,7 @@ public class AuctionDB {
     StringBuffer insert = new StringBuffer("INSERT INTO " + tableName + " (");
     StringBuffer values = new StringBuffer();
     for (String key : newRow.keySet()) {
+      if(key.equals("id")) continue;
       if(newRow.get(key) != null) {
         if (anyKeys) {
           insert.append(',');
@@ -279,6 +286,7 @@ public class AuctionDB {
       String oldVal = oldRow.get(key);
       if (!(newVal == null && oldVal == null)) {
         if (newVal == null || oldVal == null || !newVal.equals(oldVal)) {
+          System.err.print(newVal + ", ");
           if(!setColumn(ps, column++, key, newRow.get(key))) {
             ErrorManagement.logMessage("Error from columns: (" + column + "," + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
             errors = true;
@@ -286,6 +294,7 @@ public class AuctionDB {
         }
       }
     }
+    System.err.println();
     return errors;
   }
 
