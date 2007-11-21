@@ -12,6 +12,7 @@ CREATE TABLE auctions (
   started_at timestamp default NULL,
   ending_at timestamp default NULL,
   high_bidder varchar(255) default NULL,
+  high_bidder_email varchar(255) default NULL,
   title varchar(255) default NULL,
   thumbnail varchar(255) default NULL,
   quantity integer default NULL,
