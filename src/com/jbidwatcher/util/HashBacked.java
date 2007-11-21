@@ -15,7 +15,6 @@ import java.text.SimpleDateFormat;
  * User: Morgan
  * Date: Sep 30, 2007
  * Time: 1:54:43 PM
- * To change this template use File | Settings | File Templates.
  */
 public abstract class HashBacked extends XMLSerializeSimple {
   private static final DBRecord EMPTY = new DBRecord();
@@ -111,7 +110,7 @@ public abstract class HashBacked extends XMLSerializeSimple {
   }
   public Integer getInteger(String key) {
     String s_value = get(key);
-    if (s_value == null)
+    if (s_value == null || s_value.length() == 0)
       return null;
     else
       return Integer.parseInt(s_value);
