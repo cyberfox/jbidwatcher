@@ -299,7 +299,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     StringBuffer stBuff;
     String clipString;
 
-    ErrorManagement.logDebug("Clipboard: " + sysClip.getName() + ", valid flavors: " + t.getTransferDataFlavors());
+    ErrorManagement.logDebug("Clipboard: " + sysClip.getName() + ", valid flavors: " + Arrays.toString(t.getTransferDataFlavors()));
 
     stBuff = _jdl.getTransferData(t);
 
@@ -1224,7 +1224,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
   }
 
-  private void DoSetNotEnded(Component c_src, AuctionEntry whichAuction) {
+  private void DoSetNotEnded(AuctionEntry whichAuction) {
     int[] rowList = getPossibleRows();
 
     if (rowList.length != 0) {
@@ -1672,7 +1672,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Bid")) DoBid(c_src, whichAuction);
     else if(actionString.equals("Buy")) DoBuy(c_src, whichAuction);
     else if(actionString.equals("Shipping")) DoShipping(c_src, whichAuction);
-    else if(actionString.equals("NotEnded")) DoSetNotEnded(c_src, whichAuction);
+    else if(actionString.equals("NotEnded")) DoSetNotEnded(whichAuction);
     else if(actionString.equals("Snipe")) DoSnipe(c_src, whichAuction);
     else if(actionString.equals("Multiple Snipe")) DoMultiSnipe(c_src);
 
