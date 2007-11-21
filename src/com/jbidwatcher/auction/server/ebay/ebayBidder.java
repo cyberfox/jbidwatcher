@@ -71,17 +71,16 @@ public class ebayBidder implements Bidder {
     }
 
     //"If you want to submit another bid, your new total must be higher than your current total";
-    StringBuffer superRegex = new StringBuffer(".*(");
-    Iterator<String> it = mResultHash.keySet().iterator();
-    while (it.hasNext()) {
-      String key = it.next();
-      superRegex.append(key);
-      if(it.hasNext()) {
-        superRegex.append('|');
+    StringBuffer superRegex = null;
+    for(String key : mResultHash.keySet()) {
+      if (superRegex == null) {
+        superRegex = new StringBuffer(".*(");
       } else {
-        superRegex.append(").*");
+        superRegex.append('|');
       }
+      superRegex.append(key);
     }
+    if(superRegex != null) superRegex.append(").*");
     mBidResultRegex = new StringBuilder().append("(?msi)").append(superRegex).toString();
     mBidResultRegex = mBidResultRegex.replace(" ", "\\s+");
     mFindBidResult = Pattern.compile(mBidResultRegex);
@@ -181,6 +180,18 @@ public class ebayBidder implements Bidder {
           }
         }
       }
+    }
+
+    if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true")) {
+      //  POST http://my.jbidwatcher.com/recognize/{user}
+      //  Cookie: my.jbidwatcher.com cookie
+      //  Body: {error page}
+      //
+      //  Response:
+      //    200 OK -- Recognized, use the status response from the body of the response.
+      //    400 Error -- Incorrect parameters, somehow.
+      //    404 Not Found -- Unrecognized; continue with 'unrecognized' flow.
+      //    500 Server Error -- Whoops.  Continue with 'unrecognized' flow.
     }
 
     if(JConfig.debugging) inEntry.setLastStatus("Failed to bid. 'Show Last Error' from context menu to see the failure page from the bid attempt.");
