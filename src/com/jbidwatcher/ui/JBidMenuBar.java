@@ -100,6 +100,9 @@ public class JBidMenuBar extends JMenuBar {
         KeyEvent.VK_S,
         KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
+    makeMenuItem(inMenu, "Dump cache", "Dump", KeyEvent.VK_D,
+        KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+
     if(Platform.isMac()) {
       makeMenuItem(
           inMenu,

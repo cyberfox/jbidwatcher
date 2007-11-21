@@ -427,7 +427,9 @@ public class AuctionInfo extends ActiveRecord {
     } else {
       mSeller = mSeller.makeSeller(sellerName, mSeller);
     }
+    mSeller.saveDB();
     setInteger("seller_id", mSeller.getId());
+    cache(AuctionInfo.class);
   }
 
   public Currency getUSCur() { return getMonetary("us_cur", Currency.US_DOLLAR); }

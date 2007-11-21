@@ -112,6 +112,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
   private void getServerAuctionEntries(AuctionServer newServer, XMLElement perServer) {
     ActiveRecord.precache(Seller.class);
+    ActiveRecord.precache(Seller.class, "seller");
     ActiveRecord.precache(Category.class);
     ActiveRecord.precache(AuctionInfo.class, "identifier");
     ActiveRecord.precache(AuctionEntry.class, "auction_id");

@@ -45,9 +45,14 @@ public abstract class ActiveRecord extends HashBacked {
     return getDatabase().count();
   }
 
+  public void commit() {
+    getDatabase().commit();
+  }
+
   public String saveDB() {
-    if(!isDirty()) return get("id");
+    if(!isDirty() && get("id") != null && get("id").length() != 0) return get("id");
     String id = getDatabase().insertOrUpdate(getBacking());
+    commit();
     set("id", id);
     return id;
   }
@@ -96,6 +101,11 @@ public abstract class ActiveRecord extends HashBacked {
     getCache(klass).put(combined, result);
   }
 
+  protected void cache(Class klass) {
+    System.err.println("klass == " + this.getClass().getName());
+    cache(klass, "identifier", getString("identifier"), this);
+  }
+
   public static void precache(Class klass, String key) {
     try {
       ActiveRecord o = (ActiveRecord) klass.newInstance();
@@ -116,7 +126,10 @@ public abstract class ActiveRecord extends HashBacked {
     for(Class klass:sCache.keySet()) {
       Map<String, ActiveRecord> klassCache = sCache.get(klass);
       for(ActiveRecord record : klassCache.values()) {
-        if(record != null && record.isDirty()) record.saveDB();
+        if(record != null && record.isDirty()) {
+          System.err.println("id = " + record.getId());
+          record.saveDB();
+        }
       }
     }
   }

@@ -1687,6 +1687,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Set Background Color")) DoSetBackgroundColor(c_src);
     else if(actionString.equals("Toolbar")) DoHideShowToolbar();
     else if(actionString.equals("Search")) DoSearch();
+    else if(actionString.equals("Dump")) ActiveRecord.saveCached();
     else ErrorManagement.logDebug('[' + actionString + ']');
   }
 }
