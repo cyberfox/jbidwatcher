@@ -183,15 +183,10 @@ public class ebayBidder implements Bidder {
     }
 
     if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true")) {
-      //  POST http://my.jbidwatcher.com/recognize/{user}
-      //  Cookie: my.jbidwatcher.com cookie
-      //  Body: {error page}
-      //
-      //  Response:
-      //    200 OK -- Recognized, use the status response from the body of the response.
-      //    400 Error -- Incorrect parameters, somehow.
-      //    404 Not Found -- Unrecognized; continue with 'unrecognized' flow.
-      //    500 Server Error -- Whoops.  Continue with 'unrecognized' flow.
+      int rval = check_recognize_result(inEntry);
+      if(rval != AuctionServer.BID_ERROR_UNKNOWN) {
+        throw new BadBidException("", rval);
+      }
     }
 
     if(JConfig.debugging) inEntry.setLastStatus("Failed to bid. 'Show Last Error' from context menu to see the failure page from the bid attempt.");
@@ -200,6 +195,11 @@ public class ebayBidder implements Bidder {
     //  We don't recognize this error.  Damn.  Log it and freak.
     ErrorManagement.logFile(bidInfo, loadedPage);
     return null;
+  }
+
+  private class ServerBidResult {
+    public int mResult;
+    public String mText;
   }
 
   private Integer getMatchedResult(String matched_text) {
@@ -364,5 +364,9 @@ public class ebayBidder implements Bidder {
 
     ErrorManagement.logFile(safeBidInfo, loadedPage);
     return AuctionServerInterface.BID_ERROR_UNKNOWN;
+  }
+
+  private int check_recognize_result(AuctionEntry inEntry) {
+    return AuctionServer.BID_ERROR_UNKNOWN;
   }
 }
