@@ -10,7 +10,15 @@ import com.jbidwatcher.queue.MessageQueue;
 import com.jbidwatcher.queue.MQFactory;
 
 public class AudioPlayer implements MessageQueue.Listener {
-  public AudioPlayer() {
+  private static AudioPlayer sAP = null;
+
+  public static AudioPlayer getInstance() {
+    if(sAP == null) sAP = new AudioPlayer();
+
+    return sAP;
+  }
+
+  private AudioPlayer() {
     MQFactory.getConcrete("sfx").registerListener(this);
   }
 

@@ -25,6 +25,7 @@ import com.jbidwatcher.util.AudioPlayer;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.RuntimeInfo;
 import com.jbidwatcher.util.db.AuctionDB;
+import com.jbidwatcher.util.db.DBManager;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
@@ -89,6 +90,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private JTabManager jtmAuctions;
   private AuctionsManager aucManager;
   private SearchManager searchManager;
+  private DBManager dbManager;
 
   private TimeQueueManager m_tqm = new TimeQueueManager();
 
@@ -98,7 +100,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private static final int MINUTES_IN_HOUR = 60;
   private static final int ONE_SECOND = Constants.ONE_SECOND;
   private static final int ONEK = 1024;
-  private AudioPlayer m_ap;
+  private AudioPlayer mAP;
   private static AuctionDB mDB;
 
   /**
@@ -1081,6 +1083,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     searchManager = SearchManager.getInstance();
     searchManager.loadSearches();
 
+    dbManager = DBManager.getInstance();
     AuctionServerManager.getInstance().getDefaultServerTime();
 
     JConfig.registerListener(this);
@@ -1132,6 +1135,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     m_tqm.add(START_UPDATING, "Swing", now + (ONE_SECOND * 2 * 10));
     //m_tqm.add("http://www.jbidwatcher.com", "browse", System.currentTimeMillis() + (Constants.ONE_MINUTE / 4));
     //m_tqm.add(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), "ebay", System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
+    m_tqm.add("FLUSH", "dbflush", now+Constants.ONE_MINUTE, ONE_SECOND*15);
 
     TimerHandler timeQueue = new TimerHandler(m_tqm);
     timeQueue.setName("SuperQueue");
@@ -1157,9 +1161,15 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     clockTimer.start();
     gcSafe.add(clockTimer);
 
-    m_ap = new AudioPlayer();
-    gcSafe.add(m_ap);
+    mAP = AudioPlayer.getInstance();
+    gcSafe.add(mAP);
 
     if(JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo();
+    try {
+      //  Don't leave this thread until the timeQueue has completed; i.e. the program is exiting.
+      timeQueue.join();
+    } catch (InterruptedException e) {
+      ErrorManagement.handleException("timeQueue interrupted", e);
+    }
   }
 }
