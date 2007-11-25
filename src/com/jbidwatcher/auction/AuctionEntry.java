@@ -991,11 +991,12 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       xmlResult.addChild(xshipping);
     }
 
-    XMLElement xlog = mEntryEvents.toXML();
-    if(xlog != null) {
-      xmlResult.addChild(xlog);
+    if(mEntryEvents != null) {
+      XMLElement xlog = mEntryEvents.toXML();
+      if (xlog != null) {
+        xmlResult.addChild(xlog);
+      }
     }
-
     return xmlResult;
   }
 
