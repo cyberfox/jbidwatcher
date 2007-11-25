@@ -36,9 +36,6 @@ public class Upgrader {
        */
       mS = db.getStatement();
 
-      /*
-       *  Drop the old database, just to be sure...
-       */
       ResultSet rs = mS.getConnection().getMetaData().getTables(null, null, "AUCTIONS", null);
       if(!rs.next()) {
         /*
@@ -53,10 +50,11 @@ public class Upgrader {
             mS.execute(statement);
           }
 
-          ErrorManagement.logDebug("Created table auctions");
+          ErrorManagement.logDebug("Created database and various tables.");
         }
+        JConfig.setConfiguration("jbidwatcher.created_db", "true");
       } else {
-        ErrorManagement.logDebug("Auctions table already exists.");
+        ErrorManagement.logDebug("Auction information database already exists.");
       }
       rs.close();
     } catch (SQLException se) {
