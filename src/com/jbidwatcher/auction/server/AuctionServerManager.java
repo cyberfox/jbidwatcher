@@ -6,6 +6,7 @@ package com.jbidwatcher.auction.server;
  */
 
 import com.jbidwatcher.auction.*;
+import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.queue.MessageQueue;
@@ -104,19 +105,42 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         }
 
         if(newServer != null) {
-          getServerAuctionEntries(newServer, perServer);
+          int count = ActiveRecord.precache(AuctionInfo.class);
+          if (count == 0) {
+            getServerAuctionEntries(newServer, perServer);
+          } else {
+            loadAuctionsFromDB(newServer);
+          }
         }
       }
     }
   }
 
-  private void getServerAuctionEntries(AuctionServer newServer, XMLElement perServer) {
+  private void loadAuctionsFromDB(AuctionServer newServer) {
     ActiveRecord.precache(Seller.class);
     ActiveRecord.precache(Seller.class, "seller");
     ActiveRecord.precache(Category.class);
-    ActiveRecord.precache(AuctionInfo.class, "identifier");
     ActiveRecord.precache(AuctionEntry.class, "auction_id");
 
+    System.err.println("Username = " + newServer.getUserId());
+    System.err.println("Password = " + ((ebayServer)newServer).getPassword());
+
+    Map<String,ActiveRecord> entries = ActiveRecord.getCache(AuctionEntry.class);
+    for(String auction_id : entries.keySet()) {
+      AuctionEntry ae = (AuctionEntry) entries.get(auction_id);
+      ae.setServer(newServer);
+
+      AuctionInfo ai = AuctionInfo.findFirstBy("id", ae.get("auction_id"));
+      if(ai != null) {
+        ae.setAuctionInfo(ai);
+        sEntryManager.addEntry(ae);
+      } else {
+        System.err.println("CAN'T BRING IN AUCTION #: " + ae.get("auction_id"));
+      }
+    }
+  }
+
+  private void getServerAuctionEntries(AuctionServer newServer, XMLElement perServer) {
     try {
       newServer.loadAuthorization(perServer);
 
@@ -125,20 +149,10 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         XMLElement perEntry = entryStep.next();
         AuctionEntry ae = new AuctionEntry();
 
-        AuctionInfo ai = AuctionInfo.findFirstBy("identifier", perEntry.getProperty("ID"));
-        AuctionEntry dbAE = null;
-        if(ai != null) {
-          dbAE = AuctionEntry.findFirstBy("auction_id", Integer.toString(ai.getId()));
-        }
-        if(dbAE != null) {
-          ae = dbAE;
-          ae.setServer(newServer);
-          ae.setAuctionInfo(ai);
-        } else {
-          ae.setServer(newServer);
-          ae.fromXML(perEntry);
-          ae.saveDB();
-        }
+        ae.setServer(newServer);
+        ae.fromXML(perEntry);
+        MQFactory.getConcrete("dbsave").enqueue(ae);
+
         if (sEntryManager != null) {
           sEntryManager.addEntry(ae);
         }

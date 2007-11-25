@@ -79,7 +79,7 @@ public abstract class ActiveRecord extends HashBacked {
 
   private static Map<Class, Map<String, ActiveRecord>> sCache;
 
-  private static Map<String, ActiveRecord> getCache(Class klass) {
+  public static Map<String, ActiveRecord> getCache(Class klass) {
     if (sCache == null) {
       sCache = new HashMap<Class, Map<String, ActiveRecord>>();
     }
@@ -103,13 +103,14 @@ public abstract class ActiveRecord extends HashBacked {
 
   protected void cache(Class klass) {
     System.err.println("klass == " + this.getClass().getName());
-    cache(klass, "identifier", getString("identifier"), this);
+    cache(klass, "id", getString("id"), this);
   }
 
-  public static void precache(Class klass, String key) {
+  public static int precache(Class klass, String key) {
+    List<DBRecord> results = null;
     try {
       ActiveRecord o = (ActiveRecord) klass.newInstance();
-      List<DBRecord> results = getTable(o).findAll();
+      results = getTable(o).findAll();
       for (DBRecord record : results) {
         ActiveRecord row = (ActiveRecord) klass.newInstance();
         row.setBacking(record);
@@ -118,6 +119,7 @@ public abstract class ActiveRecord extends HashBacked {
     } catch (Exception e) {
       //  Ignore, as this is just for pre-caching...
     }
+    return results == null ? 0 : results.size();
   }
 
   public static void saveCached() {
@@ -134,8 +136,8 @@ public abstract class ActiveRecord extends HashBacked {
     }
   }
 
-  public static void precache(Class klass) {
-    precache(klass, "id");
+  public static int precache(Class klass) {
+    return precache(klass, "id");
   }
 
   public Integer getId() { return getInteger("id"); }
