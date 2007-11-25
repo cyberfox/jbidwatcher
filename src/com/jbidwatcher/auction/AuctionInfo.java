@@ -118,11 +118,7 @@ public class AuctionInfo extends ActiveRecord {
   protected void handleTag(int i, XMLElement curElement) {
     switch(i) {
       case 0:  //  Title
-        if(JConfig.queryConfiguration("savefile.format", "0100").compareTo("0101") >= 0) {
-          setString(infoTags[i], curElement.decodeString(curElement.getContents(), 0));
-        } else {
-          setString(infoTags[i], curElement.getContents());
-        }
+        setString(infoTags[i], curElement.decodeString(curElement.getContents(), 0));
         break;
       case 1:  //  Seller name
         setSellerName(curElement.getContents());
@@ -189,6 +185,11 @@ public class AuctionInfo extends ActiveRecord {
     }
   }
 
+  public void fromXML(XMLElement inXML) {
+    super.fromXML(inXML);
+    if(mSeller != null) mSeller.saveDB();
+  }
+
   public XMLElement toXML() {
     XMLElement xmlResult = new XMLElement("info");
 
@@ -198,13 +199,20 @@ public class AuctionInfo extends ActiveRecord {
       XMLElement xseller = mSeller.toXML();
       xmlResult.addChild(xseller);
     }
-    XMLElement xstart = new XMLElement("start");
-    xstart.setContents(Long.toString(getStart().getTime()));
-    xmlResult.addChild(xstart);
 
-    XMLElement xend = new XMLElement("end");
-    xend.setContents(Long.toString(getEnd().getTime()));
-    xmlResult.addChild(xend);
+    Date start = getStart();
+    if(start != null) {
+      XMLElement xstart = new XMLElement("start");
+      xstart.setContents(Long.toString(start.getTime()));
+      xmlResult.addChild(xstart);
+    }
+
+    Date end = getEnd();
+    if(end != null) {
+      XMLElement xend = new XMLElement("end");
+      xend.setContents(Long.toString(end.getTime()));
+      xmlResult.addChild(xend);
+    }
 
     XMLElement xbidcount = new XMLElement("bidcount");
     xbidcount.setContents(Integer.toString(getNumBids()));
@@ -427,8 +435,12 @@ public class AuctionInfo extends ActiveRecord {
     } else {
       mSeller = mSeller.makeSeller(sellerName, mSeller);
     }
-    mSeller.saveDB();
-    setInteger("seller_id", mSeller.getId());
+    Integer seller_id = mSeller.getId();
+    if(seller_id == null || seller_id == 0) {
+      String raw_id = mSeller.saveDB();
+      if (raw_id != null && raw_id.length() != 0) seller_id = Integer.parseInt(raw_id);
+    }
+    setInteger("seller_id", seller_id);
     cache(AuctionInfo.class);
   }
 
