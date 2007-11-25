@@ -278,14 +278,8 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
     xmlFile.parseFromReader(isr);
     MQFactory.getConcrete("splash").enqueue("SET " + MAX_PERCENT);
 
-    XMLElement auctionsXML = null;
-    String formatVersion = "0090";
-    if(xmlFile.getTagName().equals(Constants.PROGRAM_NAME.toLowerCase())) {
-      formatVersion = xmlFile.getProperty("FORMAT", "0100");
-      auctionsXML = xmlFile.getChild("auctions");
-    } else if(xmlFile.getTagName().equals("auctions")) {
-      auctionsXML = xmlFile;
-    }
+    String formatVersion = xmlFile.getProperty("FORMAT", "0101");
+    XMLElement auctionsXML = xmlFile.getChild("auctions");
     JConfig.setConfiguration("savefile.format", formatVersion);
     //  set the width of the splash progress bar based on the number
     //  of auctions that will be loaded!
@@ -305,16 +299,16 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
 
     AuctionServerManager.setEntryManager(this);
     AuctionServerManager.getInstance().fromXML(auctionsXML);
+
     AuctionStats as = AuctionServerManager.getInstance().getStats();
+
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if(as != null) {
       if(as.getCount() != auctionTotal || (savedCount != -1 && as.getCount() != savedCount)) {
         MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions.");
       }
     }
-    if(formatVersion.compareTo("0090") > 0) {
-      _deleted.fromXML(xmlFile.getChild("deleted"));
-    }
+    _deleted.fromXML(xmlFile.getChild("deleted"));
   }
 
   public AuctionEntry newAuctionEntry(String id) {
