@@ -142,15 +142,18 @@ public class AuctionInfo extends ActiveRecord {
       case 16: //  Minimum price/bid
         Currency amount = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
         setMonetary(infoTags[i], amount);
-        if (i == 6) {
-          if (amount.getCurrencyType() == Currency.US_DOLLAR) {
-            setMonetary("us_cur", amount);
-            setString("currency", amount.fullCurrencyName());
-          }
-          setDefaultCurrency(amount);
-        } else if(i == 12) {
-          String optional = curElement.getProperty("OPTIONAL");
-          setBoolean("insurance_optional", optional == null || (optional.equals("true")));
+        switch(i) {
+          case 6:
+            if (amount.getCurrencyType() == Currency.US_DOLLAR) {
+              setMonetary("us_cur", amount);
+              setString("currency", amount.fullCurrencyName());
+            }
+            setDefaultCurrency(amount);
+            break;
+          case 12:
+            String optional = curElement.getProperty("OPTIONAL");
+            setBoolean("insurance_optional", optional == null || (optional.equals("true")));
+            break;
         }
         break;
       case 7:  //  Is a dutch auction?
@@ -222,7 +225,7 @@ public class AuctionInfo extends ActiveRecord {
     if(xinsurance != null) xinsurance.setProperty("optional", isInsuranceOptional() ?"true":"false");
 
     if(getCurBid().getCurrencyType() != Currency.US_DOLLAR) {
-      addCurrencyChild(xmlResult, "usprice");
+      addCurrencyChild(xmlResult, "usprice", Currency.US_DOLLAR);
     }
 
     addCurrencyChild(xmlResult, "currently");

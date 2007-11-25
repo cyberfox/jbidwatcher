@@ -111,27 +111,37 @@ class ebayAuction extends SpecificAuction {
       if (val.getCurrencyType() == com.jbidwatcher.util.Currency.US_DOLLAR) {
         newCur = val;
       } else {
-        String usdPattern = Externalized.getString("ebayServer.USD");
-        String approxAmount;
-
-        //  If the next text doesn't contain a USD amount, it's separated somehow.
-        //  Skim forward until we either find something, or give up.  (6 steps for now.)
-        int count = 0;
-        int matchAtIndex;
-
-        do {
-          approxAmount = _htmlDoc.getNextContent();
-          approxAmount = StringTools.stripHigh(approxAmount, "");
-          matchAtIndex = approxAmount.indexOf(usdPattern);
-        } while (count++ < 6 && matchAtIndex == -1);
-
-        //  If we still have no values visible, punt and treat it as zero.
-        if (matchAtIndex != -1) {
-          approxAmount = approxAmount.substring(matchAtIndex); //$NON-NLS-1$
-          newCur = Currency.getCurrency(approxAmount);
-        }
+        newCur = walkForUSCurrency(_htmlDoc, newCur);
       }
     }
+
+    return newCur;
+  }
+
+  /**
+   * If the next text doesn't contain a USD amount, it's separated somehow.
+   * Skim forward until we either find something, or give up.  (6 steps for now.)
+   *
+   * @param html   - The document to search.
+   * @param newCur - The current high bid amount.
+   * @return - Either zeroDollars or the approximate USD equivalent of the value of the item.
+   */
+  private Currency walkForUSCurrency(JHTML html, Currency newCur) {
+    String approxAmount;
+    int count = 0;
+    int matchAtIndex;
+
+    String usdPattern = Externalized.getString("ebayServer.USD");
+    do {
+      approxAmount = html.getNextContent();
+      approxAmount = StringTools.stripHigh(approxAmount, "");
+      matchAtIndex = approxAmount.indexOf(usdPattern);
+      if (matchAtIndex != -1) {
+        approxAmount = approxAmount.substring(matchAtIndex); //$NON-NLS-1$
+        newCur = Currency.getCurrency(approxAmount);
+        if (newCur.getCurrencyType() != Currency.US_DOLLAR) newCur = zeroDollars;
+      }
+    } while (count++ < 6 && newCur != zeroDollars);
 
     return newCur;
   }

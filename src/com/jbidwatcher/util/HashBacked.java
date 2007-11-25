@@ -169,6 +169,15 @@ public abstract class HashBacked extends XMLSerializeSimple {
 
   protected XMLElement addCurrencyChild(XMLElement parent, String name) {
     Currency value = getMonetary(name);
+    return addCurrencyChild(parent, name, value);
+  }
+
+  protected XMLElement addCurrencyChild(XMLElement parent, String name, int currencyType) {
+    Currency value = getMonetary(name, currencyType);
+    return addCurrencyChild(parent, name, value);
+  }
+
+  protected XMLElement addCurrencyChild(XMLElement parent, String name, Currency value) {
     XMLElement xadd = null;
     if (value != null && !value.isNull()) {
       xadd = new XMLElement(name);
