@@ -21,7 +21,6 @@ public class Database {
   public static void main(String[] args) {
     try {
       Database db = new Database("/Users/mrs/.jbidwatcher");
-//      dbTest(db);
       db.shutdown();
     } catch(Exception e) {
       handleSQLException(e);
@@ -85,81 +84,6 @@ public class Database {
 
     return rval;
   }
-
-//  public static boolean dbTest(Database db) {
-//    try {
-//      /*
-//         Creating a statement lets us issue commands against
-//         the connection.
-//       */
-//      Statement s = db.getStatement();
-//
-//      /*
-//         We create a table, add a few rows, and update one.
-//       */
-//      s.execute("create table derbyDB(num int, addr varchar(40))");
-//      ErrorManagement.logDebug("Created table derbyDB");
-//      s.execute("insert into derbyDB values (1956,'Webster St.')");
-//      ErrorManagement.logDebug("Inserted 1956 Webster");
-//      s.execute("insert into derbyDB values (1910,'Union St.')");
-//      ErrorManagement.logDebug("Inserted 1910 Union");
-//      s.execute("update derbyDB set num=180, addr='Grand Ave.' where num=1956");
-//      ErrorManagement.logDebug("Updated 1956 Webster to 180 Grand");
-//
-//      s.execute("update derbyDB set num=300, addr='Lakeshore Ave.' where num=180");
-//      ErrorManagement.logDebug("Updated 180 Grand to 300 Lakeshore");
-//
-//      /*
-//         We select the rows and verify the results.
-//       */
-//      ResultSet rs = s.executeQuery("SELECT num, addr FROM derbyDB ORDER BY num");
-//
-//      if (!rs.next())
-//      {
-//          throw new Exception("Wrong number of rows");
-//      }
-//
-//      if (rs.getInt(1) != 300)
-//      {
-//          throw new Exception("Wrong row returned");
-//      }
-//
-//      if (!rs.next())
-//      {
-//          throw new Exception("Wrong number of rows");
-//      }
-//      if (rs.getInt(1) != 1910)
-//      {
-//          throw new Exception("Wrong row returned");
-//      }
-//
-//      if (rs.next())
-//      {
-//          throw new Exception("Wrong number of rows");
-//      }
-//
-//      ErrorManagement.logDebug("Verified the rows");
-//
-////      s.execute("drop table derbyDB");
-//      ErrorManagement.logDebug("Dropped table derbyDB");
-//
-//      /*
-//         We release the result and statement resources.
-//       */
-//      rs.close();
-//      s.close();
-//      ErrorManagement.logDebug("Closed result set and statement");
-//
-//      /*
-//         We end the transaction and the connection.
-//       */
-//      db.commit();
-//      ErrorManagement.logDebug("Committed transaction");
-//    } catch (Throwable e) {
-//      handleSQLException(e);
-//    }
-//    return true;
-//  }
 
   public void commit() {
     try {
