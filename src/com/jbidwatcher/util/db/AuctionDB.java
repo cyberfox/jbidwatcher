@@ -162,13 +162,19 @@ public class AuctionDB {
     String sql = createPreparedUpdate(tableName, oldRow, newRow);
     if(sql == null) return null;
 
+    sql += " WHERE " + columnKey + " = ?";
     try {
       PreparedStatement ps = mDB.prepare(sql);
 
-      setPreparedUpdate(ps, tableName, oldRow, newRow);
-      ps.execute();
-      mDB.commit();
-      return findKeys(ps);
+      int colCount = setPreparedUpdate(ps, oldRow, newRow);
+      if(colCount != -1) {
+        //  Set the 'WHERE' value.
+        setColumn(ps, colCount, columnKey, value);
+        System.err.println("sql == " + sql);
+        ps.execute();
+        mDB.commit();
+        return findKeys(ps);
+      }
     } catch (SQLException e) {
       e.printStackTrace();
     }
@@ -278,7 +284,7 @@ public class AuctionDB {
     return anyKeys?update.toString():null;
   }
 
-  private boolean setPreparedUpdate(PreparedStatement ps, String tableName, DBRecord oldRow, DBRecord newRow) {
+  private int setPreparedUpdate(PreparedStatement ps, DBRecord oldRow, DBRecord newRow) {
     boolean errors = false;
     int column = 1;
     for (String key : newRow.keySet()) {
@@ -295,7 +301,7 @@ public class AuctionDB {
       }
     }
     System.err.println();
-    return errors;
+    return errors ? -1 : column;
   }
 
   private boolean setColumn(PreparedStatement ps, int column, String key, String val) {
@@ -362,7 +368,7 @@ public class AuctionDB {
   }
 
   public int count() {
-    DBRecord rm = findFirst("SELECT COUNT(*) AS count FROM auctions");
+    DBRecord rm = findFirst("SELECT COUNT(*) AS count FROM " + mTableName);
     String count = rm.get("count");
     return Integer.parseInt(count);
   }
