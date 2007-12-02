@@ -41,8 +41,9 @@ public class TableColumnController {
   public static final int JUSTPRICE=18;
   public static final int CUR_TOTAL=19;
   public static final int SNIPE_TOTAL=20;
+  public static final int THUMBNAIL = 21;
 
-  public static final int COLUMN_COUNT=21;
+  public static final int COLUMN_COUNT=22;
   private static Map<Integer, String> m_column_map;
 
   private TableColumnController() {
@@ -69,6 +70,7 @@ public class TableColumnController {
     m_column_map.put(JUSTPRICE, "Price");
     m_column_map.put(CUR_TOTAL, "Total");
     m_column_map.put(SNIPE_TOTAL, "Snipe Max");
+    m_column_map.put(THUMBNAIL, "Thumbnail");
   }
 
   public static TableColumnController getInstance() {

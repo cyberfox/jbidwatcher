@@ -9,14 +9,16 @@ package com.jbidwatcher.ui;//  -*- Java -*-
 //  History:
 //  mrs: 23-July-1999 09:29 - This exists to eliminate cell-based selection in the table cell renderer.  (It looks ugly.)
 
-import com.jbidwatcher.platform.Platform;
-import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.MultiSnipe;
+import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.platform.Platform;
 
-import java.awt.*;
 import javax.swing.*;
-import javax.swing.table.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class myTableCellRenderer extends DefaultTableCellRenderer {
   private static Color darkBG = null;
@@ -31,27 +33,58 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private static final Color darkRed = new Color(127, 0, 0);
   private static final Color medBlue = new Color(0, 0, 191);
   private static final Color linuxSelection = new Color(204,204,255);
+  private int mRow = 0;
+  private boolean mSelected = false;
 
-  private TableCellRenderer iconTCR =null;
+  private class Colors {
+    Color mForeground;
+    Color mBackground;
+
+    private Colors(Color foreground, Color background) {
+      mForeground = foreground;
+      mBackground = background;
+    }
+
+    public Color getForeground() {
+      return mForeground;
+    }
+
+    public Color getBackground() {
+      return mBackground;
+    }
+  }
 
   public static void resetBehavior() { darkBG = null; boldFont = null; fixedFont = null; }
+
+  public void setValue(Object o) {
+    if(o instanceof Icon) {
+      super.setIcon((Icon) o);
+      super.setValue(null);
+    } else {
+      super.setIcon(null);
+      super.setValue(o);
+    }
+  }
 
   public Component getTableCellRendererComponent(JTable table, Object value,
                                                  boolean isSelected, boolean hasFocus,
                                                  int row, int column) {
     column = table.convertColumnIndexToModel(column);
     Component returnComponent;
-    if(value instanceof Icon && iconTCR != null) {
-      returnComponent = iconTCR.getTableCellRendererComponent(table, value, isSelected, false, row, column);
+    if(value instanceof Icon) {
+      setHorizontalAlignment(JLabel.CENTER);
     } else {
-      returnComponent = super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
+      setHorizontalAlignment(JLabel.LEFT);
     }
+    returnComponent = super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
 
     AuctionEntry ae = (AuctionEntry)table.getValueAt(row, -1);
     if(ae == null) return returnComponent;
 
     Color foreground = chooseForeground(ae, column);
     Color background = chooseBackground(ae, column, table.getBackground());
+
+    mRow = row;
 
     if( (row % 2) == 1) {
       if(darkBG == null) {
@@ -73,32 +106,12 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
       }
     }
 
+    mSelected = isSelected;
     if(isSelected) {
-      if (JConfig.queryConfiguration("selection.invert", "false").equals("true")) {
-        Color tmp = foreground;
-        foreground = background;
-        background = tmp;
-      } else {
-        if(JConfig.queryConfiguration("selection.color") != null) {
-          if(selectionColorString == null || !selectionColorString.equals(JConfig.queryConfiguration("selection.color"))) {
-            selectionColorString = JConfig.queryConfiguration("selection.color");
-            selectionColor = MultiSnipe.reverseColor(selectionColorString);
-          }
-          background = selectionColor;
-        } else {
-          if (Platform.isMac() || Platform.isLinux()) {
-            if (column == 2 && ae.isMultiSniped()) foreground = background;
-            background = linuxSelection;
-          } else {
-            if (column == 2 && ae.isMultiSniped()) {
-              foreground = background;
-            } else if (foreground.equals(Color.BLACK)) {
-              foreground = SystemColor.textHighlightText;
-            }
-            background = SystemColor.textHighlight;
-          }
-        }
-      }
+      Colors selectionColors = getSelectionColors(column, ae, foreground, background);
+
+      foreground = selectionColors.getForeground();
+      background = selectionColors.getBackground();
     }
 
     Font foo = chooseFont(returnComponent.getFont(), ae, column);
@@ -107,6 +120,70 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     returnComponent.setBackground(background);
 
     return(returnComponent);
+  }
+
+  private Map<Integer, GradientPaint> gradientCache = new HashMap<Integer, GradientPaint>();
+
+  public void paintComponent(Graphics g) {
+    if(g != null) {
+      Graphics2D g2d = (Graphics2D) g;
+      Rectangle bounds = g2d.getClipBounds();
+      if (bounds != null) {
+        if (!mSelected) {
+          setOpaque(false);
+          GradientPaint paint = getGradientPaint();
+          g2d.setPaint(paint);
+        } else {
+          g.setColor(getBackground());
+        }
+        g2d.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
+      }
+      super.paintComponent(g);
+    }
+  }
+
+  private int cacheMapper() {return 10000 * (mRow % 2) + getHeight();}
+
+  private GradientPaint getGradientPaint() {
+    GradientPaint paint = gradientCache.get(cacheMapper());
+    if(paint == null) {
+      if ((mRow % 2) == 0) {
+        paint = new GradientPaint(0, 0, Color.WHITE, 0, getHeight(), Color.LIGHT_GRAY, false);
+      } else {
+        paint = new GradientPaint(0, 0, Color.LIGHT_GRAY, 0, getHeight(), Color.WHITE, false);
+      }
+    }
+    gradientCache.put(cacheMapper(), paint);
+    return paint;
+  }
+
+  private Colors getSelectionColors(int column, AuctionEntry ae, Color foreground, Color background) {
+    if (JConfig.queryConfiguration("selection.invert", "false").equals("true")) {
+      Color tmp = foreground;
+      foreground = background;
+      background = tmp;
+    } else {
+      if (JConfig.queryConfiguration("selection.color") != null) {
+        if (selectionColorString == null || !selectionColorString.equals(JConfig.queryConfiguration("selection.color"))) {
+          selectionColorString = JConfig.queryConfiguration("selection.color");
+          selectionColor = MultiSnipe.reverseColor(selectionColorString);
+        }
+        background = selectionColor;
+      } else {
+        if (Platform.isMac() || Platform.isLinux()) {
+          if (column == 2 && ae.isMultiSniped()) foreground = background;
+          background = linuxSelection;
+        } else {
+          if (column == 2 && ae.isMultiSniped()) {
+            foreground = background;
+          } else if (foreground.equals(Color.BLACK)) {
+            foreground = SystemColor.textHighlightText;
+          }
+          background = SystemColor.textHighlight;
+        }
+      }
+    }
+    return new Colors(foreground, background);
   }
 
   private Color chooseForeground(AuctionEntry ae, int col) {
@@ -211,9 +288,5 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
       }
     }
     return Color.BLACK;
-  }
-
-  public void setIconRenderer(TableCellRenderer defaultRenderer) {
-    iconTCR = defaultRenderer;
   }
 }
