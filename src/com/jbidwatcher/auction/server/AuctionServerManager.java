@@ -122,9 +122,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     ActiveRecord.precache(Category.class);
     ActiveRecord.precache(AuctionEntry.class, "auction_id");
 
-    System.err.println("Username = " + newServer.getUserId());
-    System.err.println("Password = " + ((ebayServer)newServer).getPassword());
-
     Map<String,ActiveRecord> entries = ActiveRecord.getCache(AuctionEntry.class);
     for(String auction_id : entries.keySet()) {
       AuctionEntry ae = (AuctionEntry) entries.get(auction_id);
