@@ -23,6 +23,8 @@ import java.awt.*;
 import java.awt.dnd.DropTarget;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.util.*;
 import java.util.List;
 
@@ -38,6 +40,8 @@ public class AuctionsUIModel {
   private JLabel _prices;
 
   private static final int DEFAULT_COLUMN_WIDTH=75;
+  private static final int DEFAULT_ROW_HEIGHT=16;
+  private static final int MICROTHUMBNAIL_ROW_HEIGHT = 70;
   private static final myTableCellRenderer _myRenderer = new myTableCellRenderer();
   private static final JContext tableAdapter = new JBidMouse();
   private static final JMouseAdapter frameAdapter = new JBidFrameMouse();
@@ -67,6 +71,10 @@ public class AuctionsUIModel {
       }
       JConfig.killAll("show_shipping");
     }
+    // provide sufficient vertical height in the rows for micro-thumbnails list view
+    if (_table.convertColumnIndexToView(TableColumnController.THUMBNAIL) != -1) {
+      _table.setRowHeight(MICROTHUMBNAIL_ROW_HEIGHT);
+    }
     _table.addMouseListener(tableAdapter);
     _dataModel.getTableSorter().addMouseListenerToHeaderInTable(_table);
     if(JConfig.queryConfiguration("mac.aqua", "false").equals("true")) {
@@ -77,11 +85,24 @@ public class AuctionsUIModel {
     }
 
     //  Eventually this will become a button to manage the custom columns for the current tab.  That's just a bit tough right now.
-    if(JConfig.queryConfiguration("ui.useCornerButton", "false").equals("true")) {
-      JButton bangButton = new JButton("!");
+    if(JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
+      final JButton bangButton = new JButton("*");
+      final JMenu bangMenu = allTabs.getCustomColumnMenu();
+      bangButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          bangMenu.getPopupMenu().show(bangButton, 0, 0);
+        }
+      });
+
+//      public void processMouseEvent(MouseEvent e) {
+//      if (e.isPopupTrigger()) {
+//        popup.show(this, e.getX(), e.getY());
+//      } else {
+//        super.processMouseEvent(e);
+//      }
+//    }
       _scroller.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, bangButton);
-      bangButton.setActionCommand("!");
-      bangButton.addMouseListener(tableAdapter);
+//      _scroller.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, mine);
     }
 
     _bgColor = UIManager.getColor("window");
@@ -103,16 +124,6 @@ public class AuctionsUIModel {
     _print = new JPrintable(_table);
     _export = new CSVExporter(_table);
     _table.setDefaultRenderer(String.class, _myRenderer);
-    //  Try to get the typical 'icon' cell renderer, if that fails, get specific with the
-    //  ImageIcon cell renderer.  If that fails, the ststus icons will render as text,
-    //  which looks like crap.
-    TableCellRenderer iconTCR = _table.getDefaultRenderer(Icon.class);
-    if(iconTCR == null) {
-      ErrorManagement.logDebug("No default renderer for icons?!?");
-      iconTCR = _table.getDefaultRenderer(ImageIcon.class);
-      if(iconTCR == null) ErrorManagement.logDebug("No default renderer for image icons either?!?");
-    }
-    _myRenderer.setIconRenderer(iconTCR);
     _table.setDefaultRenderer(Icon.class, _myRenderer);
 
     JPanel jp = new JPanel();
@@ -378,15 +389,25 @@ public class AuctionsUIModel {
   }
 
   public boolean toggleField(String field) {
+    boolean rval;
     int modelColumn = TableColumnController.getInstance().getColumnNumber(field);
     if(_table.convertColumnIndexToView(modelColumn) == -1) {
       _table.addColumn(new TableColumn(modelColumn, DEFAULT_COLUMN_WIDTH, _myRenderer, null));
-      return true;
+      rval = true;
     } else {
       _table.removeColumn(_table.getColumn(field));
       _dataModel.getTableSorter().removeColumn(field, _table);
-      return false;
+      rval = false;
     }
+
+    // hack and a half - but adding a row height attribute for columns seems like overkill
+    if (_table.convertColumnIndexToView(TableColumnController.THUMBNAIL) != -1) {
+      _table.setRowHeight(MICROTHUMBNAIL_ROW_HEIGHT);
+    } else {
+      _table.setRowHeight(DEFAULT_ROW_HEIGHT);
+    }
+
+    return rval;
   }
 
   public List<String> getColumns() {

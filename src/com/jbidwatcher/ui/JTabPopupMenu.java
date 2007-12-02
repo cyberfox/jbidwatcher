@@ -13,7 +13,8 @@ import com.jbidwatcher.FilterManager;
 import java.awt.event.*;
 import java.awt.*;
 import javax.swing.*;
-import java.lang.reflect.*;
+import javax.swing.event.PopupMenuListener;
+import javax.swing.event.PopupMenuEvent;
 import java.util.*;
 import java.util.List;
 
@@ -23,10 +24,7 @@ public class JTabPopupMenu extends JContext {
   private JMenuItem _print = null;
   private JMenuItem _export = null;
   private JMenu _deleteSubmenu = null;
-  private Method _indexLocation = null;
   private Map<String, JCheckBoxMenuItem> menuItemMap = new TreeMap<String, JCheckBoxMenuItem>();
-  private Object[] _indexParams = new Object[2];
-  protected int _curIndex = 0;
   private JMenuItem _properties = null;
 
   /**
@@ -49,6 +47,11 @@ public class JTabPopupMenu extends JContext {
       customize.add(colMenuItem).addActionListener(this);
       menuItemMap.put(s, colMenuItem);
     }
+    customize.getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
+      public void popupMenuWillBecomeVisible(PopupMenuEvent e) { prepCustomColumnMenu(null); }
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }
+      public void popupMenuCanceled(PopupMenuEvent e) { }
+    });
 
     myPopup.add(makeMenuItem("Add Tab")).addActionListener(this);
     _deleteSubmenu = new JMenu("Delete");
@@ -75,43 +78,35 @@ public class JTabPopupMenu extends JContext {
    */
   protected void beforePopup(JPopupMenu inPopup, MouseEvent e) {
     super.beforePopup(inPopup, e);
-    if(_indexLocation == null) {
+    int curIndex = _myTabs.indexAtLocation(e.getX(), e.getY());
+    if (curIndex == -1) {
+      customize.setEnabled(false);
       _deleteSubmenu.setEnabled(false);
       _print.setEnabled(false);
-      customize.setEnabled(false);
-      _export.setEnabled(false);
-      _properties.setEnabled(false);
-      _curIndex = -1;
+      ErrorManagement.logDebug("Whoops!  Click-point not found!");
     } else {
-      try {
-        _indexParams[0] = e.getX();
-        _indexParams[1] = e.getY();
+      _print.setEnabled(true);
 
-        _curIndex = (Integer)_indexLocation.invoke(_myTabs, _indexParams);
+      prepCustomColumnMenu(curIndex);
 
-        _indexParams[0] = _indexParams[1] = null;
-
-        if (_curIndex == -1) {
-          customize.setEnabled(false);
-          _deleteSubmenu.setEnabled(false);
-          _print.setEnabled(false);
-          ErrorManagement.logDebug("Whoops!  Click-point not found!");
-        } else {
-          customize.setEnabled(true);
-          _print.setEnabled(true);
-          String tabName = _myTabs.getTitleAt(_curIndex);
-          uncheckAll();
-          setColumnChecks(tabName);
-          if (_curIndex < 3) {
-            _deleteSubmenu.setEnabled(false);
-          } else {
-            _deleteSubmenu.setEnabled(true);
-          }
-        }
-      } catch(Exception ignored) {
-        //  Reflection exception...  No idea what to do here.
+      if (curIndex < 3) {
+        _deleteSubmenu.setEnabled(false);
+      } else {
+        _deleteSubmenu.setEnabled(true);
       }
     }
+  }
+
+  public void prepCustomColumnMenu(Integer tabIndex) {
+    if(tabIndex == null) tabIndex = _myTabs.getSelectedIndex();
+    customize.setEnabled(true);
+    String tabName = _myTabs.getTitleAt(tabIndex);
+    uncheckAll();
+    setColumnChecks(tabName);
+  }
+
+  public JMenu getCustomizeMenu() {
+    return customize;
   }
 
   private void setColumnChecks(String tabName) {
@@ -130,7 +125,7 @@ public class JTabPopupMenu extends JContext {
 
   public void actionPerformed(ActionEvent ae) {
     super.actionPerformed(ae);
-    DoAction(ae.getActionCommand(), _curIndex);
+    DoAction(ae.getActionCommand(), _myTabs.getSelectedIndex());
   }
 
   protected JFrame propFrame = null;
@@ -257,14 +252,6 @@ public class JTabPopupMenu extends JContext {
    * @param inTabs - The tab display to act as a context menu for.
    */
   public JTabPopupMenu(JTabbedPane inTabs) {
-    try {
-      Class[] _indexFinder = new Class[]{int.class, int.class};
-      Class<JTabbedPane> tabbedPane_c = JTabbedPane.class;
-      _indexLocation = tabbedPane_c.getDeclaredMethod("indexAtLocation", _indexFinder);
-    } catch(Exception ignored) {
-      //  Not sure what to do with a reflection exception except punt.
-    }
-
     _myTabs = inTabs;
     localPopup = makeTabMenu();
   }

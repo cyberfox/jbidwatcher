@@ -5,16 +5,18 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.util.*;
-import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.Constants;
+import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.util.Comparison;
+import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.IconFactory;
+import com.jbidwatcher.xml.XMLElement;
 
-import java.util.*;
+import javax.swing.*;
+import java.awt.Image;
 import java.text.SimpleDateFormat;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
+import java.util.*;
 
 public class auctionTableModel extends BaseTransformation {
   private static final String neverBid = "--";
@@ -54,6 +56,7 @@ public class auctionTableModel extends BaseTransformation {
   public Class getSortByColumnClass(int i) {
     //  Status is the only one where the type is very different than the dummy data.
     if(i==TableColumnController.STATUS ||
+       i==TableColumnController.THUMBNAIL ||
        i==TableColumnController.SELLER_FEEDBACK ||
        i==TableColumnController.BIDCOUNT ||
        i==TableColumnController.SELLER_POSITIVE_FEEDBACK) return Integer.class;
@@ -97,6 +100,7 @@ public class auctionTableModel extends BaseTransformation {
       case TableColumnController.END_DATE:
         return futureForever;
       case TableColumnController.STATUS:
+      case TableColumnController.THUMBNAIL:
         return dummyIcon;
       case TableColumnController.ID:
       case TableColumnController.TITLE:
@@ -171,6 +175,7 @@ public class auctionTableModel extends BaseTransformation {
         case TableColumnController.TIME_LEFT: return aEntry.getEndDate();
         case TableColumnController.TITLE: return aEntry.getTitle();
         case TableColumnController.STATUS: return buildEntryFlags(aEntry);
+        case TableColumnController.THUMBNAIL: return aEntry.getThumbnail();
         case TableColumnController.SELLER: return aEntry.getSeller();
         case TableColumnController.FIXED_PRICE:
           return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getBuyNow());
@@ -325,6 +330,8 @@ public class auctionTableModel extends BaseTransformation {
     }
   }
 
+  static Map<String, ImageIcon> iconCache = new HashMap<String, ImageIcon>();
+
   public Object getValueAt(int rowIndex, int columnIndex) {
     try {
       AuctionEntry aEntry = dispList.get(rowIndex);
@@ -376,6 +383,36 @@ public class auctionTableModel extends BaseTransformation {
         }
         case TableColumnController.TITLE: return cvt.decodeString(aEntry.getTitle(), 0);
         case TableColumnController.STATUS: return getEntryIcon(aEntry);
+        case TableColumnController.THUMBNAIL: {
+          String thumb = aEntry.getThumbnail();
+          if (thumb != null) {
+            if(iconCache.containsKey(thumb)) return iconCache.get(thumb);
+            thumb = thumb.replaceAll("file:", "");
+            ImageIcon base = new ImageIcon(thumb);
+            int h = base.getIconHeight();
+            int w = base.getIconWidth();
+            if (h <= 64 && w <= 64) {
+              h = -1;
+              w = -1;
+            }
+            if (h != -1 && w != -1) {
+              if (h > w) {
+                h = 64;
+                w = -1;
+              } else if (w > h) {
+                w = 64;
+                h = -1;
+              } else if (h == w && h != -1) {
+                h = 64;
+                w = -1;
+              }
+            }
+            ImageIcon thumbIcon = new ImageIcon(base.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH));
+            if(thumbIcon != null) iconCache.put(thumb, thumbIcon);
+            return thumbIcon;
+          } else return dummyIcon;
+
+        }
         case TableColumnController.SELLER: return aEntry.getSeller();
         case TableColumnController.COMMENT:
           String comment = aEntry.getComment();

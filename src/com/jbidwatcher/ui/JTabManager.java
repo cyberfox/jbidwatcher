@@ -5,36 +5,53 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import java.awt.event.*;
-import javax.swing.*;
-import java.util.*;
-import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.queue.MQFactory;
+
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.awt.event.ActionEvent;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class JTabManager extends JBidMouse {
-  private JTabbedPane _auctionTypes;
-
-  private Map<String, TableSorter> _nameTableMap = new TreeMap<String, TableSorter>();
+  private JTabbedPane mAuctionTypes;
+  private Map<String, TableSorter> mNameTableMap = new TreeMap<String, TableSorter>();
+  private JTabPopupMenu mPopupMenu;
 
   public JTabManager() {
-    _auctionTypes = new JTabbedPane();
-    _auctionTypes.addMouseListener(new JTabPopupMenu(_auctionTypes));
+    mAuctionTypes = new JTabbedPane();
+    mPopupMenu = new JTabPopupMenu(mAuctionTypes);
+    mAuctionTypes.addMouseListener(mPopupMenu);
+    mAuctionTypes.addChangeListener(new ChangeListener() {
+      // This method is called whenever the selected tab changes
+      public void stateChanged(ChangeEvent evt) {
+        // Get current tab
+        TableSorter ts = getCurrentTable();
+        if(ts != null) ts.sort();
+      }
+    });
+  }
+
+  public JMenu getCustomColumnMenu() {
+    return mPopupMenu.getCustomizeMenu();
   }
 
   public JTabbedPane getTabs() {
-    return _auctionTypes;
+    return mAuctionTypes;
   }
 
   public void add(String tabName, JComponent tabComponent, TableSorter inTS) {
-    _auctionTypes.add(tabName, tabComponent);
-    _nameTableMap.put(tabName, inTS);
+    mAuctionTypes.add(tabName, tabComponent);
+    mNameTableMap.put(tabName, inTS);
   }
 
   private TableSorter getCurrentTable() {
-    int currentIndex = _auctionTypes.getSelectedIndex();
-    String currentTitle = _auctionTypes.getTitleAt(currentIndex);
+    int currentIndex = mAuctionTypes.getSelectedIndex();
+    String currentTitle = mAuctionTypes.getTitleAt(currentIndex);
 
-    return(_nameTableMap.get(currentTitle));
+    return(mNameTableMap.get(currentTitle));
   }
 
   protected int[] getPossibleRows() {
@@ -143,5 +160,13 @@ public class JTabManager extends JBidMouse {
     }
 
     DoAction(ae.getSource(), actionString, whichAuction);
+  }
+
+  public void sortDefault() {
+    TableSorter ts = getCurrentTable();
+    if (ts != null) {
+      ts.enableInsertionSorting();
+      ts.sort();
+    }
   }
 }
