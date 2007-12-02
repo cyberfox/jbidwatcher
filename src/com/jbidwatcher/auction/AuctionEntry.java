@@ -827,7 +827,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @return A string with all the event information included.
    */
   public String getLastStatus(boolean bulk) {
-    return mEntryEvents.getLastStatus(bulk);
+    if(mEntryEvents != null) return mEntryEvents.getLastStatus(bulk);
+    return "";
   }
 
   public int getStatusCount() {
