@@ -126,17 +126,19 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
 
   public void paintComponent(Graphics g) {
     if(g != null) {
-      Graphics2D g2d = (Graphics2D) g;
-      Rectangle bounds = g2d.getClipBounds();
-      if (bounds != null) {
-        if (!mSelected) {
-          setOpaque(false);
-          GradientPaint paint = getGradientPaint();
-          g2d.setPaint(paint);
-        } else {
-          g.setColor(getBackground());
+      if(JConfig.queryDisplayProperty("background.complex", "false").equals("true")) {
+        Graphics2D g2d = (Graphics2D) g;
+        Rectangle bounds = g2d.getClipBounds();
+        if (bounds != null) {
+          if (!mSelected) {
+            setOpaque(false);
+            GradientPaint paint = getGradientPaint();
+            g2d.setPaint(paint);
+          } else {
+            g.setColor(getBackground());
+          }
+          g2d.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
         }
-        g2d.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
       }
       super.paintComponent(g);
     }
