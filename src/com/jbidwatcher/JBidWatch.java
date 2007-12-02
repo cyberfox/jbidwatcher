@@ -1098,13 +1098,14 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     gcSafe.add(new JBConfig());
 
     mainFrame = buildFrame();
-
     mainFrame.setLocation(JConfig.screenx, JConfig.screeny);
     mainFrame.setSize(JConfig.width, JConfig.height);
 
     inSplash.close();
     //noinspection UnusedAssignment
     inSplash = null;
+
+    jtmAuctions.sortDefault();
 
     mainFrame.setVisible(true);
 

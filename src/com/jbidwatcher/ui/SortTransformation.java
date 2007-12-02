@@ -91,9 +91,15 @@ public class SortTransformation extends Transformation {
     return m_tm.compare(r1, r2, mColumnStateList);
   }
 
+  private boolean mSortOnInsert = false;
+
+  public void setSortOnInsert(boolean sortOnInsert) {
+    mSortOnInsert = sortOnInsert;
+  }
+
   public synchronized int insert(Object newObj) {
     super.insert(newObj);
-    sort();
+    if (mSortOnInsert) sort();
     return findRow(newObj);
   }
 }

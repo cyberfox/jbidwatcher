@@ -483,4 +483,8 @@ public class TableSorter extends Transformation implements TableModelListener {
       }
     }
   }
+
+  public void enableInsertionSorting() {
+    _sorted.setSortOnInsert(true);
+  }
 }
