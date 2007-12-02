@@ -220,6 +220,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * completed), and then let the user know we finished.
    * 
    * @param ae - The auction to update.
+   * @return - true if the auction was moved to another category, false otherwise.
    */
   private boolean doUpdate(AuctionEntry ae) {
     String titleWithComment = getTitleAndComment(ae);
