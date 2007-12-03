@@ -27,6 +27,7 @@ import java.util.Map;
 
 public class AuctionInfo extends ActiveRecord {
   private static Map<String, String> mKeys;
+  private String mThumbnailPath;
 
   private static void setupKeys() {
     mKeys = new HashMap<String, String>();
@@ -251,23 +252,21 @@ public class AuctionInfo extends ActiveRecord {
 
   public void setThumbnail(String thumbPath) {
     if(thumbPath == null) setNoThumbnail(true);
-    setString("thumbnail", thumbPath);
+    mThumbnailPath = thumbPath;
   }
 
   protected boolean hasThumbnail() {
-    String imgPath = getString("thumbnail");
-    boolean saveIfExists = false;
+    String imgPath = mThumbnailPath;
 
     if(imgPath == null) {
       imgPath = ThumbnailManager.getValidImagePath(this);
       if(imgPath == null) return false;
-      saveIfExists = true;
     }
 
     File tester = new File(imgPath);
     boolean rval= tester.exists();
 
-    if(rval && saveIfExists) setString("thumbnail", imgPath);
+    if(rval && mThumbnailPath == null) mThumbnailPath = imgPath;
 
     return rval;
   }
@@ -275,13 +274,13 @@ public class AuctionInfo extends ActiveRecord {
   protected String getThumbnail() {
     //  Bad optimization -- BUGBUG -- mrs: 21-March-2004 18:28
     //  If it doesn't have a thumbnail, we check.
-    if(!hasThumb()) {
+    if(!hasThumb() || mThumbnailPath == null) {
       if(!hasThumbnail()) return null;
     }
 
     setHasThumb(true);
 
-    return "file:" + getString("thumbnail");
+    return "file:" + mThumbnailPath;
   }
 
   public void save() {

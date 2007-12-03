@@ -14,7 +14,6 @@ CREATE TABLE auctions (
   high_bidder varchar(255) default NULL,
   high_bidder_email varchar(255) default NULL,
   title varchar(255) default NULL,
-  thumbnail varchar(255) default NULL,
   quantity integer default NULL,
   bid_count integer default NULL,
   seller_id integer default NULL,
