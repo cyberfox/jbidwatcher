@@ -77,12 +77,9 @@ public abstract class ActiveRecord extends HashBacked {
     return found;
   }
 
-  private static Map<Class, Map<String, ActiveRecord>> sCache;
+  private final static Map<Class, Map<String, ActiveRecord>> sCache = new HashMap<Class, Map<String, ActiveRecord>>();
 
   public static Map<String, ActiveRecord> getCache(Class klass) {
-    if (sCache == null) {
-      sCache = new HashMap<Class, Map<String, ActiveRecord>>();
-    }
     Map<String, ActiveRecord> klassCache = sCache.get(klass);
     if(klassCache == null) {
       klassCache = new HashMap<String, ActiveRecord>();
@@ -96,7 +93,7 @@ public abstract class ActiveRecord extends HashBacked {
     return getCache(klass).get(combined);
   }
 
-  private static void cache(Class klass, String key, String value, ActiveRecord result) {
+  protected static void cache(Class klass, String key, String value, ActiveRecord result) {
     String combined = key + ':' + value;
     getCache(klass).put(combined, result);
   }
@@ -125,14 +122,17 @@ public abstract class ActiveRecord extends HashBacked {
   public static void saveCached() {
     if(sCache == null) return;
 
-    for(Class klass:sCache.keySet()) {
-      Map<String, ActiveRecord> klassCache = sCache.get(klass);
-      for(ActiveRecord record : klassCache.values()) {
-        if(record != null && record.isDirty()) {
-          System.err.println("id = " + record.getId());
-          record.saveDB();
+    synchronized(sCache) {
+      for (Class klass : sCache.keySet()) {
+        Map<String, ActiveRecord> klassCache = sCache.get(klass);
+        for (ActiveRecord record : klassCache.values()) {
+          if (record != null && record.isDirty()) {
+            System.err.println("id = " + record.getId());
+            record.saveDB();
+          }
         }
       }
+      sCache.clear();
     }
   }
 

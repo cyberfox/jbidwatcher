@@ -292,10 +292,18 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @param auctionIdentifier The auction ID, from which the entire
    *     AuctionEntry is built by loading data from the server.
    */
-  public AuctionEntry(String auctionIdentifier) {
+  private AuctionEntry(String auctionIdentifier) {
     checkConfigurationSnipeTime();
     mAddedRecently = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
     prepareAuctionEntry(auctionIdentifier);
+  }
+
+  public static AuctionEntry buildEntry(String auctionIdentifier) {
+    AuctionEntry ae = new AuctionEntry(auctionIdentifier);
+    ae.saveDB();
+    cache(ae.getClass(), "id", ae.get("id"), ae);
+
+    return ae;
   }
 
   /**
