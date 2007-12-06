@@ -29,7 +29,7 @@ public class AuctionEntryTest extends TestCase {
     super.setUp();
     AuctionServerManager.getInstance().addServer("testBay", new MockAuctionServer());
     mai = new MockAuctionInfo();
-    mAE = new AuctionEntry(mai.getIdentifier());
+    mAE = AuctionEntry.buildEntry(mai.getIdentifier());
   }
 
   public void tearDown() throws Exception {
