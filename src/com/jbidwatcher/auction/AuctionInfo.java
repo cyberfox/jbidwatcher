@@ -496,6 +496,14 @@ public class AuctionInfo extends ActiveRecord {
     return sDB;
   }
 
+  public String saveDB() {
+    if(mSeller != null) {
+      String seller_id = mSeller.saveDB();
+      if(seller_id != null) set("seller_id", seller_id);
+    }
+    return super.saveDB();
+  }
+
   public static AuctionInfo findFirstBy(String key, String value) {
     return (AuctionInfo)ActiveRecord.findFirstBy(AuctionInfo.class, key, value);
   }
