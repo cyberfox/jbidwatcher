@@ -53,7 +53,7 @@ public abstract class ActiveRecord extends HashBacked {
     if(!isDirty() && get("id") != null && get("id").length() != 0) return get("id");
     String id = getDatabase().insertOrUpdate(getBacking());
     commit();
-    set("id", id);
+    if(id != null && id.length() != 0) set("id", id); else id = get("id");
     return id;
   }
 
@@ -108,10 +108,18 @@ public abstract class ActiveRecord extends HashBacked {
     try {
       ActiveRecord o = (ActiveRecord) klass.newInstance();
       results = getTable(o).findAll();
+      boolean first = true;
       for (DBRecord record : results) {
         ActiveRecord row = (ActiveRecord) klass.newInstance();
         row.setBacking(record);
         cache(klass, key, row.get(key), row);
+        if(first) {
+          first = false;
+          for(String colName : record.keySet()) System.err.print(colName + "\t");
+          System.err.println();
+        }
+        for(String colName : record.keySet()) System.err.print(record.get(colName) + "\t");
+        System.err.println();
       }
     } catch (Exception e) {
       //  Ignore, as this is just for pre-caching...
