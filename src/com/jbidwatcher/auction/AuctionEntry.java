@@ -1540,7 +1540,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       prepareSnipe(saveSnipeBid, saveSnipeQuantity);
     }
     mAuction = inAI;
-    setInteger("auction_id", mAuction.getId());
+    String auction_id = mAuction.saveDB();
+    if(auction_id != null) set("auction_id", auction_id);
 
     checkHighBidder(false);
     checkSeller();
@@ -1668,6 +1669,12 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public String saveDB() {
     String auction_id = mAuction.saveDB();
     if(auction_id != null) set("auction_id", auction_id);
+
+    if(mCategory != null) {
+      String category_id = mCategory.saveDB();
+      if(category_id != null) set("category_id", category_id);
+    }
+
     String id = super.saveDB();
     set("id", id);
     return id;
