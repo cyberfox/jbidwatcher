@@ -30,7 +30,7 @@ public class Currency implements Comparable {
   private int _whatCurrency;
   private double _value;
   private static final char pound = '\u00A3';
-  private static final Character objPound = new Character('\u00A3');
+  private static final Character objPound = '\u00A3';
 
   public static Currency convertToUSD(Currency usd, Currency nonusd, Currency cvt) {
     if(cvt != null && !cvt.isNull() && cvt.getCurrencyType() != US_DOLLAR) {
@@ -58,18 +58,18 @@ public class Currency implements Comparable {
     }
   }
 
-  private static final Integer CurDollar = new Integer(US_DOLLAR);  //  American Dollar
-  private static final Integer CurPound = new Integer(UK_POUND);    //  British Pound
-  private static final Integer CurYen = new Integer(JP_YEN);        //  Japanese Yen
-  private static final Integer CurMark = new Integer(GER_MARK);     //  German Mark
-  private static final Integer CurFranc = new Integer(FR_FRANC);    //  French Franc
-  private static final Integer CurSwiss = new Integer(CH_FRANC);    //  Swiss Franc
-  private static final Integer CurCan = new Integer(CAN_DOLLAR);    //  Canadian Dollar
-  private static final Integer CurEuro = new Integer(EURO);         //  Euro
-  private static final Integer CurAu = new Integer(AU_DOLLAR);      //  Australian Dollar
-  private static final Integer CurTaiwan = new Integer(NT_DOLLAR);  //  New Taiwanese Dollar
-  private static final Integer CurHK = new Integer(HK_DOLLAR);      //  Hong Kong Dollar
-  private static final Integer CurMyr = new Integer(MY_REAL);       //  Malaysia Real(?)
+  private static final Integer CurDollar = US_DOLLAR;  //  American Dollar
+  private static final Integer CurPound = UK_POUND;    //  British Pound
+  private static final Integer CurYen = JP_YEN;        //  Japanese Yen
+  private static final Integer CurMark = GER_MARK;     //  German Mark
+  private static final Integer CurFranc = FR_FRANC;    //  French Franc
+  private static final Integer CurSwiss = CH_FRANC;    //  Swiss Franc
+  private static final Integer CurCan = CAN_DOLLAR;    //  Canadian Dollar
+  private static final Integer CurEuro = EURO;         //  Euro
+  private static final Integer CurAu = AU_DOLLAR;      //  Australian Dollar
+  private static final Integer CurTaiwan = NT_DOLLAR;  //  New Taiwanese Dollar
+  private static final Integer CurHK = HK_DOLLAR;      //  Hong Kong Dollar
+  private static final Integer CurMyr = MY_REAL;       //  Malaysia Real(?)
 
   //  The fundamental list of the textual representation for different
   //  currencies, and the Currency type it translates to.
@@ -126,10 +126,9 @@ public class Currency implements Comparable {
    * currency, or NONE for unrecognized currencies.
    */
   private int xlateSymbolToType(String symbol) {
-    for(int i=0; i<xlateTable.length; i++) {
-      if(symbol.equals(xlateTable[i][0])) {
-        Integer currency_value = (Integer)xlateTable[i][1];
-        return currency_value.intValue();
+    for (Object[] aXlateTable : xlateTable) {
+      if (symbol.equals(aXlateTable[0])) {
+        return (Integer) aXlateTable[1];
       }
     }
 
