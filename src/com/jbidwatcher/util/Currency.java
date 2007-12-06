@@ -11,7 +11,7 @@ import java.util.Locale;
 public class Currency implements Comparable {
   private static NumberFormat df = NumberFormat.getNumberInstance(Locale.US); // We create a lot of these, so minimizing memory usage is good.
   public static final int NONE=0, US_DOLLAR=1, UK_POUND=2, JP_YEN=3, GER_MARK=4, FR_FRANC=5, CAN_DOLLAR=6;
-  public static final int EURO=7, AU_DOLLAR=8, CH_FRANC=9, NT_DOLLAR=10, TW_DOLLAR=10, HK_DOLLAR=11;
+  public static final int EURO=7, AU_DOLLAR=8, CH_FRANC=9, NT_DOLLAR=10, TW_DOLLAR=10, HK_DOLLAR=11, MY_REAL=12;
   private static Currency _noValue = null;
 
   /** 
@@ -69,6 +69,7 @@ public class Currency implements Comparable {
   private static final Integer CurAu = new Integer(AU_DOLLAR);      //  Australian Dollar
   private static final Integer CurTaiwan = new Integer(NT_DOLLAR);  //  New Taiwanese Dollar
   private static final Integer CurHK = new Integer(HK_DOLLAR);      //  Hong Kong Dollar
+  private static final Integer CurMyr = new Integer(MY_REAL);       //  Malaysia Real(?)
 
   //  The fundamental list of the textual representation for different
   //  currencies, and the Currency type it translates to.
@@ -110,7 +111,9 @@ public class Currency implements Comparable {
     { "NTD",    CurTaiwan },
     { "HK$",    CurHK },
     { "hk$",    CurHK },
-    { "HKD",    CurHK }
+    { "HKD",    CurHK },
+    { "MYR",    CurMyr },
+    { "myr",    CurHK }
   };
 
   /** 
@@ -351,6 +354,7 @@ public class Currency implements Comparable {
       case AU_DOLLAR: return("AUD");
       case NT_DOLLAR: return("NTD");
       case HK_DOLLAR: return("HKD");
+      case MY_REAL: return("MYR");
       case UK_POUND: return("GBP");
       case JP_YEN: return("JPY");
       case GER_MARK: return("DM");
@@ -428,6 +432,7 @@ public class Currency implements Comparable {
       case US_DOLLAR: return("$");
       case NT_DOLLAR: return("nt$");
       case HK_DOLLAR: return("hk$");
+      case MY_REAL: return("myr");
       case UK_POUND: return(objPound.toString());
       case JP_YEN: return("\u00A5"); //  HACKHACK
       case FR_FRANC: return("fr");
