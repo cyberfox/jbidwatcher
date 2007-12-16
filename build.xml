@@ -13,7 +13,7 @@
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidWatcher" />
-  <property name="VER" value="1.0.2" />
+  <property name="VER" value="2.0pre1" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
@@ -46,6 +46,12 @@
     <pathelement path="${lib.dir}/jdesktop.jar" />
     <pathelement path="${lib.dir}/mp3codec.jar" />
     <pathelement path="${lib.dir}/derby.jar" />
+    <pathelement path="${lib.dir}/asm-2.2.3.jar" />
+    <pathelement path="${lib.dir}/asm-commons-2.2.3.jar" />
+    <pathelement path="${lib.dir}/backport-util-concurrent.jar" />
+    <pathelement path="${lib.dir}/bsf.jar" />
+    <pathelement path="${lib.dir}/jline-0.9.91.jar" />
+    <pathelement path="${lib.dir}/jruby.jar" />
   </path>
 
   <target name="init" description="Prepare for build">
@@ -132,6 +138,7 @@
       <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
       <fileset dir="/tmp/building" includes="main/main.jar" />
       <fileset dir="${main.dir}" includes="lib/*.jar" />
+      <fileset dir="${main.dir}" includes="lib/ruby/**" />
     </jar>
     <delete file="/tmp/building/main/main.jar" />
   </target>
@@ -155,6 +162,7 @@
       <tarfileset prefix="${TARSRC}/platform" dir="${main.dir}/platform" />
       <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jbh" />
+      <tarfileset prefix="${TARSRC}/lib" dir="${main.dir}/lib" />
     </tar>
   </target>
 
