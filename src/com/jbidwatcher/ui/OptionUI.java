@@ -122,6 +122,8 @@ public class OptionUI {
     jdInput.setLocation(rec.x, rec.y);
     jdInput.setVisible(true);
 
+    ((JTextField) myComponents[1]).requestFocus();
+
     //    endResult = (String)jopPrompt.getInputValue();
     endResult = ((JTextComponent) myComponents[1]).getText();
 
