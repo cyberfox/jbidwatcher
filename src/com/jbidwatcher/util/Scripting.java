@@ -29,7 +29,7 @@ public class Scripting {
 
     try {
       sRuby.exec("ruby", 1, 1, command);
-    } catch(BSFException e) {
+    } catch (BSFException e) {
       ErrorManagement.handleException("Error executing ruby code!", e);
     }
   }
@@ -40,7 +40,7 @@ public class Scripting {
     try {
       return sRuby.call(null, method, method_params);
     } catch (BSFException e) {
-      ErrorManagement.handleException("Failed to execute: method_call", e);
+      ErrorManagement.handleException("Failed to execute: " + method, e);
     }
 
     return null;

@@ -5,6 +5,9 @@ require 'cgi'
 import com.jbidwatcher.config.JConfig
 import com.jbidwatcher.util.Currency
 import com.jbidwatcher.queue.MQFactory
+import com.jbidwatcher.auction.server.AuctionServerManager
+import com.jbidwatcher.auction.AuctionsManager
+import com.jbidwatcher.FilterManager
 
 # Check that the basic libraries work.
 puts "This is a test..."
@@ -55,3 +58,31 @@ def recognize_bidpage(entry, page)
   puts result.body
   result.body
 end
+
+$filter_manager = FilterManager.getInstance
+
+def browse_to(id)
+  entry = $auctions_manager.getEntry(id)
+  entry.server.showBrowser(entry)
+end
+
+def notify(message)
+  MQFactory.getConcrete("Swing").enqueue("NOTIFY #{message}")
+end
+
+def snipe(id, amount)
+  entry = $auctions_manager.getEntry(id)
+  entry.prepareSnipe(amount)
+  $filter_manager.redrawEntry(entry)
+end
+
+def cancel_snipe(id)
+  entry = $auctions_manager.getEntry(id)
+  entry.cancelSnipe(false)
+  $filter_manager.redrawEntry(entry)
+end
+
+#entry.snipe(Currency.getCurrency('$44'))
+
+$auctions_manager = AuctionsManager.getInstance
+$auction_server_manager = AuctionServerManager.getInstance

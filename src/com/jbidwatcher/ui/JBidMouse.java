@@ -45,6 +45,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private boolean _in_deleting = false;
   private JMenu tabMenu = null;
+  private JFrame mScriptFrame;
 
   public JBidMouse(JPopupMenu inPopup) {
     super(inPopup);
@@ -153,6 +154,14 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       _searchFrame = new SearchFrame();
     } else {
       _searchFrame.show();
+    }
+  }
+
+  private void DoScripting() {
+    if(mScriptFrame == null) {
+      mScriptFrame = ScriptManager.getNewScriptManager();
+    } else {
+      mScriptFrame.setVisible(true);
     }
   }
 
@@ -1687,6 +1696,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Set Background Color")) DoSetBackgroundColor(c_src);
     else if(actionString.equals("Toolbar")) DoHideShowToolbar();
     else if(actionString.equals("Search")) DoSearch();
+    else if(actionString.equals("Scripting")) DoScripting();
     else if(actionString.equals("Dump")) ActiveRecord.saveCached();
     else ErrorManagement.logDebug('[' + actionString + ']');
   }
