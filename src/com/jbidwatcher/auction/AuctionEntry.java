@@ -809,6 +809,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @param inStatus - A string that explains what the event is.
    */
   public void setLastStatus(String inStatus) {
+    if(mEntryEvents == null) mEntryEvents = new EventLogger(getIdentifier(), getTitle());
     mEntryEvents.setLastStatus(inStatus);
   }
 
