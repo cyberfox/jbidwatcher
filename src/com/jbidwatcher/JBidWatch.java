@@ -43,6 +43,10 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 
+import org.apache.bsf.BSFManager;
+import org.apache.bsf.BSFException;
+import org.apache.bsf.BSFEngine;
+
 /**
  * @file   JBidWatch.java
  * @author Morgan Schweers <cyberfox@users.sourceforge.net>
@@ -102,6 +106,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private static final int ONEK = 1024;
   private AudioPlayer mAP;
   private static AuctionDB mDB;
+  private static BSFEngine sRuby;
 
   /**
    * @brief Function to let any class tell us that the link is down or
@@ -504,6 +509,54 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     return false;
   }
 
+  public static void ruby(String command) {
+    try {
+      sRuby.exec("ruby", 1, 1, command);
+    } catch(BSFException e) {
+      ErrorManagement.handleException("Error executing ruby code!", e);
+    }
+  }
+
+  public static Object rubyMethod(String method, Object... method_params) {
+    Vector<String> names = new Vector<String>();
+    Vector<Object> values = new Vector<Object>();
+    String method_call = method;
+
+    if(method_params.length > 1) {
+      method_call += "(";
+      for(int i=0; i < method_params.length; i += 2) {
+        if(i != 0) method_call += ", ";
+
+        names.add((String)method_params[i]);
+        values.add(method_params[i+1]);
+
+        method_call += method_params[i].toString();
+      }
+      method_call += ")";
+    }
+
+    try {
+      System.err.println("Executing: " + method_call + "with (" + comma(values) + ")");
+      return sRuby.apply("rubyMethod", 1, 1, method_call, names, values);
+    } catch (BSFException e) {
+      ErrorManagement.handleException("Failed to execute: method_call", e);
+    }
+
+    return null;
+  }
+
+  private static String comma(List l) {
+    boolean first = true;
+    String rval = "";
+    if(l == null || l.size() == 0) return rval;
+    for(Object o: l) {
+      if(!first) rval += ", "; else first = false;
+      rval += o.toString();
+    }
+
+    return rval;
+  }
+
   /**
    * @brief Set the proxy values if they are indicated by the configuration.
    *
@@ -615,6 +668,15 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     if( CheckHelp(args) ) {
       System.exit(0);
     }
+
+    try {
+      BSFManager.registerScriptingEngine("ruby", "org.jruby.javasupport.bsf.JRubyEngine", new String[]{"rb"});
+      BSFManager ruby = new BSFManager();
+      sRuby = ruby.loadScriptingEngine("ruby");
+    } catch (BSFException e) {
+      ErrorManagement.handleException("Couldn't load ruby interpreter!", e);
+    }
+    ruby("require 'jbidwatcher/quicktest.rb'");
 
     System.setProperty("sun.net.client.defaultConnectTimeout", "5000");
     System.setProperty("sun.net.client.defaultReadTimeout", "15000");
