@@ -230,4 +230,17 @@ public class StringTools {
       ErrorManagement.handleException("Can't read file " + fp.getName(), e);
     }
   }
+
+  public static String comma(Object[] list) {
+    boolean first = true;
+    String rval = "";
+    if (list == null || list.length == 0) return rval;
+    for (Object o : list) {
+      if (!first) rval += ", ";
+      else first = false;
+      rval += o.toString();
+    }
+
+    return rval;
+  }
 }

@@ -7,6 +7,7 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.JBidWatch;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -129,8 +130,8 @@ public class JBidMenuBar extends JMenuBar {
   }
 
   protected void establishDebugMenu(JMenu inMenu) {
-  makeMenuItem(inMenu, "Serialize");
-  makeMenuItem(inMenu, "Deserialize");
+    makeMenuItem(inMenu, "Serialize");
+    makeMenuItem(inMenu, "Deserialize");
     inMenu.add(new JSeparator());
   }
 

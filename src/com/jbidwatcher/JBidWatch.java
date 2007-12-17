@@ -24,6 +24,7 @@ import com.jbidwatcher.ui.*;
 import com.jbidwatcher.util.AudioPlayer;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.RuntimeInfo;
+import com.jbidwatcher.util.Scripting;
 import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.util.db.DBManager;
 import com.jbidwatcher.util.html.JHTMLOutput;
@@ -45,9 +46,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 
-import org.apache.bsf.BSFManager;
 import org.apache.bsf.BSFException;
-import org.apache.bsf.BSFEngine;
 
 /**
  * @file   JBidWatch.java
@@ -108,7 +107,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private static final int ONEK = 1024;
   private AudioPlayer mAP;
   private static AuctionDB mDB;
-  private static BSFEngine sRuby;
 
   /**
    * @brief Function to let any class tell us that the link is down or
@@ -507,44 +505,13 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
         return true;
       } else if(inArgs[0].startsWith("--test-ruby")) {
         try {
-          rubyMethod("play_around", "Zarf");
+          Scripting.rubyMethod("play_around", "Zarf");
         } catch(Exception e) { e.printStackTrace(); }
         return true;
       }
     }
 
     return false;
-  }
-
-  public static void ruby(String command) {
-    try {
-      sRuby.exec("ruby", 1, 1, command);
-    } catch(BSFException e) {
-      ErrorManagement.handleException("Error executing ruby code!", e);
-    }
-  }
-
-  public static Object rubyMethod(String method, Object... method_params) {
-    try {
-      System.err.println("Executing: " + method + " with (" + comma(method_params) + ")");
-      return sRuby.call(null, method, method_params);
-    } catch (BSFException e) {
-      ErrorManagement.handleException("Failed to execute: method_call", e);
-    }
-
-    return null;
-  }
-
-  private static String comma(Object[] list) {
-    boolean first = true;
-    String rval = "";
-    if(list == null || list.length == 0) return rval;
-    for(Object o: list) {
-      if(!first) rval += ", "; else first = false;
-      rval += o.toString();
-    }
-
-    return rval;
   }
 
   /**
@@ -654,14 +621,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * @param args Command line arguments.
    */
   public static void main(String[] args) {
-    try {
-      BSFManager.registerScriptingEngine("ruby", "org.jruby.javasupport.bsf.JRubyEngine", new String[]{"rb"});
-      BSFManager ruby = new BSFManager();
-      sRuby = ruby.loadScriptingEngine("ruby");
-    } catch (BSFException e) {
-      ErrorManagement.handleException("Couldn't load ruby interpreter!", e);
-    }
-    ruby("require 'jbidwatcher/quicktest.rb'");
+    Scripting.ruby("require 'jbidwatcher/quicktest.rb'");
 
     //  Check for a parameter (--help or -h) to show help for.
     if( CheckHelp(args) ) {
