@@ -8,6 +8,7 @@ import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.Scripting;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.queue.MQFactory;
 
@@ -118,7 +119,13 @@ public class ebayBidder implements Bidder {
 
         loadedPage = Http.receivePage(huc);
         //  We failed to load.  Punt.
-        if (loadedPage == null) return null;
+        if (loadedPage == null) {
+          return null;
+        } else if(JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
+          Object o = Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
+          ErrorManagement.logDebug(o.toString());
+          return null;
+        }
 
         htmlDocument = new JHTML(loadedPage);
         JHTML.Form bidForm = htmlDocument.getFormWithInput("key");
@@ -182,10 +189,12 @@ public class ebayBidder implements Bidder {
       }
     }
 
-    if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true")) {
-      int rval = check_recognize_result(inEntry);
-      if(rval != AuctionServer.BID_ERROR_UNKNOWN) {
-        throw new BadBidException("", rval);
+    if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true") &&
+        JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
+      Object o = Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
+
+      if(o != null && (Integer)o != AuctionServer.BID_ERROR_UNKNOWN) {
+        throw new BadBidException("", (Integer)o);
       }
     }
 
@@ -195,11 +204,6 @@ public class ebayBidder implements Bidder {
     //  We don't recognize this error.  Damn.  Log it and freak.
     ErrorManagement.logFile(bidInfo, loadedPage);
     return null;
-  }
-
-  private class ServerBidResult {
-    public int mResult;
-    public String mText;
   }
 
   private Integer getMatchedResult(String matched_text) {
