@@ -198,19 +198,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
   }
 
   /**
-   * @brief Notify lists that something has changed.
-   *
-   * Note that ALL lists get an 'updated' event in this case.
-   */
-  public void changed() {
-//    int i;
-//
-//    for(i=0; i<_filter.listLength(); i++) {
-//      _filter.getList(i).changed();
-//    }
-  }
-
-  /**
    * @brief Return an iterator useful for iterating over all the
    * auction lists managed.
    * 

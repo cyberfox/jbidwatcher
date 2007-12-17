@@ -342,8 +342,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
 
         MQFactory.getConcrete("Swing").enqueue("IGNORE " + configBidMsg + ' ' + bidResultString);
-
-        AuctionsManager.getInstance().changed();
         return;
       default:
         //  It's okay if we don't recognize it.
