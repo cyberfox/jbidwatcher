@@ -18,3 +18,7 @@ end
 def fire(user_event)
   MQFactory.getConcrete("user").enqueue(user_event)
 end
+
+def play_around(message)
+  puts "This is a message: #{message.reverse}"
+end

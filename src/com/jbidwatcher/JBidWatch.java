@@ -32,6 +32,8 @@ import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.xml.JTransformer;
 import com.jbidwatcher.xml.XMLElement;
 
+import org.apache.bsf.BSFManager;
+
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -503,6 +505,11 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
         JOptionPane.showMessageDialog(null, "<html><body>usage:<br><center>java JBidWatch [{cfg-file}]</center><br>Default user home: " +
                                             System.getProperty("user.home") + "</body></html>", "Help display", JOptionPane.PLAIN_MESSAGE);
         return true;
+      } else if(inArgs[0].startsWith("--test-ruby")) {
+        try {
+          rubyMethod("play_around", "Zarf");
+        } catch(Exception e) { e.printStackTrace(); }
+        return true;
       }
     }
 
@@ -518,26 +525,9 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   }
 
   public static Object rubyMethod(String method, Object... method_params) {
-    Vector<String> names = new Vector<String>();
-    Vector<Object> values = new Vector<Object>();
-    String method_call = method;
-
-    if(method_params.length > 1) {
-      method_call += "(";
-      for(int i=0; i < method_params.length; i += 2) {
-        if(i != 0) method_call += ", ";
-
-        names.add((String)method_params[i]);
-        values.add(method_params[i+1]);
-
-        method_call += method_params[i].toString();
-      }
-      method_call += ")";
-    }
-
     try {
-      System.err.println("Executing: " + method_call + "with (" + comma(values) + ")");
-      return sRuby.apply("rubyMethod", 1, 1, method_call, names, values);
+      System.err.println("Executing: " + method + " with (" + comma(method_params) + ")");
+      return sRuby.call(null, method, method_params);
     } catch (BSFException e) {
       ErrorManagement.handleException("Failed to execute: method_call", e);
     }
@@ -545,11 +535,11 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     return null;
   }
 
-  private static String comma(List l) {
+  private static String comma(Object[] list) {
     boolean first = true;
     String rval = "";
-    if(l == null || l.size() == 0) return rval;
-    for(Object o: l) {
+    if(list == null || list.length == 0) return rval;
+    for(Object o: list) {
       if(!first) rval += ", "; else first = false;
       rval += o.toString();
     }
@@ -664,11 +654,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * @param args Command line arguments.
    */
   public static void main(String[] args) {
-    //  Check for a parameter (--help or -h) to show help for.
-    if( CheckHelp(args) ) {
-      System.exit(0);
-    }
-
     try {
       BSFManager.registerScriptingEngine("ruby", "org.jruby.javasupport.bsf.JRubyEngine", new String[]{"rb"});
       BSFManager ruby = new BSFManager();
@@ -677,6 +662,11 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       ErrorManagement.handleException("Couldn't load ruby interpreter!", e);
     }
     ruby("require 'jbidwatcher/quicktest.rb'");
+
+    //  Check for a parameter (--help or -h) to show help for.
+    if( CheckHelp(args) ) {
+      System.exit(0);
+    }
 
     System.setProperty("sun.net.client.defaultConnectTimeout", "5000");
     System.setProperty("sun.net.client.defaultReadTimeout", "15000");
