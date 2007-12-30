@@ -59,6 +59,8 @@ def recognize_bidpage(entry, page)
   result.body
 end
 
+$auction_server_manager = AuctionServerManager.getInstance
+$auctions_manager = AuctionsManager.getInstance
 $filter_manager = FilterManager.getInstance
 
 def browse_to(id)
@@ -70,8 +72,9 @@ def notify(message)
   MQFactory.getConcrete("Swing").enqueue("NOTIFY #{message}")
 end
 
-def snipe(id, amount)
-  entry = $auctions_manager.getEntry(id)
+def snipe(auction, amount)
+  entry = auction if(auction.respond_to? :getIdentifier)
+  entry ||= $auctions_manager.getEntry(id)
   entry.prepareSnipe(amount)
   $filter_manager.redrawEntry(entry)
 end
@@ -82,7 +85,4 @@ def cancel_snipe(id)
   $filter_manager.redrawEntry(entry)
 end
 
-#entry.snipe(Currency.getCurrency('$44'))
-
-$auctions_manager = AuctionsManager.getInstance
-$auction_server_manager = AuctionServerManager.getInstance
+#snipe(Currency.getCurrency('$44'))
