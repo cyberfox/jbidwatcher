@@ -207,9 +207,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
     return FilterManager.getInstance().getAuctionIterator();
   }
 
-  /**
-   * todo - Write up the code to load the auctions from the DB at startup...
-   */
   public void loadAuctionsFromDB() {
     int auctionTotal = AuctionServerManager.getInstance().getDefaultServer().getCount();
     MQFactory.getConcrete("splash").enqueue("SET 0");
