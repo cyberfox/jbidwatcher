@@ -871,23 +871,26 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     _bidBarPanel.setBorder(BorderFactory.createEtchedBorder());
     _bidBarPanel.add(_headerStatus, BorderLayout.EAST);
 
-    addbutton(_bidBar, inAction, "Add", "/icons/add_auction.gif", "Add auction");
-    addbutton(_bidBar, inAction, "Delete", "/icons/delete.gif", "Delete Auction");
+    addbutton(_bidBar, inAction, "Add", "/icons/add_auction.png", "Add auction");
+    addbutton(_bidBar, inAction, "Delete", "/icons/delete.png", "Delete Auction");
 
-    addbutton(_bidBar, inAction, "Search", "/icons/find.gif", "Auction Search Manager");
+    addbutton(_bidBar, inAction, "Search", "/icons/find.png", "Auction Search Manager");
 
-    addbutton(_bidBar, inAction, "Information", "/icons/information.gif", "Get information");
+    addbutton(_bidBar, inAction, "Information", "/icons/information.png", "Get information");
 
-    addbutton(_bidBar, inAction, "UpdateAll", "/icons/updateall.gif", "Update All Auctions");
-    addbutton(_bidBar, inAction, "StopUpdating", "/icons/stopupdating.gif", "Stop Updating Auctions");
+    addbutton(_bidBar, inAction, "UpdateAll", "/icons/updateall.png", "Update All Auctions");
+    addbutton(_bidBar, inAction, "StopUpdating", "/icons/stopupdating.png", "Stop Updating Auctions");
 
-    addbutton(_bidBar, inAction, "Configure", "/icons/configuration.gif", "Configure");
-    addbutton(_bidBar, inAction, "Save", "/icons/save.gif", "Save Auctions");
+    addbutton(_bidBar, inAction, "Configure", "/icons/configuration.png", "Configure");
+    addbutton(_bidBar, inAction, "Save", "/icons/save.png", "Save Auctions");
 
     //      addbutton(_bidBar, inAction, "GetMyEbay", "getmyebay.gif", "Get My eBay");
 
-    addbutton(_bidBar, inAction, "Help", "/icons/help.gif", "Help");
-    addbutton(_bidBar, inAction, "About", "/icons/about.gif", "About JBidWatcher");
+    addbutton(_bidBar, inAction, "Help", "/icons/help.png", "Help");
+    addbutton(_bidBar, inAction, "About", "/icons/about.png", "About JBidWatcher");
+    addbutton(_bidBar, inAction, "Forum", "/icons/forum.png", "JBidwatcher Forums");
+    addbutton(_bidBar, inAction, "Report Bug", "/icons/report_bug.png", "Report Bug");
+    addbutton(_bidBar, inAction, "View Log", "/icons/log_view.png", "View Log");
 
     if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
       _bidBar.setFloatable(false);
@@ -895,7 +898,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
 
 
     //    This feature is only available in 1.4+!  Crap...  It'd be nice.
-    //    _bidBar.setRollover(true);
+    _bidBar.setRollover(true);
 
     // update (?)
     // bid (dollar in a circle?)
