@@ -25,15 +25,12 @@ import com.jbidwatcher.util.AudioPlayer;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.RuntimeInfo;
 import com.jbidwatcher.util.Scripting;
-import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.util.db.DBManager;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.xml.JTransformer;
 import com.jbidwatcher.xml.XMLElement;
-
-import org.apache.bsf.BSFManager;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -45,8 +42,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
-
-import org.apache.bsf.BSFException;
 
 /**
  * @file   JBidWatch.java
@@ -95,7 +90,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private JTabManager jtmAuctions;
   private AuctionsManager aucManager;
   private SearchManager searchManager;
-  private DBManager dbManager;
 
   private TimeQueueManager m_tqm = new TimeQueueManager();
 
@@ -105,8 +99,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private static final int MINUTES_IN_HOUR = 60;
   private static final int ONE_SECOND = Constants.ONE_SECOND;
   private static final int ONEK = 1024;
-  private AudioPlayer mAP;
-  private static AuctionDB mDB;
 
   /**
    * @brief Function to let any class tell us that the link is down or
@@ -1098,7 +1090,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     searchManager = SearchManager.getInstance();
     searchManager.loadSearches();
 
-    dbManager = DBManager.getInstance();
+    gcSafe.add(DBManager.getInstance());
     AuctionServerManager.getInstance().getDefaultServerTime();
 
     JConfig.registerListener(this);
@@ -1177,8 +1169,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     clockTimer.start();
     gcSafe.add(clockTimer);
 
-    mAP = AudioPlayer.getInstance();
-    gcSafe.add(mAP);
+    gcSafe.add(AudioPlayer.getInstance());
 
     if(JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo();
     try {
