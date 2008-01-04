@@ -57,6 +57,11 @@ public abstract class ActiveRecord extends HashBacked {
     return id;
   }
 
+  public boolean delete() {
+    String id = get("id");
+    return id != null && getDatabase().delete(Integer.parseInt(id));
+  }
+
   protected static ActiveRecord findFirstBy(Class klass, String key, String value) {
     ActiveRecord cached = cached(klass, key, value);
     if(cached != null) return cached;

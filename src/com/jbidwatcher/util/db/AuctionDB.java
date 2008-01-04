@@ -78,6 +78,18 @@ public class AuctionDB {
     return findFirst("SELECT * FROM " + mTableName + " where id = " + id);
   }
 
+  public boolean delete(int id) {
+    try {
+      PreparedStatement ps = mDB.prepare("DELETE FROM " + mTableName + " WHERE id = " + id);
+      ps.execute();
+      mDB.commit();
+    } catch (SQLException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      return false;
+    }
+    return true;
+  }
+
   public DBRecord findFirst(String query) {
     try {
       ResultSet rs = mS.executeQuery(query);
