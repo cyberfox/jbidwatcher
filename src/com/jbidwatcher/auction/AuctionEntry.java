@@ -1693,4 +1693,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public static AuctionEntry findFirstBy(String key, String value) {
     return (AuctionEntry)ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
   }
+
+  public boolean delete() {
+    mAuction.delete();
+    return super.delete();
+  }
 }

@@ -179,6 +179,8 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
     _deleted.delete(id);
     ae.cancelSnipe(false);
     FilterManager.getInstance().deleteAuction(ae);
+    //  TODO -- Actually delete the auction from the database.
+    ae.delete();
   }
 
   /**
