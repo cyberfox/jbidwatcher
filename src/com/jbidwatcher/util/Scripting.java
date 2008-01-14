@@ -12,7 +12,9 @@ import org.apache.bsf.BSFManager;
  * Scripting interface so things can call Ruby methods easily.
  */
 public class Scripting {
-  private static BSFEngine sRuby;
+  private static BSFEngine sRuby = null;
+
+  private Scripting() { }
 
   static {
     try {

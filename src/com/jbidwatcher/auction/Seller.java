@@ -10,8 +10,6 @@ import com.jbidwatcher.xml.XMLElement;
  * To change this template use File | Settings | File Templates.
  */
 public class Seller extends ActiveRecord {
-  public Seller() { }
-
   public String getSeller() { return getString("seller"); }
   public void setSeller(String name) { setString("seller", name); }
   public String getPositivePercentage() { return getString("feedback_percentage"); }
@@ -19,6 +17,7 @@ public class Seller extends ActiveRecord {
   public int getFeedback() { return getInteger("feedback", 0); }
   public void setFeedback(int feedback) { setInteger("feedback", feedback); }
 
+  @SuppressWarnings({"RefusedBequest"})
   public XMLElement toXML() {
     XMLElement xmlResult = new XMLElement("seller");
     XMLElement xseller = new XMLElement("name");
@@ -79,7 +78,7 @@ public class Seller extends ActiveRecord {
   /* Database access stuff */
   /*************************/
 
-  private static AuctionDB sDB;
+  private static AuctionDB sDB = null;
 
   protected static String getTableName() { return "sellers"; }
 
