@@ -814,7 +814,14 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * @param buttonTip - The tooltip to pop up for the button.
    */
   private static void addbutton(JToolBar jtb, ActionListener inAction, String buttonName, String buttonImage, String buttonTip) {
-    JButton newButton = makeButton(buttonImage, buttonTip, buttonName, inAction, false);
+    final JButton newButton = makeButton(buttonImage, buttonTip, buttonName, inAction, false);
+
+    if(Platform.isMac()) {
+      newButton.setBorder(null);
+      newButton.setBorderPainted(false);
+      newButton.setContentAreaFilled(false);
+      newButton.setRolloverEnabled(true);
+    }
 
     jtb.add(newButton);
   }
