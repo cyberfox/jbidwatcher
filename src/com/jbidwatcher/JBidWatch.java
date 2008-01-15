@@ -863,26 +863,26 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     _bidBarPanel.setBorder(BorderFactory.createEtchedBorder());
     _bidBarPanel.add(_headerStatus, BorderLayout.EAST);
 
-    addbutton(_bidBar, inAction, "Add", "/icons/add_auction.png", "Add auction");
-    addbutton(_bidBar, inAction, "Delete", "/icons/delete.png", "Delete Auction");
+    addbutton(_bidBar, inAction, "Add", "icons/add_auction.png", "Add auction");
+    addbutton(_bidBar, inAction, "Delete", "icons/delete.png", "Delete Auction");
 
-    addbutton(_bidBar, inAction, "Search", "/icons/find.png", "Auction Search Manager");
+    addbutton(_bidBar, inAction, "Search", "icons/find.png", "Auction Search Manager");
 
-    addbutton(_bidBar, inAction, "Information", "/icons/information.png", "Get information");
+    addbutton(_bidBar, inAction, "Information", "icons/information.png", "Get information");
 
-    addbutton(_bidBar, inAction, "UpdateAll", "/icons/updateall.png", "Update All Auctions");
-    addbutton(_bidBar, inAction, "StopUpdating", "/icons/stopupdating.png", "Stop Updating Auctions");
+    addbutton(_bidBar, inAction, "UpdateAll", "icons/updateall.png", "Update All Auctions");
+    addbutton(_bidBar, inAction, "StopUpdating", "icons/stopupdating.png", "Stop Updating Auctions");
 
-    addbutton(_bidBar, inAction, "Configure", "/icons/configuration.png", "Configure");
-    addbutton(_bidBar, inAction, "Save", "/icons/save.png", "Save Auctions");
+    addbutton(_bidBar, inAction, "Configure", "icons/configuration.png", "Configure");
+    addbutton(_bidBar, inAction, "Save", "icons/save.png", "Save Auctions");
 
     //      addbutton(_bidBar, inAction, "GetMyEbay", "getmyebay.gif", "Get My eBay");
 
-    addbutton(_bidBar, inAction, "Help", "/icons/help.png", "Help");
-    addbutton(_bidBar, inAction, "About", "/icons/about.png", "About JBidWatcher");
-    addbutton(_bidBar, inAction, "Forum", "/icons/forum.png", "JBidwatcher Forums");
-    addbutton(_bidBar, inAction, "Report Bug", "/icons/report_bug.png", "Report Bug");
-    addbutton(_bidBar, inAction, "View Log", "/icons/log_view.png", "View Log");
+    addbutton(_bidBar, inAction, "Help", "icons/help.png", "Help");
+    addbutton(_bidBar, inAction, "About", "icons/about.png", "About JBidWatcher");
+    addbutton(_bidBar, inAction, "Forum", "icons/forum.png", "JBidwatcher Forums");
+    addbutton(_bidBar, inAction, "Report Bug", "icons/report_bug.png", "Report Bug");
+    addbutton(_bidBar, inAction, "View Log", "icons/log_view.png", "View Log");
 
     if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
       _bidBar.setFloatable(false);
@@ -1082,6 +1082,8 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     ThumbnailManager.getInstance();
     FilterManager.getInstance().loadFilters();
 
+    gcSafe.add(DBManager.getInstance());
+
     aucManager = AuctionsManager.getInstance();
     aucManager.loadAuctions();
     //  This needs to be after the auction manager, so that all the
@@ -1090,7 +1092,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     searchManager = SearchManager.getInstance();
     searchManager.loadSearches();
 
-    gcSafe.add(DBManager.getInstance());
     AuctionServerManager.getInstance().getDefaultServerTime();
 
     JConfig.registerListener(this);
