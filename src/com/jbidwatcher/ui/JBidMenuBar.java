@@ -7,7 +7,6 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.JBidWatch;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -20,7 +19,7 @@ import java.util.HashMap;
  * @version $Revision: 1.38 $
  */
 public class JBidMenuBar extends JMenuBar {
-  protected static JBidMenuBar _instance;
+  protected static JBidMenuBar _instance = null;
   protected JMenuBar _menuBar;
   protected JMenu _fileMenu;
   protected JMenu _editMenu;
