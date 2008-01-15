@@ -115,6 +115,7 @@
     <echo level="info" message="Building executable .jar file." />
     <jar jarfile="${INTERMEDIATE}" manifest="${MANIFEST}" index="true">
       <fileset dir="${main.dir}" includes="*.jpg" />
+      <fileset dir="${main.dir}" includes="*.sql" />
       <fileset dir="${main.dir}" includes="*.ser" />
       <fileset dir="${main.dir}" includes="*.xsl" />
       <fileset dir="${user.home}/.jbidwatcher" includes="display.cfg" />
@@ -148,6 +149,7 @@
     <tar destfile="${TARFILE}" compression="gzip">
       <tarfileset prefix="${TARSRC}" dir="${src.dir}" includes="*.java" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.jpg" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.sql" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.ser" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.xsl" />
       <tarfileset prefix="${TARSRC}" dir="${user.home}/.jbidwatcher" includes="display.cfg" />
