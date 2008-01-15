@@ -127,7 +127,7 @@ public class Platform {
       ErrorManagement.handleException("Can't create output file to copy from JAR.", e);
       return false;
     }
-    InputStream source = JBidWatch.class.getClass().getResourceAsStream(inJarName);
+    InputStream source = JBidWatch.class.getClass().getClassLoader().getResourceAsStream(inJarName);
     if(source == null) {
       ErrorManagement.logDebug("Failed to open internal resource!");
     }

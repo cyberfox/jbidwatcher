@@ -67,19 +67,19 @@ public class auctionTableModel extends BaseTransformation {
     return o.getClass();
   }
 
-  private static final ImageIcon dummyIcon = new ImageIcon(auctionTableModel.class.getResource("/icons/white_ball.gif"));
-  private static final ImageIcon greenIcon = new ImageIcon(auctionTableModel.class.getResource("/icons/green_ball.gif"));
-  //  private final static ImageIcon blueIcon = new ImageIcon(auctionTableModel.class.getResource("/icons/blue_ball.gif"));
-  private static final ImageIcon binIcon = new ImageIcon(auctionTableModel.class.getResource("/icons/bin_item.gif"));
-  private static final ImageIcon resIcon = new ImageIcon(auctionTableModel.class.getResource("/icons/unmet_reserve.gif"));
-  private static final ImageIcon resMetIcon = new ImageIcon(auctionTableModel.class.getResource("/icons/met_reserve.gif"));
-  private static final ImageIcon imageIcon = new ImageIcon(auctionTableModel.class.getResource("/icons/camera.gif"));
-  private static final ImageIcon commentIcon=new ImageIcon(auctionTableModel.class.getResource("/icons/note3.gif"));
-  private static final ImageIcon winningIcon=new ImageIcon(auctionTableModel.class.getResource("/icons/winning.gif"));
-  private static final ImageIcon invalidIcon=new ImageIcon(auctionTableModel.class.getResource("/icons/invalid.gif"));
-  private static final ImageIcon paypalIcon =new ImageIcon(auctionTableModel.class.getResource("/icons/paypal16x16.gif"));
-  //  private final static ImageIcon boughtIcon = new ImageIcon(auctionTableModel.class.getResource("/icons/blue_check_ball.gif"));
-  //  private final static ImageIcon soldIcon = new ImageIcon(auctionTableModel.class.getResource("/icons/green_check_ball.gif"));
+  private static final ImageIcon dummyIcon = new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/white_ball.gif"));
+  private static final ImageIcon greenIcon = new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/green_ball.gif"));
+  //  private final static ImageIcon blueIcon = new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/blue_ball.gif"));
+  private static final ImageIcon binIcon = new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/bin_item.gif"));
+  private static final ImageIcon resIcon = new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/unmet_reserve.gif"));
+  private static final ImageIcon resMetIcon = new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/met_reserve.gif"));
+  private static final ImageIcon imageIcon = new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/camera.gif"));
+  private static final ImageIcon commentIcon=new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/note3.gif"));
+  private static final ImageIcon winningIcon=new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/winning.gif"));
+  private static final ImageIcon invalidIcon=new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/invalid.gif"));
+  private static final ImageIcon paypalIcon =new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/paypal16x16.gif"));
+  //  private final static ImageIcon boughtIcon = new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/blue_check_ball.gif"));
+  //  private final static ImageIcon soldIcon = new ImageIcon(auctionTableModel.class.getClassLoader().getResource("/icons/green_check_ball.gif"));
 
   private Object getDummyValueAtColumn(int j) {
     switch(j) {

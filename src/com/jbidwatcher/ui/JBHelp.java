@@ -28,7 +28,7 @@ public class JBHelp {
     StringBuffer outSB;
 
     try {
-      outSB = new StringBuffer(preprocess(Http.receivePage(JBidMouse.class.getResource(helpPath).openConnection()), title));
+      outSB = new StringBuffer(preprocess(Http.receivePage(JBidMouse.class.getClassLoader().getResource(helpPath).openConnection()), title));
     } catch(IOException ignored) {
       outSB = null;
     }
@@ -58,7 +58,7 @@ public class JBHelp {
     String munge = helpBuf.toString();
 
     String toc = genTOC(helpBuf);
-    String headImage = JBHelp.class.getResource(HEAD_LOC).toString();
+    String headImage = JBHelp.class.getClassLoader().getResource(HEAD_LOC).toString();
     String basicLocation = headImage.substring(0, headImage.length() - HEAD_LOC.length());
 
     munge = munge.replaceAll("<%que ([0-9]+)%>", "<%que%><a name=\"Q$1\">").

@@ -24,7 +24,7 @@ public class AudioPlayer implements MessageQueue.Listener {
 
   public void messageAction(Object deQ) {
     String s=(String)deQ;
-    String playme = AudioPlayer.class.getResource(s).toString();
+    String playme = AudioPlayer.class.getClassLoader().getResource(s).toString();
     ErrorManagement.logMessage("playme = " + playme);
     try {
       Player.playURL(playme);

@@ -821,7 +821,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
 
   public static JButton makeButton(String buttonImage, String buttonTip, String buttonName, ActionListener inAction, boolean shrink) {
     JButton newButton = new JButton();
-    ImageIcon newImage = new ImageIcon(JBidWatch.class.getResource(buttonImage));
+    ImageIcon newImage = new ImageIcon(urlCL.getResource(buttonImage));
 
     newButton.setIcon(newImage);
     if(shrink) {
