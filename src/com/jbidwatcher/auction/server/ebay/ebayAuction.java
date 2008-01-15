@@ -35,7 +35,7 @@ class ebayAuction extends SpecificAuction {
   private final Pattern p2 = Pattern.compile(Externalized.getString("ebayServer.thumbSearch2"), Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
   private String potentialThumbnail = null;
 
-  private static final String dateMatch = "(?i)(Ends|end.time).([A-Za-z]+(.[0-9]+)+.[A-Z]+)";
+  private static final String dateMatch = "(?i)(Ends|end.time).+?([A-Za-z]+(.[0-9]+)+.[A-Z]+)";
   private static Pattern datePat = Pattern.compile(dateMatch);
 
   private void checkThumb(StringBuffer sb) {

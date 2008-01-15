@@ -1534,7 +1534,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public void setAuctionInfo(AuctionInfo inAI) {
     //  If the end date has changed, let's reschedule the snipes for the new end date...?
-    if(mAuction != null && !mAuction.getEndDate().equals(inAI.getEndDate())) {
+    if(mAuction != null && mAuction.getEndDate() != null && mAuction.getEndDate().equals(inAI.getEndDate())) {
       Currency saveSnipeBid = getSnipe();
       int saveSnipeQuantity = mSnipeQuantity;
       prepareSnipe(null);
