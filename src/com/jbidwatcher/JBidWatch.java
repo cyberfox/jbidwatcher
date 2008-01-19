@@ -909,13 +909,12 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     addbutton(_bidBar, inAction, "Forum", "icons/forum.png", "JBidwatcher Forums");
     addbutton(_bidBar, inAction, "Report Bug", "icons/report_bug.png", "Report Bug");
     addbutton(_bidBar, inAction, "View Log", "icons/log_view.png", "View Log");
+    addbutton(_bidBar, inAction, "Snipe", "icons/auction.png", "Place snipe");
 
     if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
       _bidBar.setFloatable(false);
     }
 
-
-    //    This feature is only available in 1.4+!  Crap...  It'd be nice.
     _bidBar.setRollover(true);
 
     // update (?)
