@@ -218,6 +218,10 @@
       <tarfileset dir="${dest.dir}" prefix="${app.name}.app/Contents/Resources/Java">
         <include name="${BINARY}" />
       </tarfileset>
+      <tarfileset dir="${packaging}" prefix="${app.name}.app/Contents/Resources/Java">
+      	<include name="quaqua.jar" />
+	<include name="libquaqua.jnilib" />
+      </tarfileset>
     </tar>
     <delete file="/tmp/MRJApp.properties" />
   </target>

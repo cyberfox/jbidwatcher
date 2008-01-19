@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2004, P. Simon Tuffs (simon@simontuffs.com)
+ * Copyright (c) 2004-2007, P. Simon Tuffs (simon@simontuffs.com)
  * All rights reserved.
  *
- * See full license at http://one-jar.sourceforge.net/one-jar-license.txt
+ * See the full license at http://www.simontuffs.com/one-jar/one-jar-license.html
  * This license is also included in the distributions of this software
  * under doc/one-jar-license.txt
  */
@@ -17,15 +17,21 @@
 
 package com.simontuffs.onejar;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.security.cert.Certificate;
@@ -63,9 +69,9 @@ import java.util.jar.Attributes.Name;
  * </ul> 
  * @author simon@simontuffs.com (<a href="http://www.simontuffs.com">http://www.simontuffs.com</a>)
  */
-public class JarClassLoader extends ClassLoader {
+public class JarClassLoader extends ClassLoader implements IProperties {
     
-    public final static String JAVA_CLASS_PATH = "java.class.path";
+    public static final String DOT_CONFIRM = ".onejar.confirm";
     public final static String LIB_PREFIX = "lib/";
     public final static String BINLIB_PREFIX = "binlib/";
     public final static String MAIN_PREFIX = "main/";
@@ -73,11 +79,19 @@ public class JarClassLoader extends ClassLoader {
     public final static String TMP = "tmp";
     public final static String UNPACK = "unpack";
     public final static String EXPAND = "One-Jar-Expand";
+    public final static String EXPAND_TMP = "One-Jar-Expand-Tmp";
+    public final static String EXPAND_DIR = "One-Jar-Expand-Dir";
+    public final static String SHOW_EXPAND = "One-Jar-Show-Expand";
+    public final static String CONFIRM_EXPAND = "One-Jar-Confirm-Expand";
     public final static String CLASS = ".class";
+    
+    public final static String NL = System.getProperty("line.separator");
     
     public final static String JAVA_PROTOCOL_HANDLER = "java.protocol.handler.pkgs";
     
     protected String name;
+    protected boolean noExpand, expanded;
+    protected ClassLoader externalClassLoader;
     
     static {
         // Add our 'onejar:' protocol handler, but leave open the 
@@ -111,6 +125,14 @@ public class JarClassLoader extends ClassLoader {
         if (info) System.out.println(PREFIX() + "Info: " + NAME() + message);
     }
     
+    protected void PRINTLN(String message) {
+        System.out.println(message);
+    }
+    
+    protected void PRINT(String message) {
+        System.out.print(message);
+    }
+    
     // Synchronize for thread safety.  This is less important until we
     // start to do lazy loading, but it's a good idea anyway.
     protected Map byteCode = Collections.synchronizedMap(new HashMap());
@@ -125,11 +147,11 @@ public class JarClassLoader extends ClassLoader {
     protected String jarName, mainJar, wrapDir;
     protected boolean delegateToParent;
     
-    protected class ByteCode {
-		public ByteCode(String $name, String $original, byte $bytes[], String $codebase, Manifest $manifest) {
+    protected static class ByteCode {
+		public ByteCode(String $name, String $original, ByteArrayOutputStream baos, String $codebase, Manifest $manifest) {
             name = $name;
             original = $original;
-            bytes = $bytes;
+            bytes = baos.toByteArray();
             codebase = $codebase;
 			manifest = $manifest;
         }
@@ -148,6 +170,7 @@ public class JarClassLoader extends ClassLoader {
     public JarClassLoader(String $wrap) {
         wrapDir = $wrap;
         delegateToParent = wrapDir == null;
+        init();
     }
     
     /**
@@ -215,12 +238,41 @@ public class JarClassLoader extends ClassLoader {
     public JarClassLoader(ClassLoader parent) {
         super(parent);
         delegateToParent = true;
+        init();
         // System.out.println(PREFIX() + this + " parent=" + parent + " loaded by " + this.getClass().getClassLoader());
+    }
+    
+    /**
+     * Common initialization code: establishes a classloader for delegation
+     * to one-jar.class.path resources.
+     */
+    protected void init() {
+        String classpath = System.getProperty(Boot.P_ONE_JAR_CLASS_PATH);
+        if (classpath != null) {
+            String tokens[] = classpath.split("\\" + Boot.P_PATH_SEPARATOR);
+            List list = new ArrayList();
+            for (int i=0; i<tokens.length; i++) {
+                String path = tokens[i];
+                try {
+                    list.add(new URL(path));
+                } catch (MalformedURLException mux) {
+                    // Try a file:/// prefix and an absolute path.
+                    try {
+                        list.add(new URL("file:///" + new File(path).getAbsolutePath()));
+                    } catch (MalformedURLException ignore) {
+                        Boot.WARNING("Unable to parse external path: " + path);
+                    }
+                }
+            }
+            URL urls[] = (URL[])list.toArray(new URL[0]);
+            Boot.INFO("external URLs=" + Arrays.asList(urls));
+            externalClassLoader = new URLClassLoader(urls);
+        }
     }
     
     public String load(String mainClass) {
         // Hack: if there is a one-jar.jarname property, use it.
-        String jarname = System.getProperty(Boot.PROPERTY_PREFIX + "jarname");
+        String jarname = Boot.getMyJarPath();
         return load(mainClass, jarname);
     }
     
@@ -230,16 +282,7 @@ public class JarClassLoader extends ClassLoader {
         }
         try {
             if (jarName == null) {
-                // Hack to get the lib directory entries.   We know we are being
-                // loaded out of a jar file, so there is only one jar-file on the
-                // classpath: ours!  So we open it.
-                jarName = System.getProperty(JAVA_CLASS_PATH);
-
-                // Fix from 'eleeptg' for OS-X problems: extract first entry from classpath 
-                // 'test.jar:/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Classes/.compatibility/14compatibility.jar' 
-                if ((jarName!=null) && (jarName.indexOf(System.getProperty("path.separator")) > 0)) 
-                    jarName = jarName.substring(0, jarName.indexOf(System.getProperty("path.separator"))); 
-                
+                jarName = Boot.getMyJarPath();
             }
             JarFile jarFile = new JarFile(jarName);
             Enumeration _enum = jarFile.entries();
@@ -249,11 +292,42 @@ public class JarClassLoader extends ClassLoader {
             // be specified like this:
             // One-Jar-Expand: build=../expanded
             String expand = manifest.getMainAttributes().getValue(EXPAND);
-            if (expand != null) {
+            String expandtmp = manifest.getMainAttributes().getValue(EXPAND_TMP);
+            String expanddir = System.getProperty(Boot.P_EXPAND_DIR);
+            if (expanddir == null) expanddir = manifest.getMainAttributes().getValue(EXPAND_DIR);
+            boolean shouldExpand = true;
+            File tmpdir = new File(".");
+            if (expandtmp != null && Boolean.valueOf(expandtmp).booleanValue()) {
+                if (expanddir != null) {
+                    tmpdir = new File(expanddir);
+                } else {
+                    File tmpfile = File.createTempFile("one-jar", ".tmp");
+                    tmpfile.deleteOnExit();
+                    tmpdir = new File(tmpfile.getParentFile() + "/" + new File(jarName).getName() + "/expand");
+                }
+            }
+            if (noExpand == false && expand != null) {
+                expanded = true;
                 VERBOSE(EXPAND + "=" + expand);
                 expandPaths = expand.split(",");
+                boolean getconfirm = Boolean.TRUE.toString().equals(manifest.getMainAttributes().getValue(CONFIRM_EXPAND));
+                if (getconfirm) {
+                    String answer = getConfirmation(tmpdir);
+                    if (answer == null) answer = "n";
+                    answer = answer.trim().toLowerCase();
+                    if (answer.startsWith("q")) {
+                        PRINTLN("exiting without expansion.");
+                        // Indicate (expected) failure with a non-zero return code.
+                        System.exit(1);
+                    } else if (answer.startsWith("n")) {
+                        shouldExpand = false;
+                    }
+                }
             }
-            boolean mainfound = false;
+            boolean showexpand = Boolean.TRUE.toString().equals(manifest.getMainAttributes().getValue(SHOW_EXPAND));
+            if (showexpand) {
+                PRINTLN("Expanding to: " + tmpdir.getAbsolutePath());
+            }
             while (_enum.hasMoreElements()) {
                 JarEntry entry = (JarEntry)_enum.nextElement();
                 if (entry.isDirectory()) continue;
@@ -261,34 +335,41 @@ public class JarClassLoader extends ClassLoader {
                 // The META-INF/MANIFEST.MF file can contain a property which names
                 // directories in the JAR to be expanded (comma separated). For example:
                 // One-Jar-Expand: build,tmp,webapps
-                boolean expanded = false;
                 String name = entry.getName();
                 if (expandPaths != null) {
                     // TODO: Can't think of a better way to do this right now.  
                     // This code really doesn't need to be optimized anyway.
-                    for (int i=0; i<expandPaths.length; i++) {
-                        if (name.startsWith(expandPaths[i])) {
-                            File dest = new File(name);
-                            // Override if ZIP file is newer than existing.
-                            if (!dest.exists() || dest.lastModified() < entry.getTime()) {
-                                INFO("Expanding " + name);
-                                if (dest.exists()) INFO("Update because lastModified=" + new Date(dest.lastModified()) + ", entry=" + new Date(entry.getTime()));
-                                dest.getParentFile().mkdirs();
-                                VERBOSE("using jarFile.getInputStream(" + entry + ")");
-                                InputStream is = jarFile.getInputStream(entry);
-                                FileOutputStream os = new FileOutputStream(dest); 
-                                copy(is, os);
-                                is.close();
-                                os.close();
+                    if (shouldExpand && shouldExpand(expandPaths, name)) {
+                        File dest = new File(tmpdir, name);
+                        // Override if ZIP file is newer than existing.
+                        if (!dest.exists() || dest.lastModified() < entry.getTime()) {
+                            String msg = "Expanding:  " + name;
+                            if (showexpand) {
+                                PRINTLN(msg);
                             } else {
-                                VERBOSE(name + " already expanded");
+                                INFO(msg);
                             }
-                            expanded = true;
-                            break;
+                            if (dest.exists()) INFO("Update because lastModified=" + new Date(dest.lastModified()) + ", entry=" + new Date(entry.getTime()));
+                            File parent = dest.getParentFile();
+                            if (parent != null) {
+                                parent.mkdirs();
+                            }
+                            VERBOSE("using jarFile.getInputStream(" + entry + ")");
+                            InputStream is = jarFile.getInputStream(entry);
+                            FileOutputStream os = new FileOutputStream(dest); 
+                            copy(is, os);
+                            is.close();
+                            os.close();
+                        } else {
+                            String msg = "Up-to-date: " + name;
+                            if (showexpand) {
+                                PRINTLN(msg);
+                            } else {
+                                VERBOSE(msg);
+                            }
                         }
                     }
                 }
-                if (expanded) continue;
                 
                 String jar = entry.getName();
                 if (wrapDir != null && jar.startsWith(wrapDir) || jar.startsWith(LIB_PREFIX) || jar.startsWith(MAIN_PREFIX)) {
@@ -307,10 +388,10 @@ public class JarClassLoader extends ClassLoader {
                     
                     // Do we need to look for a main class?
                     if (jar.startsWith(MAIN_PREFIX)) {
-                    	mainfound = true;
                         if (mainClass == null) {
                             JarInputStream jis = new JarInputStream(jarFile.getInputStream(entry));
                             Manifest m = jis.getManifest();
+                            jis.close();
                             // Is this a jar file with a manifest?
                             if (m != null) {
                                 mainClass = jis.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
@@ -341,11 +422,7 @@ public class JarClassLoader extends ClassLoader {
 					loadBytes(entry, jarFile.getInputStream(entry), "/", null, manifest);
                 } else {
                     // A resource? 
-                   INFO("resource: " + jarFile.getName() + "!" + entry.getName());
-                }
-                if (!mainfound && mainClass == null) {
-                	// One last try to determine a main class.
-                	mainClass = manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
+                   INFO("resource: " + jarFile.getName() + "!/" + entry.getName());
                 }
             }
             // If mainClass is still not defined, return null.  The caller is then responsible
@@ -357,7 +434,14 @@ public class JarClassLoader extends ClassLoader {
         }
         return mainClass;
     }
-    
+
+    public static boolean shouldExpand(String expandPaths[], String name) {
+        for (int i=0; i<expandPaths.length; i++) {
+            if (name.startsWith(expandPaths[i])) return true;
+        }
+        return false;
+    }        
+
 	protected void loadByteCode(InputStream is, String jar, Manifest man) throws IOException {
 		loadByteCode(is, jar, null, man);
     }
@@ -377,6 +461,18 @@ public class JarClassLoader extends ClassLoader {
         int index = entryName.lastIndexOf('.');
         String type = entryName.substring(index+1);
         
+        // agattung: patch (for one-jar 0.95)
+        // add package handling to avoid NullPointer exceptions
+        // after calls to getPackage method of this ClassLoader
+        int index2 = entryName.lastIndexOf('.', index-1);
+        if (index2 > -1) {
+            String packageName = entryName.substring(0, index2);
+            if (getPackage(packageName) == null) {
+                definePackage(packageName, "", "", "", "", "", "", null);
+            }
+        }
+        // end patch
+        
         // Because we are doing stream processing, we don't know what
         // the size of the entries is.  So we store them dynamically.
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -394,26 +490,25 @@ public class JarClassLoader extends ClassLoader {
             // If entry is a class, check to see that it hasn't been defined
             // already.  Class names must be unique within a classloader because
             // they are cached inside the VM until the classloader is released.
-            byte[] bytes = baos.toByteArray();
             if (type.equals("class")) {
-                if (alreadyCached(entryName, jar, bytes)) return;
-				byteCode.put(entryName, new ByteCode(entryName, entry.getName(), bytes, jar, man));
+                if (alreadyCached(entryName, jar, baos)) return;
+				byteCode.put(entryName, new ByteCode(entryName, entry.getName(), baos, jar, man));
                 VERBOSE("cached bytes for class " + entryName);
             } else {
                 // Another kind of resource.  Cache this by name, and also prefixed
                 // by the jar name.  Don't duplicate the bytes.  This allows us
                 // to map resource lookups to either jar-local, or globally defined.
                 String localname = jar + "/" + entryName;
-				byteCode.put(localname, new ByteCode(localname, entry.getName(), bytes, jar, man));
+				byteCode.put(localname, new ByteCode(localname, entry.getName(), baos, jar, man));
                 // Keep a set of jar names so we can do multiple-resource lookup by name
                 // as in findResources().
                 jarNames.add(jar);
                 VERBOSE("cached bytes for local name " + localname);
                 // Only keep the first non-local entry: this is like classpath where the first
                 // to define wins.  
-                if (alreadyCached(entryName, jar, bytes)) return;
+                if (alreadyCached(entryName, jar, baos)) return;
 
-                byteCode.put(entryName, new ByteCode(entryName, entry.getName(), bytes, jar, man));
+                byteCode.put(entryName, new ByteCode(entryName, entry.getName(), baos, jar, man));
                 VERBOSE("cached bytes for entry name " + entryName);
                 
             }
@@ -427,8 +522,18 @@ public class JarClassLoader extends ClassLoader {
      * jar file which was used to load <u>this</u> class.
      */
     protected Class findClass(String name) throws ClassNotFoundException {
+        // Delegate to external paths first
+        Class cls = null;
+        if (externalClassLoader != null) {
+            try {
+            return externalClassLoader.loadClass(name);
+            } catch (ClassNotFoundException cnfx) {
+                // continue...
+            }
+        }
+
         // Make sure not to load duplicate classes.
-        Class cls = findLoadedClass(name);
+        cls = findLoadedClass(name);
         if (cls != null) return cls;
         
         // Look up the class in the byte codes.
@@ -572,6 +677,14 @@ public class JarClassLoader extends ClassLoader {
 				sealed = attr.getValue(Name.SEALED);
 			}
 		}
+        if (sealed != null) {
+            try {
+                sealBase = new URL(sealed);
+            } catch (MalformedURLException mux) {
+                // Would use IllegalArgumentException, but it don't have the chained constructor.
+                throw new RuntimeException("Error in " + Name.SEALED + " manifest attribute: " + sealed, mux);
+            }
+        }
 		return definePackage(name, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, sealBase);
 	}
 	
@@ -675,11 +788,12 @@ public class JarClassLoader extends ClassLoader {
         return resource;
     }
     
-    protected boolean alreadyCached(String name, String jar, byte[] bytes) {
+    protected boolean alreadyCached(String name, String jar, ByteArrayOutputStream baos) {
         // TODO: check resource map to see how we will map requests for this
         // resource from this jar file.  Only a conflict if we are using a
         // global map and the resource is defined by more than
         // one jar file (default is to map to local jar).
+        byte[] bytes = baos.toByteArray();
         ByteCode existing = (ByteCode)byteCode.get(name);
         if (existing != null) {
             // If bytecodes are identical, no real problem.  Likewise if it's in
@@ -841,6 +955,13 @@ public class JarClassLoader extends ClassLoader {
         name = string;
     }
     
+    public void setExpand(boolean expand) {
+        noExpand = !expand;
+    }
+    
+    public boolean isExpanded() {
+        return expanded;
+    }
     
     /**
      * If the system specific library exists in the JAR, expand it and return the path
@@ -857,43 +978,7 @@ public class JarClassLoader extends ClassLoader {
     protected String findLibrary(String name) {
         String result = null; // By default, search the java.library.path for it
         
-        String binlibPrefix = "";
-        String binlibSuffix = "";
-        
-        String osName = System.getProperties().getProperty("os.name");
-        
-        /* Possible values 
-         AIX
-         Digital Unix
-         FreeBSD
-         HP UX
-         Irix
-         Linux
-         Mac OS
-         MPE/iX
-         Netware 4.11
-         OS/2
-         Solaris
-         Windows 2000
-         Windows 95
-         Windows 98
-         Windows NT
-         Windows XP
-         */
-        
-        if (osName.toLowerCase().startsWith("windows")) {
-            binlibPrefix = "";
-            binlibSuffix = ".dll";
-        } else if (osName.toLowerCase().startsWith("mac")) {
-            binlibPrefix = "lib";
-            binlibSuffix = ".jnilib";
-        } else { // Assume Linux/Unix
-            binlibPrefix = "lib";
-            binlibSuffix = ".so";
-        }
-        String osPrefixedName = binlibPrefix + name;
-        
-        String resourcePath = BINLIB_PREFIX + osPrefixedName + binlibSuffix;
+        String resourcePath = BINLIB_PREFIX + System.mapLibraryName(name);
         
         // If it isn't in the map, try to expand to temp and return the full path
         // otherwise, remain null so the java.library.path is searched.
@@ -905,11 +990,18 @@ public class JarClassLoader extends ClassLoader {
             
             // See if it's a resource in the JAR that can be extracted
             try {
+                int lastdot = resourcePath.lastIndexOf('.');
+                String suffix = null;
+                if (lastdot >= 0) {
+                    suffix = resourcePath.substring(lastdot);
+                }
                 InputStream is = this.getClass().getResourceAsStream("/" + resourcePath);
-                File tempNativeLib = File.createTempFile(osPrefixedName + "-", binlibSuffix);
+                File tempNativeLib = File.createTempFile(name + "-", suffix);
                 FileOutputStream os = new FileOutputStream(tempNativeLib);
                 copy(is, os);
                 os.close();
+                
+                VERBOSE("Stored native library " + name + " at " + tempNativeLib);
                 
                 tempNativeLib.deleteOnExit();
                 
@@ -922,10 +1014,45 @@ public class JarClassLoader extends ClassLoader {
             } catch(Throwable e)  {
                 // Couldn't load the library
                 // Return null by default to search the java.library.path
+                WARNING("Unable to load native library: " + e);
             }
             
         }
         
         return result;
     }
+
+    protected String getConfirmation(File location) throws IOException {
+        File dotconfirm = new File(location, DOT_CONFIRM);
+        String answer = "";
+        if (dotconfirm.exists()) {
+            BufferedReader br = new BufferedReader(new FileReader(dotconfirm));
+            answer = br.readLine();
+            br.close();
+            PRINTLN("Previous confirmation for file expansion (" + answer + ") was read from " + dotconfirm);
+            return answer;
+        }
+        while (answer == null || (!answer.startsWith("n") && !answer.startsWith("y") && !answer.startsWith("q"))) {
+            promptForConfirm(location);
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            answer = br.readLine();
+            br.close();
+        }
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(dotconfirm));
+            bw.write(answer + NL);
+            bw.close();
+            PRINTLN("Your response has been stored in " + dotconfirm.getAbsolutePath() + ".  Please remove this file if you wish to change your mind.");
+        } catch (IOException iox) {
+            WARNING("Unable to store confirmation response in " + dotconfirm.getAbsolutePath() + ": " + iox);
+        }
+        return answer;
+    }
+    
+    protected void promptForConfirm(File location) {
+        PRINTLN("Do you want to allow '" + Boot.getMyJarName() + "' to expand files into the file-system at the following location?");
+        PRINTLN("  " + location);
+        PRINT("Answer y(es) to expand files, n(o) to continue without expanding, or q(uit) to exit: ");
+    }
+    
 }

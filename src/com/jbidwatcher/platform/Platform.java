@@ -73,10 +73,12 @@ public class Platform {
       System.setProperty("apple.laf.useScreenMenuBar", "true");
       System.setProperty("com.apple.macos.useScreenMenuBar", "true");
 
+      System.setProperty("Quaqua.tabLayoutPolicy","wrap");
+
       //  Allow users to override the brushed metal look.
-      if(JConfig.queryConfiguration("mac.useMetal", "true").equals("false")) {
-        System.setProperty("apple.awt.brushMetalLook", "false");
-      }
+      //      if(JConfig.queryConfiguration("mac.useMetal", "true").equals("false")) {
+      //        System.setProperty("apple.awt.brushMetalLook", "false");
+      //      }
     }
   }
 

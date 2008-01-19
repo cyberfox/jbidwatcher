@@ -2,7 +2,7 @@
  * Copyright (c) 2004, P. Simon Tuffs (simon@simontuffs.com)
  * All rights reserved.
  *
- * See full license at http://one-jar.sourceforge.net/one-jar-license.txt
+ * See the full license at http://one-jar.sourceforge.net/one-jar-license.html
  * This license is also included in the distributions of this software
  * under doc/one-jar-license.txt
  */
@@ -11,6 +11,7 @@ package com.simontuffs.onejar;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.FileNameMap;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -27,16 +28,21 @@ public class Handler extends URLStreamHandler {
 	 */
 	public static String PROTOCOL = "onejar";
 
-	protected int len = PROTOCOL.length()+1;
-	
 	/** 
 	 * @see java.net.URLStreamHandler#openConnection(java.net.URL)
 	 */
-	protected URLConnection openConnection(URL u) throws IOException {
-		final String resource = u.toString().substring(len);
+	protected URLConnection openConnection(final URL u) throws IOException {
+		final String resource = u.getPath();
 		return new URLConnection(u) {
 			public void connect() {
 			}
+            public String getContentType() {
+                FileNameMap fileNameMap = java.net.URLConnection.getFileNameMap();
+                String contentType = fileNameMap.getContentTypeFor(resource);
+                if (contentType == null) 
+                    contentType = "text/plain";
+                return contentType;
+            }
 			public InputStream getInputStream() {
 				// Use the Boot classloader to get the resource.  There
 				// is only one per one-jar.
@@ -45,5 +51,5 @@ public class Handler extends URLStreamHandler {
 			}
 		};
 	}
-
+    
 }
