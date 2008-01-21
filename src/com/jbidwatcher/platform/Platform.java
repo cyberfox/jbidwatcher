@@ -12,6 +12,7 @@ import com.jbidwatcher.ui.AuctionsUIModel;
 import com.jbidwatcher.ui.JBidMenuBar;
 import com.jbidwatcher.config.JConfig;
 
+import javax.swing.*;
 import java.io.*;
 
 public class Platform {
@@ -79,6 +80,21 @@ public class Platform {
       //      if(JConfig.queryConfiguration("mac.useMetal", "true").equals("false")) {
       //        System.setProperty("apple.awt.brushMetalLook", "false");
       //      }
+    }
+  }
+
+  // set the Quaqua Look and Feel in the UIManager
+  public static boolean setQuaquaFeel(JFrame inFrame) {
+    String whatLaF = "ch.randelshofer.quaqua.QuaquaLookAndFeel";
+    try {
+      UIManager.setLookAndFeel(whatLaF);
+      if (inFrame != null) {
+        SwingUtilities.updateComponentTreeUI(inFrame);
+      }
+      return true;
+    } catch (Exception exMe) {
+      ErrorManagement.handleException("Can't set Quaqua UI (" + whatLaF + ")", exMe);
+      return false;
     }
   }
 

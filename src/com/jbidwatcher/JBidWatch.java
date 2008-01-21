@@ -593,34 +593,24 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       }
     }
 
-    String oldLaF = null;
-
     Platform.checkLaF(whatLaF);
 
-    if(Platform.isMac()) {
-      oldLaF = whatLaF;
-      // set the Quaqua Look and Feel in the UIManager
-      whatLaF = "ch.randelshofer.quaqua.QuaquaLookAndFeel";
+    if(Platform.isMac() && Platform.setQuaquaFeel(inFrame)) {
+      whatLaF = null;
     }
 
-    try {
-      UIManager.setLookAndFeel(whatLaF);
-      if(inFrame != null) {
-        SwingUtilities.updateComponentTreeUI(inFrame);
+    if(whatLaF != null) {
+      try {
+        UIManager.setLookAndFeel(whatLaF);
+      } catch (Exception exMe) {
+        ErrorManagement.handleException("Exception in setUI, failure to set " + whatLaF + ": " + exMe, exMe);
+        //  Don't try to update the frame with the new UI.
+        inFrame = null;
       }
-    } catch(Exception exMe) {
-	boolean failed = true;
-	if(oldLaF != null) {
-	    try {
-		UIManager.setLookAndFeel(oldLaF);
-		failed = false;
-	    } catch(Exception ex2) {
-		ErrorManagement.handleException("Exception in setUI, failure to set " + whatLaF + ": " + exMe, exMe);
-		ErrorManagement.handleException("Exception in setUI, failure to set " + oldLaF + ": " + ex2, ex2);
-	    }
-	} else {
-	    ErrorManagement.handleException("Exception in setUI, failure to set " + whatLaF + ": " + exMe, exMe);
-	}
+    }
+
+    if (inFrame != null) {
+      SwingUtilities.updateComponentTreeUI(inFrame);
     }
   }
 
