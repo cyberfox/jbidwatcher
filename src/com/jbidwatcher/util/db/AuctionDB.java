@@ -230,11 +230,11 @@ public class AuctionDB {
       int column = 1;
       for(String key: newRow.keySet()) {
         if(key.equals("id")) continue;        
-        if (newRow.get(key) != null) {
+//        if (newRow.get(key) != null) {
           if(!setColumn(ps, column++, key, newRow.get(key))) {
             ErrorManagement.logDebug("Error from columns: (" + column + ", " + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
           }
-        }
+//        }
       }
       ps.execute();
       mDB.commit();
@@ -261,7 +261,7 @@ public class AuctionDB {
     StringBuffer values = new StringBuffer();
     for (String key : newRow.keySet()) {
       if(key.equals("id")) continue;
-      if(newRow.get(key) != null) {
+//      if(newRow.get(key) != null) {
         if (anyKeys) {
           insert.append(',');
           values.append(',');
@@ -269,7 +269,7 @@ public class AuctionDB {
         insert.append(key);
         values.append('?');
         anyKeys = true;
-      }
+//      }
     }
     if (anyKeys) {
       sql = insert + ") VALUES (" + values + ")";

@@ -16,12 +16,12 @@ import java.awt.*;
  *  MultiSnipe class
  */
 public class MultiSnipe extends ActiveRecord {
-  private Color _bgColor;
+  private Color mBackground;
   private LinkedList<AuctionEntry> auctionEntriesInThisGroup = new LinkedList<AuctionEntry>();
   private static final int HEX_BASE = 16;
 
   private void setValues(Color groupColor, com.jbidwatcher.util.Currency snipeValue, long id, boolean subtractShipping) {
-    _bgColor = groupColor;
+    mBackground = groupColor;
     setString("color", makeRGB(groupColor));
     setMonetary("default_bid", snipeValue);
     setBoolean("subtract_shipping", subtractShipping);
@@ -54,6 +54,11 @@ public class MultiSnipe extends ActiveRecord {
     return new Color(red, green, blue);
   }
 
+  public MultiSnipe() {
+    //  This exists for construction via ActiveRecord loading...
+    super();
+  }
+
   public MultiSnipe(String groupColor, com.jbidwatcher.util.Currency snipeValue, long id, boolean subtractShipping) {
     Color rgb = reverseColor(groupColor);
     setString("color", groupColor);
@@ -64,7 +69,12 @@ public class MultiSnipe extends ActiveRecord {
     setValues(groupColor, snipeValue, System.currentTimeMillis(), subtractShipping);
   }
 
-  public Color getColor() { return _bgColor; }
+  public Color getColor() {
+    if(mBackground == null) {
+      mBackground = reverseColor(getColorString());
+    }
+    return mBackground;
+  }
   public String getColorString() { return getString("color"); }
   public com.jbidwatcher.util.Currency getSnipeValue(AuctionEntry ae) {
     if(ae != null && getBoolean("subtract_shipping")) {
@@ -173,5 +183,9 @@ public class MultiSnipe extends ActiveRecord {
 
   public static MultiSnipe findFirstBy(String key, String value) {
     return (MultiSnipe) ActiveRecord.findFirstBy(MultiSnipe.class, key, value);
+  }
+
+  public static MultiSnipe find(Integer id) {
+    return (MultiSnipe) ActiveRecord.findFirstBy(MultiSnipe.class, "id", Integer.toString(id));
   }
 }

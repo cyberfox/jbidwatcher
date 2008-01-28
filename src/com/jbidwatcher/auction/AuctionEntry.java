@@ -391,7 +391,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return Whether there is a snipe waiting on this auction.
    */
-  public boolean isSniped() { return(getSnipe() != null && !getSnipe().isNull()); }
+  public boolean isSniped() {
+    getMultiSnipe();
+    return getSnipe() != null && !getSnipe().isNull();
+  }
 
   /**
    * @brief Check if this auction is part of a snipe group.
@@ -404,7 +407,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @return Whether this auction is one of a multisnipe group, where
    * each auction is sniped on until one is won.
    */
-  public boolean isMultiSniped()    { return(mMultiSnipe != null); }
+  public boolean isMultiSniped()    { return(getMultiSnipe() != null); }
 
   /**
    * @brief Check if the user has ever placed a bid (or completed
@@ -567,7 +570,16 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return - A multisnipe object or null if there isn't any multisnipe set.
    */
-  public MultiSnipe getMultiSnipe() { return mMultiSnipe; }
+  public MultiSnipe getMultiSnipe() {
+    if(mMultiSnipe != null) return mMultiSnipe;
+
+    Integer id = getInteger("multisnipe_id");
+    if(id == null) return null;
+
+    MultiSnipe ms = MultiSnipe.find(id);
+    setMultiSnipe(ms);
+    return ms;
+  }
 
   /**
    * @brief Check if the configuration has a 'snipemilliseconds'
