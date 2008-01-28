@@ -37,47 +37,12 @@ public class EventLogger implements XMLSerialize {
   /** Records all status messages that are added.
    * 
    */
-  private String _localId=null;
-  private String _localTitle=null;
-  private List<EntryStatus> _allStatus = new Vector<EntryStatus>();
-  private final EntryStatus nullStatus = new EntryStatus("Nothing has happened.", new Date());
+  private String mId =null;
+  private String mTitle =null;
+  private List<EventStatus> mAllEvents = new Vector<EventStatus>();
+  private final EventStatus mNullEvent = new EventStatus("Nothing has happened.", new Date());
 
-  /*!@class EventLogger
-   *
-   * @brief A single 'event'.
-   *
-   * This contains a single event, a string saying 'what' happened, a
-   * date for when it happened first, and a count of times that it has
-   * happened.
-   *
-   */
-  private class EntryStatus {
-    public String _what;
-    public Date _when;
-    public int _count;
-
-    public EntryStatus(String what, Date when) {
-      _what = what;
-      _when = when;
-      _count = 1;
-    }
-
-    public String toBulkString() {
-      String outStatus;
-      outStatus = _when + ": " + _what + " (" + _count + ")";
-
-      return(outStatus);
-    }
-
-    public String toString() {
-      String outStatus;
-      outStatus = _when + ": " + _localId + " (" + _localTitle + ") - " + _what + " (" + _count + ")";
-
-      return(outStatus);
-    }
-  }
-
-  /** 
+  /**
    * @brief Load events from XML.
    *
    * BUGBUG -- Fix this to work with XMLSerializeSimple if possible.  -- mrs: 23-February-2003 21:00
@@ -86,7 +51,7 @@ public class EventLogger implements XMLSerialize {
    */
   public void fromXML(XMLElement curElement) {
     Iterator<XMLElement> logStep = curElement.getChildren();
-    EntryStatus newEntry;
+    EventStatus newEvent;
 
     while(logStep.hasNext()) {
       XMLElement curEntry = logStep.next();
@@ -103,10 +68,10 @@ public class EventLogger implements XMLSerialize {
           if(entryField.getTagName().equals("date")) msgtime = Long.parseLong(entryField.getContents());
         } 
 
-        newEntry = new EntryStatus(msg, new Date(msgtime));
-        newEntry._count = curCount;
+        newEvent = new EventStatus(msg, new Date(msgtime), mId, mTitle);
+        newEvent.mRepeatCount = curCount;
 
-        _allStatus.add(newEntry);
+        mAllEvents.add(newEvent);
       } else {
         throw new XMLParseException(curEntry.getTagName(), "Expected 'entry' tag!");
       }
@@ -116,23 +81,23 @@ public class EventLogger implements XMLSerialize {
   public XMLElement toXML() {
     XMLElement xmlLog;
 
-    if(_allStatus.size() == 0) return null;
+    if(mAllEvents.size() == 0) return null;
 
     xmlLog = new XMLElement("log");
 
-    for (EntryStatus curEntry : _allStatus) {
+    for (EventStatus curEvent : mAllEvents) {
       XMLElement xmlResult;
       XMLElement xmsg, xdate;
 
       xmlResult = new XMLElement("entry");
-      xmlResult.setProperty("count", Integer.toString(curEntry._count));
+      xmlResult.setProperty("count", Integer.toString(curEvent.mRepeatCount));
 
       xmsg = new XMLElement("message");
-      xmsg.setContents(curEntry._what);
+      xmsg.setContents(curEvent.mMessage);
       xmlResult.addChild(xmsg);
 
       xdate = new XMLElement("date");
-      xdate.setContents(Long.toString(curEntry._when.getTime()));
+      xdate.setContents(Long.toString(curEvent.mLoggedAt.getTime()));
       xmlResult.addChild(xdate);
 
       xmlLog.addChild(xmlResult);
@@ -141,8 +106,10 @@ public class EventLogger implements XMLSerialize {
   }
 
   public EventLogger(String identifier, String title) {
-    _localId = identifier;
-    _localTitle = title;
+    mId = identifier;
+    mTitle = title;
+    mNullEvent.setId(mId);
+    mNullEvent.setTitle(mTitle);
   }
 
   /** Store the status for the most recent event to occur, and format it with the date
@@ -153,28 +120,28 @@ public class EventLogger implements XMLSerialize {
    *     occuring to this auction entry.
    */
   public void setLastStatus(String inStatus) {
-    EntryStatus whatHappened;
-    EntryStatus lastStatus;
+    EventStatus whatHappened;
+    EventStatus lastStatus;
 
     if(inStatus != null) {
-      if(_allStatus.size() > 0) {
-        lastStatus = _allStatus.get(_allStatus.size()-1);
+      if(mAllEvents.size() > 0) {
+        lastStatus = mAllEvents.get(mAllEvents.size()-1);
       } else {
-        lastStatus = nullStatus;
+        lastStatus = mNullEvent;
       }
-      if(inStatus.equals(lastStatus._what)) {
-        lastStatus._count++;
+      if(inStatus.equals(lastStatus.mMessage)) {
+        lastStatus.mRepeatCount++;
       } else {
-        whatHappened = new EntryStatus(inStatus, new Date());
+        whatHappened = new EventStatus(inStatus, new Date(), mId, mTitle);
 
-        _allStatus.add(whatHappened);
+        mAllEvents.add(whatHappened);
         ErrorManagement.logMessage(whatHappened.toString());
       }
     }
   }
 
   public String getLastStatus() { return getLastStatus(false); }
-  public int getStatusCount() { return _allStatus.size(); }
+  public int getStatusCount() { return mAllEvents.size(); }
 
   /** What is the most recent thing that happened to this particular auction?
    *
@@ -183,19 +150,19 @@ public class EventLogger implements XMLSerialize {
    * @return A string, formatted, that details the most recent event in plain words.
    */
   public String getLastStatus(boolean bulk) {
-    if(_allStatus.size() == 0) {
+    if(mAllEvents.size() == 0) {
       if(bulk) {
-        return(nullStatus.toBulkString() + "<br>");
+        return(mNullEvent.toBulkString() + "<br>");
       } else {
-        return(nullStatus.toString() + "<br>");
+        return(mNullEvent.toString() + "<br>");
       }
     } else {
       StringBuffer sb = new StringBuffer();
-      EntryStatus lastStatus;
+      EventStatus lastStatus;
       int i;
 
-      for(i=0; i<_allStatus.size(); i++) {
-        lastStatus = _allStatus.get(i);
+      for(i=0; i< mAllEvents.size(); i++) {
+        lastStatus = mAllEvents.get(i);
         if(bulk) {
           sb.append(lastStatus.toBulkString());
         } else {
