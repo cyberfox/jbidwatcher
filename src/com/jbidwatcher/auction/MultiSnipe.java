@@ -6,6 +6,7 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.db.AuctionDB;
 
 import java.util.*;
 import java.util.List;
@@ -14,23 +15,19 @@ import java.awt.*;
 /**
  *  MultiSnipe class
  */
-public class MultiSnipe {
+public class MultiSnipe extends ActiveRecord {
   private Color _bgColor;
-  private String _bgColorString;
-  private com.jbidwatcher.util.Currency _defaultSnipeValue;
-  private boolean _subtractShipping;
-  private long _internalId;
   private LinkedList<AuctionEntry> auctionEntriesInThisGroup = new LinkedList<AuctionEntry>();
   private static final int HEX_BASE = 16;
 
   private void setValues(Color groupColor, com.jbidwatcher.util.Currency snipeValue, long id, boolean subtractShipping) {
     _bgColor = groupColor;
-    _bgColorString = makeRGB(groupColor);
-    _defaultSnipeValue = snipeValue;
-    _subtractShipping = subtractShipping;
+    setString("color", makeRGB(groupColor));
+    setMonetary("default_bid", snipeValue);
+    setBoolean("subtract_shipping", subtractShipping);
     //  Basically, the identifier is a long value based on
     //  the time at which it's created.
-    _internalId = id;
+    setString("identifier", Long.toString(id));
   }
 
   /** @noinspection NonConstantStringShouldBeStringBuffer
@@ -59,6 +56,7 @@ public class MultiSnipe {
 
   public MultiSnipe(String groupColor, com.jbidwatcher.util.Currency snipeValue, long id, boolean subtractShipping) {
     Color rgb = reverseColor(groupColor);
+    setString("color", groupColor);
     setValues(rgb, snipeValue, id, subtractShipping);
   }
 
@@ -67,23 +65,24 @@ public class MultiSnipe {
   }
 
   public Color getColor() { return _bgColor; }
-  public String getColorString() { return _bgColorString; }
+  public String getColorString() { return getString("color"); }
   public com.jbidwatcher.util.Currency getSnipeValue(AuctionEntry ae) {
-    if(ae != null && _subtractShipping) {
+    if(ae != null && getBoolean("subtract_shipping")) {
       com.jbidwatcher.util.Currency shipping = ae.getShippingWithInsurance();
       if(shipping != null && !shipping.isNull()) {
         try {
-          return _defaultSnipeValue.subtract(shipping);
+          return getMonetary("default_bid").subtract(shipping);
         } catch (com.jbidwatcher.util.Currency.CurrencyTypeException e) {
           //  It's not relevant (although odd), we fall through to the return.
         }
       }
     }
-    return _defaultSnipeValue;
+
+    return getMonetary("default_bid");
   }
 
   public long getIdentifier() {
-    return _internalId;
+    return Long.parseLong(getString("identifier", "0"));
   }
 
   public void add(AuctionEntry aeNew) {
@@ -98,9 +97,9 @@ public class MultiSnipe {
    *  Right now it doesn't use the passed in parameter.  I'm not sure
    *  what it would do with it, but it seems right to pass it in.
    *
-   * @param ae - The auction that was won.
+   * param ae - The auction that was won.
    */
-  public void setWonAuction(AuctionEntry ae) {
+  public void setWonAuction(/*AuctionEntry ae*/) {
     List<AuctionEntry> oldEntries = auctionEntriesInThisGroup;
     auctionEntriesInThisGroup = new LinkedList<AuctionEntry>();
 
@@ -154,6 +153,25 @@ public class MultiSnipe {
   }
 
   public boolean subtractShipping() {
-    return _subtractShipping;
+    return getBoolean("subtract_shipping");
+  }
+
+  /*************************/
+  /* Database access stuff */
+  /*************************/
+
+  private static AuctionDB sDB = null;
+
+  protected static String getTableName() { return "multisnipes"; }
+
+  protected AuctionDB getDatabase() {
+    if (sDB == null) {
+      sDB = openDB(getTableName());
+    }
+    return sDB;
+  }
+
+  public static MultiSnipe findFirstBy(String key, String value) {
+    return (MultiSnipe) ActiveRecord.findFirstBy(MultiSnipe.class, key, value);
   }
 }

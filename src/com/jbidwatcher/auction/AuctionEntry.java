@@ -493,6 +493,16 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public int getBidQuantity()   { return mBidQuantity; }
 
+  private void setMultiSnipe(String identifier, String bgColor, Currency defaultSnipe, boolean subtractShipping) {
+    MultiSnipe ms = MultiSnipe.findFirstBy("identifier", identifier);
+    if(ms == null) {
+      ms = new MultiSnipe(bgColor, defaultSnipe, Long.parseLong(identifier), subtractShipping);
+    }
+    ms.saveDB();
+    setInteger("multisnipe_id", ms.getId());
+    setMultiSnipe(ms);
+  }
+
   /**
    * @brief Set this auction as being part of a multi-snipe set,
    * change the multi-snipe group associated with it, or delete it
@@ -890,18 +900,12 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         mEntryEvents.fromXML(curElement);
         break;
       case 7:
-        MultiSnipe ms;
-        long id = Long.parseLong(curElement.getProperty("ID"));
-        ms = whichMulti(id);
+        String identifier = curElement.getProperty("ID");
+        String bgColor = curElement.getProperty("COLOR");
+        Currency defaultSnipe = Currency.getCurrency(curElement.getProperty("DEFAULT"));
+        boolean subtractShipping = curElement.getProperty("SUBTRACTSHIPPING", "false").equals("true");
 
-        if(ms == null) {
-          String bgColor = curElement.getProperty("COLOR");
-          Currency defaultSnipe = Currency.getCurrency(curElement.getProperty("DEFAULT"));
-          boolean subtractShipping = curElement.getProperty("SUBTRACTSHIPPING", "false").equals("true");
-
-          ms = new MultiSnipe(bgColor, defaultSnipe, id, subtractShipping);
-        }
-        setMultiSnipe(ms);
+        setMultiSnipe(identifier, bgColor, defaultSnipe, subtractShipping);
         break;
       case 8:
         Currency shipping = Currency.getCurrency(curElement.getProperty("CURRENCY"),
@@ -1191,7 +1195,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if (isMultiSniped()) {
         MultiSnipe ms = getMultiSnipe();
         if (isHighBidder() && (!isReserve() || isReserveMet())) {
-          ms.setWonAuction(this);
+          ms.setWonAuction(/* this */);
         } else {
           ms.remove(this);
         }
@@ -1681,7 +1685,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return id;
   }
 
-  private static AuctionDB sDB;
+  private static AuctionDB sDB = null;
   protected static String getTableName() { return "entries"; }
   protected AuctionDB getDatabase() {
     if(sDB == null) {
