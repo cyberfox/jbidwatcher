@@ -35,7 +35,7 @@ public class JConfig {
   //  Only one property instance.  This class is never 'new'ed,
   //  it's purely used to keep track of important config info.
   protected static Properties soleProperty = new Properties();
-  protected static Properties displayProperty;
+  protected static Properties displayProperty = null;
   protected static Properties mAuxProps = null;
   protected static Runtime curRuntime = Runtime.getRuntime();
 
@@ -169,9 +169,13 @@ public class JConfig {
 
     if(configFile != null) {
       try {
-        load(new FileInputStream(configFile));
+        FileInputStream fis = new FileInputStream(configFile);
+        load(fis);
+        fis.close();
       } catch (FileNotFoundException e) {
         ErrorManagement.handleException("Property file " + configFile + " not found.  Retaining default settings!\n", e);
+      } catch (IOException e) {
+        ErrorManagement.handleException("Failed to close property file!\n", e);
       }
     }
   }
@@ -228,10 +232,9 @@ public class JConfig {
     String sep = System.getProperty("file.separator");
     String homePath;
 
-    //noinspection ConstantConditions
-    if(false && Platform.isMac()) {
-      homePath = System.getProperty("user.home") +
-                 sep + "Library" + sep + "Preferences" + sep + '.' + dirname;
+    if(Platform.isMac()) {
+      if(dirname.equals("jbidwatcher")) dirname = "JBidwatcher";
+      homePath = System.getProperty("user.home") + sep + "Library" + sep + "Preferences" + sep + dirname;
     } else {
       homePath = System.getProperty("user.home") + sep + '.' + dirname;
     }

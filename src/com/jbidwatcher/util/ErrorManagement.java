@@ -10,8 +10,11 @@ import com.jbidwatcher.config.JConfig;
 import java.io.*;
 import java.util.Date;
 
+@SuppressWarnings({"UseOfSystemOutOrSystemErr", "UtilityClass"})
 public class ErrorManagement {
   static PrintWriter _pw = null;
+
+  private ErrorManagement() { }
 
   private static void init() {
     String sep = System.getProperty("file.separator");
@@ -20,11 +23,10 @@ public class ErrorManagement {
     String doLogging = JConfig.queryConfiguration("logging", "true");
     if(doLogging.equals("true")) {
       if(_pw == null) {
-        int stepper = 1;
-        String increment = "";
-
         try {
           File fp;
+          String increment = "";
+          int stepper = 1;
           do {
             fp = new File(home + sep + "errors" + increment + ".log");
             increment = "." + stepper++;
@@ -74,7 +76,7 @@ public class ErrorManagement {
 
     Date log_time = new Date();
 
-    if(sError == null || sError.equals("")) {
+    if(sError == null || sError.length() == 0) {
       System.err.println("[" + log_time + "]");
     } else {
       System.err.println(log_time + ": " + sError);
@@ -85,7 +87,7 @@ public class ErrorManagement {
     if(doLogging.equals("true")) {
       if(_pw != null) {
 
-        if(sError == null || sError.equals("")) {
+        if(sError == null || sError.length() == 0) {
           _pw.println("[" + log_time + "]");
         } else {
           _pw.println(log_time + ": " + sError);
