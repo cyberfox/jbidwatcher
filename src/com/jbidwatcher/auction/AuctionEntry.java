@@ -499,7 +499,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       ms = new MultiSnipe(bgColor, defaultSnipe, Long.parseLong(identifier), subtractShipping);
     }
     ms.saveDB();
-    setInteger("multisnipe_id", ms.getId());
     setMultiSnipe(ms);
   }
 
@@ -538,6 +537,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(inMS == null) {
       //  If the multisnipe was null, remove the snipe entirely.
       prepareSnipe(Currency.NoValue(), 0);
+      setInteger("multisnipe_id", null);
+    } else {
+      setInteger("multisnipe_id", inMS.getId());      
     }
   }
 

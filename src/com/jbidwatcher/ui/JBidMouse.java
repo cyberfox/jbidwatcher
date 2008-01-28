@@ -882,6 +882,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       //  Construct a new multisnipe entry, if one wasn't found from the
       //  list they selected...
       aeMS = new MultiSnipe(groupColor, Currency.getCurrency(baseAllBid.fullCurrencyName(), snipeAmount), subtractShipping);
+      aeMS.saveDB();
     }
 
     for(i=0; i<rowList.length; i++) {
