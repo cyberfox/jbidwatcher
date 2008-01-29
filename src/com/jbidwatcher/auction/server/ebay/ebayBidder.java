@@ -123,7 +123,7 @@ public class ebayBidder implements Bidder {
         if (loadedPage == null) {
           return null;
         } else if(JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-          Object o = Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
+          Object o = Scripting.rubyMethod("JBidwatcher.recognize_bidpage", inEntry, loadedPage);
           ErrorManagement.logDebug(o.toString());
           return null;
         }
@@ -192,7 +192,7 @@ public class ebayBidder implements Bidder {
 
     if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true") &&
         JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-      Object o = Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
+      Object o = Scripting.rubyMethod("JBidwatcher.recognize_bidpage", inEntry, loadedPage);
 
       if(o != null && (Integer)o != AuctionServer.BID_ERROR_UNKNOWN) {
         throw new BadBidException("", (Integer)o);
