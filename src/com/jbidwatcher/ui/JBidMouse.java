@@ -32,6 +32,7 @@ import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.webserver.JBidProxy;
+import org.jruby.demo.IRBConsole;
 
 public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private static JConfigFrame jcf = null;
@@ -45,7 +46,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private boolean _in_deleting = false;
   private JMenu tabMenu = null;
-  private JFrame mScriptFrame;
+  private ScriptManager mScriptFrame;
 
   public JBidMouse(JPopupMenu inPopup) {
     super(inPopup);
@@ -158,11 +159,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoScripting() {
-    if(mScriptFrame == null) {
-      mScriptFrame = ScriptManager.getNewScriptManager();
-    } else {
-      mScriptFrame.setVisible(true);
-    }
+    if(mScriptFrame == null) mScriptFrame = new ScriptManager();
+    MQFactory.getConcrete("scripting").enqueue("SHOW");
   }
 
   private void DoShowLastError(Component src, AuctionEntry passedAE) {

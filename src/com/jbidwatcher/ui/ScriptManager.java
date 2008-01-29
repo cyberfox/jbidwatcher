@@ -1,102 +1,110 @@
 package com.jbidwatcher.ui;
 
-import com.jbidwatcher.util.Scripting;
+import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.queue.MessageQueue;
 
 import javax.swing.*;
-import java.awt.Dimension;
-import java.awt.BorderLayout;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.awt.*;
+import java.io.PipedInputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-public class ScriptManager {
-  private JPanel mPanel1;
-  private JButton mExecuteButton;
-  private JEditorPane mEditorPane1;
-  private JTextArea mTextArea1;
-  private static ScriptManager mSM = null;
+import org.jruby.demo.TextAreaReadline;
+import org.jruby.RubyInstanceConfig;
+import org.jruby.Ruby;
+import org.jruby.internal.runtime.ValueAccessor;
+import org.jruby.javasupport.JavaUtil;
+import org.jruby.runtime.builtin.IRubyObject;
+
+public class ScriptManager implements MessageQueue.Listener
+{
   private JFrame mFrame = null;
 
-  public static JFrame getNewScriptManager() {
-    JFrame frame = new JFrame("JRuby Example");
-    frame.setContentPane((mSM = new ScriptManager()).getPanel());
-    frame.setMinimumSize(new Dimension(650, 400));
-    frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-    frame.pack();
-    frame.setVisible(true);
-
-    mSM.mFrame = frame;
-    return frame;
-  }
-
-  public void show() { mFrame.setVisible(true); }
-
-  public void hide() { mFrame.setVisible(false); }
-
-  public static ScriptManager getScriptManager() { return mSM; }
-
   public ScriptManager() {
-    prepUI();
-//    Scripting.setGlobal("output", mTextArea1);
-
-    Scripting.ruby("def set_output(x)\n  $output = x\nend");
-    Scripting.rubyMethod("set_output", mTextArea1);
-    mEditorPane1.addKeyListener(new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
-        if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_ENTER) executeEditor();
-        else super.keyPressed(e);
-      }
-    });
-    mExecuteButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        executeEditor();
-      }
-    });
+    MQFactory.getConcrete("scripting").registerListener(this);
   }
 
-  private void executeEditor() {
-    String code = mEditorPane1.getSelectedText();
+  public JFrame getNewScriptManager() {
+    final JFrame console = new JFrame("JBidwatcher Scripting Console");
+    final PipedInputStream pipeIn = new PipedInputStream();
 
-    if (code != null) {
-      Scripting.ruby("$output.setText((" + code + ").inspect)");
-    } else {
-      code = mEditorPane1.getText();
-      Scripting.ruby("$output.setText((" + code + ").inspect)");
+    console.getContentPane().setLayout(new BorderLayout());
+    console.setSize(700, 600);
+
+    JEditorPane text = new JTextPane();
+
+    text.setMargin(new Insets(8, 8, 8, 8));
+    text.setCaretColor(new Color(0xa4, 0x00, 0x00));
+    text.setBackground(new Color(0xf2, 0xf2, 0xf2));
+    text.setForeground(new Color(0xa4, 0x00, 0x00));
+    Font font = findFont("Monospaced", Font.PLAIN, 14, new String[]{"Monaco", "Andale Mono"});
+
+    text.setFont(font);
+    JScrollPane pane = new JScrollPane();
+    pane.setViewportView(text);
+    pane.setBorder(BorderFactory.createLineBorder(Color.darkGray));
+    console.getContentPane().add(pane);
+    console.validate();
+
+    final TextAreaReadline tar = new TextAreaReadline(text, " Welcome to the JBidwatcher IRB Scripting Console \n\n");
+
+    final RubyInstanceConfig config = new RubyInstanceConfig() {
+      {
+        setInput(pipeIn);
+        setOutput(new PrintStream(tar));
+        setError(new PrintStream(tar));
+        setObjectSpaceEnabled(false);
+      }
+    };
+    final Ruby runtime = Ruby.newInstance(config);
+
+    String[] args = new String[0];
+    IRubyObject argumentArray = runtime.newArrayNoCopy(JavaUtil.convertJavaArrayToRuby(runtime, args));
+    runtime.defineGlobalConstant("ARGV", argumentArray);
+    runtime.getGlobalVariables().defineReadonly("$*", new ValueAccessor(argumentArray));
+    runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))));
+    runtime.getLoadService().init(new ArrayList());
+
+    tar.hookIntoRuntime(runtime);
+
+    Thread t2 = new Thread() {
+      public void run() {
+        console.setVisible(true);
+        runtime.evalScript("require 'irb'; require 'irb/completion'; require 'builtin/javasupport.rb'; require 'jbidwatcher/quicktest'; IRB.start");
+      }
+    };
+    t2.start();
+
+    return console;
+  }
+
+  private Font findFont(String otherwise, int style, int size, String[] families) {
+    String[] fonts = GraphicsEnvironment
+            .getLocalGraphicsEnvironment()
+            .getAvailableFontFamilyNames();
+    Arrays.sort(fonts);
+    Font font = null;
+    for (String family : families) {
+      if (Arrays.binarySearch(fonts, family) >= 0) {
+        font = new Font(family, style, size);
+        break;
+      }
     }
+    if (font == null) font = new Font(otherwise, style, size);
+    return font;
   }
 
-  public JPanel getPanel() {
-    return mPanel1;
-  }
-
-  private void prepUI() {
-    mPanel1 = new JPanel();
-    mPanel1.setLayout(new BorderLayout(0, 0));
-    final JSplitPane splitPane1 = new JSplitPane();
-    splitPane1.setOrientation(0);
-    mPanel1.add(splitPane1, BorderLayout.CENTER);
-    final JPanel panel1 = new JPanel();
-    panel1.setLayout(new BorderLayout(0, 0));
-    splitPane1.setLeftComponent(panel1);
-    final JPanel panel2 = new JPanel();
-    panel2.setLayout(new BorderLayout(0, 0));
-    panel1.add(panel2, BorderLayout.SOUTH);
-    mExecuteButton = new JButton();
-    mExecuteButton.setHorizontalAlignment(0);
-    mExecuteButton.setName("Execute");
-    mExecuteButton.setText("Execute");
-    mExecuteButton.setMnemonic('E');
-    mExecuteButton.setDisplayedMnemonicIndex(0);
-    panel2.add(mExecuteButton, BorderLayout.EAST);
-    final JScrollPane scrollPane1 = new JScrollPane();
-    panel1.add(scrollPane1, BorderLayout.CENTER);
-    mEditorPane1 = new JEditorPane();
-    mEditorPane1.setName("Editor");
-    mEditorPane1.setMinimumSize(new Dimension(500, 110));
-    scrollPane1.setViewportView(mEditorPane1);
-    mTextArea1 = new JTextArea();
-    mTextArea1.setName("Output");
-    splitPane1.setRightComponent(mTextArea1);
+  public void messageAction(Object deQ)
+  {
+    String msg = (String) deQ;
+    if(mFrame == null) {
+      mFrame = getNewScriptManager();
+    }
+    if(msg.equals("SHOW")) {
+      mFrame.setVisible(true);
+    } else if(msg.equals("HIDE")) {
+      mFrame.setVisible(false);
+    }
   }
 }
