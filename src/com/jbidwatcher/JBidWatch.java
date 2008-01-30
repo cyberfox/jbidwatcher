@@ -622,7 +622,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * @param args Command line arguments.
    */
   public static void main(String[] args) {
-    Scripting.ruby("require 'jbidwatcher/quicktest.rb'");
+    Scripting.ruby("require 'jbidwatcher/utilities'");
 
     //  Check for a parameter (--help or -h) to show help for.
     if( CheckHelp(args) ) {

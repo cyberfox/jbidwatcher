@@ -71,7 +71,7 @@ public class ScriptManager implements MessageQueue.Listener
     Thread t2 = new Thread() {
       public void run() {
         console.setVisible(true);
-        runtime.evalScript("require 'irb'; require 'irb/completion'; require 'builtin/javasupport.rb'; require 'jbidwatcher/quicktest'; IRB.start");
+        runtime.evalScript("require 'irb'; require 'irb/completion'; require 'builtin/javasupport.rb'; require 'jbidwatcher/utilities'; IRB.start");
       }
     };
     t2.start();
