@@ -18,9 +18,9 @@ import java.util.Map;
  */
 public abstract class ActiveRecord extends HashBacked {
   protected static AuctionDB openDB(String tableName) {
-    AuctionDB db;
     if (tableName == null) return null;
 
+    AuctionDB db;
     try {
       db = new AuctionDB(tableName);
     } catch (Exception e) {
@@ -73,7 +73,7 @@ public abstract class ActiveRecord extends HashBacked {
       throw new RuntimeException("Can't instantiate " + klass.getName(), e);
     }
     DBRecord result = getTable(found).findFirstBy(key, value);
-    if (result != null && result.size() != 0) {
+    if (result != null && !result.isEmpty()) {
       found.setBacking(result);
     } else {
       found = null;
@@ -104,7 +104,6 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   protected void cache(Class klass) {
-    System.err.println("klass == " + this.getClass().getName());
     cache(klass, "id", getString("id"), this);
   }
 
@@ -140,7 +139,7 @@ public abstract class ActiveRecord extends HashBacked {
         Map<String, ActiveRecord> klassCache = sCache.get(klass);
         for (ActiveRecord record : klassCache.values()) {
           if (record != null && record.isDirty()) {
-            System.err.println("id = " + record.getId());
+//            System.err.println("id = " + record.getId());
             record.saveDB();
           }
         }

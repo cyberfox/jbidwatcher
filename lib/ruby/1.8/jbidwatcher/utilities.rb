@@ -8,6 +8,7 @@ import com.jbidwatcher.queue.MQFactory
 import com.jbidwatcher.auction.server.AuctionServerManager
 import com.jbidwatcher.auction.AuctionsManager
 import com.jbidwatcher.FilterManager
+import com.jbidwatcher.ui.TableColumnController
 
 class JBidwatcherUtilities
   def test_basics
@@ -84,10 +85,28 @@ class JBidwatcherUtilities
     entry.cancelSnipe(false)
     $filter_manager.redrawEntry(entry)
   end
+
+  def custom_column(column, auction)
+    @columns[column].call(auction)
+  end
+
+  def add_column(name, &block)
+    $table_controller.add_column(name)
+    @columns[name] = block
+  end
+
+  def initialize
+    @columns = {}    
+  end
 end
 
 $auction_server_manager = AuctionServerManager.getInstance
 $auctions_manager = AuctionsManager.getInstance
 $filter_manager = FilterManager.getInstance
+$table_controller = TableColumnController.getInstance
 
 JBidwatcher = JBidwatcherUtilities.new
+
+JBidwatcher.add_column "Winning?" do |ae|
+  ae.isHighBidder ? "Yes!" : "No..."
+end

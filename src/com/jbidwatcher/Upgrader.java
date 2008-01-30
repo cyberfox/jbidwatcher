@@ -8,7 +8,6 @@ import com.jbidwatcher.config.JConfig;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.io.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -27,26 +26,21 @@ public class Upgrader {
   }
 
   private static boolean dbMake(Database db) {
-    Statement mS;
 
     try {
       /*
          Creating a statement lets us issue commands against
          the connection.
        */
-      mS = db.getStatement();
+      Statement mS = db.getStatement();
 
       ResultSet rs = mS.getConnection().getMetaData().getTables(null, null, "AUCTIONS", null);
       if(!rs.next()) {
-        /*
-        * We create a table, add a few rows, and update one.
-        */
         String sql = StringTools.cat(StringTools.class.getClassLoader().getResource("/jbidwatcher.sql"));
         if(sql == null) sql = StringTools.cat(JConfig.getCanonicalFile("jbidwatcher.sql", "jbidwatcher", true));
         if(sql != null) {
           String[] statements = sql.split("(?m)^$");
           for (String statement : statements) {
-            System.err.println("sql == " + statement);
             mS.execute(statement);
           }
 

@@ -230,7 +230,12 @@ public class auctionTableModel extends BaseTransformation {
         }
 
         //  This should never happen, but to be safe...
-        default: return "";
+        default: {
+          if(j > TableColumnController.MAX_FIXED_COLUMN && j < TableColumnController.COLUMN_COUNT) {
+            return TableColumnController.getInstance().customColumn(j, aEntry);
+          }
+          return "";
+        }
       }
     } catch(ArrayIndexOutOfBoundsException ignored) {
       return getDummyValueAtColumn(j);
@@ -455,8 +460,12 @@ public class auctionTableModel extends BaseTransformation {
           return "--";
         case TableColumnController.SNIPE_TOTAL:
           return formatTotalSnipe(aEntry, errorNote);
-        default:
+        default: {
+          if(columnIndex > TableColumnController.MAX_FIXED_COLUMN && columnIndex < TableColumnController.COLUMN_COUNT) {
+            return TableColumnController.getInstance().customColumn(columnIndex, aEntry);
+          }
           return "";
+        }
       }
     } catch(ArrayIndexOutOfBoundsException aioobe) {
       return(getDummyValueAtColumn(columnIndex));

@@ -36,11 +36,16 @@ public class Scripting {
     }
   }
 
+  private static Object sJBidwatcher = null;
+
   public static Object rubyMethod(String method, Object... method_params) {
     ErrorManagement.logDebug("Executing: " + method + " with (" + StringTools.comma(method_params) + ")");
 
     try {
-      return sRuby.call(null, method, method_params);
+      if(sJBidwatcher == null) {
+        sJBidwatcher = sRuby.eval("ruby", 1, 1, "JBidwatcher");
+      }
+      return sRuby.call(sJBidwatcher, method, method_params);
     } catch (BSFException e) {
       ErrorManagement.handleException("Failed to execute: " + method, e);
     }
