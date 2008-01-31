@@ -497,6 +497,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
         return true;
       } else if(inArgs[0].startsWith("--test-ruby")) {
         try {
+          
           Scripting.rubyMethod("play_around", "Zarf");
         } catch(Exception e) { e.printStackTrace(); }
         return true;

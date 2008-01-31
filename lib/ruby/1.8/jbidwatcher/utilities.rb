@@ -87,11 +87,12 @@ class JBidwatcherUtilities
   end
 
   def custom_column(column, auction)
+    puts @columns.inspect
     @columns[column].call(auction)
   end
 
   def add_column(name, &block)
-    $table_controller.add_column(name)
+    $table_controller.add_column(name) unless @columns[name]
     @columns[name] = block
   end
 
@@ -110,3 +111,5 @@ JBidwatcher = JBidwatcherUtilities.new
 JBidwatcher.add_column "Winning?" do |ae|
   ae.isHighBidder ? "Yes!" : "No..."
 end
+
+# Except that the scripting manager has a different 'runtime' than this. :(

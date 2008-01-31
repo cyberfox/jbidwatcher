@@ -36,17 +36,8 @@ public class JTabPopupMenu extends JContext {
   private JPopupMenu makeTabMenu() {
     JPopupMenu myPopup = new JPopupMenu();
 
-    Collection<String> nameCollection = TableColumnController.getInstance().getColumnNames();
-    ArrayList<String> sortedNames = new ArrayList<String>(nameCollection);
-    Collections.sort(sortedNames);
-
     customize = new JMenu("Custom Columns");
-    for (String s : sortedNames) {
-      JCheckBoxMenuItem colMenuItem = new JCheckBoxMenuItem(s);
-      colMenuItem.setActionCommand('~' + s);
-      customize.add(colMenuItem).addActionListener(this);
-      menuItemMap.put(s, colMenuItem);
-    }
+
     customize.getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
       public void popupMenuWillBecomeVisible(PopupMenuEvent e) { prepCustomColumnMenu(null); }
       public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }
@@ -98,6 +89,18 @@ public class JTabPopupMenu extends JContext {
   }
 
   public void prepCustomColumnMenu(Integer tabIndex) {
+    customize.removeAll();
+    Collection<String> nameCollection = TableColumnController.getInstance().getColumnNames();
+    ArrayList<String> sortedNames = new ArrayList<String>(nameCollection);
+    Collections.sort(sortedNames);
+
+    for (String s : sortedNames) {
+      JCheckBoxMenuItem colMenuItem = new JCheckBoxMenuItem(s);
+      colMenuItem.setActionCommand('~' + s);
+      customize.add(colMenuItem).addActionListener(this);
+      menuItemMap.put(s, colMenuItem);
+    }
+
     if(tabIndex == null) tabIndex = _myTabs.getSelectedIndex();
     customize.setEnabled(true);
     String tabName = _myTabs.getTitleAt(tabIndex);

@@ -15,6 +15,7 @@ import org.jruby.RubyInstanceConfig;
 import org.jruby.Ruby;
 import org.jruby.internal.runtime.ValueAccessor;
 import org.jruby.javasupport.JavaUtil;
+import org.jruby.javasupport.Java;
 import org.jruby.runtime.builtin.IRubyObject;
 
 public class ScriptManager implements MessageQueue.Listener
@@ -68,13 +69,17 @@ public class ScriptManager implements MessageQueue.Listener
 
     tar.hookIntoRuntime(runtime);
 
+    runtime.evalScript("require 'builtin/javasupport.rb'; require 'jbidwatcher/utilities';");
     Thread t2 = new Thread() {
       public void run() {
         console.setVisible(true);
-        runtime.evalScript("require 'irb'; require 'irb/completion'; require 'builtin/javasupport.rb'; require 'jbidwatcher/utilities'; IRB.start");
+        runtime.evalScript("require 'irb'; require 'irb/completion'; IRB.start");
       }
     };
     t2.start();
+
+    Object[] foo = {"Simple Test!"};
+    System.err.println("Running a simple test: " + runtime.evalScript("JBidwatcher").callMethod(runtime.getCurrentContext(), "play_around", JavaUtil.convertJavaArrayToRuby(runtime, foo)));
 
     return console;
   }
