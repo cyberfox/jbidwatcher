@@ -288,6 +288,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
 
     AuctionStats as = AuctionServerManager.getInstance().getStats();
 
+    //  TODO -- Do something more valuable than just notify, when the auction counts are off.
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if(as != null) {
       if(as.getCount() != auctionTotal || (savedCount != -1 && as.getCount() != savedCount)) {

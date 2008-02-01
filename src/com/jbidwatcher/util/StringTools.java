@@ -243,4 +243,8 @@ public class StringTools {
 
     return rval;
   }
+
+  public static boolean startsWithIgnoreCase(String base, String match) {
+    return base.regionMatches(true, 0, match, 0, match.length());
+  }
 }

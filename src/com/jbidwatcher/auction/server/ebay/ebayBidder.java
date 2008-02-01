@@ -9,6 +9,7 @@ import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.Scripting;
+import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.queue.MQFactory;
 
@@ -127,7 +128,7 @@ public class ebayBidder implements Bidder {
         } else if(JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
           String result = (String)Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
           ErrorManagement.logDebug(result);
-          return null;
+//          return null;
         }
 
         htmlDocument = new JHTML(loadedPage);
@@ -142,7 +143,7 @@ public class ebayBidder implements Bidder {
           String signOn = htmlDocument.getFirstContent();
           if (signOn != null) {
             ErrorManagement.logDebug("Checking sign in as bid key load failed!");
-            if (signOn.equalsIgnoreCase("Sign In")) {
+            if (StringTools.startsWithIgnoreCase(signOn, "sign in")) {
               //  This means we somehow failed to keep the login in place.  Bad news, in the middle of a snipe.
               ErrorManagement.logDebug("Being prompted again for sign in, retrying.");
               if(JConfig.debugging) inEntry.setLastStatus("Not done loading bid request, got re-login request...");
