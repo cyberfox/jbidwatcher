@@ -61,7 +61,7 @@ public class auctionTableModel extends BaseTransformation {
        i==TableColumnController.BIDCOUNT ||
        i==TableColumnController.SELLER_POSITIVE_FEEDBACK) return Integer.class;
 
-    if(i==-1) return String.class;
+    if(i==-1 || i > TableColumnController.MAX_FIXED_COLUMN) return String.class;
 
     Object o = getDummyValueAtColumn(i);
     return o.getClass();
@@ -175,7 +175,7 @@ public class auctionTableModel extends BaseTransformation {
         case TableColumnController.TIME_LEFT: return aEntry.getEndDate();
         case TableColumnController.TITLE: return aEntry.getTitle();
         case TableColumnController.STATUS: return buildEntryFlags(aEntry);
-        case TableColumnController.THUMBNAIL: return aEntry.getThumbnail();
+        case TableColumnController.THUMBNAIL: return aEntry.getThumbnail().hashCode();
         case TableColumnController.SELLER: return aEntry.getSeller();
         case TableColumnController.FIXED_PRICE:
           return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getBuyNow());

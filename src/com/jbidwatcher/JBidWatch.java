@@ -497,7 +497,8 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
         return true;
       } else if(inArgs[0].startsWith("--test-ruby")) {
         try {
-          
+          Scripting.initialize();
+          Scripting.ruby("require 'jbidwatcher/utilities'");
           Scripting.rubyMethod("play_around", "Zarf");
         } catch(Exception e) { e.printStackTrace(); }
         return true;
@@ -623,8 +624,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * @param args Command line arguments.
    */
   public static void main(String[] args) {
-    Scripting.ruby("require 'jbidwatcher/utilities'");
-
     //  Check for a parameter (--help or -h) to show help for.
     if( CheckHelp(args) ) {
       System.exit(0);
@@ -1108,6 +1107,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     searchManager = SearchManager.getInstance();
     searchManager.loadSearches();
 
+    Scripting.initialize();
     AuctionServerManager.getInstance().getDefaultServerTime();
 
     JConfig.registerListener(this);

@@ -5,6 +5,7 @@ require 'cgi'
 import com.jbidwatcher.config.JConfig
 import com.jbidwatcher.util.Currency
 import com.jbidwatcher.queue.MQFactory
+import com.jbidwatcher.auction.AuctionEntry
 import com.jbidwatcher.auction.server.AuctionServerManager
 import com.jbidwatcher.auction.AuctionsManager
 import com.jbidwatcher.FilterManager
@@ -87,8 +88,7 @@ class JBidwatcherUtilities
   end
 
   def custom_column(column, auction)
-    puts @columns.inspect
-    @columns[column].call(auction)
+    @columns[column].call(auction).to_s
   end
 
   def add_column(name, &block)
@@ -111,5 +111,8 @@ JBidwatcher = JBidwatcherUtilities.new
 JBidwatcher.add_column "Winning?" do |ae|
   ae.isHighBidder ? "Yes!" : "No..."
 end
+
+auction_test = $auctions_manager.getEntry('330188816600')
+puts auction_test.isHighBidder
 
 # Except that the scripting manager has a different 'runtime' than this. :(

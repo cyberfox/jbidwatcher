@@ -20,6 +20,8 @@ import java.util.regex.Pattern;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.jruby.runtime.builtin.IRubyObject;
+
 /**
  * Created by IntelliJ IDEA.
 * User: mrs
@@ -123,8 +125,8 @@ public class ebayBidder implements Bidder {
         if (loadedPage == null) {
           return null;
         } else if(JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-          Object o = Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
-          ErrorManagement.logDebug(o.toString());
+          String result = (String)Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
+          ErrorManagement.logDebug(result);
           return null;
         }
 
@@ -192,10 +194,17 @@ public class ebayBidder implements Bidder {
 
     if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true") &&
         JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-      Object o = Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
+      String recognize = (String)Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
+      Integer remote_result = null;
+      try {
+        remote_result = Integer.parseInt(recognize);
+      } catch(NumberFormatException nfe) {
+        //  Ignore it for now...
+        ErrorManagement.logDebug(recognize);
+      }
 
-      if(o != null && (Integer)o != AuctionServer.BID_ERROR_UNKNOWN) {
-        throw new BadBidException("", (Integer)o);
+      if(remote_result != null && remote_result != AuctionServer.BID_ERROR_UNKNOWN) {
+        throw new BadBidException("Remote-checked result", remote_result);
       }
     }
 

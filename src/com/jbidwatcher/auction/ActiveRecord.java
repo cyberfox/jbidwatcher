@@ -112,18 +112,18 @@ public abstract class ActiveRecord extends HashBacked {
     try {
       ActiveRecord o = (ActiveRecord) klass.newInstance();
       results = getTable(o).findAll();
-      boolean first = true;
+//      boolean first = true;
       for (DBRecord record : results) {
         ActiveRecord row = (ActiveRecord) klass.newInstance();
         row.setBacking(record);
         cache(klass, key, row.get(key), row);
-        if(first) {
-          first = false;
-          for(String colName : record.keySet()) System.err.print(colName + "\t");
-          System.err.println();
-        }
-        for(String colName : record.keySet()) System.err.print(record.get(colName) + "\t");
-        System.err.println();
+//        if(first) {
+//          first = false;
+//          for(String colName : record.keySet()) System.err.print(colName + "\t");
+//          System.err.println();
+//        }
+//        for(String colName : record.keySet()) System.err.print(record.get(colName) + "\t");
+//        System.err.println();
       }
     } catch (Exception e) {
       //  Ignore, as this is just for pre-caching...

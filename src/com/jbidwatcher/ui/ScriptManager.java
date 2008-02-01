@@ -2,11 +2,14 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.queue.MessageQueue;
+import com.jbidwatcher.util.Scripting;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.PipedInputStream;
 import java.io.PrintStream;
+import java.io.OutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -28,7 +31,6 @@ public class ScriptManager implements MessageQueue.Listener
 
   public JFrame getNewScriptManager() {
     final JFrame console = new JFrame("JBidwatcher Scripting Console");
-    final PipedInputStream pipeIn = new PipedInputStream();
 
     console.getContentPane().setLayout(new BorderLayout());
     console.setSize(700, 600);
@@ -50,26 +52,10 @@ public class ScriptManager implements MessageQueue.Listener
 
     final TextAreaReadline tar = new TextAreaReadline(text, " Welcome to the JBidwatcher IRB Scripting Console \n\n");
 
-    final RubyInstanceConfig config = new RubyInstanceConfig() {
-      {
-        setInput(pipeIn);
-        setOutput(new PrintStream(tar));
-        setError(new PrintStream(tar));
-        setObjectSpaceEnabled(false);
-      }
-    };
-    final Ruby runtime = Ruby.newInstance(config);
-
-    String[] args = new String[0];
-    IRubyObject argumentArray = runtime.newArrayNoCopy(JavaUtil.convertJavaArrayToRuby(runtime, args));
-    runtime.defineGlobalConstant("ARGV", argumentArray);
-    runtime.getGlobalVariables().defineReadonly("$*", new ValueAccessor(argumentArray));
-    runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))));
-    runtime.getLoadService().init(new ArrayList());
-
+    final Ruby runtime = Scripting.getRuntime();
     tar.hookIntoRuntime(runtime);
 
-    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'jbidwatcher/utilities';");
+    Scripting.setOutput(tar);
     Thread t2 = new Thread() {
       public void run() {
         console.setVisible(true);
@@ -77,9 +63,6 @@ public class ScriptManager implements MessageQueue.Listener
       }
     };
     t2.start();
-
-    Object[] foo = {"Simple Test!"};
-    System.err.println("Running a simple test: " + runtime.evalScriptlet("JBidwatcher").callMethod(runtime.getCurrentContext(), "play_around", JavaUtil.convertJavaArrayToRuby(runtime, foo)));
 
     return console;
   }
