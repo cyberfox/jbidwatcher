@@ -107,12 +107,3 @@ $filter_manager = FilterManager.getInstance
 $table_controller = TableColumnController.getInstance
 
 JBidwatcher = JBidwatcherUtilities.new
-
-JBidwatcher.add_column "Winning?" do |ae|
-  ae.isHighBidder ? "Yes!" : "No..."
-end
-
-auction_test = $auctions_manager.getEntry('330188816600')
-puts auction_test.isHighBidder
-
-# Except that the scripting manager has a different 'runtime' than this. :(
