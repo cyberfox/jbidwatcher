@@ -249,7 +249,16 @@
   </target>
 
   <target name="release" depends="tar,osx,exe" description="Build for a full release." />
-  <target name="prerelease" depends="jar,tar,osx" description="Build for a pre-release version." />
+  <target name="prerelease" depends="jar,tar,osx,exe" description="Build for a pre-release version.">
+    <scp verbose="true" todir="cyberfox@jbidwatcher.com:www/htdocs/beta" keyfile="/home/mrs/.ssh/id_rsa" passphrase="">
+      <fileset dir="${main.dir}">
+	<include name="${BINARY}" />
+	<include name="${APPFILE}" />
+	<include name="${EXEFILE}" />
+	<include name="${TARFILE}" />
+      </fileset>
+    </scp>
+  </target>
 
   <target name="run" description="Start Application">
     <java fork="true" jar="${BINARY}" args="-Xmx512m -Xms256m"/>
