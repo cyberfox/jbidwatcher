@@ -248,7 +248,17 @@
     <move file="${OPT_BIN}" tofile="${BINARY}" />
   </target>
 
-  <target name="release" depends="tar,osx,exe" description="Build for a full release." />
+  <target name="release" depends="tar,jar,osx,exe" description="Build for a full release.">
+    <scp verbose="true" todir="cyberfox@jbidwatcher.com:www/htdocs/rdl" keyfile="/home/mrs/.ssh/id_rsa" passphrase="">
+      <fileset dir="${main.dir}">
+	<include name="${BINARY}" />
+	<include name="${APPFILE}" />
+	<include name="${EXEFILE}" />
+	<include name="${TARFILE}" />
+      </fileset>
+    </scp>
+  </target>
+
   <target name="prerelease" depends="jar,tar,osx,exe" description="Build for a pre-release version.">
     <scp verbose="true" todir="cyberfox@jbidwatcher.com:www/htdocs/beta" keyfile="/home/mrs/.ssh/id_rsa" passphrase="">
       <fileset dir="${main.dir}">
