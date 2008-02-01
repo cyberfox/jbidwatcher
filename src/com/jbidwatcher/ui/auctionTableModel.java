@@ -423,7 +423,8 @@ public class auctionTableModel extends BaseTransformation {
           String comment = aEntry.getComment();
           return(comment==null?"":comment);
         case TableColumnController.BIDDER:
-          if(aEntry.getHighBidder() != null) {
+          String bidder = aEntry.getHighBidder();
+          if(bidder != null && bidder.length() != 0) {
             return aEntry.getHighBidder();
           }
           return "--";

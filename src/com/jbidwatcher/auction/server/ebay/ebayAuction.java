@@ -716,48 +716,57 @@ class ebayAuction extends SpecificAuction {
   }
 
   private void checkHighBidder() {
-    /**
-     * THIS is absurd.  This needs to be cleaned up.  -- mrs: 18-September-2003 21:08
-     */
-    if (isFixedPrice()) {
-      setHighBidder(mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.buyer")));
-      if (getHighBidder() != null) {
-        setNumBids(1);
-        setHighBidder(getHighBidder().trim());
-        setHighBidderEmail(mDocument.getNextContentAfterContent(getHighBidder(), true, false));
-        if (getHighBidderEmail() != null) {
-          setHighBidderEmail(getHighBidderEmail().trim());
-          if (getHighBidderEmail().charAt(0) == '(' && getHighBidderEmail().charAt(getHighBidderEmail().length()-1) == ')' && getHighBidderEmail().indexOf('@') != -1) {
-            setHighBidderEmail(getHighBidderEmail().substring(1, getHighBidderEmail().length() - 1));
-          }
-        }
-        if (getHighBidderEmail() == null || getHighBidderEmail().equals("(")) {
-          setHighBidderEmail("(unknown)");
-        }
-      } else {
-        setHighBidder("");
-      }
-    } else {
-      if (getQuantity() > 1) {
-        setHighBidder("(dutch)");
-        setDutch(true);
-      } else {
-        setHighBidder("");
-        if (getNumBids() != 0) {
-          setHighBidder(mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.highBidder")));
-          if (getHighBidder() != null) {
-            setHighBidder(getHighBidder().trim());
+    String bidder = null;
+    String email = null;
 
-            setHighBidderEmail(mDocument.getNextContentAfterContent(getHighBidder(), true, false));
-            if (getHighBidderEmail().charAt(0) == '(' && getHighBidderEmail().charAt(getHighBidderEmail().length()-1) == ')' && getHighBidderEmail().indexOf('@') != -1) {
-              setHighBidderEmail(getHighBidderEmail().substring(1, getHighBidderEmail().length() - 1));
+    if(mDocument.grep("This is a private listing.*") != null) {
+      bidder = "(private)";
+      setPrivate(true);
+    } else {
+      if (isFixedPrice()) {
+        bidder = mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.buyer"));
+        if (bidder != null) {
+          setNumBids(1);
+          bidder = bidder.trim();
+          email = findHighBidderEmail(bidder);
+        }
+      } else {
+        if (getQuantity() > 1) {
+          setDutch(true);
+          bidder = "(dutch)";
+        } else {
+          if (getNumBids() != 0) {
+            bidder = mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.highBidder"));
+            if (bidder != null) {
+              bidder = bidder.trim();
+              email = findHighBidderEmail(bidder);
+            } else {
+              bidder = "(unknown)"; //  ...but present.
             }
-          } else {
-            setHighBidder("(unknown)");
           }
         }
       }
     }
+
+    setHighBidder(bidder == null ? "" : bidder);
+    setHighBidderEmail(email == null ? "(unknown)" : email);
+  }
+
+  private String findHighBidderEmail(String bidder) {
+    String email = null;
+
+    if(bidder != null) {
+      email = mDocument.getNextContentAfterContent(bidder, true, false);
+      if (email != null) {
+        email = email.trim();
+        if (email.charAt(0) == '(' && email.charAt(email.length() - 1) == ')' && email.indexOf('@') != -1) {
+          email = (email.substring(1, email.length() - 1));
+        }
+        if (email.equals("(")) email = null;
+      }
+    }
+
+    return email;
   }
 
   private int getBidCount(JHTML doc, int quantity) {
