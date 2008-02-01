@@ -1,8 +1,8 @@
 #
 #   sync.rb - 2 phase lock with counter
 #   	$Release Version: 1.0$
-#   	$Revision: 2910 $
-#   	$Date: 2007-02-01 22:42:15 -0600 (Thu, 01 Feb 2007) $
+#   	$Revision: 5479 $
+#   	$Date: 2008-01-03 15:39:44 -0600 (Thu, 03 Jan 2008) $
 #   	by Keiju ISHITSUKA(keiju@ishitsuka.com)
 #
 # --
@@ -44,7 +44,7 @@ unless defined? Thread
 end
 
 module Sync_m
-  RCS_ID='-$Header: /src/ruby/lib/sync.rb,v 1.4 2001/06/06 14:19:33 keiju Exp $-'
+  RCS_ID='-$Header$-'
   
   # lock mode
   UN = :UN

@@ -3,7 +3,7 @@
 # 
 # Copyright (C) 2001, 2002, 2003 by Michael Neumann (mneumann@ntecs.de)
 #
-# $Id: create.rb 2906 2007-02-02 00:35:06Z headius $
+# $Id: create.rb 5479 2008-01-03 21:39:44Z headius $
 #
 
 require "date"
@@ -241,7 +241,7 @@ module XMLRPC
 	    @writer.ele("data", *a)
 	  )
 
-	when Time, Date
+	when Time, Date, ::DateTime
 	  @writer.tag("dateTime.iso8601", param.strftime("%Y%m%dT%H:%M:%S"))  
 
 	when XMLRPC::DateTime

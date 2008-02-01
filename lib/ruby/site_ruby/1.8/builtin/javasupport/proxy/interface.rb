@@ -1,12 +1,13 @@
 class JavaInterfaceExtender
-  # :nodoc:
   def initialize(java_class_name, &block)
+    # don't really need @java_class here any more, keeping around
+    # in case any users use this class directly
     @java_class = Java::JavaClass.for_name(java_class_name)
     @block = block
   end
   
   def extend_proxy(proxy_class)
-    proxy_class.class_eval &@block if @java_class.assignable_from? proxy_class.java_class
+    proxy_class.class_eval(&@block)
   end
 end
 
@@ -52,8 +53,6 @@ class InterfaceJavaProxy < JavaProxy
 end
 
 # TODO: I think we can drop this now
-# :nodoc:
-# DEPRECATED
 class MultipleInterfaceJavaProxy
   attr_reader :interfaces
     
@@ -98,7 +97,6 @@ class MultipleInterfaceJavaProxy
 end
 
 # template for Java interface modules, not used directly
-# :nodoc:
 module JavaInterfaceTemplate
  class << self
   attr :java_class
@@ -145,7 +143,7 @@ public
               end
 
               def java_interfaces
-                @java_interfaces              
+                @java_interfaces
               end
               private :java_interfaces
 
@@ -153,13 +151,22 @@ public
 
             def __jcreate!(*ignored_args)
               interfaces = self.class.send(:java_interfaces)
+              __jcreate_proxy!(interfaces, *ignored_args)
+            end
+
+            def __jcreate_meta!(*ignored_args)
+              interfaces = (class << self; self; end).send(:java_interfaces)
+              __jcreate_proxy!(interfaces, *ignored_args)
+            end
+
+            def __jcreate_proxy!(interfaces, *ignored_args)
               interfaces.freeze unless interfaces.frozen?
               self.java_object = Java.new_proxy_instance(*interfaces) do |proxy2, method, *args|
                 args.collect! { |arg| Java.java_to_ruby(arg) }
                 Java.ruby_to_java(self.__send__(method.name, *args))
               end
             end
-            private :__jcreate!
+            private :__jcreate!, :__jcreate_meta!, :__jcreate_proxy!
 
             include ::JavaProxyMethods
 
@@ -222,9 +229,11 @@ public
     super
   end #append_features
   
-  def extended(clazz)
-    puts "Hmmm, we really don't understand what you're going for here. But good luck with that."
-  end
+  def extended(obj)
+     metaclass = class << obj; self; end
+     interface_class = self
+     metaclass.instance_eval { include interface_class }
+   end
 
   # array creation/identity
   def [](*args)

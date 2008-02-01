@@ -1,7 +1,8 @@
+#!/usr/bin/env ruby
 #--
 # $Idaemons: /home/cvs/rb/generator.rb,v 1.8 2001/10/03 08:54:32 knu Exp $
 # $RoughId: generator.rb,v 1.10 2003/10/14 19:36:58 knu Exp $
-# $Id: generator.rb 2576 2006-12-13 08:31:40Z olabini $
+# $Id: generator.rb 5479 2008-01-03 21:39:44Z headius $
 #++
 #
 # = generator.rb: convert an internal iterator to an external one

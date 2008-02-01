@@ -1,8 +1,8 @@
 #
 #   irb/locale.rb - internationalization module
 #   	$Release Version: 0.9.5$
-#   	$Revision: 2910 $
-#   	$Date: 2007-02-01 22:42:15 -0600 (Thu, 01 Feb 2007) $
+#   	$Revision: 5479 $
+#   	$Date: 2008-01-03 15:39:44 -0600 (Thu, 03 Jan 2008) $
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
@@ -14,7 +14,7 @@ autoload :Kconv, "kconv"
 
 module IRB
   class Locale
-    @RCS_ID='-$Id: locale.rb 2910 2007-02-02 04:42:15Z headius $-'
+    @RCS_ID='-$Id: locale.rb 5479 2008-01-03 21:39:44Z headius $-'
 
     JPDefaultLocale = "ja"
     LOCALE_DIR = "/lc/"
@@ -71,7 +71,7 @@ module IRB
     end
 
     def puts(*opts)
-      ary = opts.collect{|opt| String(opts)}
+      ary = opts.collect{|opt| String(opt)}
       super(*ary)
     end
 
@@ -153,8 +153,8 @@ module IRB
     end
 
     def search_file(path, file)
-      if File.exists?(p1 = path + lc_path(file, "C"))
-	if File.exists?(p2 = path + lc_path(file))
+      if File.exist?(p1 = path + lc_path(file, "C"))
+	if File.exist?(p2 = path + lc_path(file))
 	  return p2
 	else
 	end

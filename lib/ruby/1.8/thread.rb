@@ -1,6 +1,10 @@
 #
+# NOTE:
+#   This file is overwritten by ext/thread/lib/thread.rb unless ruby
+#   is configured with --disable-fastthread.
+#
 #		thread.rb - thread support classes
-#			$Date: 2007-01-09 09:51:17 -0600 (Tue, 09 Jan 2007) $
+#			$Date: 2008-01-03 15:39:44 -0600 (Thu, 03 Jan 2008) $
 #			by Yukihiro Matsumoto <matz@netlab.co.jp>
 #
 # Copyright (C) 2001  Yukihiro Matsumoto
@@ -10,15 +14,6 @@
 
 unless defined? Thread
   fail "Thread not available for this ruby interpreter"
-end
-
-unless defined? ThreadError
-  class ThreadError<StandardError
-  end
-end
-
-if $DEBUG
-  Thread.abort_on_exception = true
 end
 
 class Thread
@@ -38,4 +33,3 @@ class Thread
 end
 
 require 'thread.so'
-

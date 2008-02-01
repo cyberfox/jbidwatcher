@@ -1,8 +1,8 @@
 #
 #   shell/process-controller.rb - 
 #   	$Release Version: 0.6.0 $
-#   	$Revision: 2062 $
-#   	$Date: 2006-06-10 14:14:15 -0500 (Sat, 10 Jun 2006) $
+#   	$Revision: 5479 $
+#   	$Date: 2008-01-03 15:39:44 -0600 (Thu, 03 Jan 2008) $
 #   	by Keiju ISHITSUKA(Nihon Rational Software Co.,Ltd)
 #
 # --
@@ -246,9 +246,11 @@ class Shell
 	    redo
 	  end
 	  Thread.exclusive do
-	    terminate_job(command)
-	    @job_condition.signal
-	    command.notify "job(%id) finish.", @shell.debug?
+	    @job_monitor.synchronize do 
+	      terminate_job(command)
+	      @job_condition.signal
+	      command.notify "job(%id) finish.", @shell.debug?
+	    end
 	  end
 	end
       }

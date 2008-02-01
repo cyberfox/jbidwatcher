@@ -69,17 +69,17 @@ public class ScriptManager implements MessageQueue.Listener
 
     tar.hookIntoRuntime(runtime);
 
-    runtime.evalScript("require 'builtin/javasupport.rb'; require 'jbidwatcher/utilities';");
+    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'jbidwatcher/utilities';");
     Thread t2 = new Thread() {
       public void run() {
         console.setVisible(true);
-        runtime.evalScript("require 'irb'; require 'irb/completion'; IRB.start");
+        runtime.evalScriptlet("require 'irb'; require 'irb/completion'; IRB.start");
       }
     };
     t2.start();
 
     Object[] foo = {"Simple Test!"};
-    System.err.println("Running a simple test: " + runtime.evalScript("JBidwatcher").callMethod(runtime.getCurrentContext(), "play_around", JavaUtil.convertJavaArrayToRuby(runtime, foo)));
+    System.err.println("Running a simple test: " + runtime.evalScriptlet("JBidwatcher").callMethod(runtime.getCurrentContext(), "play_around", JavaUtil.convertJavaArrayToRuby(runtime, foo)));
 
     return console;
   }

@@ -3,7 +3,7 @@
 #
 # Author:: Akira Yamada <akira@ruby-lang.org>
 # License:: You can redistribute it and/or modify it under the same term as Ruby.
-# Revision:: $Id: generic.rb 2062 2006-06-10 19:14:15Z headius $
+# Revision:: $Id: generic.rb 5479 2008-01-03 21:39:44Z headius $
 #
 
 require 'uri/common'
@@ -12,6 +12,7 @@ module URI
   
   #
   # Base class for all URI classes.
+  # Implements generic URI syntax as per RFC 2396.
   #
   class Generic
     include URI
@@ -303,19 +304,19 @@ module URI
       end
       check_userinfo(*userinfo)
       set_userinfo(*userinfo)
-      userinfo
+      # returns userinfo
     end
 
     def user=(user)
       check_user(user)
       set_user(user)
-      user
+      # returns user
     end
     
     def password=(password)
       check_password(password)
       set_password(password)
-      password
+      # returns password
     end
 
     def set_userinfo(user, password = nil)
@@ -336,8 +337,8 @@ module URI
     protected :set_user
 
     def set_password(v)
-      set_userinfo(@user, v)
-      v
+      @password = v
+      # returns v
     end
     protected :set_password
 
@@ -355,7 +356,9 @@ module URI
     private :escape_userpass
 
     def userinfo
-      if !@password
+      if @user.nil?
+        nil
+      elsif @password.nil?
         @user
       else
         @user + ':' + @password

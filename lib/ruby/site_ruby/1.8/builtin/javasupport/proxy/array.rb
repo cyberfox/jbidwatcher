@@ -12,7 +12,6 @@ class ArrayJavaProxyCreator
     end
   
   private
-  # :nodoc:
   def extract_dimensions(args)
     unless args.length > 0
       raise ArgumentError,"empty array dimensions specified"    
@@ -22,8 +21,8 @@ class ArrayJavaProxyCreator
         raise ArgumentError,"array dimension length must be Fixnum"    
       end
       @dimensions << arg
+    end  
     end
-  end
   public
   
   def new(fill_value=nil)

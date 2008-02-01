@@ -102,7 +102,7 @@ module Base64
   #
   #    require 'base64'
   #    data = "Now is the time for all good coders\nto learn Ruby" 
-  #    puts Base64.b64encode(data)
+  #    Base64.b64encode(data)
   #
   # <i>Generates:</i>
   #
@@ -110,7 +110,7 @@ module Base64
   #    UnVieQ==
 
   def b64encode(bin, len = 60)
-    encode64(bin).scan(/.{1,#{len}}/o) do
+    encode64(bin).scan(/.{1,#{len}}/) do
       print $&, "\n"
     end
   end 

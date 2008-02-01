@@ -1,8 +1,8 @@
 #
 #               getopts.rb - 
 #                       $Release Version: $
-#                       $Revision: 2910 $
-#                       $Date: 2007-02-01 22:42:15 -0600 (Thu, 01 Feb 2007) $
+#                       $Revision: 5479 $
+#                       $Date: 2008-01-03 15:39:44 -0600 (Thu, 03 Jan 2008) $
 #                       by Yasuo OHBA(SHL Japan Inc. Technology Dept.)
 #
 # --
@@ -17,7 +17,7 @@
 
 warn "Warning:#{caller[0].sub(/:in `.*'\z/, '')}: getopts is deprecated after Ruby 1.8.1; use optparse instead" if caller[0] and $VERBOSE
 
-$RCS_ID=%q$Header: /src/ruby/lib/getopts.rb,v 1.8.2.4 2006/08/04 22:00:21 drbrain Exp $
+$RCS_ID=%q$Header$
 
 # getopts is obsolete. Use GetoptLong.
 
