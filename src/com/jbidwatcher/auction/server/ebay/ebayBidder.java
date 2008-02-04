@@ -19,9 +19,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
-import java.util.Iterator;
-
-import org.jruby.runtime.builtin.IRubyObject;
 
 /**
  * Created by IntelliJ IDEA.

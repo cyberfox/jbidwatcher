@@ -10,7 +10,6 @@ import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.BrowserLauncher;
-import com.jbidwatcher.JBidWatch;
 import com.jbidwatcher.FilterManager;
 
 import javax.swing.*;
@@ -97,7 +96,7 @@ public class RSSDialog extends BasicDialog {
     };
 
     endedButton.addActionListener(al);
-    JButton feedButton = JBidWatch.makeButton("icons/feed.gif", "Launch feed:// URL", "Feed-" + actionString, al, true);
+    JButton feedButton = JBidToolBar.makeButton("icons/feed.gif", "Launch feed:// URL", "Feed-" + actionString, al, true);
     tmpPanel.add(JConfigTab.makeLine(feedButton, new JLabel(" ")), BorderLayout.EAST);
     return tmpPanel;
   }

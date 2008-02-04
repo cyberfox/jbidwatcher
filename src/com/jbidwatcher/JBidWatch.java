@@ -8,6 +8,7 @@ package com.jbidwatcher;
 import com.jbidwatcher.auction.ActiveRecord;
 import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.ThumbnailManager;
+import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionStats;
@@ -15,16 +16,12 @@ import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.config.JBConfig;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.config.JConfigFrame;
-import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.platform.Tray;
 import com.jbidwatcher.queue.*;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.*;
-import com.jbidwatcher.util.AudioPlayer;
-import com.jbidwatcher.util.ErrorManagement;
-import com.jbidwatcher.util.RuntimeInfo;
-import com.jbidwatcher.util.Scripting;
+import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.db.DBManager;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.webserver.JBidProxy;
@@ -33,8 +30,6 @@ import com.jbidwatcher.xml.JTransformer;
 import com.jbidwatcher.xml.XMLElement;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -54,7 +49,6 @@ import java.util.List;
  * Perfection is reached, not when there is no longer anything to add, but
  * when there is no longer anything to take away.
  *                 -- Antoine de Saint-Exupery
- *
  */
 
 /** Primary class which holds the main, and prepares and launches
@@ -79,25 +73,17 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private JFrame mainFrame;
   private boolean _linkUp = true;
   private boolean _userValid;
-  private JLabel _headerStatus;
-  private JPanel _bidBarPanel;
-  private JBidMenuBar _bidMenu;
   private JLabel _statusBar;
-  private static final int SELECT_BOX_SIZE=20;
-  private JTextField selectBox = new JTextField(SELECT_BOX_SIZE);
   private TimerHandler itemUpdateTimer;
   private TimerHandler searchTimer;
   private JTabManager jtmAuctions;
   private AuctionsManager aucManager;
   private SearchManager searchManager;
 
-  private TimeQueueManager m_tqm = new TimeQueueManager();
-
   private static String _cfgLoad = "JBidWatch.cfg";
   private RuntimeInfo _rti;
   private static final int HOURS_IN_DAY = 24;
   private static final int MINUTES_IN_HOUR = 60;
-  private static final int ONE_SECOND = Constants.ONE_SECOND;
   private static final int ONEK = 1024;
 
   /**
@@ -124,7 +110,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private final static String QUIT_MSG = "QUIT";
   private final static String LINK_MSG = "LINK ";
   private final static String ERROR_MSG = "ERROR ";
-  private static final String VISIBILITY_MSG = "VISIBILITY";
+  private final static String VISIBILITY_MSG = "VISIBILITY";
   private final static String NEWVERSION_MSG = "NEWVERSION";
   private final static String NO_NEWVERSION_MSG = "NO_NEWVERSION";
   private final static String BAD_NEWVERSION_MSG = "BAD_NEWVERSION";
@@ -160,8 +146,8 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   public void messageAction(Object deQ) {
     String msg = (String) deQ;
     if(msg.startsWith(HEADER_MSG)) {
-      _headerStatus.setText(msg.substring(HEADER_MSG.length()));
-      //      _headerStatus.paintImmediately(_headerStatus.getVisibleRect());
+      JBidToolBar.getInstance().setText(msg.substring(HEADER_MSG.length()));
+      //      JBidToolBar.getInstance().paintImmediately(JBidToolBar.getInstance().getVisibleRect());
       FilterManager.getInstance().check();
     } else if(msg.startsWith(LINK_MSG)) {
       String linkStat = msg.substring(LINK_MSG.length());
@@ -169,11 +155,11 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
         setLinkUp(linkStat.startsWith("UP"));
         String rest = linkStat.substring(linkStat.startsWith("UP")?2:4);
         if (rest.length() == 0) {
-          if(_userValid) _headerStatus.setToolTipText("");
+          if(_userValid) JBidToolBar.getInstance().setToolTipText("");
         } else {
           //  Skip a 'space' at the start.
           rest = rest.substring(1);
-          if(_userValid) _headerStatus.setToolTipText(rest);
+          if(_userValid) JBidToolBar.getInstance().setToolTipText(rest);
         }
       }
     } else if(msg.equals(QUIT_MSG)) {
@@ -234,7 +220,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       if(rest.length() != 0) {
         //  Eliminate a space that's there for readibility.
         rest = rest.substring(1);
-        _headerStatus.setToolTipText(rest);
+        JBidToolBar.getInstance().setToolTipText(rest);
       }
     } else if(msg.equals(START_UPDATING)) {
       MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");
@@ -269,7 +255,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     } else if(msg.equals(VALID_LOGIN_MSG)) {
       MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");
       _userValid = true;
-      _headerStatus.setToolTipText("");
+      JBidToolBar.getInstance().setToolTipText("");
 
       if(itemUpdateTimer == null) {
         //  This timer handles updating auctions and saving a snapshot of
@@ -293,18 +279,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       JOptionPane.showMessageDialog(null, "Failed to check for a new version\nProbably a temporary network issue; try again in a little while.",
                                     "Version check failed", JOptionPane.PLAIN_MESSAGE);
     } else if(msg.equals("TOOLBAR")) {
-      _bidBarPanel.setVisible(!_bidBarPanel.isVisible());
-      JConfig.setConfiguration("display.toolbar", _bidBarPanel.isVisible()?"true":"false");
-      if (_bidBarPanel.isVisible()) {
-        _headerStatus.setVisible(false);
-        _bidBarPanel.add(_headerStatus, BorderLayout.EAST);
-        _headerStatus.setVisible(true);
-      } else {
-        //  If it's a mac, the clock display can't move into the 'menu' component, because there isn't one!
-        if (!Platform.isMac()) {
-          _bidMenu.add(_headerStatus);
-        }
-      }
+      JBidToolBar.getInstance().togglePanel();
     } else {
       setStatus(msg);
     }
@@ -795,157 +770,36 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     if(lastTime != 0) {
       if( (lastTime + Constants.ONE_MINUTE) < System.currentTimeMillis()) {
         //  We've been out for more than a minute!
-        ErrorManagement.logDebug("We appear to be waking from sleep...  Networking is probably not up yet.");
-        if(AuctionsManager.getInstance().anySnipes()) {
-          ErrorManagement.logDebug("There were snipes outstanding; hopefully none were supposed to fire during the sleep period...");
-        }
-        m_tqm.add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", System.currentTimeMillis() + (10 * Constants.ONE_SECOND));
+        handleSleepDeprivation();
       }
     }
     lastTime = System.currentTimeMillis();
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
 
-    if(!_userValid) {
-      defaultServerTime = "Not logged in...";
-    }
+    if(!_userValid)  defaultServerTime = "Not logged in...";
     String headerLine = _linkUp ? defaultServerTime : "<html><strike>" + defaultServerTime + "</strike></html>";
 
     MQFactory.getConcrete("Swing").enqueue("HEADER " + headerLine);
   }
 
-  /**
-   * @brief Add a toolbar button to the display, with a particular action, name, image, and tooltip.
-   *
-   * @param jtb - The toolbar to add to.
-   * @param inAction - The ActionListener who will listen for actions on this button.
-   * @param buttonName - The action name that will be sent to the action listener when the button is pressed.
-   * @param buttonImage - The image to use for the button.
-   * @param buttonTip - The tooltip to pop up for the button.
-   */
-  private static void addbutton(JToolBar jtb, ActionListener inAction, String buttonName, String buttonImage, String buttonTip) {
-    final JButton newButton = makeButton(buttonImage, buttonTip, buttonName, inAction, false);
-
-    if(Platform.isMac()) {
-      newButton.setBorder(null);
-      newButton.setBorderPainted(false);
-      newButton.setContentAreaFilled(false);
-      newButton.setRolloverEnabled(true);
+  private void handleSleepDeprivation() {
+    Date now = new Date();
+    String status = "We appear to be waking from sleep; networking may not be up yet.";
+    ErrorManagement.logDebug(status);
+    List<AuctionEntry> sniped = AuctionServerManager.getInstance().allSniped();
+    if(sniped != null && !sniped.isEmpty()) {
+      boolean foundSnipe = false;
+      for(AuctionEntry entry : sniped) {
+        entry.setLastStatus(status);
+        if(now.after(entry.getEndDate())) {
+          entry.setLastStatus("The computer may have slept through the snipe time!");
+          if(!foundSnipe) foundSnipe = true;
+        }
+      }
+      if(foundSnipe) status += "  One or more snipes may not have been fired.";
+      MQFactory.getConcrete("Swing").enqueue(NOTIFY_MSG + status);
     }
-
-    jtb.add(newButton);
-  }
-
-  public static JButton makeButton(String buttonImage, String buttonTip, String buttonName, ActionListener inAction, boolean shrink) {
-    JButton newButton = new JButton();
-    ImageIcon newImage = new ImageIcon(urlCL.getResource(buttonImage));
-
-    newButton.setIcon(newImage);
-    if(shrink) {
-      Dimension size = new Dimension(newImage.getIconWidth(), newImage.getIconHeight());
-      newButton.setSize(size);
-      newButton.setMaximumSize(size);
-      newButton.setMinimumSize(size);
-      newButton.setPreferredSize(size);
-    }
-    newButton.setToolTipText(buttonTip);
-    newButton.setActionCommand("BT-" + buttonName);
-    newButton.addActionListener(inAction);
-    return newButton;
-  }
-
-  /**
-   * @brief Build the tool bar, with all the graphic buttons, and the
-   * upper status bar which displays the time @ the main auction site.
-   *
-   * @param inFrame - The frame to add the toolbar/status to.
-   *
-   * @param inAction - The action listener that is to be informed when
-   * events occur on the toolbar.
-   *
-   * @return - A JPanel containing the entire toolbar and header status bar.
-   */
-  private JPanel buildHeaderBar(JFrame inFrame, ActionListener inAction) {
-    _bidBarPanel = new JPanel(new BorderLayout());
-    _bidMenu = JBidMenuBar.getInstance(inAction, "JBidwatcher");
-
-    _headerStatus = new JLabel("", SwingConstants.RIGHT);
-    inFrame.setJMenuBar(_bidMenu);
-    AuctionServerManager.getInstance().addAuctionServerMenus();
-
-    _bidMenu.add(Box.createHorizontalGlue());
-
-    JToolBar _bidBar = new JToolBar();
-
-    _bidBarPanel.setBorder(BorderFactory.createEtchedBorder());
-    _bidBarPanel.add(_headerStatus, BorderLayout.EAST);
-
-    addbutton(_bidBar, inAction, "Add", "icons/add_auction.png", "Add auction");
-    addbutton(_bidBar, inAction, "Delete", "icons/delete.png", "Delete Auction");
-
-    addbutton(_bidBar, inAction, "Search", "icons/find.png", "Auction Search Manager");
-
-    addbutton(_bidBar, inAction, "Information", "icons/information.png", "Get information");
-
-    addbutton(_bidBar, inAction, "UpdateAll", "icons/updateall.png", "Update All Auctions");
-    addbutton(_bidBar, inAction, "StopUpdating", "icons/stopupdating.png", "Stop Updating Auctions");
-
-    addbutton(_bidBar, inAction, "Configure", "icons/configuration.png", "Configure");
-    addbutton(_bidBar, inAction, "Save", "icons/save.png", "Save Auctions");
-
-    //      addbutton(_bidBar, inAction, "GetMyEbay", "getmyebay.gif", "Get My eBay");
-
-    addbutton(_bidBar, inAction, "Help", "icons/help.png", "Help");
-    addbutton(_bidBar, inAction, "About", "icons/about.png", "About JBidWatcher");
-    addbutton(_bidBar, inAction, "Forum", "icons/forum.png", "JBidwatcher Forums");
-    addbutton(_bidBar, inAction, "Report Bug", "icons/report_bug.png", "Report Bug");
-    addbutton(_bidBar, inAction, "View Log", "icons/log_view.png", "View Log");
-    addbutton(_bidBar, inAction, "Snipe", "icons/auction.png", "Place snipe");
-
-    if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
-      _bidBar.setFloatable(false);
-    }
-
-    _bidBar.setRollover(true);
-
-    // update (?)
-    // bid (dollar in a circle?)
-    // snipe (clock background with a $ overlay)
-    // cancel snipe (an X over the snipe?)
-    // Browse?
-    // Comment
-    // Copy
-    // Print?
-    // Paste an auction from the clipboard
-    // Synchronize the time
-    // Exit?
-
-    /**
-     * Add selection/search bar.
-     */
-    DocumentListener selectListener = new DocumentListener() {
-        public void insertUpdate(DocumentEvent de) {
-        }
-        public void changedUpdate(DocumentEvent de) {
-        }
-        public void removeUpdate(DocumentEvent de) {
-        }
-      };
-    JConfigTab.adjustField(selectBox, "Search and select items from the current table.", selectListener);
-    ActionListener doSearch = new ActionListener() {
-        public void actionPerformed(ActionEvent ae) {
-          jtmAuctions.selectBySearch(selectBox.getText());
-        }
-      };
-    selectBox.addActionListener(doSearch);
-    JPanel jp = new JPanel();
-    jp.add(JConfigTab.makeLine(new JLabel(" Select: "), selectBox));
-    _bidBar.add(JConfigTab.panelPack(jp));
-
-    _bidBarPanel.add(_bidBar, BorderLayout.WEST);
-
-    _bidBarPanel.setVisible(JConfig.queryConfiguration("display.toolbar", "true").equals("true"));
-
-    return _bidBarPanel;
+    SuperQueue.getInstance().getQueue().add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", System.currentTimeMillis() + (10 * Constants.ONE_SECOND));
   }
 
   /**
@@ -1057,7 +911,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     newFrame.setIconImage(new ImageIcon(iconURL).getImage());
 
     jtmAuctions = AuctionsUIModel.getTabManager();
-    JPanel _headerBar = buildHeaderBar(newFrame, jtmAuctions);
+    JPanel _headerBar = JBidToolBar.getInstance().buildHeaderBar(newFrame, jtmAuctions);
 
     newFrame.getContentPane().add(jtmAuctions.getTabs());
     newFrame.getContentPane().add(_statusBar, BorderLayout.SOUTH);
@@ -1145,26 +999,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     //  and anything else we need to load from the configuration file.
     updateConfiguration();
 
-    //m_tqm.add("This is a message for the display!", "Swing", System.currentTimeMillis()+Constants.ONE_MINUTE);
-    //m_tqm.add(JBidMouse.ADD_AUCTION + "5582606163", "user", System.currentTimeMillis() + (Constants.ONE_MINUTE / 2));
-
-    long now = System.currentTimeMillis();
-
-    if(JConfig.queryConfiguration("updates.enabled", "true").equals("true")) {
-      m_tqm.add("CHECK", "update", now + (ONE_SECOND * 10));
-    }
-    //noinspection MultiplyOrDivideByPowerOfTwo
-    if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true"))
-      m_tqm.add("TIMECHECK", "auction_manager", now + (ONE_SECOND * 2), Constants.THIRTY_MINUTES);
-    m_tqm.add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", now + ONE_SECOND*3, 120 * Constants.ONE_MINUTE);
-    m_tqm.add(START_UPDATING, "Swing", now + (ONE_SECOND * 2 * 10));
-    //m_tqm.add("http://www.jbidwatcher.com", "browse", System.currentTimeMillis() + (Constants.ONE_MINUTE / 4));
-    //m_tqm.add(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), "ebay", System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
-    m_tqm.add("FLUSH", "dbflush", now+Constants.ONE_MINUTE, ONE_SECOND*15);
-
-    TimerHandler timeQueue = new TimerHandler(m_tqm);
-    timeQueue.setName("SuperQueue");
-    timeQueue.start();
+    TimerHandler timeQueue = SuperQueue.getInstance().establishSuperQueue();
     gcSafe.add(timeQueue);
 
     //  Because the program is starting to get widely spread around,

@@ -35,6 +35,20 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
   public static void setEntryManager(EntryManager newEM) { sEntryManager = newEM; }
 
+  public List<AuctionEntry> allSniped() {
+    List<AuctionEntry> aucList = mServerAuctionList.get(getDefaultServer());
+    if(aucList == null) return null;
+
+    List<AuctionEntry> sniped = new ArrayList<AuctionEntry>();
+
+    synchronized (aucList) {
+      for(AuctionEntry ae : aucList) {
+        if(ae.isSniped()) sniped.add(ae);
+      }
+    }
+    return sniped;
+  }
+
   private static class AuctionServerListEntry {
     private String _serverName;
     private AuctionServer _aucServ;
@@ -351,13 +365,12 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     AuctionStats outStat = new AuctionStats();
     List<AuctionEntry> aucList = mServerAuctionList.get(getDefaultServer());
 
-    long lastUpdateTime = Long.MAX_VALUE;
-    long lastEndedTime = Long.MAX_VALUE;
-    long lastSnipeTime = Long.MAX_VALUE;
-
     if(aucList == null) return null;
     synchronized (aucList) {
       outStat._count = aucList.size();
+      long lastUpdateTime = Long.MAX_VALUE;
+      long lastEndedTime = Long.MAX_VALUE;
+      long lastSnipeTime = Long.MAX_VALUE;
       for (AuctionEntry ae : aucList) {
         if (ae.isComplete()) {
           outStat._completed++;

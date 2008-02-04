@@ -7,7 +7,6 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.*;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.AuctionEntry;
@@ -155,7 +154,7 @@ public class AuctionsUIModel {
       _bid.setEnabled(true);
       _buy.setEnabled(true);
     } else {
-      jp2.add(JBidWatch.makeButton("icons/xml.png", "Show RSS feed information", "RSS", allTabs, true), BorderLayout.WEST);
+      jp2.add(JBidToolBar.makeButton("icons/xml.png", "Show RSS feed information", "RSS", allTabs, true), BorderLayout.WEST);
     }
     _table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent event) {

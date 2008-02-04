@@ -349,11 +349,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     if(ac.getData() != null) {
       if(ac.getData().equals("Get My eBay Items")) {
-        //  TODO -- Mark 'My eBay' search as having run (update 'last run').
         if(defaultUser) {
           failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
-          doMyEbaySynchronize(null);
+          SearchManager.getInstance().getSearchByName("My eBay").execute();
           return;
         }
       }

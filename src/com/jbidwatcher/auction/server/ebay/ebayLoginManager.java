@@ -39,6 +39,8 @@ public class ebayLoginManager implements LoginManager {
   }
 
   public void resetCookie() {
+    mBadPassword = null;
+    mBadUsername = null;
     mSignInCookie = null;
   }
 

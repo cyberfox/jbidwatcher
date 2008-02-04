@@ -18,10 +18,10 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 
 import java.io.*;
 import java.util.List;
-import java.util.Vector;
+import java.util.ArrayList;
 
 public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, TimerHandler.WakeupProcess {
-  private List<Searcher> _searches = new Vector<Searcher>();
+  private List<Searcher> _searches = new ArrayList<Searcher>();
   private static SearchManager _instance = null;
 
   public void addSearch(Searcher newSearch) {
@@ -36,27 +36,27 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     return null;
   }
 
-  private class StringSearcher extends Searcher {
+  private static class StringSearcher extends Searcher {
     public String getTypeName() { return "Text"; }
     protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_SEARCH, this, getCategory())); }
   }
 
-  private class TitleSearcher extends Searcher {
+  private static class TitleSearcher extends Searcher {
     public String getTypeName() { return "Title"; }
     protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_TITLE, this, getCategory())); }
   }
 
-  private class SellerSearcher extends Searcher {
+  private static class SellerSearcher extends Searcher {
     public String getTypeName() { return "Seller"; }
     protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_SELLER, this, getCategory())); }
   }
 
-  private class URLSearcher extends Searcher {
+  private static class URLSearcher extends Searcher {
     public String getTypeName() { return "URL"; }
     protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_URL, this, getCategory())); }
   }
 
-  private class MyItemSearcher extends Searcher {
+  private static class MyItemSearcher extends Searcher {
     public String getTypeName() { return "My Items"; }
     protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); }
   }
@@ -96,7 +96,6 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
   public boolean saveSearches() {
     String saveFile = JConfig.queryConfiguration("search.savefile", "searches.xml");
     String oldSave = saveFile;
-    boolean saveDone = true;
 
     StringBuffer saveData = this.toXML().toStringBuffer();
 
@@ -105,6 +104,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
       JConfig.setConfiguration("search.savefile", saveFile);
     }
 
+    boolean saveDone = true;
     try {
       PrintStream ps = new PrintStream(new FileOutputStream(saveFile));
 
