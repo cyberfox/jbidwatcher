@@ -57,21 +57,25 @@ class ebayAuction extends SpecificAuction {
    */
   public void cleanup(StringBuffer sb) {
     checkThumb(sb);
+
     //  We ignore the result of this, because it's just useful if it
     //  works, it's not critical.
     StringTools.deleteFirstToLast(sb, Externalized.getString("ebayServer.description"), Externalized.getString("ebayServer.descriptionMotors"), Externalized.getString("ebayServer.descriptionEnd"), Externalized.getString("ebayServer.descriptionClosedEnd"));
-
     StringTools.deleteFirstToLast(sb, Externalized.getString("ebayServer.descStart"), Externalized.getString("ebayServer.descriptionMotors"), Externalized.getString("ebayServer.descEnd"), Externalized.getString("ebayServer.descriptionClosedEnd"));
 
     String skimOver = sb.toString();
 
     Matcher startCommentSearch = Pattern.compile(Externalized.getString("ebayServer.startedRegex")).matcher(skimOver);
-    if(startCommentSearch.find()) _startComment = startCommentSearch.group(1);
-    else _startComment = "";
+    if(startCommentSearch.find())
+      _startComment = startCommentSearch.group(1);
+    else
+      _startComment = "";
 
     Matcher bidCountSearch = Pattern.compile(Externalized.getString("ebayServer.bidCountRegex")).matcher(skimOver);
-    if(bidCountSearch.find()) _bidCountScript = bidCountSearch.group(1);
-    else _bidCountScript = "";
+    if(bidCountSearch.find())
+      _bidCountScript = bidCountSearch.group(1);
+    else
+      _bidCountScript = "";
 
     //  Use eBay's cleanup method to finish up with.
     new ebayCleaner().cleanup(sb);
@@ -150,10 +154,11 @@ class ebayAuction extends SpecificAuction {
 
   int getDigits(String digitsStarting) {
     Matcher m = digits.matcher(digitsStarting);
-    m.find();
-    String rawCount = m.group();
-    if(rawCount != null) {
-      return Integer.parseInt(rawCount);
+    if(m.find()) {
+      String rawCount = m.group();
+      if (rawCount != null) {
+        return Integer.parseInt(rawCount);
+      }
     }
     return -1;
   }
@@ -793,7 +798,7 @@ class ebayAuction extends SpecificAuction {
         setFixedPrice(true);
         bidCount = -1;
       } else {
-        if(rawBidCount.equals(Externalized.getString("ebayServer.bidderListCount"))) {
+        if(rawBidCount.matches(Externalized.getString("ebayServer.bidderListCount"))) {
           bidCount = Integer.parseInt(_bidCountScript);
         } else {
           bidCount = getDigits(rawBidCount);
