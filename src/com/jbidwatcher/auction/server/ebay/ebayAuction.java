@@ -384,10 +384,16 @@ class ebayAuction extends SpecificAuction {
   public AuctionServer.ParseErrors parseAuction(AuctionEntry ae) {
     //  Verify the title (in case it's an invalid page, the site is
     //  down for maintenance, etc).
-    String prelimTitle = checkTitle();
+    String prelimTitle;
+    try {
+      prelimTitle = checkTitle();
+    } catch (ParseException e) {
+      finish();
+      return e.getError();
+    }
+
     if(prelimTitle == null) {
       finish();
-      //  TODO - There are distinctions within the checkTitle method...how to expose them?
       return AuctionServer.ParseErrors.BAD_TITLE;
     }
 
@@ -435,28 +441,36 @@ class ebayAuction extends SpecificAuction {
     return AuctionServer.ParseErrors.SUCCESS;
   }
 
+  private class ParseException extends Exception {
+    private AuctionServer.ParseErrors mError;
+    public ParseException(AuctionServer.ParseErrors error) {
+      mError = error;
+    }
+
+    public AuctionServer.ParseErrors getError() {
+      return mError;
+    }
+  }
+
   /**
    * Sets _title, and possibly _end.
    *
    * @return - The preliminary extraction of the title, in its entirety, for later parsing.  null if a failure occurred.
+   * @throws com.jbidwatcher.auction.server.ebay.ebayAuction.ParseException
    */
-  private String checkTitle() {
+  private String checkTitle() throws ParseException {
     String prelimTitle = mDocument.getFirstContent();
     if( prelimTitle == null) {
       prelimTitle = Externalized.getString("ebayServer.unavailable");
     }
     if(prelimTitle.equals(Externalized.getString("ebayServer.adultPageTitle")) || prelimTitle.indexOf("Terms of Use: ") != -1) {
-      //      finish();
-      //      return AuctionServer.ParseErrors.NOT_ADULT;
-      prelimTitle = null;
+      throw new ParseException(AuctionServer.ParseErrors.NOT_ADULT);
     }
 
     //  Is this a valid eBay item page?
     if(prelimTitle != null && !checkValidTitle(prelimTitle)) {
       handle_bad_title(prelimTitle);
-      prelimTitle = null;
-      //      finish();
-      //      return AuctionServer.ParseErrors.BAD_TITLE;
+      throw new ParseException(AuctionServer.ParseErrors.BAD_TITLE);
     }
 
     if(prelimTitle != null) {

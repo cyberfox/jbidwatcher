@@ -255,17 +255,16 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         mAuction = mServer.createAuction(id);
 
         mNeedsUpdate = false;
-        mLoaded = true;
       }
     } else {
       mServer = AuctionServerManager.getInstance().getServerForIdentifier(auctionIdentifier);
 
       if(mServer != null) {
         mAuction = mServer.createAuction(auctionIdentifier);
-
-        mLoaded = true;
       }
     }
+
+    mLoaded = mAuction != null;
 
     /**
      * Note that a bad auction (couldn't get an auction server, or a
@@ -273,10 +272,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
      * isn't loaded.  This will fail out the init process, and this
      * will never be added to the items list.
      */
-    if(mAuction == null || mServer == null) {
-      mLoaded = false;
-    } else {
-      mEntryEvents = new EventLogger(getIdentifier(), getTitle());
+    if (mLoaded) {
       checkHighBidder(true);
       checkSeller();
       checkEnded();
@@ -300,10 +296,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   public static AuctionEntry buildEntry(String auctionIdentifier) {
     AuctionEntry ae = new AuctionEntry(auctionIdentifier);
-    ae.saveDB();
-    cache(ae.getClass(), "id", ae.get("id"), ae);
-
-    return ae;
+    if(ae.isLoaded()) {
+      String id = ae.saveDB();
+      if (id != null) {
+        cache(ae.getClass(), "id", id, ae);
+        return ae;
+      }
+    }
+    return null;
   }
 
   /**
@@ -1686,6 +1686,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   /*************************/
 
   public String saveDB() {
+    if(mAuction == null) return null;
+
     String auction_id = mAuction.saveDB();
     if(auction_id != null) set("auction_id", auction_id);
 

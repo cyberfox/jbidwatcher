@@ -30,19 +30,19 @@ public class JConfigEbayTab extends JConfigTab {
   public boolean apply() {
     int selectedSite = siteSelect.getSelectedIndex();
 
-    String old_adult = JConfig.queryConfiguration(getName() + ".adult");
-    JConfig.setConfiguration(getName() + ".adult", adultBox.isSelected()?"true":"false");
-    String new_adult = JConfig.queryConfiguration(getName() + ".adult");
+    String old_adult = JConfig.queryConfiguration(ebayServer.getSiteName() + ".adult");
+    JConfig.setConfiguration(ebayServer.getSiteName() + ".adult", adultBox.isSelected()?"true":"false");
+    String new_adult = JConfig.queryConfiguration(ebayServer.getSiteName() + ".adult");
 
-    String old_user = JConfig.queryConfiguration(getName() + ".user");
-    JConfig.setConfiguration(getName() + ".user", username.getText());
-    String new_user = JConfig.queryConfiguration(getName() + ".user");
-    String old_pass = JConfig.queryConfiguration(getName() + ".password");
-    JConfig.setConfiguration(getName() + ".password", password.getText());
-    String new_pass = JConfig.queryConfiguration(getName() + ".password");
+    String old_user = JConfig.queryConfiguration(ebayServer.getSiteName() + ".user");
+    JConfig.setConfiguration(ebayServer.getSiteName() + ".user", username.getText());
+    String new_user = JConfig.queryConfiguration(ebayServer.getSiteName() + ".user");
+    String old_pass = JConfig.queryConfiguration(ebayServer.getSiteName() + ".password");
+    JConfig.setConfiguration(ebayServer.getSiteName() + ".password", password.getText());
+    String new_pass = JConfig.queryConfiguration(ebayServer.getSiteName() + ".password");
 
     if(selectedSite != -1) {
-      JConfig.setConfiguration(getName() + ".browse.site", Integer.toString(selectedSite));
+      JConfig.setConfiguration(ebayServer.getSiteName() + ".browse.site", Integer.toString(selectedSite));
     }
 
     if(old_pass == null || !new_pass.equals(old_pass) ||
@@ -54,11 +54,11 @@ public class JConfigEbayTab extends JConfigTab {
   }
 
   public void updateValues() {
-    String isAdult = JConfig.queryConfiguration(getName() + ".adult", "false");
+    String isAdult = JConfig.queryConfiguration(ebayServer.getSiteName() + ".adult", "false");
     adultBox.setSelected(isAdult.equals("true"));
 
-    username.setText(JConfig.queryConfiguration(getName() + ".user", "default"));
-    password.setText(JConfig.queryConfiguration(getName() + ".password", "default"));
+    username.setText(JConfig.queryConfiguration(ebayServer.getSiteName() + ".user", "default"));
+    password.setText(JConfig.queryConfiguration(ebayServer.getSiteName() + ".password", "default"));
   }
 
   private JPanel buildUsernamePanel() {
@@ -69,10 +69,10 @@ public class JConfigEbayTab extends JConfigTab {
     username = new JTextField();
     username.addMouseListener(JPasteListener.getInstance());
 
-    username.setText(JConfig.queryConfiguration(getName() + ".user", "default"));
+    username.setText(JConfig.queryConfiguration(ebayServer.getSiteName() + ".user", "default"));
     username.setEditable(true);
     username.getAccessibleContext().setAccessibleName("User name to log into eBay");
-    password = new JPasswordField(JConfig.queryConfiguration(getName() + ".password"));
+    password = new JPasswordField(JConfig.queryConfiguration(ebayServer.getSiteName() + ".password"));
     password.addMouseListener(JPasteListener.getInstance());
     password.setEditable(true);
 
@@ -89,7 +89,7 @@ public class JConfigEbayTab extends JConfigTab {
   }
 
   private JPanel buildCheckboxPanel() {
-    String isAdult = JConfig.queryConfiguration(getName() + ".adult", "false");
+    String isAdult = JConfig.queryConfiguration(ebayServer.getSiteName() + ".adult", "false");
     JPanel tp = new JPanel();
 
     tp.setBorder(BorderFactory.createTitledBorder("General eBay Options"));
@@ -112,7 +112,7 @@ public class JConfigEbayTab extends JConfigTab {
     tp.setBorder(BorderFactory.createTitledBorder("Browse target"));
     tp.setLayout(new BorderLayout());
 
-    String curSite = JConfig.queryConfiguration(getName() + ".browse.site", "0");
+    String curSite = JConfig.queryConfiguration(ebayServer.getSiteName() + ".browse.site", "0");
     int realCurrentSite;
     try {
       realCurrentSite = Integer.parseInt(curSite);

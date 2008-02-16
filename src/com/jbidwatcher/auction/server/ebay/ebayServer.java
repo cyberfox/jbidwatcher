@@ -46,7 +46,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   /**
    * The human-readable name of the auction server.
    */
-  private String siteId = "ebay";
+  private static String siteId = "ebay";
   private String userCfgString = null;
   private String passCfgString = null;
 
@@ -764,6 +764,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public String getName() {
+    return siteId;
+  }
+
+  public static String getSiteName() {
     return siteId;
   }
 

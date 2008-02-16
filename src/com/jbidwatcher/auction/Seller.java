@@ -36,12 +36,12 @@ public class Seller extends ActiveRecord {
   }
 
   public static Seller newFromXML(XMLElement curElement) {
-    String seller = curElement.getChild("seller").getContents();
+    String seller = curElement.getChild("name").getContents();
     if(seller == null || seller.length() == 0) return null;
 
     try {
       Seller rval = new Seller();
-      rval.setSeller(curElement.getChild("seller").getContents());
+      rval.setSeller(seller);
       rval.setFeedback(Integer.parseInt(curElement.getChild("feedback").getContents()));
       rval.setPositivePercentage(curElement.getChild("feedback_percent").getContents());
 

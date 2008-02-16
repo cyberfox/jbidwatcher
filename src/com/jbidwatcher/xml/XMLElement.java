@@ -1295,6 +1295,7 @@ public class XMLElement {
    * Converts &amp;...; sequences to "normal" chars.
    */
   public String decodeString(String s, int    lineNr) {
+    if(s == null) return "";
     StringBuffer result = new StringBuffer(s.length());
     int index = 0;
 

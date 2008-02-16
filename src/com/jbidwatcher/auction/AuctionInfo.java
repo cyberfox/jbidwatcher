@@ -122,7 +122,11 @@ public class AuctionInfo extends ActiveRecord {
         setString(infoTags[i], curElement.decodeString(curElement.getContents(), 0));
         break;
       case 1:  //  Seller name
-        setSellerName(curElement.getContents());
+        if(curElement.getChild("name") == null) {
+          setSellerName(curElement.getContents());
+        } else {
+          mSeller = Seller.newFromXML(curElement);
+        }
         break;
       case 2:  //  High bidder name
       case 18: //  Location of item

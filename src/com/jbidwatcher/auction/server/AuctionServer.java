@@ -310,14 +310,13 @@ public abstract class AuctionServer implements AuctionServerInterface {
     String error = null;
     if (curAuction.preParseAuction()) {
       ParseErrors result = curAuction.parseAuction(ae);
-      if (result == ParseErrors.SUCCESS) {
-        curAuction.save();
-      } else {
+      if (result != ParseErrors.SUCCESS) {
         switch(result) {
           case NOT_ADULT: {
             boolean isAdult = JConfig.queryConfiguration(getName() + ".adult", "false").equals("true");
             if (isAdult) {
               getNecessaryCookie(true);
+              result = curAuction.parseAuction(ae);
             } else {
               ErrorManagement.logDebug("Failed to load adult item, user possibly not marked for Mature Items access.  Check your eBay configuration.");
             }
@@ -326,13 +325,15 @@ public abstract class AuctionServer implements AuctionServerInterface {
             //  ?
           }
         }
-        error = "Bad Parse!";
+        if(result != ParseErrors.SUCCESS) error = "Bad Parse!";
       }
+      if (result == ParseErrors.SUCCESS) curAuction.save();
     } else error = "Bad pre-parse!";
 
     if(error != null) {
       ErrorManagement.logMessage(error);
       checkLogError(ae);
+      curAuction = null;
     }
     return curAuction;
   }
