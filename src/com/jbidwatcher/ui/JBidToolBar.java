@@ -119,9 +119,9 @@ public class JBidToolBar {
         }
       };
     selectBox.addActionListener(doSearch);
-    JPanel jp = new JPanel();
-    jp.add(selectBox);
-    _bidBar.add(JConfigTab.panelPack(jp));
+    JPanel jp = new JPanel(new GridBagLayout());
+    jp.add(selectBox, new GridBagConstraints());
+    _bidBar.add(jp);
 
     _bidBarPanel.add(_bidBar, BorderLayout.WEST);
     _bidBarPanel.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
