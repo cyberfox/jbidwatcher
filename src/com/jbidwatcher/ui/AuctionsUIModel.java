@@ -500,9 +500,6 @@ public class AuctionsUIModel {
           if(dotIndex != -1) {
             String colIndex = colWidth.substring(0, dotIndex);
             colWidth = colWidth.substring(dotIndex+1);
-            //System.err.println("move(" + preparedTable.getColumnModel().getColumnIndex(curColumnName) + ", " + Integer.parseInt(colIndex) + ")");
-            //preparedTable.moveColumn(preparedTable.getColumnModel().getColumnIndex(curColumnName), Integer.parseInt(colIndex));
-            //  Stored as: From, To
             initialToSaved.put(curColumnName, Integer.parseInt(colIndex));
           }
           preparedTable.getColumn(curColumnName).setPreferredWidth(Integer.parseInt(colWidth));

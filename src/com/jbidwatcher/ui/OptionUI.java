@@ -346,9 +346,7 @@ public class OptionUI {
     otherFrame.pack();
     otherFrame.setVisible(true);
 
-    if(firstButton != null && !firstButton.requestFocusInWindow()) {
-      //System.err.println("Damn, focus refused.");
-    }
+    if(firstButton != null) firstButton.requestFocusInWindow();
 
     return otherFrame;
   }

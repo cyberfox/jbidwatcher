@@ -203,7 +203,6 @@ public class AuctionDB {
       if(colCount != -1) {
         //  Set the 'WHERE' value.
         setColumn(ps, colCount, columnKey, value);
-        System.err.println("sql == " + sql);
         ps.execute();
         mDB.commit();
         return findKeys(ps);
@@ -235,7 +234,6 @@ public class AuctionDB {
       ResultSet rs = ps.executeQuery();
       oldRow = getFirstResult(rs);
     } catch (SQLException e) {
-      System.err.println(statement);
       ErrorManagement.handleException("Can't get row" + (forUpdate? " for update":"") + " (" + columnKey + " = '" + value +"').", e);
     }
     return oldRow;
@@ -325,7 +323,6 @@ public class AuctionDB {
       String oldVal = oldRow.get(key);
       if (!(newVal == null && oldVal == null)) {
         if (newVal == null || oldVal == null || !newVal.equals(oldVal)) {
-          System.err.print(newVal + ", ");
           if(!setColumn(ps, column++, key, newRow.get(key))) {
             ErrorManagement.logMessage("Error from columns: (" + column + "," + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
             errors = true;
@@ -333,7 +330,6 @@ public class AuctionDB {
         }
       }
     }
-    System.err.println();
     return errors ? -1 : column;
   }
 
