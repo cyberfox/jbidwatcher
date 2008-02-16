@@ -26,8 +26,14 @@ public class JBidToolBar {
   private JLabel _headerStatus;
   private JPanel _bidBarPanel;
   private JBidMenuBar _bidMenu;
-  private JTextField selectBox = new JTextField(SELECT_BOX_SIZE);
+  private JTextField selectBox;
   private static JBidToolBar mInstance = null;
+
+  private String getSource(String icon) {
+    String toolbarSrc = "icons/toolbar/32/";
+
+    return toolbarSrc + icon;
+  }
 
   /**
    * @brief Build the tool bar, with all the graphic buttons, and the
@@ -55,27 +61,27 @@ public class JBidToolBar {
     _bidBarPanel.setBorder(BorderFactory.createEtchedBorder());
     _bidBarPanel.add(_headerStatus, BorderLayout.EAST);
 
-    JBidToolBar.addbutton(_bidBar, inAction, "Add", "icons/add_auction.png", "Add auction");
-    JBidToolBar.addbutton(_bidBar, inAction, "Delete", "icons/delete.png", "Delete Auction");
+    JBidToolBar.addbutton(_bidBar, inAction, "Add", getSource("add_auction.png"), "Add auction");
+    JBidToolBar.addbutton(_bidBar, inAction, "Delete", getSource("delete.png"), "Delete Auction");
 
-    JBidToolBar.addbutton(_bidBar, inAction, "Search", "icons/find.png", "Auction Search Manager");
+    JBidToolBar.addbutton(_bidBar, inAction, "Search", getSource("find.png"), "Auction Search Manager");
 
-    JBidToolBar.addbutton(_bidBar, inAction, "Information", "icons/information.png", "Get information");
+    JBidToolBar.addbutton(_bidBar, inAction, "Information", getSource("information.png"), "Get information");
 
-    JBidToolBar.addbutton(_bidBar, inAction, "UpdateAll", "icons/updateall.png", "Update All Auctions");
-    JBidToolBar.addbutton(_bidBar, inAction, "StopUpdating", "icons/stopupdating.png", "Stop Updating Auctions");
+    JBidToolBar.addbutton(_bidBar, inAction, "UpdateAll", getSource("updateall.png"), "Update All Auctions");
+    JBidToolBar.addbutton(_bidBar, inAction, "StopUpdating", getSource("stopupdating.png"), "Stop Updating Auctions");
 
-    JBidToolBar.addbutton(_bidBar, inAction, "Configure", "icons/configuration.png", "Configure");
-    JBidToolBar.addbutton(_bidBar, inAction, "Save", "icons/save.png", "Save Auctions");
+    JBidToolBar.addbutton(_bidBar, inAction, "Configure", getSource("configuration.png"), "Configure");
+    JBidToolBar.addbutton(_bidBar, inAction, "Save", getSource("save.png"), "Save Auctions");
 
     //      addbutton(_bidBar, inAction, "GetMyEbay", "getmyebay.gif", "Get My eBay");
 
-    JBidToolBar.addbutton(_bidBar, inAction, "Help", "icons/help.png", "Help");
-    JBidToolBar.addbutton(_bidBar, inAction, "About", "icons/about.png", "About JBidWatcher");
-    JBidToolBar.addbutton(_bidBar, inAction, "Forum", "icons/forum.png", "JBidwatcher Forums");
-    JBidToolBar.addbutton(_bidBar, inAction, "Report Bug", "icons/report_bug.png", "Report Bug");
-    JBidToolBar.addbutton(_bidBar, inAction, "View Log", "icons/log_view.png", "View Log");
-    JBidToolBar.addbutton(_bidBar, inAction, "Snipe", "icons/auction.png", "Place snipe");
+    JBidToolBar.addbutton(_bidBar, inAction, "Help", getSource("help.png"), "Help");
+    JBidToolBar.addbutton(_bidBar, inAction, "About", getSource("about.png"), "About JBidWatcher");
+    JBidToolBar.addbutton(_bidBar, inAction, "Forum", getSource("forum.png"), "JBidwatcher Forums");
+    JBidToolBar.addbutton(_bidBar, inAction, "Report Bug", getSource("report_bug.png"), "Report Bug");
+    JBidToolBar.addbutton(_bidBar, inAction, "View Log", getSource("log_view.png"), "View Log");
+    JBidToolBar.addbutton(_bidBar, inAction, "Snipe", getSource("auction.png"), "Place snipe");
 
     if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
       _bidBar.setFloatable(false);
@@ -114,10 +120,11 @@ public class JBidToolBar {
       };
     selectBox.addActionListener(doSearch);
     JPanel jp = new JPanel();
-    jp.add(JConfigTab.makeLine(new JLabel(" Select: "), selectBox));
+    jp.add(selectBox);
     _bidBar.add(JConfigTab.panelPack(jp));
 
     _bidBarPanel.add(_bidBar, BorderLayout.WEST);
+    _bidBarPanel.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
 
     _bidBarPanel.setVisible(JConfig.queryConfiguration("display.toolbar", "true").equals("true"));
 
@@ -141,6 +148,7 @@ public class JBidToolBar {
       newButton.setBorderPainted(false);
       newButton.setContentAreaFilled(false);
       newButton.setRolloverEnabled(true);
+      newButton.putClientProperty("Quaqua.Button.style", "toolBarRollover");
     }
 
     jtb.add(newButton);
@@ -166,7 +174,10 @@ public class JBidToolBar {
   }
 
   private JBidToolBar() {
-    //  Nothing to do, just yet...?
+    selectBox = new SearchField("Select", SELECT_BOX_SIZE);
+    if(Platform.isMac()) {
+      selectBox.putClientProperty("Quaqua.TextField.style", "search");
+    }
   }
 
   public static JBidToolBar getInstance() {
