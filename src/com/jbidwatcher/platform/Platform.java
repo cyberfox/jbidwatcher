@@ -145,9 +145,15 @@ public class Platform {
       ErrorManagement.handleException("Can't create output file to copy from JAR.", e);
       return false;
     }
-    InputStream source = JBidWatch.class.getClass().getClassLoader().getResourceAsStream(inJarName);
+    InputStream source = JBidWatch.class.getClassLoader().getResourceAsStream(inJarName);
     if(source == null) {
-      ErrorManagement.logDebug("Failed to open internal resource!");
+      if(inJarName.charAt(0) == '/') {
+        source = JBidWatch.class.getClassLoader().getResourceAsStream(inJarName.substring(1));
+      }
+      if (source == null) {
+        ErrorManagement.logDebug("Failed to open internal resource " + inJarName + "!");
+        return false;
+      }
     }
     BufferedInputStream in = new BufferedInputStream(source);
     try {
