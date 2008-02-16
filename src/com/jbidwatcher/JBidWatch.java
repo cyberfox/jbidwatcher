@@ -183,17 +183,19 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       mainFrame.setState(Frame.NORMAL);
     } else if(msg.equals(SNIPE_ALTERED_MSG)) {
       if(Platform.isTrayEnabled()) {
-        StringBuffer snipeText = new StringBuffer("TOOLTIP ");
         AuctionStats as = AuctionServerManager.getInstance().getStats();
-        if(as.getSnipes() != 0) {
-          snipeText.append("Next Snipe at: ").append(Constants.remoteClockFormat.format(as.getNextSnipe().getSnipeDate())).append('\n');
-          snipeText.append(as.getSnipes()).append(" snipes outstanding\n");
+        if(as != null) {
+          StringBuffer snipeText = new StringBuffer("TOOLTIP ");
+          if (as.getSnipes() != 0) {
+            snipeText.append("Next Snipe at: ").append(Constants.remoteClockFormat.format(as.getNextSnipe().getSnipeDate())).append('\n');
+            snipeText.append(as.getSnipes()).append(" snipes outstanding\n");
+          }
+          if (as.getCompleted() != 0) {
+            snipeText.append(as.getCompleted()).append(" auctions completed\n");
+          }
+          snipeText.append(as.getCount()).append(" auctions total");
+          MQFactory.getConcrete("tray").enqueue(snipeText.toString());
         }
-        if(as.getCompleted() != 0) {
-          snipeText.append(as.getCompleted()).append(" auctions completed\n");
-        }
-        snipeText.append(as.getCount()).append(" auctions total");
-        MQFactory.getConcrete("tray").enqueue(snipeText.toString());
       }
     } else if(msg.startsWith(ALERT_MSG)) {
       JOptionPane.showMessageDialog(null, msg.substring(ALERT_MSG.length()), "Alert", JOptionPane.PLAIN_MESSAGE);
@@ -775,9 +777,14 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     }
     lastTime = System.currentTimeMillis();
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
+    if(JConfig.queryConfiguration("display.toolbar", "true").equals("true")) {
+      defaultServerTime = "<b>" + defaultServerTime.replace("@", "</b><br>");
+    }
 
-    if(!_userValid)  defaultServerTime = "Not logged in...";
-    String headerLine = _linkUp ? defaultServerTime : "<html><strike>" + defaultServerTime + "</strike></html>";
+    if (!_userValid) defaultServerTime = "Not logged in...";
+    String headerLine = _linkUp ? defaultServerTime : "<strike>" + defaultServerTime + "</strike>";
+
+    headerLine = "<html>" + headerLine + "</html>";
 
     MQFactory.getConcrete("Swing").enqueue("HEADER " + headerLine);
   }
@@ -948,6 +955,9 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * @noinspection CallToThreadStartDuringObjectConstruction
    */
   private JBidWatch(JSplashScreen inSplash) {
+    MQFactory.addQueue("Swing", new SwingMessageQueue());
+    MQFactory.getConcrete("Swing").registerListener(this);
+
     ThumbnailManager.getInstance();
     FilterManager.getInstance().loadFilters();
 
@@ -965,8 +975,6 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     AuctionServerManager.getInstance().getDefaultServerTime();
 
     JConfig.registerListener(this);
-    MQFactory.addQueue("Swing", new SwingMessageQueue());
-    MQFactory.getConcrete("Swing").registerListener(this);
 
     String defaultServer = AuctionServerManager.getInstance().getDefaultServer().getName();
     MQFactory.getConcrete(defaultServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$
