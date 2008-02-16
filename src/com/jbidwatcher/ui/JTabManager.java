@@ -97,7 +97,7 @@ public class JTabManager extends JBidMouse {
         if (trueSearch.startsWith(" ")) trueSearch = trueSearch.substring(1);
       }
 
-      trueSearch = "(?i)" + trueSearch;
+      if(trueSearch.length() != 0) trueSearch = "(?i).*" + trueSearch + ".*";
 
       inTable.clearSelection();
 
