@@ -144,14 +144,14 @@ public class ebayLoginManager implements LoginManager {
 
     String msg = "Getting the sign in cookie.";
 
-    if (JConfig.queryConfiguration("debug.verbose", "false").equals("true")) ErrorManagement.logDebug(msg);
+    ErrorManagement.logDebug(msg);
     MQFactory.getConcrete("Swing").enqueue(msg);
 
     CookieJar cj = getSignInCookie(old_cj, getUserId(), getPassword());
 
     String done_msg = "Done getting the sign in cookie.";
     MQFactory.getConcrete("Swing").enqueue(done_msg);
-    if (JConfig.queryConfiguration("debug.verbose", "false").equals("true")) ErrorManagement.logDebug(done_msg);
+    ErrorManagement.logDebug(done_msg);
 
     return cj;
   }
