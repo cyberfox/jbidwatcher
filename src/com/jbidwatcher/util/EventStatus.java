@@ -4,6 +4,8 @@ import com.jbidwatcher.auction.ActiveRecord;
 import com.jbidwatcher.util.db.AuctionDB;
 
 import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,40 +24,29 @@ import java.util.Date;
  * happened.
  *
  */
-class EventStatus extends ActiveRecord {
-  public String mMessage;
-  public Date mLoggedAt;
-  public int mRepeatCount;
-  private String mId;
-  private String mTitle;
-
-  public void setId(String id) {
-    mId = id;
-  }
-
-  public void setTitle(String title) {
-    mTitle = title;
-  }
+public class EventStatus extends ActiveRecord {
+  //  For ActiveRecord construction.
+  public EventStatus() { }
 
   public EventStatus(String what, Date when) {
-    mMessage = what;
-    mLoggedAt = when;
-    mRepeatCount = 1;
+    setMessage(what);
+    setLoggedAt(when);
+    setRepeatCount(1);
   }
 
   public EventStatus(String what, Date when, String id, String title) {
-    mMessage = what;
-    mLoggedAt = when;
-    mRepeatCount = 1;
-    mId = id;
-    mTitle = title;
+    setMessage(what);
+    setLoggedAt(when);
+    setRepeatCount(1);
+    setEntryId(id);
+    setTitle(title);
   }
 
   public String toBulkString() {
     String outStatus;
     String count = "";
-    if(mRepeatCount > 1) count = " (" + mRepeatCount + ")";
-    outStatus = mLoggedAt + ": " + mMessage + count;
+    if(getRepeatCount() > 1) count = " (" + getRepeatCount() + ")";
+    outStatus = getLoggedAt() + ": " + getMessage() + count;
 
     return(outStatus);
   }
@@ -63,8 +54,8 @@ class EventStatus extends ActiveRecord {
   public String toString() {
     String outStatus;
     String count = "";
-    if (mRepeatCount > 1) count = " (" + mRepeatCount + ")";
-    outStatus = mLoggedAt + ": " + mId + " (" + mTitle + ") - " + mMessage + count;
+    if (getRepeatCount() > 1) count = " (" + getRepeatCount() + ")";
+    outStatus = getLoggedAt() + ": " + getEntryId() + " (" + getTitle() + ") - " + getMessage() + count;
 
     return(outStatus);
   }
@@ -74,11 +65,8 @@ class EventStatus extends ActiveRecord {
   /**
    * *********************
    */
-
   private static AuctionDB sDB = null;
-
   protected static String getTableName() { return "events"; }
-
   protected AuctionDB getDatabase() {
     if (sDB == null) {
       sDB = openDB(getTableName());
@@ -93,4 +81,30 @@ class EventStatus extends ActiveRecord {
   public static EventStatus find(Integer id) {
     return (EventStatus) ActiveRecord.findFirstBy(EventStatus.class, "id", Integer.toString(id));
   }
+
+  public static List<EventStatus> findAllByEntry(String entry_id) {
+    List<ActiveRecord> records = ActiveRecord.findAllBy(EventStatus.class, "entry_id", entry_id, "logged_at ASC");
+
+    if(records != null) {
+      List<EventStatus> results = new ArrayList<EventStatus>(records.size());
+      for(ActiveRecord record : records) {
+        results.add((EventStatus)record);
+      }
+
+      return results;
+    }
+    return null;
+  }
+
+  public String getMessage() { return getString("message"); }
+  public Date getLoggedAt() { return getDate("logged_at"); }
+  public int getRepeatCount() { return getInteger("repeat_count"); }
+  public String getTitle() { return getString("title"); }
+  public String getEntryId() { return getString("entry_id"); }
+
+  public void setMessage(String message) { setString("message", message); }
+  public void setLoggedAt(Date loggedAt) { setDate("logged_at", loggedAt); }
+  public void setRepeatCount(int repeatCount) { setInteger("repeat_count", repeatCount); }
+  public void setTitle(String title) { setString("title", title); }
+  public void setEntryId(String entryId) { setString("entry_id", entryId); }
 }

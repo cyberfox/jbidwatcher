@@ -114,6 +114,27 @@ public class AuctionDB {
     }
   }
 
+  public List<DBRecord> findAll(String key, String value, String order) {
+    String statement = "SELECT * FROM " + mTableName;
+    statement += " WHERE " + key + " = ?";
+
+    if(order != null) {
+      statement += " ORDER BY " + order;
+    }
+
+    ResultSet rs;
+    try {
+      PreparedStatement ps = mDB.prepare(statement);
+      setColumn(ps, 1, key, value);
+      rs = ps.executeQuery();
+      return getAllResults(rs);
+    } catch (SQLException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
+
+    return null;
+  }
+
   public List<DBRecord> findAll() {
     return findAll("SELECT * FROM " + mTableName);
   }

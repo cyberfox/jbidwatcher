@@ -7,6 +7,7 @@ import com.jbidwatcher.util.db.DBRecord;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * Provides utility methods for database-backed objects.
@@ -82,6 +83,38 @@ public abstract class ActiveRecord extends HashBacked {
     return found;
   }
 
+  protected static List<ActiveRecord> findAllBy(Class klass, String key, String value) {
+    return findAllBy(klass, key, value, null);
+  }
+
+  protected static List<ActiveRecord> findAllBy(Class klass, String key, String value, String order) {
+    ActiveRecord found;
+    try {
+      found = (ActiveRecord) klass.newInstance();
+    } catch (Exception e) {
+      throw new RuntimeException("Can't instantiate " + klass.getName(), e);
+    }
+
+    List<DBRecord> results = getTable(found).findAll(key, value, order);
+    List<ActiveRecord> rval = new ArrayList<ActiveRecord>();
+
+    try {
+      for (DBRecord record : results) {
+        ActiveRecord row = (ActiveRecord) klass.newInstance();
+        row.setBacking(record);
+        rval.add(row);
+      }
+
+      return rval;
+    } catch (InstantiationException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
+
+    return null;
+  }
+
   private final static Map<Class, Map<String, ActiveRecord>> sCache = new HashMap<Class, Map<String, ActiveRecord>>();
 
   public static Map<String, ActiveRecord> getCache(Class klass) {
@@ -117,13 +150,6 @@ public abstract class ActiveRecord extends HashBacked {
         ActiveRecord row = (ActiveRecord) klass.newInstance();
         row.setBacking(record);
         cache(klass, key, row.get(key), row);
-//        if(first) {
-//          first = false;
-//          for(String colName : record.keySet()) System.err.print(colName + "\t");
-//          System.err.println();
-//        }
-//        for(String colName : record.keySet()) System.err.print(record.get(colName) + "\t");
-//        System.err.println();
       }
     } catch (Exception e) {
       //  Ignore, as this is just for pre-caching...
@@ -139,7 +165,6 @@ public abstract class ActiveRecord extends HashBacked {
         Map<String, ActiveRecord> klassCache = sCache.get(klass);
         for (ActiveRecord record : klassCache.values()) {
           if (record != null && record.isDirty()) {
-//            System.err.println("id = " + record.getId());
             record.saveDB();
           }
         }

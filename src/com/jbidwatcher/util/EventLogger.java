@@ -9,10 +9,7 @@ import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.xml.XMLParseException;
 import com.jbidwatcher.xml.XMLSerialize;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
-import java.util.Date;
+import java.util.*;
 
 /*!@class EventLogger
  *
@@ -39,7 +36,7 @@ public class EventLogger implements XMLSerialize {
    */
   private String mId =null;
   private String mTitle =null;
-  private List<EventStatus> mAllEvents = new Vector<EventStatus>();
+  private List<EventStatus> mAllEvents;
   private final EventStatus mNullEvent = new EventStatus("Nothing has happened.", new Date());
 
   /**
@@ -69,7 +66,8 @@ public class EventLogger implements XMLSerialize {
         } 
 
         newEvent = new EventStatus(msg, new Date(msgtime), mId, mTitle);
-        newEvent.mRepeatCount = curCount;
+        newEvent.setRepeatCount(curCount);
+        newEvent.saveDB();
 
         mAllEvents.add(newEvent);
       } else {
@@ -90,14 +88,14 @@ public class EventLogger implements XMLSerialize {
       XMLElement xmsg, xdate;
 
       xmlResult = new XMLElement("entry");
-      xmlResult.setProperty("count", Integer.toString(curEvent.mRepeatCount));
+      xmlResult.setProperty("count", Integer.toString(curEvent.getRepeatCount()));
 
       xmsg = new XMLElement("message");
-      xmsg.setContents(curEvent.mMessage);
+      xmsg.setContents(curEvent.getMessage());
       xmlResult.addChild(xmsg);
 
       xdate = new XMLElement("date");
-      xdate.setContents(Long.toString(curEvent.mLoggedAt.getTime()));
+      xdate.setContents(Long.toString(curEvent.getLoggedAt().getTime()));
       xmlResult.addChild(xdate);
 
       xmlLog.addChild(xmlResult);
@@ -108,8 +106,11 @@ public class EventLogger implements XMLSerialize {
   public EventLogger(String identifier, String title) {
     mId = identifier;
     mTitle = title;
-    mNullEvent.setId(mId);
+    mNullEvent.setEntryId(mId);
     mNullEvent.setTitle(mTitle);
+
+    mAllEvents = EventStatus.findAllByEntry(mId);
+    if(mAllEvents == null) mAllEvents = new ArrayList<EventStatus>();
   }
 
   /** Store the status for the most recent event to occur, and format it with the date
@@ -129,8 +130,8 @@ public class EventLogger implements XMLSerialize {
       } else {
         lastStatus = mNullEvent;
       }
-      if(inStatus.equals(lastStatus.mMessage)) {
-        lastStatus.mRepeatCount++;
+      if(inStatus.equals(lastStatus.getMessage())) {
+        lastStatus.setRepeatCount(lastStatus.getRepeatCount() + 1);
       } else {
         whatHappened = new EventStatus(inStatus, new Date(), mId, mTitle);
 
@@ -158,11 +159,8 @@ public class EventLogger implements XMLSerialize {
       }
     } else {
       StringBuffer sb = new StringBuffer();
-      EventStatus lastStatus;
-      int i;
 
-      for(i=0; i< mAllEvents.size(); i++) {
-        lastStatus = mAllEvents.get(i);
+      for(EventStatus lastStatus : mAllEvents) {
         if(bulk) {
           sb.append(lastStatus.toBulkString());
         } else {
