@@ -1,7 +1,6 @@
 package com.jbidwatcher.ui;
 
 import com.jbidwatcher.platform.Platform;
-import com.jbidwatcher.JBidWatch;
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -12,6 +11,7 @@ import javax.swing.event.DocumentEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.*;
+import java.net.URL;
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,7 +30,7 @@ public class JBidToolBar {
   private static JBidToolBar mInstance = null;
 
   private String getSource(String icon) {
-    String toolbarSrc = "icons/toolbar/32/";
+    String toolbarSrc = "/icons/toolbar/32/";
 
     return toolbarSrc + icon;
   }
@@ -154,10 +154,10 @@ public class JBidToolBar {
     jtb.add(newButton);
   }
 
-  private static ClassLoader urlCL = (ClassLoader)JBidWatch.class.getClassLoader();
   public static JButton makeButton(String buttonImage, String buttonTip, String buttonName, ActionListener inAction, boolean shrink) {
     JButton newButton = new JButton();
-    ImageIcon newImage = new ImageIcon(urlCL.getResource(buttonImage));
+    URL iconRes = JConfig.getResource(buttonImage);
+    ImageIcon newImage = new ImageIcon(iconRes);
 
     newButton.setIcon(newImage);
     if(shrink) {

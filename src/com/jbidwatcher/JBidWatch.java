@@ -673,10 +673,10 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
 
     if( (_day == 1 && _mon == Calendar.APRIL) &&
         !JConfig.queryConfiguration("sniperkitty", "false").equals("true")) {
-      imageURL = urlCL.getResource("/jbidwatch_apr1.jpg");
+      imageURL = JConfig.getResource("/jbidwatch_apr1.jpg");
       JConfig.setConfiguration("sniperkitty", "true");
     } else {
-      imageURL = urlCL.getResource(JConfig.queryConfiguration("splash", "jbidwatch.jpg"));
+      imageURL = JConfig.getResource(JConfig.queryConfiguration("splash", "jbidwatch.jpg"));
     }
     JSplashScreen Splash = new JSplashScreen(new ImageIcon(imageURL));
 
@@ -914,7 +914,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
 
     newFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-    URL iconURL = urlCL.getResource(JConfig.queryConfiguration("icon", "jbidwatch64.jpg"));
+    URL iconURL = JConfig.getResource(JConfig.queryConfiguration("icon", "jbidwatch64.jpg"));
     newFrame.setIconImage(new ImageIcon(iconURL).getImage());
 
     jtmAuctions = AuctionsUIModel.getTabManager();

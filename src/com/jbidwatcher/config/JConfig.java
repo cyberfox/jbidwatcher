@@ -29,6 +29,7 @@ import java.util.*;
 import java.awt.Point;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.net.URL;
 import javax.swing.*;
 
 public class JConfig {
@@ -471,6 +472,15 @@ public class JConfig {
       displayProps.setProperty("width", Integer.toString(width));
     }
     displayProperty = displayProps;
+  }
+
+  public static URL getResource(String path) {
+    URL rval = JConfig.class.getClassLoader().getResource(path);
+    if(rval == null && path.charAt(0) == '/') {
+      rval = JConfig.class.getClassLoader().getResource(path.substring(1));
+    }
+
+    return rval;
   }
 
   public static void setDebugging(boolean doDebug) {

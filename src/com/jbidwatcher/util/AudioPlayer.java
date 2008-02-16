@@ -8,6 +8,7 @@ package com.jbidwatcher.util;
 import javazoom.jlme.util.*;
 import com.jbidwatcher.queue.MessageQueue;
 import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.config.JConfig;
 
 public class AudioPlayer implements MessageQueue.Listener {
   private static AudioPlayer sAP = null;
@@ -24,7 +25,7 @@ public class AudioPlayer implements MessageQueue.Listener {
 
   public void messageAction(Object deQ) {
     String s=(String)deQ;
-    String playme = AudioPlayer.class.getClassLoader().getResource(s).toString();
+    String playme = JConfig.getResource(s).toString();
     ErrorManagement.logMessage("playme = " + playme);
     try {
       Player.playURL(playme);

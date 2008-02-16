@@ -89,7 +89,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
     menu.add(quitMenuItem);
 
     // ImageIcon jbw_icon = new ImageIcon("duke.gif");
-    URL iconURL = Tray.class.getClassLoader().getResource(JConfig.queryConfiguration("icon", "jbidwatch64.jpg"));
+    URL iconURL = JConfig.getResource(JConfig.queryConfiguration("icon", "/jbidwatch64.jpg"));
     ImageIcon jbw_icon = new ImageIcon(iconURL);
 
     ti = new TrayIcon(jbw_icon, "JBidwatcher", menu);

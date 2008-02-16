@@ -60,8 +60,8 @@ public class TableSorter extends Transformation implements TableModelListener {
   private BaseTransformation _model = null;
   private SortTransformation _sorted = null;
 
-  private static final Icon ascend = new ImageIcon(TableSorter.class.getClassLoader().getResource("icons/ascend_10x5.gif"));
-  private static final Icon descend = new ImageIcon(TableSorter.class.getClassLoader().getResource("icons/descend_10x5.gif"));
+  private static final Icon ascend = new ImageIcon(JConfig.getResource("/icons/ascend_10x5.gif"));
+  private static final Icon descend = new ImageIcon(JConfig.getResource("/icons/descend_10x5.gif"));
 
   public TableSorter(String name, String defaultColumn, BaseTransformation tm) {
     _model = tm;

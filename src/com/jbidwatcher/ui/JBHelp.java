@@ -8,6 +8,8 @@ package com.jbidwatcher.ui;
 import java.io.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.net.URL;
+
 import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.Constants;
@@ -28,7 +30,8 @@ public class JBHelp {
     StringBuffer outSB;
 
     try {
-      outSB = new StringBuffer(preprocess(Http.receivePage(JBidMouse.class.getClassLoader().getResource(helpPath).openConnection()), title));
+      URL resource = JConfig.getResource(helpPath);
+      outSB = new StringBuffer(preprocess(Http.receivePage(resource.openConnection()), title));
     } catch(IOException ignored) {
       outSB = null;
     }
@@ -58,7 +61,7 @@ public class JBHelp {
     String munge = helpBuf.toString();
 
     String toc = genTOC(helpBuf);
-    String headImage = JBHelp.class.getClassLoader().getResource(HEAD_LOC).toString();
+    String headImage = JConfig.getResource(HEAD_LOC).toString();
     String basicLocation = headImage.substring(0, headImage.length() - HEAD_LOC.length());
 
     munge = munge.replaceAll("<%que ([0-9]+)%>", "<%que%><a name=\"Q$1\">").
@@ -76,7 +79,7 @@ public class JBHelp {
         replaceAll("<%que%>", "<li><B><u>Q.</u> ").
         replaceAll("<%ans%>", "<br><u>A.</u></B> ").
         replaceAll("<%end%>", "<br><a href=\"#top\">Top</a></li>").
-        replaceAll("<%jay%>", Matcher.quoteReplacement(JBHelp.class.getResource("/jbidwatch64.jpg").toString())).
+        replaceAll("<%jay%>", Matcher.quoteReplacement(JConfig.getResource("/jbidwatch64.jpg").toString())).
         replaceAll("<%auctions_save%>", Matcher.quoteReplacement(JConfig.queryConfiguration("savefile")));
 
     return munge;

@@ -36,7 +36,7 @@ public class Upgrader {
 
       ResultSet rs = mS.getConnection().getMetaData().getTables(null, null, "AUCTIONS", null);
       if(!rs.next()) {
-        String sql = StringTools.cat(StringTools.class.getClassLoader().getResource("/jbidwatcher.sql"));
+        String sql = StringTools.cat(JConfig.getResource("/jbidwatcher.sql"));
         if(sql == null) sql = StringTools.cat(JConfig.getCanonicalFile("jbidwatcher.sql", "jbidwatcher", true));
         if(sql != null) {
           String[] statements = sql.split("(?m)^$");
