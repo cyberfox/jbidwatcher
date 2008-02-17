@@ -66,23 +66,28 @@ public class SearchTableModel extends BaseTransformation {
       case 2:
       case 3: return getSortByValueAt(i, j);
       case 4:
-        int period;
-
-        period = s.getPeriod();
-        if(period == -1) return "None";
-        if(period < 24) {
-          return period + " hour" + ((period != 1)?"s":"");
-        }
-        if( (period % 24) == 0) {
-          return (period / 24) + " day" + ((period != 24)?"s":"");
-        }
-        result = (period / 24) + " day" + ((period > 48)?"s":"");
-        result += ", " + (period % 24) + " hour" + (((period % 24)!=1)?"s":"");
-        return result;
+        return formattedPeriod(s);
       case 5: return dateFormat(s);
       default:
         return null;
     }
+  }
+
+  private Object formattedPeriod(Searcher s) {
+    String result;
+    int period;
+
+    period = s.getPeriod();
+    if(period == -1) return "None";
+    if(period < 24) {
+      return period + " hour" + ((period != 1)?"s":"");
+    }
+    if( (period % 24) == 0) {
+      return (period / 24) + " day" + ((period != 24)?"s":"");
+    }
+    result = (period / 24) + " day" + ((period > 48)?"s":"");
+    result += ", " + (period % 24) + " hour" + (((period % 24)!=1)?"s":"");
+    return result;
   }
 
   public String dateFormat(Searcher s) {

@@ -131,7 +131,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     if(!mLogin.isDefault()) {
       SearchManager.getInstance().deleteSearch("My Selling Items");
-      mSellerSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", mLogin.getUserId(), getName(), null, 0);
+      mSellerSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", mLogin.getUserId(), getName(), null, 1);
       mSellerSearch.setCategory("selling");
       SearchManager.getInstance().addSearch(mSellerSearch);
     }
