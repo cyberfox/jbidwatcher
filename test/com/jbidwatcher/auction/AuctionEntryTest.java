@@ -3,7 +3,6 @@ package com.jbidwatcher.auction;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
-import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.queue.MessageQueue;
@@ -27,7 +26,6 @@ public class AuctionEntryTest extends TestCase {
 
   public void setUp() throws Exception {
     super.setUp();
-    AuctionServerManager.getInstance().addServer("testBay", new MockAuctionServer());
     mai = new MockAuctionInfo();
     mAE = AuctionEntry.buildEntry(mai.getIdentifier());
   }
