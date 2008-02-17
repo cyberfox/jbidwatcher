@@ -261,4 +261,9 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
       JConfig.setAuxConfiguration("searches.height", hCfg);
     }
   }
+
+  public void deleteSearch(String searchName) {
+    Searcher old = getSearchByName(searchName);
+    if(old != null) deleteSearch(old);
+  }
 }
