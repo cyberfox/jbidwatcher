@@ -26,7 +26,6 @@ import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.Bidder;
 import com.jbidwatcher.TimerHandler;
 import com.jbidwatcher.Constants;
-import com.jbidwatcher.xml.XMLElement;
 
 import javax.swing.*;
 import java.net.URL;
@@ -47,8 +46,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * The human-readable name of the auction server.
    */
   private static String siteId = "ebay";
-  private String userCfgString = null;
-  private String passCfgString = null;
 
   /** @noinspection FieldAccessedSynchronizedAndUnsynchronized*/
   private eBayTimeQueueManager _etqm;
@@ -81,21 +78,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     ebayServer that = (ebayServer) o;
 
-    if (!siteId.equals(that.siteId)) return false;
-
-    String user1 = JConfig.queryConfiguration(userCfgString);
-    String pass1 = JConfig.queryConfiguration(passCfgString);
-    String user2 = JConfig.queryConfiguration(that.userCfgString);
-    String pass2 = JConfig.queryConfiguration(that.passCfgString);
-
-    return !(user1 != null ? !user1.equals(user2) : user2 != null) &&
-           !(pass1 != null ? !pass1.equals(pass2) : pass2 != null) &&
-            (user1 == null || pass1 == null || user1.equals(user2) && pass1.equals(pass2));
+    return getName().equals(that.getName()) && mLogin.equals(that.mLogin);
   }
 
   public int hashCode() {
-    String user = JConfig.queryConfiguration(userCfgString);
-    String pass = JConfig.queryConfiguration(passCfgString);
+    String user = mLogin.getUserId();
+    String pass = mLogin.getPassword();
 
     int result = siteId.hashCode();
     result = 31 * result + (user != null ? user.hashCode() : 0);
@@ -138,7 +126,15 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public void updateConfiguration() {
-    mSellerSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", getUserId(), getName(), null, 0);
+    mLogin.setUserId(JConfig.queryConfiguration(getName() + ".user", "default"));
+    mLogin.setPassword(JConfig.queryConfiguration(getName() + ".password", "default"));
+
+    if(!mLogin.isDefault()) {
+      SearchManager.getInstance().deleteSearch("My Selling Items");
+      mSellerSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", mLogin.getUserId(), getName(), null, 0);
+      mSellerSearch.setCategory("selling");
+      SearchManager.getInstance().addSearch(mSellerSearch);
+    }
   }
 
   private class eBayTimeQueueManager extends TimeQueueManager {
@@ -152,9 +148,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *
    * @return - A new tab to be added to the configuration display.
    */
-  public JConfigTab getConfigurationTab() {
+  public List<JConfigTab> getConfigurationTabs() {
+    List<JConfigTab> tabs = new ArrayList<JConfigTab>();
     //  Always return a new one, to fix a problem on first startup.
-    return new JConfigEbayTab(eBayDisplayName, sSiteChoices);
+    tabs.add(new JConfigEbayTab(eBayDisplayName, sSiteChoices));
+    return tabs;
   }
 
   /**
@@ -201,7 +199,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     JHTML htmlDocument = new JHTML(dutchWinners, userCookie, mCleaner);
     String matchedName = null;
     if(htmlDocument.isLoaded()) {
-      matchedName = htmlDocument.getNextContentAfterContent(getUserId());
+      matchedName = htmlDocument.getNextContentAfterContent(mLogin.getUserId());
     }
 
     return matchedName != null;
@@ -215,7 +213,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     JHTML htmlDocument = new JHTML(bidHistory, userCookie, mCleaner);
 
     if(htmlDocument.isLoaded()) {
-      String newCurrency = htmlDocument.getNextContentAfterContent(getUserId());
+      String newCurrency = htmlDocument.getNextContentAfterContent(mLogin.getUserId());
 
       //  If we couldn't find anything, ditch, because we're probably wrong that the user is in the high bid table.
       if(newCurrency == null) return;
@@ -271,7 +269,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   public void messageAction(Object deQ) {
     AuctionQObject ac = (AuctionQObject)deQ;
     String failString = null;
-    boolean defaultUser = getUserId().equals("default");
 
     /**
      * Just load all listings on a specific URL.
@@ -299,7 +296,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         doGetSelling(ac.getData(), ac.getLabel());
         return;
       case AuctionQObject.LOAD_MYITEMS:
-        if(defaultUser) {
+        if(mLogin.isDefault()) {
           failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           doMyEbaySynchronize(ac.getLabel());
@@ -349,7 +346,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     if(ac.getData() != null) {
       if(ac.getData().equals("Get My eBay Items")) {
-        if(defaultUser) {
+        if(mLogin.isDefault()) {
           failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           SearchManager.getInstance().getSearchByName("My eBay").execute();
@@ -361,7 +358,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
        * Get items this user is selling.
        */
       if(ac.getData().equals("Get Selling Items")) {
-        if(defaultUser) {
+        if(mLogin.isDefault()) {
           failString = Externalized.getString("ebayServer.cantLoadSellerWithoutUser1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           if(mSellerSearch == null) updateConfiguration();
@@ -374,7 +371,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
        * Update the login cookie, that contains session and adult information, for example.
        */
       if(ac.getData().equals("Update login cookie")) {
-        if(defaultUser) {
+        if(mLogin.isDefault()) {
           failString = Externalized.getString("ebayServer.cantUpdateCookieWithoutUser1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           mLogin.resetCookie();
@@ -394,7 +391,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
      * user, then display the error, otherwise indicate that we got an
      * unexpected command.
      */
-    if(failString != null && failString.length() != 0 && defaultUser) {
+    if(failString != null && failString.length() != 0 && mLogin.isDefault()) {
       JOptionPane.showMessageDialog(null, failString, "No auction account error", JOptionPane.PLAIN_MESSAGE);
     } else {
       if (ac.getData() instanceof String) {
@@ -414,11 +411,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * now, but it is probably not broken.  -- mrs: 18-September-2003 15:08
    */
   public ebayServer() {
-    userCfgString = getName() + ".user";
-    passCfgString = getName() + ".password";
-
     mCleaner = new ebayCleaner();
-    mLogin = new ebayLoginManager(eBayServerName, getPassword(), getUserId());
+    mLogin = new ebayLoginManager(eBayServerName,
+        JConfig.queryConfiguration(getName() + ".password", "default"),
+        JConfig.queryConfiguration(getName() + ".user", "default"));
     mSearcher = new ebaySearches(mCleaner, mLogin);
     mBidder = new ebayBidder(mLogin);
 
@@ -555,51 +551,17 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return mBidder.buy(ae, quantity);
   }
 
-  public void loadAuthorization(XMLElement auth) {
-    String username = auth.getProperty("USER", null);
-    if (username != null) {
-      JConfig.setConfiguration(userCfgString, username);
-
-      //  If password1 is available, use it as a Base64 encoded
-      //  password.  If it's not available, fall back to
-      //  compatibility, loading the password as unencrypted.  This
-      //  can be extended, by including encryption algorithms with
-      //  increasing numbers at the end of PASSWORD, and preserving
-      //  backwards compatibility.
-      String b64Password = auth.getProperty("PASSWORD1");
-      String password = b64Password != null ? Base64.decodeToString(b64Password) : auth.getProperty("PASSWORD", null);
-
-      if (password != null) {
-        JConfig.setConfiguration(passCfgString, password);
-      }
-    }
-  }
-
-  public void storeAuthorization(XMLElement auth) {
-    if (getUserId() != null) {
-      auth.setProperty("user", getUserId());
-      auth.setProperty("password1", Base64.encodeString(getPassword(), false));
-    }
+  public boolean isDefaultUser() {
+    return mLogin.isDefault();
   }
 
   /**
    * @brief Get the user's ID for this auction server.
    *
-   * TODO --  Fewer things should care about this.
-   *
    * @return - The user's ID, as they entered it.
    */
   public String getUserId() {
-    return JConfig.queryConfiguration(userCfgString, "default");
-  }
-
-  /**
-   * @brief Get the user's password for this auction server.
-   *
-   * @return - The user's password, as they entered it.
-   */
-  private String getPassword() {
-    return JConfig.queryConfiguration(passCfgString, "default");
+    return mLogin.getUserId();
   }
 
   /**
@@ -676,14 +638,14 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   private void doMyEbaySynchronize(String label) {
     MQFactory.getConcrete("Swing").enqueue("Synchronizing with My eBay...");
-    mSearcher.getMyEbayItems(getUserId(), label);
+    mSearcher.getMyEbayItems(mLogin.getUserId(), label);
     MQFactory.getConcrete("Swing").enqueue("Done synchronizing with My eBay...");
   }
 
   private void doGetSelling(Object searcher, String label) {
     String userId = ((Searcher)searcher).getSearch();
     MQFactory.getConcrete("Swing").enqueue("Getting Selling Items for " + userId);
-    mSearcher.getSellingItems(userId, getUserId(), label);
+    mSearcher.getSellingItems(userId, mLogin.getUserId(), label);
     MQFactory.getConcrete("Swing").enqueue("Done Getting Selling Items for " + userId);
   }
 
@@ -744,10 +706,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       mCal.setTime(mNow);
       //  Just in case it changes because of the setup.
       mNow.setTime(mCal.getTimeInMillis());
-      return getUserId() + '@' + getName() + ": " + Constants.remoteClockFormat.format(mNow);
+      return mLogin.getUserId() + '@' + getName() + ": " + Constants.remoteClockFormat.format(mNow);
     } else {
       mNow.setTime(System.currentTimeMillis());
-      return getUserId() + '@' + getName() + ": " + Constants.localClockFormat.format(mNow);
+      return mLogin.getUserId() + '@' + getName() + ": " + Constants.localClockFormat.format(mNow);
     }
   }
 
@@ -772,7 +734,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public boolean validate(String username, String password) {
-    return !getUserId().equals("default") && getUserId().equals(username) && getPassword().equals(password);
+    return mLogin.validate(username, password);
   }
 
   public Searcher getMyEbay() {

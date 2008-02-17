@@ -108,5 +108,5 @@ public interface AuctionServerInterface {
 
   public boolean validate(String username, String password);
 
-  String getUserId();
+  boolean isDefaultUser();
 }

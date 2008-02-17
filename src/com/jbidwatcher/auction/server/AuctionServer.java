@@ -50,7 +50,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
   //  UI functions
   //  Note: AuctionServerManager
   public abstract void establishMenu();
-  public abstract JConfigTab getConfigurationTab();
+  public abstract List<JConfigTab> getConfigurationTabs();
 
   // TODO -- A better search structure would be nice.
   //  Note: AuctionServerManager
@@ -105,22 +105,6 @@ public abstract class AuctionServer implements AuctionServerInterface {
    * @return - true if this auction server recognizes the given server name.
    */
   public abstract boolean checkIfSiteNameHandled(String serverName);
-
-  /**
-   * @brief Fills an XMLElement's attributes with the username and password
-   * for the current auction server user.
-   *
-   * @param auth - The XMLElement to have user-auth related attributes added to.
-   */
-  public abstract void storeAuthorization(XMLElement auth);
-
-  /**
-   * @brief Loads authorization information from an XMLElement's attributes
-   * for the current auction server user.
-   *
-   * @param auth - The XMLElement to load user-auth related attributes from.
-   */
-  public abstract void loadAuthorization(XMLElement auth);
 
   /**
    * @brief Get the official 'right now' time from the server.
@@ -368,5 +352,18 @@ public abstract class AuctionServer implements AuctionServerInterface {
 
   public int getCount() {
     return new AuctionEntry().count();
+  }
+
+  protected abstract String getUserId();
+
+  /**
+   * Check to see if the provided user name is the current app user.
+   *
+   * @param username - The username to check.
+   * @return - false if username is null, or if the current user is the 'default' user, or if the username provided is different
+   * than the current username.  True if the current app user is the same as the username passed in.
+   */
+  public boolean sameUser(String username) {
+    return !(username == null || isDefaultUser() || !getUserId().trim().equalsIgnoreCase(username.trim()));
   }
 }

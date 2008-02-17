@@ -626,7 +626,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       setUI(null, null, UIManager.getInstalledLookAndFeels());
       //  Preload the eBay server, must be done before Configuration setup
       //  could happen, to get the configuration tab for eBay.
-      AuctionServerManager.getInstance().addServer("ebay", new ebayServer());
+      AuctionServerManager.getInstance().addServer(new ebayServer());
       ebayLoaded = true;
       Platform.setupMacUI();
       JConfig.setConfiguration("first.run", "true");
@@ -657,7 +657,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       ErrorManagement.handleException("Upgrading error", e);
     }
 
-    if(!ebayLoaded) AuctionServerManager.getInstance().addServer("ebay", new ebayServer());
+    if(!ebayLoaded) AuctionServerManager.getInstance().addServer(new ebayServer());
 
     loadProxySettings();
 

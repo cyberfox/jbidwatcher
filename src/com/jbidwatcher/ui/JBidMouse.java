@@ -32,7 +32,6 @@ import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.webserver.JBidProxy;
-import org.jruby.demo.IRBConsole;
 
 public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private static JConfigFrame jcf = null;
@@ -768,7 +767,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       com.jbidwatcher.util.Currency curBid = tempAE.getCurBid();
       Currency minBid;
 
-      if(tempAE.getServer().getUserId().equals("default")) {
+      if(tempAE.getServer().isDefaultUser()) {
         JOptionPane.showMessageDialog(src, "One or more of your auctions to multisnipe is on a server that you have not\n" +
                                       "entered your user account information for.  Go to the the " + tempAE.getServer().getName() + " configuration tab,\n" +
                                       "and fill it out.",
@@ -929,7 +928,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       return;
     }
 
-    if(ae.getServer().getUserId().equals("default")) {
+    if(ae.getServer().isDefaultUser()) {
       JOptionPane.showMessageDialog(src, "You cannot snipe on an auction without first entering your\n" +
                                     "user account information on the " + ae.getServer().getName() + " configuration tab.",
                                     "No auction account error", JOptionPane.PLAIN_MESSAGE);
@@ -1035,7 +1034,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       return true;
     }
 
-    if(ae.getServer().getUserId().equals("default")) {
+    if(ae.getServer().isDefaultUser()) {
       JOptionPane.showMessageDialog(src, "You cannot bid on an auction without first entering your\n" +
                                     "user account information on the " + ae.getServer().getName() + " configuration tab.",
                                     "No auction account error", JOptionPane.PLAIN_MESSAGE);

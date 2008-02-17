@@ -701,8 +701,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         }
       } else {
         if(!isDutch()) {
-          String localUserId = mServer.getUserId().trim();
-          mHighBidder = localUserId.equalsIgnoreCase(getHighBidder());
+          mHighBidder = mServer.sameUser(getHighBidder());
         }
       }
     }
@@ -720,9 +719,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @brief Set the flags if the current user is the seller in this auction.
    */
   private void checkSeller() {
-    String localUserId = mServer.getUserId();
-
-    mSeller = localUserId.equalsIgnoreCase(getSeller());
+    mSeller = mServer.sameUser(getSeller());
   }
 
   ////////////////////////////

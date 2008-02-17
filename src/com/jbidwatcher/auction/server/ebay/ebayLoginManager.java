@@ -278,4 +278,37 @@ public class ebayLoginManager implements LoginManager {
   public String getUserId() {
     return mUserId;
   }
+
+  public boolean isDefault() {
+    return mUserId == null || mUserId.equals("default");
+  }
+
+  public boolean validate(String username, String password) {
+    return !isDefault() && getUserId().equals(username) && getPassword().equals(password);
+  }
+
+  public boolean equals(ebayLoginManager that) {
+    String user1 = getUserId();
+    String pass1 = getPassword();
+    String user2 = that.getUserId();
+    String pass2 = that.getPassword();
+
+    return !(user1 != null ? !user1.equals(user2) : user2 != null) &&
+        !(pass1 != null ? !pass1.equals(pass2) : pass2 != null) &&
+        (user1 == null || pass1 == null || user1.equals(user2) && pass1.equals(pass2));
+  }
+
+  public void setPassword(String password) {
+    if(!mPassword.equals(password)) {
+      mPassword = password;
+      mSignInCookie = null;
+    }
+  }
+
+  public void setUserId(String userId) {
+    if(!mUserId.equals(userId)) {
+      mUserId = userId;
+      mSignInCookie = null;
+    }
+  }
 }
