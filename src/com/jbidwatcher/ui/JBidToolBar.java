@@ -30,7 +30,8 @@ public class JBidToolBar {
   private static JBidToolBar mInstance = null;
 
   private String getSource(String icon) {
-    String toolbarSrc = "/icons/toolbar/32/";
+    String iconSize = JConfig.queryConfiguration("ui.iconSize", "32");
+    String toolbarSrc = "/icons/toolbar/" + iconSize + "/";
 
     return toolbarSrc + icon;
   }
@@ -76,7 +77,7 @@ public class JBidToolBar {
 
     //      addbutton(_bidBar, inAction, "GetMyEbay", "getmyebay.gif", "Get My eBay");
 
-    JBidToolBar.addbutton(_bidBar, inAction, "Help", getSource("help.png"), "Help");
+    JBidToolBar.addbutton(_bidBar, inAction, "FAQ", getSource("help.png"), "Help");
     JBidToolBar.addbutton(_bidBar, inAction, "About", getSource("about.png"), "About JBidWatcher");
     JBidToolBar.addbutton(_bidBar, inAction, "Forum", getSource("forum.png"), "JBidwatcher Forums");
     JBidToolBar.addbutton(_bidBar, inAction, "Report Bug", getSource("report_bug.png"), "Report Bug");

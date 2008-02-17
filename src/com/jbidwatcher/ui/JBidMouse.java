@@ -1428,6 +1428,13 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     DoCopySomething(src, ae, DO_COPY_ID, "No auctions selected to copy IDs of!", ", ");
   }
 
+  private void DoLog(Component src) {
+    //  Not really implemented yet...  --  BUGBUG (need to write help!)
+    JOptionPane.showMessageDialog(src,
+                                  "I'm very sorry, but this feature has not been implemented yet.",
+                                  "Sorry, no log view...", JOptionPane.INFORMATION_MESSAGE);
+  }
+
   private void DoHelp(Component src) {
     //  Not really implemented yet...  --  BUGBUG (need to write help!)
     JOptionPane.showMessageDialog(src,
@@ -1696,6 +1703,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Search")) DoSearch();
     else if(actionString.equals("Scripting")) DoScripting();
     else if(actionString.equals("Dump")) ActiveRecord.saveCached();
+    else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
+    else if(actionString.equals("View Log")) DoLog(c_src);
+    else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://sourceforge.net/tracker/?func=add&group_id=3914&atid=103914");
     else ErrorManagement.logDebug('[' + actionString + ']');
   }
 }
