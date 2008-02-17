@@ -6,7 +6,6 @@ package com.jbidwatcher.auction.server;
  */
 
 import com.jbidwatcher.auction.*;
-import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.queue.MessageQueue;
@@ -22,14 +21,14 @@ import java.util.*;
 
 public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener {
   private Map<AuctionServer, List<AuctionEntry>> mServerAuctionList;
-  private List<AuctionServerListEntry> mServerList;
   private List<JConfigTab> mConfigTabList = null;
-  private final static AuctionServerManager mInstance = new AuctionServerManager();
+  private final static AuctionServerManager mInstance;
   private static EntryManager sEntryManager = null;
 
   private static final boolean sUberDebug = false;
 
   static {
+    mInstance = new AuctionServerManager();
     MQFactory.getConcrete("auction_manager").registerListener(mInstance);
   }
 
@@ -49,27 +48,8 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     return sniped;
   }
 
-  private static class AuctionServerListEntry {
-    private String _serverName;
-    private AuctionServer _aucServ;
-
-    private AuctionServerListEntry(String name, AuctionServer server) {
-      _serverName = name;
-      _aucServ = server;
-    }
-
-    public AuctionServer getAuctionServer() {
-      return _aucServ;
-    }
-
-    public String getName() {
-      return _serverName;
-    }
-  }
-
   public AuctionServer getServerByName(String name) {
-    for (AuctionServerListEntry a_serverList : mServerList) {
-      AuctionServer as = (a_serverList).getAuctionServer();
+    for (AuctionServer as : mServerAuctionList.keySet()) {
       if (as.getName().equals(name)) return as;
     }
 
@@ -78,7 +58,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
   private AuctionServerManager() {
     mServerAuctionList = new HashMap<AuctionServer, List<AuctionEntry>>(2);
-    mServerList = new ArrayList<AuctionServerListEntry>();
   }
 
   /**
@@ -218,8 +197,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     XMLElement xmlResult = new XMLElement("auctions");
     int aucCount = 0;
 
-    for (AuctionServerListEntry asle : mServerList) {
-      AuctionServer aucServ = asle.getAuctionServer();
+    for (AuctionServer aucServ: mServerAuctionList.keySet()) {
       List<AuctionEntry> aucList = mServerAuctionList.get(aucServ);
       XMLElement serverChild = new XMLElement("server");
 
@@ -267,13 +245,10 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   private AuctionServer addServerNoUI(String inName, AuctionServer aucServ) {
-    for (AuctionServerListEntry asle : mServerList) {
-      if (asle.getAuctionServer() == aucServ || inName.equals(asle.getName())) {
-        return (asle.getAuctionServer());
-      }
+    for (AuctionServer as : mServerAuctionList.keySet()) {
+      if (as == aucServ || inName.equals(as.getName())) return as;
     }
 
-    mServerList.add(new AuctionServerListEntry(inName, aucServ));
     mServerAuctionList.put(aucServ, Collections.synchronizedList(new ArrayList<AuctionEntry>()));
     return(aucServ);
   }
@@ -289,31 +264,20 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     return(as);
   }
 
-  private AuctionServer addServer(AuctionServer aucServ) {
-    return(addServer(aucServ.getName(), aucServ));
-  }
-
   //  Handle the case of '198332643'.  (For 'paste auction').
   public AuctionServer getServerForIdentifier(String auctionId) {
-    for (AuctionServerListEntry a_serverList : mServerList) {
-      AuctionServer as = (a_serverList).getAuctionServer();
-
-      if (as.checkIfIdentifierIsHandled(auctionId)) {
-        return (addServer(as));
-      }
+    for (AuctionServer as: mServerAuctionList.keySet()) {
+      if (as.checkIfIdentifierIsHandled(auctionId)) return as;
     }
 
     return null;
   }
 
   public AuctionServer getServerForUrlString(String strURL) {
-    for (AuctionServerListEntry a_serverList : mServerList) {
-      AuctionServer as = (a_serverList).getAuctionServer();
+    for (AuctionServer as: mServerAuctionList.keySet()) {
       URL serverAddr = StringTools.getURLFromString(strURL);
 
-      if (as.doHandleThisSite(serverAddr)) {
-        return (addServer(as));
-      }
+      if (as.doHandleThisSite(serverAddr)) return as;
     }
 
     ErrorManagement.logDebug("No matches for getServerForUrlString(" + strURL + ')');
@@ -321,32 +285,33 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public void addAuctionServerMenus() {
-    for (AuctionServerListEntry a_serverList : mServerList) {
-      AuctionServer as = (a_serverList).getAuctionServer();
+    for (AuctionServer as: mServerAuctionList.keySet()) {
       as.establishMenu();
     }
   }
 
+  /**
+   * Returns the first server, which means it's the 'default'.
+   *
+   * @return - The first auction server in the list, or null if the list is empty.
+   */
   public AuctionServer getDefaultServer() {
-    Iterator<AuctionServerListEntry> it = mServerList.iterator();
+    Iterator<AuctionServer> it = mServerAuctionList.keySet().iterator();
     if(it.hasNext()) {
-      return (it.next()).getAuctionServer();
+      return it.next();
     }
 
     return null;
   }
 
   public void addSearches(SearchManagerInterface searchManager) {
-    for (AuctionServerListEntry a_serverList : mServerList) {
-      AuctionServer as = (a_serverList).getAuctionServer();
-
+    for (AuctionServer as: mServerAuctionList.keySet()) {
       as.addSearches(searchManager);
     }
   }
 
   public void cancelSearches() {
-    for (AuctionServerListEntry a_serverList : mServerList) {
-      AuctionServer as = (a_serverList).getAuctionServer();
+    for (AuctionServer as: mServerAuctionList.keySet()) {
       as.cancelSearches();
     }
   }
@@ -354,8 +319,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   public List<JConfigTab> getServerConfigurationTabs() {
     //  Always rebuild, so as to fix a problem on first-startup.
     mConfigTabList = new ArrayList<JConfigTab>();
-    for (AuctionServerListEntry a_serverList : mServerList) {
-      AuctionServer as = (a_serverList).getAuctionServer();
+    for (AuctionServer as: mServerAuctionList.keySet()) {
       mConfigTabList.add(as.getConfigurationTab());
     }
     return mConfigTabList;
