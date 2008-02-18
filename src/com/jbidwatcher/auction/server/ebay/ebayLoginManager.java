@@ -79,6 +79,14 @@ public class ebayLoginManager implements LoginManager {
 
   private static URLConnection checkHTMLFollowRedirect(JHTML redirectPage, String lookFor, CookieJar cj) {
     redirectPage.reset();
+    JHTML.Form alertSuppressor = redirectPage.getFormWithInput("hidUrl");
+    if(alertSuppressor != null) {
+      if(alertSuppressor != null) {
+        String url = redirectPage.getFormWithInput("hidUrl").getInputValue("hidUrl");
+        return cj.getAllCookiesFromPage(url, null, false);
+      }
+    }
+
     List<String> allURLs = redirectPage.getAllURLsOnPage(false);
     for (String url : allURLs) {
       //  If this URL has the text we're looking for in its body someplace, that's the one we want.
@@ -250,6 +258,7 @@ public class ebayLoginManager implements LoginManager {
   private boolean checkSecurityConfirmation(JHTML doc) throws IOException, CaptchaException {
     if(doc.grep("Security.Measure") != null ||
        doc.grep("Enter verification code:") != null ||
+       doc.grep("Enter a verification code to continue") != null ||
        doc.grep("please enter the verification code") != null) {
       ErrorManagement.logMessage("eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");

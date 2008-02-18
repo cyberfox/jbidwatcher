@@ -14,6 +14,8 @@ import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.auction.CleanupHandler;
 import com.jbidwatcher.util.http.Http;
+import com.sun.jmx.snmp.agent.SnmpMibAgentMBean;
+import com.sun.org.apache.xml.internal.utils.StringBufferPool;
 
 public class JHTML implements JHTMLListener {
   protected boolean m_loaded = false;
@@ -194,6 +196,19 @@ public class JHTML implements JHTMLListener {
           }
         }
       }
+    }
+
+    public String getInputValue(String inputName) {
+      for(XMLElement input : allInputs) {
+        String name = input.getProperty("name");
+        if(name != null && name.equals(inputName)) {
+          if (input.getProperty("value") != null) {
+            return input.getProperty("value");
+          }
+        }
+      }
+
+      return null;
     }
   }
 
