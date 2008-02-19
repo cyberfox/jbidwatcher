@@ -8,6 +8,7 @@ import com.jbidwatcher.ui.JPasteListener;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
+import java.awt.Font;
 
 /**
  * Created by IntelliJ IDEA.
@@ -123,6 +124,9 @@ public class JConfigEbayTab extends JConfigTab {
     siteSelect.setSelectedIndex(realCurrentSite);
     tp.add(makeLine(new JLabel("Browse to site: "), siteSelect), BorderLayout.NORTH);
 
+    JLabel bidWarning = new JLabel("Note: Bids will be placed via ebay.com");
+    bidWarning.setFont(bidWarning.getFont().deriveFont(Font.ITALIC));
+    tp.add(bidWarning, BorderLayout.EAST);
     return tp;
   }
 
