@@ -11,7 +11,7 @@ import java.util.Locale;
 public class Currency implements Comparable {
   private static NumberFormat df = NumberFormat.getNumberInstance(Locale.US); // We create a lot of these, so minimizing memory usage is good.
   public static final int NONE=0, US_DOLLAR=1, UK_POUND=2, JP_YEN=3, GER_MARK=4, FR_FRANC=5, CAN_DOLLAR=6;
-  public static final int EURO=7, AU_DOLLAR=8, CH_FRANC=9, NT_DOLLAR=10, TW_DOLLAR=10, HK_DOLLAR=11, MY_REAL=12;
+  public static final int EURO=7, AU_DOLLAR=8, CH_FRANC=9, NT_DOLLAR=10, TW_DOLLAR=10, HK_DOLLAR=11, MY_REAL=12, SG_DOLLAR=13;
   private static Currency _noValue = null;
 
   /** 
@@ -70,6 +70,7 @@ public class Currency implements Comparable {
   private static final Integer CurTaiwan = NT_DOLLAR;  //  New Taiwanese Dollar
   private static final Integer CurHK = HK_DOLLAR;      //  Hong Kong Dollar
   private static final Integer CurMyr = MY_REAL;       //  Malaysia Real(?)
+  private static final Integer CurSGD = SG_DOLLAR;     //  Singapore Dollar
 
   //  The fundamental list of the textual representation for different
   //  currencies, and the Currency type it translates to.
@@ -113,7 +114,9 @@ public class Currency implements Comparable {
     { "hk$",    CurHK },
     { "HKD",    CurHK },
     { "MYR",    CurMyr },
-    { "myr",    CurHK }
+    { "myr",    CurMyr },
+    { "SGD",    CurSGD },
+    { "sgd",    CurSGD }
   };
 
   /** 
@@ -261,6 +264,12 @@ public class Currency implements Comparable {
       } else if(wholeValue.startsWith("NT$")) {
         parseCurrency = "NTD";
         valuePortion = wholeValue.substring(3);
+      } else if(wholeValue.startsWith("SGD")) {
+        parseCurrency = "SGD";
+        valuePortion = wholeValue.substring(3);
+      } else if(wholeValue.startsWith("sgd")) {
+        parseCurrency = "SGD";
+        valuePortion = wholeValue.substring(3);
       } else if(wholeValue.startsWith("nt$")) {
         parseCurrency = "NTD";
         valuePortion = wholeValue.substring(3);
@@ -354,6 +363,7 @@ public class Currency implements Comparable {
       case NT_DOLLAR: return("NTD");
       case HK_DOLLAR: return("HKD");
       case MY_REAL: return("MYR");
+      case SG_DOLLAR: return("SGD");
       case UK_POUND: return("GBP");
       case JP_YEN: return("JPY");
       case GER_MARK: return("DM");
@@ -432,6 +442,7 @@ public class Currency implements Comparable {
       case NT_DOLLAR: return("nt$");
       case HK_DOLLAR: return("hk$");
       case MY_REAL: return("myr");
+      case SG_DOLLAR: return("sgd");
       case UK_POUND: return(objPound.toString());
       case JP_YEN: return("\u00A5"); //  HACKHACK
       case FR_FRANC: return("fr");
