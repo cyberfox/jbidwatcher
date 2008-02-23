@@ -1323,7 +1323,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         mCategory = Category.findFirstBy("id", category_id);
       }
     }
-    return mCategory != null ? mCategory.getName() : "(unknown)";
+    return mCategory != null ? mCategory.getName() : null;
   }
 
   /**
