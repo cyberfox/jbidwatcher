@@ -788,6 +788,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       //noinspection MultiplyOrDivideByPowerOfTwo
       mOfficialServerTimeDelta = (result.getDate().getTime() - localDateBeforePage) - (reqTime / 2);
       if (result.getZone() != null) mOfficialServerTimeZone = (result.getZone());
+      if(Math.abs(mOfficialServerTimeDelta) > Constants.ONE_DAY * 7) {
+        MQFactory.getConcrete("Swing").enqueue("NOTIFY Your system time is off from eBay's by more than a week.");
+      }
     }
 
     return result.getDate();
