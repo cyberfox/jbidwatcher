@@ -20,7 +20,6 @@ import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.config.JConfigTab;
 import com.jbidwatcher.queue.MQFactory;
 import com.jbidwatcher.queue.AuctionQObject;
-import com.jbidwatcher.xml.XMLElement;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.*;
@@ -43,6 +42,9 @@ public abstract class AuctionServer implements AuctionServerInterface {
     ERROR
   }
   private static long sLastUpdated = 0;
+
+  private class ReloadItemException extends Exception {
+  }
 
   //  Note: JBidProxy
   public abstract CookieJar getNecessaryCookie(boolean force);
@@ -255,6 +257,29 @@ public abstract class AuctionServer implements AuctionServerInterface {
    * @return - An object containing the information extracted from the auction.
    */
   private AuctionInfo loadAuction(URL auctionURL, String item_id, AuctionEntry ae) {
+    StringBuffer sb = retrieveAuctionAlternatives(auctionURL, item_id);
+    SpecificAuction curAuction = null;
+
+    if(sb != null) {
+      try {
+        curAuction = doParse(sb, ae, item_id);
+      } catch (ReloadItemException e) {
+        sb = retrieveAuctionAlternatives(auctionURL, item_id);
+        try {
+          curAuction = doParse(sb, ae, item_id);
+        } catch (ReloadItemException e1) {
+          ErrorManagement.logMessage("Multiple failures attempting to load item " + item_id + ", giving up.");
+        }
+      }
+    }
+
+    if(curAuction == null) {
+      noteRetrieveError(ae);
+    }
+    return curAuction;
+  }
+
+  private StringBuffer retrieveAuctionAlternatives(URL auctionURL, String item_id) {
     StringBuffer sb = getAuction(item_id);
 
     if (sb == null) {
@@ -265,7 +290,6 @@ public abstract class AuctionServer implements AuctionServerInterface {
         //  server, so we shouldn't be trying any of the rest.  The
         //  Error should have been logged at the lower level, so just
         //  punt.  It's not a communications error, either.
-        return null;
       } catch (Exception catchall) {
         if (JConfig.debugging()) {
           ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
@@ -273,18 +297,10 @@ public abstract class AuctionServer implements AuctionServerInterface {
       }
     }
 
-    SpecificAuction curAuction = null;
-    if(sb != null) {
-      curAuction = doParse(sb, ae, item_id);
-    }
-
-    if(curAuction == null) {
-      noteRetrieveError(ae);
-    }
-    return curAuction;
+    return sb;
   }
 
-  private SpecificAuction doParse(StringBuffer sb, AuctionEntry ae, String item_id) {
+  private SpecificAuction doParse(StringBuffer sb, AuctionEntry ae, String item_id) throws ReloadItemException {
     SpecificAuction curAuction = getNewSpecificAuction();
 
     if (item_id != null) {
@@ -300,7 +316,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
             boolean isAdult = JConfig.queryConfiguration(getName() + ".adult", "false").equals("true");
             if (isAdult) {
               getNecessaryCookie(true);
-              result = curAuction.parseAuction(ae);
+              throw new ReloadItemException();
             } else {
               ErrorManagement.logDebug("Failed to load adult item, user possibly not marked for Mature Items access.  Check your eBay configuration.");
             }
