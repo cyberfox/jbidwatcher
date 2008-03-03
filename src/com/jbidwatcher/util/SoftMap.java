@@ -1,10 +1,8 @@
 package com.jbidwatcher.util;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 import java.lang.ref.SoftReference;
+import java.lang.ref.ReferenceQueue;
 
 /**
  * User: mrs
@@ -13,8 +11,7 @@ import java.lang.ref.SoftReference;
  * 
  * To change this template use File | Settings | File Templates.
  */
-public abstract class SoftMap<K, V> implements Map<K, V>
-{
+public abstract class SoftMap<K, V> implements Map<K, V> {
   private Map<K, SoftReference<V>> cacheMap = new HashMap<K, SoftReference<V>>();
 
   //  Delegations
@@ -22,10 +19,21 @@ public abstract class SoftMap<K, V> implements Map<K, V>
   public boolean isEmpty() { return cacheMap.isEmpty(); }
   public boolean containsKey(Object key) { return cacheMap.containsKey(key); }
   public boolean containsValue(Object value) { return cacheMap.containsValue(value); }
-  public V put(K key, V value) { return cacheMap.put(key, new SoftReference<V>(value)).get(); }
+  public V put(K key, V value) {
+    V old = null;
+    SoftReference<V> old_ref = cacheMap.put(key, new SoftReference<V>(value));
+    if(old_ref != null) {
+      old = old_ref.get();
+      if(old == null) {
+        old = reload(key);
+      }
+    }
+    return old_ref==null ? null : old;
+  }
+
   public void putAll(Map t) { cacheMap.putAll(t); }
   public void clear() { cacheMap.clear(); }
-  public Set keySet() { return cacheMap.keySet(); }
+  public Set<K> keySet() { return cacheMap.keySet(); }
 
   //  Things which need special handling...
   public V remove(Object key) {
@@ -34,7 +42,8 @@ public abstract class SoftMap<K, V> implements Map<K, V>
     if(element != null) {
       rval = element.get();
       if(rval == null) {
-        reload(key);
+        rval = reload(key);
+        cacheMap.put((K)key, new SoftReference<V>(rval));
       }
       return rval;
     }
@@ -42,11 +51,40 @@ public abstract class SoftMap<K, V> implements Map<K, V>
     return rval;
   }
 
-  abstract V reload(Object key);
-
-  public Collection values() { return null; }
-  public Set entrySet() { return null; }
-  public V get(Object key) {
-    return null;
+  public Collection<V> values() {
+    HashSet<V> values = null;
+    for(Map.Entry<K, SoftReference<V>> entry : cacheMap.entrySet()) {
+      if(values == null) values = new HashSet<V>();
+      V stepValue = entry.getValue().get();
+      if(stepValue == null) stepValue = reload(entry.getKey());
+      values.add(stepValue);
+    }
+    return values;
   }
+
+  public Set<Map.Entry<K, V>> entrySet() {
+    HashSet<Map.Entry<K, V>> values = null;
+    for(Map.Entry<K, SoftReference<V>> entry : cacheMap.entrySet()) {
+      if(values == null) values = new HashSet<Map.Entry<K, V>>();
+      V stepValue = entry.getValue().get();
+      if(stepValue == null) stepValue = reload(entry.getKey());
+      values.add(new AbstractMap.SimpleEntry<K, V>(entry.getKey(), stepValue));
+    }
+    return values;
+  }
+
+  public V get(Object key) {
+    V value = null;
+    SoftReference<V> entry = cacheMap.get(key);
+    if(entry != null) {
+      value = entry.get();
+      if(value == null) {
+        value = reload(key);
+      }
+    }
+
+    return value;
+  }
+
+  public abstract V reload(Object key);
 }

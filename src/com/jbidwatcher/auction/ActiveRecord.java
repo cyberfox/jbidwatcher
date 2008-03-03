@@ -1,6 +1,7 @@
 package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.HashBacked;
+import com.jbidwatcher.util.SoftMap;
 import com.jbidwatcher.util.db.AuctionDB;
 import com.jbidwatcher.util.db.DBRecord;
 
@@ -67,6 +68,10 @@ public abstract class ActiveRecord extends HashBacked {
     ActiveRecord cached = cached(klass, key, value);
     if(cached != null) return cached;
 
+    return findFirstByUncached(klass, key, value);
+  }
+
+  private static ActiveRecord findFirstByUncached(Class klass, String key, String value) {
     ActiveRecord found;
     try {
       found = (ActiveRecord)klass.newInstance();
@@ -115,12 +120,17 @@ public abstract class ActiveRecord extends HashBacked {
     return null;
   }
 
-  private final static Map<Class, Map<String, ActiveRecord>> sCache = new HashMap<Class, Map<String, ActiveRecord>>();
+  private final static Map<Class, SoftMap<String, ActiveRecord>> sCache=new HashMap<Class, SoftMap<String, ActiveRecord>>();
 
-  public static Map<String, ActiveRecord> getCache(Class klass) {
-    Map<String, ActiveRecord> klassCache = sCache.get(klass);
+  public static Map<String, ActiveRecord> getCache(final Class klass) {
+    SoftMap<String, ActiveRecord> klassCache = sCache.get(klass);
     if(klassCache == null) {
-      klassCache = new HashMap<String, ActiveRecord>();
+      klassCache = new SoftMap<String, ActiveRecord>() {
+        public ActiveRecord reload(Object key) {
+          String[] pair = ((String)key).split(":");
+          return findFirstByUncached(klass, pair[0], pair[1]);
+        }
+      };
       sCache.put(klass, klassCache);
     }
     return klassCache;
