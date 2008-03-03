@@ -26,7 +26,6 @@ public class Upgrader {
   }
 
   private static boolean dbMake(Database db) {
-
     try {
       /*
          Creating a statement lets us issue commands against
@@ -34,20 +33,12 @@ public class Upgrader {
        */
       Statement mS = db.getStatement();
 
-      ResultSet rs = mS.getConnection().getMetaData().getTables(null, null, "AUCTIONS", null);
+      ResultSet rs = mS.getConnection().getMetaData().getTables(null, null, "SCHEMA_INFO", null);
       if(!rs.next()) {
-        String sql = StringTools.cat(JConfig.getResource("/jbidwatcher.sql"));
-        if(sql == null) sql = StringTools.cat(JConfig.getCanonicalFile("jbidwatcher.sql", "jbidwatcher", true));
-        if(sql != null) {
-          String[] statements = sql.split("(?m)^$");
-          for (String statement : statements) {
-            mS.execute(statement);
-          }
-
-          ErrorManagement.logDebug("Created database and various tables.");
-        }
+        runFile(mS, "/jbidwatcher.sql");
         JConfig.setConfiguration("jbidwatcher.created_db", "true");
       } else {
+//        runFile(mS, "/upgrade.sql");
         ErrorManagement.logDebug("Auction information database already exists.");
       }
       rs.close();
@@ -56,5 +47,20 @@ public class Upgrader {
       return false;
     }
     return true;
+  }
+
+  private static void runFile(Statement mS, String filename) throws SQLException {
+    String sql = StringTools.cat(JConfig.getResource(filename));
+//    if(sql == null) sql = StringTools.cat(JConfig.getCanonicalFile("jbidwatcher.sql", "jbidwatcher", true));
+    if(sql != null) {
+      String[] statements = sql.split("(?m)^$");
+      for (String statement : statements) {
+        System.err.println("statement == " + statement);
+        mS.execute(statement);
+      }
+
+      ErrorManagement.logDebug("Executed " + filename + ".");
+      ErrorManagement.logDebug("Created database and various tables.");
+    }
   }
 }
