@@ -11,7 +11,7 @@ import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
-import com.jbidwatcher.ui.table.JTableDrop;
+import com.jbidwatcher.ui.TargetDrop;
 import com.jbidwatcher.ui.table.TableColumnController;
 
 import javax.swing.*;
@@ -112,9 +112,9 @@ public class AuctionsUIModel {
 
     JDropListener _dropEar;
     if(newAuctionList.isCompleted()) {
-      _dropEar = new JDropListener(new com.jbidwatcher.ui.table.JTableDrop());
+      _dropEar = new JDropListener(new TargetDrop());
     } else {
-      _dropEar = new JDropListener(new JTableDrop(_dataModel.getName()));
+      _dropEar = new JDropListener(new TargetDrop(_dataModel.getName()));
     }
     _targets[0] = new DropTarget(_scroller.getViewport(), _dropEar);
     _targets[1] = new DropTarget(_table, _dropEar);

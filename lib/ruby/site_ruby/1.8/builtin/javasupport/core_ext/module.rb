@@ -35,7 +35,7 @@ class Module
   def import(package_name)
     return super(package_name) if package_name.respond_to?(:java_class) || package_name.split(/\./).last =~ /^[A-Z]/
 
-    package_name = package_name._name if package_name.respond_to?(:_name)
+    package_name = package_name.mTargetName if package_name.respond_to?(:mTargetName)
     warn "importing full package name is *highly* experimental...proceed with caution"
     class_list = org.jruby.util.PackageSearch.findClassesInPackage(package_name)
     

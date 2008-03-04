@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui.table;
+package com.jbidwatcher.ui;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -13,32 +13,32 @@ import com.jbidwatcher.ui.JDropHandler;
 
 import java.util.List;
 
-public class JTableDrop implements JDropHandler
+public class TargetDrop implements JDropHandler
 {
-  private static boolean do_uber_debug = false;
-  private String _name;
+  private static boolean sUberDebug = false;
+  private String mTargetName;
 
-  public JTableDrop(String tableName) {
+  public TargetDrop(String tableName) {
     super();
-    _name = tableName;
+    mTargetName = tableName;
   }
 
   /**
    * @brief This allows creation of a 'retarget to current' drop handler.
    */
-  public JTableDrop() {
+  public TargetDrop() {
     super();
-    _name = null;
+    mTargetName = null;
   }
 
-  private String newline_strip(String instr) {
-    int newline_index;
+  private String stripNewlines(String instr) {
+    int index;
     String outstr = instr;
 
-    newline_index = outstr.indexOf('\n');
-    while(newline_index != -1) {
-      outstr = outstr.substring(0, newline_index) + outstr.substring(newline_index+1);
-      newline_index = outstr.indexOf('\n');
+    index = outstr.indexOf('\n');
+    while(index != -1) {
+      outstr = outstr.substring(0, index) + outstr.substring(index+1);
+      index = outstr.indexOf('\n');
     }
     return outstr;
   }
@@ -49,8 +49,8 @@ public class JTableDrop implements JDropHandler
       return;
     }
 
-    dropped = new StringBuffer(newline_strip(dropped.toString()));
-    if(do_uber_debug) ErrorManagement.logDebug("Dropping :" + dropped + ":");
+    dropped = new StringBuffer(stripNewlines(dropped.toString()));
+    if(sUberDebug) ErrorManagement.logDebug("Dropping :" + dropped + ":");
 
     //  Is it an 'HTML Fragment' as produced by Mozilla, NS6, and IE5+?
     //  BOY it's a small bit to test against, but Mozilla starts with <HTML>,
@@ -68,13 +68,13 @@ public class JTableDrop implements JDropHandler
         auctionURL = anAllItemsOnPage;
         if (auctionURL != null) {
           ErrorManagement.logDebug("Adding: " + auctionURL.trim());
-          MQFactory.getConcrete("drop").enqueue(new DropQObject(auctionURL.trim(), _name, true));
+          MQFactory.getConcrete("drop").enqueue(new DropQObject(auctionURL.trim(), mTargetName, true));
         }
       }
     } else {
       String newEntry = dropped.toString();
 
-      MQFactory.getConcrete("drop").enqueue(new DropQObject(newEntry.trim(), _name, true));
+      MQFactory.getConcrete("drop").enqueue(new DropQObject(newEntry.trim(), mTargetName, true));
     }
   }
 }
