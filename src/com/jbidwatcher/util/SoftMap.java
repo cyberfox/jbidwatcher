@@ -2,7 +2,6 @@ package com.jbidwatcher.util;
 
 import java.util.*;
 import java.lang.ref.SoftReference;
-import java.lang.ref.ReferenceQueue;
 
 /**
  * User: mrs
@@ -11,12 +10,11 @@ import java.lang.ref.ReferenceQueue;
  * 
  * To change this template use File | Settings | File Templates.
  */
-public abstract class SoftMap<K, V> implements Map<K, V> {
+public abstract class SoftMap<K, V> extends AbstractMap<K, V> {
   private Map<K, SoftReference<V>> cacheMap = new HashMap<K, SoftReference<V>>();
 
   //  Delegations
   public int size() { return cacheMap.size(); }
-  public boolean isEmpty() { return cacheMap.isEmpty(); }
   public boolean containsKey(Object key) { return cacheMap.containsKey(key); }
   public boolean containsValue(Object value) { return cacheMap.containsValue(value); }
   public V put(K key, V value) {
@@ -31,7 +29,6 @@ public abstract class SoftMap<K, V> implements Map<K, V> {
     return old_ref==null ? null : old;
   }
 
-  public void putAll(Map t) { cacheMap.putAll(t); }
   public void clear() { cacheMap.clear(); }
   public Set<K> keySet() { return cacheMap.keySet(); }
 
