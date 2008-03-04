@@ -5,29 +5,30 @@ package com.jbidwatcher;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.auction.ActiveRecord;
 import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.ThumbnailManager;
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.AuctionTransformer;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
-import com.jbidwatcher.config.JBConfig;
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.config.JConfigFrame;
+import com.jbidwatcher.util.config.JBConfig;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.platform.Tray;
-import com.jbidwatcher.queue.*;
+import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.*;
+import com.jbidwatcher.ui.RuntimeInfo;
 import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.TimerHandler;
 import com.jbidwatcher.util.db.DBManager;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
-import com.jbidwatcher.xml.JTransformer;
-import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLElement;
 
 import javax.swing.*;
 import java.awt.*;
@@ -169,7 +170,9 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       MQFactory.getConcrete("tray").enqueue(mainFrame.isVisible()?"RESTORED":"HIDDEN");
       if(mainFrame.isVisible()) mainFrame.setState(Frame.NORMAL);
     } else if(msg.equals(HIDE_MSG)) {
-      if(mainFrame.isVisible()) JConfig.snapshotDisplay(mainFrame);
+      if(mainFrame.isVisible()) {
+        UISnapshot.recordLocation(mainFrame);
+      }
       mainFrame.setVisible(false);
 
       if(Platform.isTrayEnabled()) {
@@ -438,7 +441,9 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     //  In the case of the initial configuration, unfortunately it's not possible.
     Platform.setupMacUI();
 
-    JConfig.loadDisplayConfig(urlCL);
+    Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
+
+    JConfig.loadDisplayConfig(urlCL, screensize.width, screensize.height);
 
     String aucSave = makeSaveDirectory(JConfig.queryConfiguration("auctions.savepath"));
     if(aucSave != null) {
@@ -646,7 +651,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       } else {
         outName = args[1];
       }
-      JTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml"), outName);
+      AuctionTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml"), outName);
       System.exit(0);
     }
     setUI(null, null, UIManager.getInstalledLookAndFeels());
@@ -728,7 +733,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * if there are any outstanding snipes.
    */
   public void shutdown() {
-    ActiveRecord.saveCached();
+    com.jbidwatcher.util.db.ActiveRecord.saveCached();
     if(AuctionsManager.getInstance().anySnipes()) {
       OptionUI oui = new OptionUI();
     //  Use the right parent!  FIXME -- mrs: 17-February-2003 23:53
@@ -748,7 +753,8 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   public void internal_shutdown() {
     Properties colProps = getColumnProperties();
     SearchManager.getInstance().saveSearchDisplay();
-    JConfig.saveDisplayConfig(mainFrame, colProps);
+    Properties displayProps = UISnapshot.snapshotLocation(mainFrame);
+    JConfig.saveDisplayConfig(displayProps, colProps);
 
     //  Save it to the original file, if it was provided at runtime,
     //  otherwise to the appropriate default.
@@ -1007,7 +1013,9 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     //  and anything else we need to load from the configuration file.
     updateConfiguration();
 
-    TimerHandler timeQueue = SuperQueue.getInstance().establishSuperQueue();
+    SuperQueue sq = SuperQueue.getInstance();
+    preQueueServices(sq);
+    TimerHandler timeQueue = sq.start();
     gcSafe.add(timeQueue);
 
     //  Because the program is starting to get widely spread around,
@@ -1038,5 +1046,27 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     } catch (InterruptedException e) {
       ErrorManagement.handleException("timeQueue interrupted", e);
     }
+  }
+
+  private void preQueueServices(SuperQueue q)
+  {
+    long now = System.currentTimeMillis();
+
+    if (JConfig.queryConfiguration("updates.enabled", "true").equals("true")) {
+      q.preQueue("CHECK", "update", now + (Constants.ONE_SECOND * 10));
+    }
+    //noinspection MultiplyOrDivideByPowerOfTwo
+    if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
+      q.preQueue("TIMECHECK", "auction_manager", now + (Constants.ONE_SECOND * 2), Constants.THIRTY_MINUTES);
+    }
+    q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", now + Constants.ONE_SECOND * 3, 240 * Constants.ONE_MINUTE);
+    q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 2 * 10));
+    q.preQueue("FLUSH", "dbflush", now + Constants.ONE_MINUTE, Constants.ONE_SECOND * 15);
+
+    //  Other interesting examples...
+    //q.preQueue("This is a message for the display!", "Swing", System.currentTimeMillis()+Constants.ONE_MINUTE);
+    //q.preQueue(JBidMouse.ADD_AUCTION + "5582606163", "user", System.currentTimeMillis() + (Constants.ONE_MINUTE / 2));
+    //q.preQueue("http://www.jbidwatcher.com", "browse", System.currentTimeMillis() + (Constants.ONE_MINUTE / 4));
+    //q.preQueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), "ebay", System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
   }
 }

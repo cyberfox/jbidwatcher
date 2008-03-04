@@ -10,7 +10,7 @@ package com.jbidwatcher.auction;
  * TODO - Create a 'Bid' equivalent of this class.
  */
 
-import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.ErrorManagement;

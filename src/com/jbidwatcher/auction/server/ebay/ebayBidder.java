@@ -10,8 +10,8 @@ import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.Scripting;
 import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
 
 import java.net.URLConnection;
 import java.io.IOException;

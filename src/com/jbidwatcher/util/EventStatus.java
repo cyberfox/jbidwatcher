@@ -1,7 +1,7 @@
 package com.jbidwatcher.util;
 
-import com.jbidwatcher.auction.ActiveRecord;
-import com.jbidwatcher.util.db.AuctionDB;
+import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.db.Table;
 
 import java.util.Date;
 import java.util.List;
@@ -65,9 +65,9 @@ public class EventStatus extends ActiveRecord {
   /**
    * *********************
    */
-  private static AuctionDB sDB = null;
+  private static Table sDB = null;
   protected static String getTableName() { return "events"; }
-  protected AuctionDB getDatabase() {
+  protected Table getDatabase() {
     if (sDB == null) {
       sDB = openDB(getTableName());
     }
@@ -79,15 +79,15 @@ public class EventStatus extends ActiveRecord {
   }
 
   public static EventStatus find(Integer id) {
-    return (EventStatus) ActiveRecord.findFirstBy(EventStatus.class, "id", Integer.toString(id));
+    return (EventStatus) com.jbidwatcher.util.db.ActiveRecord.findFirstBy(EventStatus.class, "id", Integer.toString(id));
   }
 
   public static List<EventStatus> findAllByEntry(String entry_id) {
-    List<ActiveRecord> records = ActiveRecord.findAllBy(EventStatus.class, "entry_id", entry_id, "logged_at ASC");
+    List<ActiveRecord> records = com.jbidwatcher.util.db.ActiveRecord.findAllBy(EventStatus.class, "entry_id", entry_id, "logged_at ASC");
 
     if(records != null) {
       List<EventStatus> results = new ArrayList<EventStatus>(records.size());
-      for(ActiveRecord record : records) {
+      for(com.jbidwatcher.util.db.ActiveRecord record : records) {
         results.add((EventStatus)record);
       }
 

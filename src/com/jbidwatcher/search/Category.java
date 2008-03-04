@@ -2,8 +2,8 @@ package com.jbidwatcher.search;
 
 import com.jbidwatcher.util.HashBacked;
 import com.jbidwatcher.util.db.DBRecord;
-import com.jbidwatcher.util.db.AuctionDB;
-import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.util.db.Table;
+import com.jbidwatcher.util.xml.XMLElement;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -16,7 +16,7 @@ import java.util.HashMap;
  */
 public class Category extends HashBacked {
   private static Map<String, Category> categories = null;
-  private static AuctionDB sDB = null;
+  private static Table sDB = null;
 
   private Category(String name) {
     setString("name", name);
@@ -32,7 +32,7 @@ public class Category extends HashBacked {
 
   public static Category findCategory(String newCategory) {
     establishCategoryDatabase();
-    if(sDB == null) try { sDB = new AuctionDB("categories"); } catch(Exception e) { sDB = null; }
+    if(sDB == null) try { sDB = new Table("categories"); } catch(Exception e) { sDB = null; }
 
     Category rval;
     if(categories.containsKey(newCategory)) {

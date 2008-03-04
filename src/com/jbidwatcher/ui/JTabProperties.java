@@ -5,8 +5,8 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.config.JConfigTab;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.FilterManager;
 
 import javax.swing.*;
@@ -118,7 +118,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
     internal.setLayout(new GridLayout(0, 4, 2*10, 0));
 
     List<String> columns = FilterManager.getInstance().getColumns(_tab);
-    Object[] names = TableColumnController.getInstance().getColumnNames().toArray();
+    Object[] names = com.jbidwatcher.ui.table.TableColumnController.getInstance().getColumnNames().toArray();
     Arrays.sort(names);
     for (Object name1 : names) {
       String s = (String) name1;

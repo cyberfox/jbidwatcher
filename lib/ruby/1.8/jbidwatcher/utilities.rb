@@ -2,14 +2,14 @@ require 'md5'
 require 'net/http'
 require 'cgi'
 
-import com.jbidwatcher.config.JConfig
+import com.jbidwatcher.util.config.JConfig
 import com.jbidwatcher.util.Currency
-import com.jbidwatcher.queue.MQFactory
+import com.jbidwatcher.util.queue.MQFactory
 import com.jbidwatcher.auction.AuctionEntry
 import com.jbidwatcher.auction.server.AuctionServerManager
 import com.jbidwatcher.auction.AuctionsManager
 import com.jbidwatcher.FilterManager
-import com.jbidwatcher.ui.TableColumnController
+import com.jbidwatcher.ui.table.TableColumnController
 
 class JBidwatcherUtilities
   def test_basics

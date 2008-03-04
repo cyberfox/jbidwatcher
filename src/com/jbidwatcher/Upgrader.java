@@ -1,9 +1,9 @@
 package com.jbidwatcher;
 
-import com.jbidwatcher.util.Database;
+import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,7 +19,7 @@ import java.sql.Statement;
  */
 public class Upgrader {
   public static void upgrade() throws SQLException, IllegalAccessException, InstantiationException, ClassNotFoundException {
-    Database mDB = new Database(null);
+    Database mDB = new com.jbidwatcher.util.db.Database(null);
     dbMake(mDB);
     mDB.commit();
     mDB.shutdown();

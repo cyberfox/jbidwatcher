@@ -1,7 +1,7 @@
 package com.jbidwatcher.util;
 
-import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.xml.XMLSerializeSimple;
+import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLSerializeSimple;
 import com.jbidwatcher.util.db.DBRecord;
 
 import java.util.Date;

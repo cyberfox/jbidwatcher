@@ -1,7 +1,8 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.util.db.AuctionDB;
-import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.util.db.*;
+import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.xml.XMLElement;
 
 /**
  * User: Morgan
@@ -9,7 +10,8 @@ import com.jbidwatcher.xml.XMLElement;
  * Time: 7:27:30 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Seller extends ActiveRecord {
+public class Seller extends com.jbidwatcher.util.db.ActiveRecord
+{
   public String getSeller() { return getString("seller"); }
   public void setSeller(String name) { setString("seller", name); }
   public String getPositivePercentage() { return getString("feedback_percentage"); }
@@ -78,11 +80,11 @@ public class Seller extends ActiveRecord {
   /* Database access stuff */
   /*************************/
 
-  private static AuctionDB sDB = null;
+  private static Table sDB = null;
 
   protected static String getTableName() { return "sellers"; }
 
-  protected AuctionDB getDatabase() {
+  protected Table getDatabase() {
     if (sDB == null) {
       sDB = openDB(getTableName());
     }

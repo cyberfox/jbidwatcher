@@ -6,15 +6,15 @@ package com.jbidwatcher.auction.server;
  */
 
 import com.jbidwatcher.auction.*;
-import com.jbidwatcher.config.JConfigTab;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.MessageQueue;
+import com.jbidwatcher.ui.config.JConfigTab;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.xml.XMLParseException;
-import com.jbidwatcher.xml.XMLSerialize;
+import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLParseException;
+import com.jbidwatcher.util.xml.XMLSerialize;
 
 import java.net.URL;
 import java.util.*;
@@ -98,7 +98,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         }
 
         if(newServer != null) {
-          int count = ActiveRecord.precache(AuctionInfo.class);
+          int count = com.jbidwatcher.util.db.ActiveRecord.precache(AuctionInfo.class);
           if (count == 0) {
             getServerAuctionEntries(newServer, perServer);
           } else {
@@ -110,12 +110,12 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   private void loadAuctionsFromDB(AuctionServer newServer) {
-    ActiveRecord.precache(Seller.class);
-    ActiveRecord.precache(Seller.class, "seller");
-    ActiveRecord.precache(Category.class);
-    ActiveRecord.precache(AuctionEntry.class, "auction_id");
+    com.jbidwatcher.util.db.ActiveRecord.precache(Seller.class);
+    com.jbidwatcher.util.db.ActiveRecord.precache(Seller.class, "seller");
+    com.jbidwatcher.util.db.ActiveRecord.precache(Category.class);
+    com.jbidwatcher.util.db.ActiveRecord.precache(AuctionEntry.class, "auction_id");
 
-    Map<String,ActiveRecord> entries = ActiveRecord.getCache(AuctionEntry.class);
+    Map<String, com.jbidwatcher.util.db.ActiveRecord> entries = com.jbidwatcher.util.db.ActiveRecord.getCache(AuctionEntry.class);
     for(String auction_id : entries.keySet()) {
       AuctionEntry ae = (AuctionEntry) entries.get(auction_id);
       ae.setServer(newServer);

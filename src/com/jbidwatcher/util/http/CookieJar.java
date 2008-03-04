@@ -5,7 +5,6 @@ package com.jbidwatcher.util.http;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
 import com.jbidwatcher.util.ErrorManagement;
 
 import java.net.*;
@@ -141,9 +140,6 @@ public class CookieJar {
       }
     }
 
-    if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) {
-      debugRequest(sendRequest, post, cgi);
-    }
     HttpURLConnection uc = initiateRequest(post, sendRequest, cgi, referer);
 
     if(uc != null) {
@@ -235,32 +231,6 @@ public class CookieJar {
       }
     }
     return uc;
-  }
-
-  private void debugRequest(String sendRequest, boolean post, String cgi) {
-    int comIndex = sendRequest.indexOf(".com/");
-    int netIndex = sendRequest.indexOf(".net/");
-
-    if(netIndex == -1) netIndex = comIndex;
-    if(comIndex == -1) comIndex = netIndex;
-    comIndex = Math.min(netIndex, comIndex);
-    if(comIndex == -1) comIndex = 0;
-    else comIndex += 4;
-
-    if(post) {
-      System.err.println("POST " + sendRequest.substring(comIndex) + " HTTP/1.0");
-      if(cgi != null) {
-        if(!cgi.equals("")) {
-          System.err.println("CGI: " + cgi);
-        }
-      }
-    } else {
-      System.err.println("GET " + sendRequest.substring(comIndex) + " HTTP/1.0");
-    }
-    if(_cookies.size() > 0) {
-      System.err.println("internal-Cookie: " + this.toString());
-    }
-    System.err.println();
   }
 
   public String toString() {

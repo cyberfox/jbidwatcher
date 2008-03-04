@@ -5,8 +5,8 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.MessageQueue;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.MessageQueue;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;

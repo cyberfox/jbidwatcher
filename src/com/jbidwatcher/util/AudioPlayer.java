@@ -6,9 +6,9 @@ package com.jbidwatcher.util;
  */
 
 import javazoom.jlme.util.*;
-import com.jbidwatcher.queue.MessageQueue;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.queue.MessageQueue;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.config.JConfig;
 
 public class AudioPlayer implements MessageQueue.Listener {
   private static AudioPlayer sAP = null;

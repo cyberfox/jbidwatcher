@@ -9,13 +9,11 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.ErrorManagement;
-import com.jbidwatcher.auction.CleanupHandler;
+import com.jbidwatcher.util.html.CleanupHandler;
 import com.jbidwatcher.util.http.Http;
-import com.sun.jmx.snmp.agent.SnmpMibAgentMBean;
-import com.sun.org.apache.xml.internal.utils.StringBufferPool;
 
 public class JHTML implements JHTMLListener {
   protected boolean m_loaded = false;
@@ -561,7 +559,7 @@ public class JHTML implements JHTMLListener {
    * @param cookie - A cookie to pass along when getting the page.
    * @param cl - A CleanupHandler to call to clean up the StringBuffer before continuing.
    */
-  public JHTML(String newURL, String cookie, CleanupHandler cl) {
+  public JHTML(String newURL, String cookie, com.jbidwatcher.util.html.CleanupHandler cl) {
     setup();
   	loadParseURL(newURL, cookie, cl);
   }

@@ -5,9 +5,9 @@ package com.jbidwatcher;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.xml.XMLSerialize;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLSerialize;
 
 import java.util.*;
 import java.io.File;

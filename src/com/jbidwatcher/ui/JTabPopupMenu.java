@@ -6,7 +6,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.platform.Platform;
-import com.jbidwatcher.config.JConfigFrame;
+import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.FilterManager;
 
@@ -90,7 +90,7 @@ public class JTabPopupMenu extends JContext {
 
   public void prepCustomColumnMenu(Integer tabIndex) {
     customize.removeAll();
-    Collection<String> nameCollection = TableColumnController.getInstance().getColumnNames();
+    Collection<String> nameCollection = com.jbidwatcher.ui.table.TableColumnController.getInstance().getColumnNames();
     ArrayList<String> sortedNames = new ArrayList<String>(nameCollection);
     Collections.sort(sortedNames);
 

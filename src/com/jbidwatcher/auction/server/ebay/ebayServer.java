@@ -11,9 +11,9 @@ package com.jbidwatcher.auction.server.ebay;
 //  logic outside this class.  A pipe-dream, perhaps, but it seems
 //  mostly doable.
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.config.JConfigTab;
-import com.jbidwatcher.queue.*;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.ui.config.JConfigTab;
+import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.*;
@@ -24,7 +24,6 @@ import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.Bidder;
-import com.jbidwatcher.TimerHandler;
 import com.jbidwatcher.Constants;
 
 import javax.swing.*;
@@ -55,7 +54,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private ebayLoginManager mLogin;
 
   /** @noinspection FieldCanBeLocal*/
-  private TimerHandler eQueue;
+  private com.jbidwatcher.util.TimerHandler eQueue;
   private Map<String, AuctionQObject> snipeMap = new HashMap<String, AuctionQObject>();
 
   /**< The full amount of time it takes to request a single page from this site. */
@@ -148,7 +147,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *
    * @return - A new tab to be added to the configuration display.
    */
-  public List<JConfigTab> getConfigurationTabs() {
+  public List<com.jbidwatcher.ui.config.JConfigTab> getConfigurationTabs() {
     List<JConfigTab> tabs = new ArrayList<JConfigTab>();
     //  Always return a new one, to fix a problem on first startup.
     tabs.add(new JConfigEbayTab(eBayDisplayName, sSiteChoices));
@@ -419,7 +418,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     mBidder = new ebayBidder(mLogin);
 
     _etqm = new eBayTimeQueueManager();
-    eQueue = new TimerHandler(_etqm);
+    eQueue = new com.jbidwatcher.util.TimerHandler(_etqm);
     eQueue.setName("eBay SuperQueue");
     //noinspection CallToThreadStartDuringObjectConstruction
     eQueue.start();

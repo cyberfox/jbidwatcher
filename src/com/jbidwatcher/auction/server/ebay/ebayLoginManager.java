@@ -5,8 +5,8 @@ import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.auction.server.LoginManager;
 
 import java.net.URLConnection;

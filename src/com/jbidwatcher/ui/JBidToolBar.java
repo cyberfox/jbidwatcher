@@ -1,8 +1,8 @@
 package com.jbidwatcher.ui;
 
 import com.jbidwatcher.platform.Platform;
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.config.JConfigTab;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 
 import javax.swing.*;

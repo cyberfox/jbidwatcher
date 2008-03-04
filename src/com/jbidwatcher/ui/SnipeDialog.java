@@ -6,7 +6,7 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfigTab;
+import com.jbidwatcher.ui.config.JConfigTab;
 
 import javax.swing.*;
 import java.awt.*;

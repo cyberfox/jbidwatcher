@@ -6,7 +6,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.platform.Platform;
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.awt.*;
 import java.awt.event.*;

@@ -12,8 +12,6 @@ package com.jbidwatcher.util;
   29Aug1998  dl               Refactored from BoundedPriorityQueue
 */
 
-import com.jbidwatcher.queue.TimeQueue;
-
 import java.util.*;
 
 /**
@@ -173,7 +171,7 @@ public class Heap  {
     return base;
   }
 
-  public boolean erase(TimeQueue.QObject o) {
+  public boolean erase(Object o) {
     for (int i = 0; i < mNodes.length; i++) {
       if(mNodes[i] == o) {
         extractElementAt(i);

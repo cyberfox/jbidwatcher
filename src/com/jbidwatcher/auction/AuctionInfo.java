@@ -13,11 +13,11 @@ package com.jbidwatcher.auction;
  * server, etc.) is stored in AuctionEntry
  */
 
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.*;
-import com.jbidwatcher.util.db.DBRecord;
-import com.jbidwatcher.util.db.AuctionDB;
-import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.util.db.*;
+import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.xml.XMLElement;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +25,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AuctionInfo extends ActiveRecord {
+public class AuctionInfo extends ActiveRecord
+{
   private static Map<String, String> mKeys;
   private String mThumbnailPath;
 
@@ -491,9 +492,9 @@ public class AuctionInfo extends ActiveRecord {
   public ByteBuffer getSiteThumbnail() { return null; }
   public ByteBuffer getAlternateSiteThumbnail() { return null; }
 
-  private static AuctionDB sDB;
+  private static Table sDB;
   protected static String getTableName() { return "auctions"; }
-  protected AuctionDB getDatabase() {
+  protected Table getDatabase() {
     if (sDB == null) {
       sDB = openDB(getTableName());
     }
@@ -509,6 +510,6 @@ public class AuctionInfo extends ActiveRecord {
   }
 
   public static AuctionInfo findFirstBy(String key, String value) {
-    return (AuctionInfo)ActiveRecord.findFirstBy(AuctionInfo.class, key, value);
+    return (AuctionInfo) com.jbidwatcher.util.db.ActiveRecord.findFirstBy(AuctionInfo.class, key, value);
   }
 }

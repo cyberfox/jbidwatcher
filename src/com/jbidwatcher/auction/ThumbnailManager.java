@@ -5,12 +5,12 @@ package com.jbidwatcher.auction;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.MessageQueue;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.ByteBuffer;
-import com.jbidwatcher.util.IconFactory;
+import com.jbidwatcher.ui.IconFactory;
 import com.jbidwatcher.util.ErrorManagement;
 
 import java.net.*;

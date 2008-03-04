@@ -14,22 +14,22 @@ package com.jbidwatcher.auction;
  * verifying, adding, and retrieving auctions, and similar features
  */
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.xml.XMLParseException;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionStats;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.*;
 
 import java.io.*;
 import java.util.*;
 import java.text.SimpleDateFormat;
 
 /** @noinspection Singleton*/
-public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager {
+public class AuctionsManager implements com.jbidwatcher.util.TimerHandler.WakeupProcess,EntryManager {
   private static AuctionsManager _instance = null;
   private DeletedManager _deleted = null;
   private int _auctionCount = 0;

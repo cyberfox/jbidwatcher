@@ -1,25 +1,15 @@
 package com.jbidwatcher.ui;
 
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.MessageQueue;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.Scripting;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.PipedInputStream;
-import java.io.PrintStream;
-import java.io.OutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.jruby.demo.TextAreaReadline;
-import org.jruby.RubyInstanceConfig;
 import org.jruby.Ruby;
-import org.jruby.internal.runtime.ValueAccessor;
-import org.jruby.javasupport.JavaUtil;
-import org.jruby.javasupport.Java;
-import org.jruby.runtime.builtin.IRubyObject;
 
 public class ScriptManager implements MessageQueue.Listener
 {

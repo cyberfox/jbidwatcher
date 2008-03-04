@@ -8,12 +8,13 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.Constants;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.queue.AuctionQObject;
-import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.AuctionQObject;
+import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.*;
-import com.jbidwatcher.util.db.AuctionDB;
-import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.util.db.*;
+import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.xml.XMLElement;
 
 import java.io.FileNotFoundException;
 import java.text.MessageFormat;
@@ -1698,9 +1699,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return id;
   }
 
-  private static AuctionDB sDB = null;
+  private static Table sDB = null;
   protected static String getTableName() { return "entries"; }
-  protected AuctionDB getDatabase() {
+  protected Table getDatabase() {
     if(sDB == null) {
       sDB = openDB(getTableName());
     }
@@ -1708,7 +1709,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public static AuctionEntry findFirstBy(String key, String value) {
-    return (AuctionEntry)ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
+    return (AuctionEntry) com.jbidwatcher.util.db.ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
   }
 
   public boolean delete() {

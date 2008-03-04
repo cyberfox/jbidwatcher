@@ -5,11 +5,10 @@ package com.jbidwatcher.util;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import java.util.Locale;
 
 /**
  * @author mrs

@@ -6,7 +6,8 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.ErrorManagement;
-import com.jbidwatcher.util.db.AuctionDB;
+import com.jbidwatcher.util.db.*;
+import com.jbidwatcher.util.db.ActiveRecord;
 
 import java.util.*;
 import java.util.List;
@@ -170,11 +171,11 @@ public class MultiSnipe extends ActiveRecord {
   /* Database access stuff */
   /*************************/
 
-  private static AuctionDB sDB = null;
+  private static Table sDB = null;
 
   protected static String getTableName() { return "multisnipes"; }
 
-  protected AuctionDB getDatabase() {
+  protected Table getDatabase() {
     if (sDB == null) {
       sDB = openDB(getTableName());
     }
@@ -182,7 +183,7 @@ public class MultiSnipe extends ActiveRecord {
   }
 
   public static MultiSnipe findFirstBy(String key, String value) {
-    return (MultiSnipe) ActiveRecord.findFirstBy(MultiSnipe.class, key, value);
+    return (MultiSnipe) com.jbidwatcher.util.db.ActiveRecord.findFirstBy(MultiSnipe.class, key, value);
   }
 
   public static MultiSnipe find(Integer id) {

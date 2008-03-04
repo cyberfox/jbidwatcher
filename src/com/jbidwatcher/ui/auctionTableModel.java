@@ -6,20 +6,24 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.Constants;
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.ErrorManagement;
-import com.jbidwatcher.util.IconFactory;
-import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.ui.IconFactory;
+import com.jbidwatcher.ui.table.ColumnState;
+import com.jbidwatcher.ui.table.ColumnStateList;
+import com.jbidwatcher.ui.table.TableColumnController;
+import com.jbidwatcher.util.xml.XMLElement;
 
 import javax.swing.*;
 import java.awt.Image;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class auctionTableModel extends BaseTransformation {
+public class auctionTableModel extends com.jbidwatcher.ui.table.BaseTransformation
+{
   private static final String neverBid = "--";
   private List<AuctionEntry> dispList;
   private Date futureForever = new Date(Long.MAX_VALUE);
@@ -138,23 +142,23 @@ public class auctionTableModel extends BaseTransformation {
       }
     }
     if(!ae.getBuyNow().isNull()) {
-      ret_icon = IconFactory.getCombination(ret_icon, binIcon);
+      ret_icon = com.jbidwatcher.ui.IconFactory.getCombination(ret_icon, binIcon);
     }
     if(ae.isReserve()) {
       if(ae.isReserveMet()) {
-        ret_icon = IconFactory.getCombination(ret_icon, resMetIcon);
+        ret_icon = com.jbidwatcher.ui.IconFactory.getCombination(ret_icon, resMetIcon);
       } else {
-        ret_icon = IconFactory.getCombination(ret_icon, resIcon);
+        ret_icon = com.jbidwatcher.ui.IconFactory.getCombination(ret_icon, resIcon);
       }
     }
     if(ae.getThumbnail() != null) {
       ret_icon = IconFactory.getCombination(ret_icon, imageIcon);
     }
     if(ae.getComment() != null) {
-      ret_icon = IconFactory.getCombination(ret_icon, commentIcon);
+      ret_icon = com.jbidwatcher.ui.IconFactory.getCombination(ret_icon, commentIcon);
     }
     if(ae.isInvalid()) {
-      ret_icon = IconFactory.getCombination(ret_icon, invalidIcon);
+      ret_icon = com.jbidwatcher.ui.IconFactory.getCombination(ret_icon, invalidIcon);
     }
     if(ae.hasPaypal()) {
       ret_icon = IconFactory.getCombination(ret_icon, paypalIcon);

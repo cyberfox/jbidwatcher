@@ -6,10 +6,11 @@ package com.jbidwatcher.auction;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.html.JHTML;
+import com.jbidwatcher.util.html.*;
 import com.jbidwatcher.auction.server.AuctionServer;
 
-public abstract class SpecificAuction extends AuctionInfo implements CleanupHandler {
+public abstract class SpecificAuction extends AuctionInfo implements com.jbidwatcher.util.html.CleanupHandler
+{
   protected JHTML mDocument;
 
   public abstract AuctionServer.ParseErrors parseAuction(AuctionEntry ae);

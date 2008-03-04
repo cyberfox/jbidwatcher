@@ -13,9 +13,9 @@ import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.LoginManager;
-import com.jbidwatcher.auction.CleanupHandler;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.DropQObject;
+import com.jbidwatcher.util.html.CleanupHandler;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.DropQObject;
 import com.jbidwatcher.search.Searcher;
 
 import java.util.List;

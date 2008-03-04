@@ -5,7 +5,7 @@ package com.jbidwatcher.util.http;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Base64;
 import com.jbidwatcher.util.ByteBuffer;
 import com.jbidwatcher.util.ErrorManagement;

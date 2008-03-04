@@ -247,4 +247,14 @@ public class StringTools {
   public static boolean startsWithIgnoreCase(String base, String match) {
     return base.regionMatches(true, 0, match, 0, match.length());
   }
+
+  public static String stripHigh(String inString) {
+    char[] stripOut = new char[inString.length()];
+
+    inString.getChars(0, inString.length(), stripOut, 0);
+    for(int i=0; i<stripOut.length; i++) {
+      if(stripOut[i] > 0x80) stripOut[i] = ' ';
+    }
+    return new String(stripOut);
+  }
 }

@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.net.URL;
 
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.Constants;
 

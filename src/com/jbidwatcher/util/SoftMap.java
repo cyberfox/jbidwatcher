@@ -68,7 +68,7 @@ public abstract class SoftMap<K, V> implements Map<K, V> {
       if(values == null) values = new HashSet<Map.Entry<K, V>>();
       V stepValue = entry.getValue().get();
       if(stepValue == null) stepValue = reload(entry.getKey());
-      values.add(new AbstractMap.SimpleEntry<K, V>(entry.getKey(), stepValue));
+      values.add(new SimpleEntry<K, V>(entry.getKey(), stepValue));
     }
     return values;
   }

@@ -16,10 +16,10 @@ package com.jbidwatcher.auction.server;
  * the factory can identify which site (ebay, yahoo, amazon, etc.) it
  * is, and do the appropriate parsing for that site.
  */
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.config.JConfigTab;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.AuctionQObject;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.ui.config.JConfigTab;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.*;

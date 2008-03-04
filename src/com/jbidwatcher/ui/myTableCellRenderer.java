@@ -11,8 +11,9 @@ package com.jbidwatcher.ui;//  -*- Java -*-
 
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.MultiSnipe;
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.platform.Platform;
+import com.jbidwatcher.ui.table.TableColumnController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -222,7 +223,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     if(fixedFont == null) fixedFont = new Font("Monospaced", base.getStyle(), base.getSize());
     if(boldFont == null) boldFont = base.deriveFont(Font.BOLD);
     if(col == TableColumnController.TIME_LEFT) return fixedFont;
-    if(hasComment && col == TableColumnController.ID) return boldFont;
+    if(hasComment && col == com.jbidwatcher.ui.table.TableColumnController.ID) return boldFont;
     if(ae.isShippingOverridden() && col == TableColumnController.SHIPPING_INSURANCE) return boldFont;
     return base;
   }

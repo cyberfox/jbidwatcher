@@ -5,10 +5,11 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.Constants;
+import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.search.SearchManager;
 
 import javax.swing.*;
@@ -72,7 +73,7 @@ public class JSearchContext extends JBidMouse {
   }
 
   private void changeTable() {
-    TableSorter tm = (TableSorter)_inTable.getModel();
+    TableSorter tm = (com.jbidwatcher.ui.table.TableSorter)_inTable.getModel();
 
     tm.tableChanged(new TableModelEvent(tm));
   }

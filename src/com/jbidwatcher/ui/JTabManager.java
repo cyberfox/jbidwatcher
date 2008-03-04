@@ -6,7 +6,9 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.ui.table.Selector;
+import com.jbidwatcher.ui.table.TableSorter;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -58,7 +60,8 @@ public class JTabManager extends JBidMouse {
     return(getCurrentTable().getSelectedRows());
   }
 
-  private class mySelector implements Selector {
+  private class mySelector implements Selector
+  {
     private String _search;
 
     mySelector(String s) {
@@ -124,7 +127,7 @@ public class JTabManager extends JBidMouse {
 
   public void selectBySearch(String srch) {
     TableSorter curTable = getCurrentTable();
-    Selector mySelector = new mySelector(srch);
+    com.jbidwatcher.ui.table.Selector mySelector = new mySelector(srch);
     if(!curTable.select(mySelector)) {
       java.awt.Toolkit.getDefaultToolkit().beep();
       MQFactory.getConcrete("Swing").enqueue("No entries matched!");

@@ -17,12 +17,12 @@ import java.util.regex.Matcher;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.config.JConfigFrame;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.AuctionQObject;
-import com.jbidwatcher.queue.MessageQueue;
-import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.ui.config.JConfigFrame;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.AuctionQObject;
+import com.jbidwatcher.util.queue.MessageQueue;
+import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.*;
@@ -57,7 +57,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     MQFactory.getConcrete("user").registerListener(this);
   }
 
-  public static void setConfigFrame(JConfigFrame curCfg) {
+  public static void setConfigFrame(com.jbidwatcher.ui.config.JConfigFrame curCfg) {
     if(curCfg != null) jcf = curCfg;
   }
 
@@ -293,7 +293,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DoConfigure() {
     if(jcf == null) {
-      jcf = new JConfigFrame();
+      jcf = new com.jbidwatcher.ui.config.JConfigFrame();
     } else {
       jcf.show();
     }
@@ -544,16 +544,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     return buildInfoHTML(ae, finalize, false);
   }
 
-  public static String stripHigh(String inString) {
-    char[] stripOut = new char[inString.length()];
-
-    inString.getChars(0, inString.length(), stripOut, 0);
-    for(int i=0; i<stripOut.length; i++) {
-      if(stripOut[i] > 0x80) stripOut[i] = ' ';
-    }
-    return new String(stripOut);
-  }
-
   public static String buildInfoHTML(AuctionEntry ae, boolean finalize, boolean forRSS) {
     boolean addedThumbnail = false;
     String prompt = "";
@@ -561,7 +551,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       prompt = "<html><body>";
     }
     if(forRSS) {
-      prompt += "<b>" + stripHigh(ae.getTitle()) + "</b> (" + ae.getIdentifier() + ")<br>";
+      prompt += "<b>" + StringTools.stripHigh(ae.getTitle()) + "</b> (" + ae.getIdentifier() + ")<br>";
     } else {
       prompt += "<b>" + ae.getTitle() + "</b> (" + ae.getIdentifier() + ")<br>";
     }
@@ -1702,7 +1692,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Toolbar")) DoHideShowToolbar();
     else if(actionString.equals("Search")) DoSearch();
     else if(actionString.equals("Scripting")) DoScripting();
-    else if(actionString.equals("Dump")) ActiveRecord.saveCached();
+    else if(actionString.equals("Dump")) com.jbidwatcher.util.db.ActiveRecord.saveCached();
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
     else if(actionString.equals("View Log")) DoLog(c_src);
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://sourceforge.net/tracker/?func=add&group_id=3914&atid=103914");

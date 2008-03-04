@@ -1,8 +1,8 @@
 package com.jbidwatcher.util.db;
 
-import com.jbidwatcher.auction.ActiveRecord;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.MessageQueue;
+import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.MessageQueue;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -22,7 +22,7 @@ public class DBManager {
 
   private class DBSaveManager implements MessageQueue.Listener {
     public void messageAction(Object deQ) {
-      mStores.add((ActiveRecord)deQ);
+      mStores.add((com.jbidwatcher.util.db.ActiveRecord)deQ);
     }
   }
 
@@ -45,7 +45,7 @@ public class DBManager {
   }
 
   private DBManager() {
-    mStores = Collections.synchronizedSet(new HashSet<ActiveRecord>());
+    mStores = Collections.synchronizedSet(new HashSet<com.jbidwatcher.util.db.ActiveRecord>());
 
     DBSaveManager saveManager = new DBSaveManager();
     MQFactory.getConcrete("dbsave").registerListener(saveManager);

@@ -1,9 +1,9 @@
 package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.ui.ServerMenu;
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.AuctionQObject;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.AuctionQObject;
 
 import java.awt.event.ActionEvent;
 

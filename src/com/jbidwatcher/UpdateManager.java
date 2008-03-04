@@ -6,11 +6,11 @@ package com.jbidwatcher;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.MessageQueue;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.MessageQueue;
 
-public class UpdateManager implements TimerHandler.WakeupProcess, MessageQueue.Listener {
+public class UpdateManager implements com.jbidwatcher.util.TimerHandler.WakeupProcess, MessageQueue.Listener {
   private static UpdateManager _instance=null;
   private static UpdaterEntry _ue = null;
 

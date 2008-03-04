@@ -6,9 +6,9 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.queue.DropQObject;
-import com.jbidwatcher.queue.MessageQueue;
-import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.util.queue.DropQObject;
+import com.jbidwatcher.util.queue.MessageQueue;
+import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionEntry;

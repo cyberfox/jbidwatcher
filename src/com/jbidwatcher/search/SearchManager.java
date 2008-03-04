@@ -5,13 +5,12 @@ package com.jbidwatcher.search;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.AuctionQObject;
-import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.xml.XMLParseException;
-import com.jbidwatcher.xml.XMLSerializeSimple;
-import com.jbidwatcher.TimerHandler;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.AuctionQObject;
+import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLParseException;
+import com.jbidwatcher.util.xml.XMLSerializeSimple;
 import com.jbidwatcher.Constants;
 import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -20,7 +19,7 @@ import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 
-public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, TimerHandler.WakeupProcess {
+public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, com.jbidwatcher.util.TimerHandler.WakeupProcess {
   private List<Searcher> _searches = new ArrayList<Searcher>();
   private static SearchManager _instance = null;
 

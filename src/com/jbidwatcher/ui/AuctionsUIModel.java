@@ -5,12 +5,14 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
+import com.jbidwatcher.ui.table.JTableDrop;
+import com.jbidwatcher.ui.table.TableColumnController;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -35,7 +37,7 @@ public class AuctionsUIModel {
   private DropTarget[] _targets;  /* This can't be local, otherwise it gets GC'ed, which is bad. */
   private Color _bgColor;
   private JPrintable _print;
-  private CSVExporter _export;
+  private com.jbidwatcher.ui.table.CSVExporter _export;
   private JLabel _prices;
 
   private static final int DEFAULT_COLUMN_WIDTH=75;
@@ -110,7 +112,7 @@ public class AuctionsUIModel {
 
     JDropListener _dropEar;
     if(newAuctionList.isCompleted()) {
-      _dropEar = new JDropListener(new JTableDrop());
+      _dropEar = new JDropListener(new com.jbidwatcher.ui.table.JTableDrop());
     } else {
       _dropEar = new JDropListener(new JTableDrop(_dataModel.getName()));
     }
@@ -121,7 +123,7 @@ public class AuctionsUIModel {
     _targets[1].setActive(true);
 
     _print = new JPrintable(_table);
-    _export = new CSVExporter(_table);
+    _export = new com.jbidwatcher.ui.table.CSVExporter(_table);
     _table.setDefaultRenderer(String.class, _myRenderer);
     _table.setDefaultRenderer(Icon.class, _myRenderer);
 

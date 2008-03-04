@@ -6,8 +6,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.platform.Platform;
-import com.jbidwatcher.config.JConfig;
-import com.jbidwatcher.util.Hyperactive;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.awt.event.*;
 import java.awt.*;
@@ -152,7 +151,7 @@ public class OptionUI {
 
     jep = new JBEditorPane("text/html", sb.toString());
     jep.setEditable(false);
-    jep.addHyperlinkListener(new Hyperactive(jep));
+    jep.addHyperlinkListener(new com.jbidwatcher.ui.Hyperactive(jep));
 
     if(fixed) {
       jep.setPreferredSize(inSize);

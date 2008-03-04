@@ -26,9 +26,9 @@ import java.net.URL;
 
 import com.jbidwatcher.*;
 import com.jbidwatcher.util.ErrorManagement;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.MessageQueue;
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.MessageQueue;
+import com.jbidwatcher.util.config.JConfig;
 
 public class Tray implements ItemListener, MessageQueue.Listener {
   //  This creates a new Thread (currently named Thread 9).

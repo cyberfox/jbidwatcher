@@ -6,8 +6,8 @@ package com.jbidwatcher.search;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.xml.XMLElement;
-import com.jbidwatcher.xml.XMLSerializeSimple;
+import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLSerializeSimple;
 import com.jbidwatcher.Constants;
 
 public abstract class Searcher extends XMLSerializeSimple {

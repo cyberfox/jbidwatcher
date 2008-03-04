@@ -10,7 +10,7 @@ import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.ui.JTabManager;
 import com.jbidwatcher.ui.AuctionsUIModel;
 import com.jbidwatcher.ui.JBidMenuBar;
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.*;
 import java.io.*;
@@ -145,10 +145,10 @@ public class Platform {
       ErrorManagement.handleException("Can't create output file to copy from JAR.", e);
       return false;
     }
-    InputStream source = JBidWatch.class.getClassLoader().getResourceAsStream(inJarName);
+    InputStream source = Platform.class.getClassLoader().getResourceAsStream(inJarName);
     if(source == null) {
       if(inJarName.charAt(0) == '/') {
-        source = JBidWatch.class.getClassLoader().getResourceAsStream(inJarName.substring(1));
+        source = Platform.class.getClassLoader().getResourceAsStream(inJarName.substring(1));
       }
       if (source == null) {
         ErrorManagement.logDebug("Failed to open internal resource " + inJarName + "!");

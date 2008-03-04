@@ -6,10 +6,10 @@ package com.jbidwatcher.auction;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.queue.MQFactory;
+import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.ui.auctionTableModel;
-import com.jbidwatcher.ui.TableSorter;
-import com.jbidwatcher.TimerHandler;
+import com.jbidwatcher.ui.table.TableSorter;
+import com.jbidwatcher.util.TimerHandler;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -29,7 +29,7 @@ import com.jbidwatcher.util.ErrorManagement;
 public class Auctions implements TimerHandler.WakeupProcess {
   boolean _selling = false;
   boolean _complete = false;
-  private volatile TableSorter _tSort;
+  private volatile com.jbidwatcher.ui.table.TableSorter _tSort;
   private String _name;
   private static volatile boolean isBlocked =false;
   private static final int LINE_LENGTH = 80;
@@ -49,7 +49,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
   public static boolean isBlocked() { return isBlocked; }
 
   //  A single accessor...
-  public TableSorter getTableSorter() { return _tSort; }
+  public com.jbidwatcher.ui.table.TableSorter getTableSorter() { return _tSort; }
 
   public void setSelling() { _selling = true; }
   public boolean isSelling() { return _selling; }

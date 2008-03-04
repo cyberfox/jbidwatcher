@@ -6,9 +6,11 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.platform.Platform;
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;
+import com.jbidwatcher.ui.table.SearchTableModel;
+import com.jbidwatcher.ui.table.TableSorter;
 
 import java.awt.event.*;
 import javax.swing.*;
@@ -132,7 +134,7 @@ public class SearchFrame implements ActionListener {
   }
 
   private JScrollPane buildSearchTable(JSearchContext jsc) {
-    _stm = new SearchTableModel();
+    _stm = new com.jbidwatcher.ui.table.SearchTableModel();
     _ts = new TableSorter("search", "Name", _stm);
     JTable searchTable = new JTable(_ts);
     searchTable.addMouseListener(jsc);

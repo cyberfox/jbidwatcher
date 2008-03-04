@@ -1,9 +1,6 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.util.db.AuctionDB;
-
-import java.util.Map;
-import java.util.HashMap;
+import com.jbidwatcher.util.db.*;
 
 /**
  * Category DB accessor.
@@ -13,7 +10,8 @@ import java.util.HashMap;
  * Time: 12:47:22 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Category extends ActiveRecord {
+public class Category extends com.jbidwatcher.util.db.ActiveRecord
+{
   public Category() {
   }
 
@@ -43,9 +41,9 @@ public class Category extends ActiveRecord {
 
   public String getName() { return getString("name"); }
 
-  private static AuctionDB sDB;
+  private static Table sDB;
   protected static String getTableName() { return "categories"; }
-  protected AuctionDB getDatabase() {
+  protected Table getDatabase() {
     if (sDB == null) {
       sDB = openDB(getTableName());
     }

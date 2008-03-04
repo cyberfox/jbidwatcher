@@ -5,17 +5,16 @@ package com.jbidwatcher.webserver;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.config.JConfig;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTMLDialog;
-import com.jbidwatcher.util.html.HTMLDump;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.ui.JBidMouse;
 import com.jbidwatcher.*;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.xml.JTransformer;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.auction.AuctionTransformer;
 import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
@@ -252,8 +251,8 @@ public class JBidProxy extends HTTPProxyClient {
       //Add new Auction
       addAuction(relativeDocument.substring(addAuctionCommand.length()));
       //show Overview
-      HTMLDump htmlOutput = new HTMLDump();
-      return(checkError(htmlOutput.createFullTable()));
+      AuctionsManager.getInstance().saveAuctions();
+      return checkError(AuctionTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml")));
     }
 
     if(relativeDocument.startsWith(activateSnipe)) {
@@ -270,7 +269,7 @@ public class JBidProxy extends HTTPProxyClient {
 
     if(relativeDocument.equalsIgnoreCase("jbidwatcher")) {
       AuctionsManager.getInstance().saveAuctions();
-      return checkError(JTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml")));
+      return checkError(AuctionTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml")));
     }
 
     if(relativeDocument.equals("synchronize")) {
@@ -395,7 +394,7 @@ public class JBidProxy extends HTTPProxyClient {
       AuctionEntry ae = allEnded.get(i);
       sb.append("<item>\n");
       sb.append("<title><![CDATA[");
-      sb.append(JBidMouse.stripHigh(ae.getTitle()));
+      sb.append(StringTools.stripHigh(ae.getTitle()));
       sb.append("]]></title>\n");
 
       sb.append("<link><![CDATA[");
