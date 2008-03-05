@@ -5,9 +5,8 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.xml.XMLElement;
-import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
@@ -45,7 +44,7 @@ public class AuctionsUIModel {
   private static final int MICROTHUMBNAIL_ROW_HEIGHT = 70;
   private static final myTableCellRenderer _myRenderer = new myTableCellRenderer();
   private static final JContext tableAdapter = new JBidMouse();
-  private static final JMouseAdapter frameAdapter = new JBidFrameMouse();
+  private static final com.jbidwatcher.ui.util.JMouseAdapter frameAdapter = new JBidFrameMouse();
   private static final JTabManager allTabs = new JTabManager();
 
   /**
@@ -221,7 +220,7 @@ public class AuctionsUIModel {
         inCurr = inCurr.add(ae.getUSCurBid().add(Currency.convertToUSD(ae.getUSCurBid(), ae.getCurBid(), ae.getShippingWithInsurance())));
       }
     } catch(Currency.CurrencyTypeException cte) {
-      ErrorManagement.handleException("This should have been cleaned up.", cte);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("This should have been cleaned up.", cte);
     }
     return inCurr;
   }
@@ -242,7 +241,7 @@ public class AuctionsUIModel {
         inCurr = inCurr.add(ae.getCurBid().add(ae.getShippingWithInsurance()));
       }
     } catch(Currency.CurrencyTypeException cte) {
-      ErrorManagement.handleException("This should have been cleaned up.", cte);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("This should have been cleaned up.", cte);
     }
 
     return inCurr;
@@ -295,13 +294,13 @@ public class AuctionsUIModel {
         }
       }
     } catch(Currency.CurrencyTypeException e) {
-      ErrorManagement.handleException("Sum currency exception!", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Sum currency exception!", e);
       return null;
     } catch(ArrayIndexOutOfBoundsException ignored) {
-      ErrorManagement.logDebug("Selection of " + rowList.length + " items changed out from under 'sum'.");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Selection of " + rowList.length + " items changed out from under 'sum'.");
       return null;
     } catch(Exception e) {
-      ErrorManagement.handleException("Sum serious exception!", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Sum serious exception!", e);
       return null;
     }
 
@@ -510,8 +509,8 @@ public class AuctionsUIModel {
     } catch(Exception e) {
       //  If we encountered any errors in earlier columns, don't try
       //  to set later columns.
-      ErrorManagement.handleException("In display configuration for table " + prefix +", column \"" + curColumnName + "\" has an invalid property.", e);
-      ErrorManagement.logDebug("No longer loading column widths from configuration.");
+      com.jbidwatcher.util.config.ErrorManagement.handleException("In display configuration for table " + prefix +", column \"" + curColumnName + "\" has an invalid property.", e);
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("No longer loading column widths from configuration.");
     }
 
     if(!initialToSaved.isEmpty()) {
@@ -609,7 +608,7 @@ public class AuctionsUIModel {
       try {
         ct = _table.getColumn(_table.getColumnName(j));
       } catch(IllegalArgumentException iae) {
-        ErrorManagement.logMessage("Column can't be retrieved from the table: " + _table.getColumnName(j));
+        com.jbidwatcher.util.config.ErrorManagement.logMessage("Column can't be retrieved from the table: " + _table.getColumnName(j));
         ct = null;
       }
         //      ColumnProps cp = new ColumnProps(_dataModel.getColumnName(j), j, ct.getWidth());

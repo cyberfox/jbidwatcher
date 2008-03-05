@@ -5,7 +5,7 @@ package com.jbidwatcher.webserver;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.net.*;
 import java.io.*;
@@ -81,7 +81,7 @@ public class SimpleProxy extends Thread {
         }
       } catch(IOException e) {
         if(!_halted) {
-          ErrorManagement.handleException("Exception raised during server accept.", e);
+          com.jbidwatcher.util.config.ErrorManagement.handleException("Exception raised during server accept.", e);
         }
       }
       try {

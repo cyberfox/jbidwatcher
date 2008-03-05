@@ -8,7 +8,6 @@ package com.jbidwatcher.ui.config;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.Constants;
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.ui.OptionUI;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 
 import java.awt.*;
@@ -48,7 +47,7 @@ public class JConfigFrame implements ActionListener {
 
   public JConfigFrame() {
     mainFrame = createConfigFrame();
-    Rectangle rec = OptionUI.findCenterBounds(mainFrame.getPreferredSize());
+    Rectangle rec = com.jbidwatcher.ui.util.OptionUI.findCenterBounds(mainFrame.getPreferredSize());
     mainFrame.setLocation(rec.x, rec.y);
     show();
   }

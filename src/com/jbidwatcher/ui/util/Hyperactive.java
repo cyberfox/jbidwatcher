@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;
+package com.jbidwatcher.ui.util;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -6,15 +6,14 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.ErrorManagement;
-import com.jbidwatcher.ui.JBEditorPane;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 import javax.swing.*;
 import javax.swing.event.*;
 
 public class Hyperactive implements HyperlinkListener {
-  JBEditorPane _pane;
-  public Hyperactive(JBEditorPane tPane) {
+  com.jbidwatcher.ui.util.JBEditorPane _pane;
+  public Hyperactive(com.jbidwatcher.ui.util.JBEditorPane tPane) {
     super();
     _pane = tPane;
   }

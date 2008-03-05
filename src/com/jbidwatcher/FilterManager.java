@@ -11,7 +11,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.ui.AuctionsUIModel;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.util.*;
 import java.awt.Color;

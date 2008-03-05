@@ -16,13 +16,12 @@ package com.jbidwatcher.auction.server;
  * the factory can identify which site (ebay, yahoo, amazon, etc.) it
  * is, and do the appropriate parsing for that site.
  */
-import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.util.*;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.*;
 import com.jbidwatcher.auction.AuctionEntry;
@@ -205,10 +204,10 @@ public abstract class AuctionServer implements AuctionServerInterface {
       loadedPage = Http.receivePage(uc);
       if(loadedPage != null && loadedPage.length() == 0) loadedPage = null;
     } catch(FileNotFoundException fnfe) {
-      ErrorManagement.logDebug("Item not found: " + auctionURL.toString());
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Item not found: " + auctionURL.toString());
       throw fnfe;
     } catch(IOException e) {
-      ErrorManagement.handleException("Error loading URL (" + auctionURL.toString() + ')', e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Error loading URL (" + auctionURL.toString() + ')', e);
       loadedPage = null;
     }
     return loadedPage;
@@ -268,7 +267,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
         try {
           curAuction = doParse(sb, ae, item_id);
         } catch (ReloadItemException e1) {
-          ErrorManagement.logMessage("Multiple failures attempting to load item " + item_id + ", giving up.");
+          com.jbidwatcher.util.config.ErrorManagement.logMessage("Multiple failures attempting to load item " + item_id + ", giving up.");
         }
       }
     }
@@ -292,7 +291,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
         //  punt.  It's not a communications error, either.
       } catch (Exception catchall) {
         if (JConfig.debugging()) {
-          ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
+          com.jbidwatcher.util.config.ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
         }
       }
     }
@@ -318,7 +317,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
               getNecessaryCookie(true);
               throw new ReloadItemException();
             } else {
-              ErrorManagement.logDebug("Failed to load adult item, user possibly not marked for Mature Items access.  Check your eBay configuration.");
+              com.jbidwatcher.util.config.ErrorManagement.logDebug("Failed to load adult item, user possibly not marked for Mature Items access.  Check your eBay configuration.");
             }
           }
           case BAD_TITLE: {
@@ -331,7 +330,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
     } else error = "Bad pre-parse!";
 
     if(error != null) {
-      ErrorManagement.logMessage(error);
+      com.jbidwatcher.util.config.ErrorManagement.logMessage(error);
       checkLogError(ae);
       curAuction = null;
     }
@@ -341,7 +340,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
   private void noteRetrieveError(AuctionEntry ae) {
     checkLogError(ae);
     //  Whoops!  Bad thing happened on the way to loading the auction!
-    ErrorManagement.logDebug("Failed to parse auction!  Bad return result from auction server.");
+    com.jbidwatcher.util.config.ErrorManagement.logDebug("Failed to parse auction!  Bad return result from auction server.");
     //  Only retry the login cookie once every ten minutes of these errors.
     if ((sLastUpdated + Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
       sLastUpdated = System.currentTimeMillis();

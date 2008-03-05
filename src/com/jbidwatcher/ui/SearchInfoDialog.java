@@ -196,7 +196,7 @@ public class SearchInfoDialog extends BasicDialog {
     form.add(currencyBox);
     form.add(new JLabel("Repeat every: "));
     form.add(boxUp(periodList, periodEnabled));
-    SpringUtilities.makeCompactGrid(form, 5, 2, 6, 6, 6, 3);
+    com.jbidwatcher.ui.util.SpringUtilities.makeCompactGrid(form, 5, 2, 6, 6, 6, 3);
     getBasicContentPane().add(form, BorderLayout.CENTER);
   }
 

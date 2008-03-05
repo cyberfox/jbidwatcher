@@ -1,6 +1,4 @@
-package com.jbidwatcher.util;
-
-import com.jbidwatcher.util.ErrorManagement;
+package com.jbidwatcher.util.config;
 
 /**
  * Encodes and decodes to and from Base64 notation.
@@ -614,7 +612,7 @@ public class Base64
                 try {
                   throw new Exception("Bad Base64 input character at " + i + ": " + source[i] + "(decimal)");
                 } catch(Exception e) {
-                  ErrorManagement.handleException("Base64 Decode Problem", e);
+                  com.jbidwatcher.util.config.ErrorManagement.handleException("Base64 Decode Problem", e);
                 }
                 return null;
             }   // end else: 

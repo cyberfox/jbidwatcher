@@ -13,7 +13,7 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.server.*;
 
 public class Snipe {
@@ -78,7 +78,7 @@ public class Snipe {
     m_auction.setLastStatus(snipeResult);
 
     MQFactory.getConcrete("Swing").enqueue("NOTIFY " + snipeResult);
-    ErrorManagement.logDebug(snipeResult);
+    com.jbidwatcher.util.config.ErrorManagement.logDebug(snipeResult);
 
     m_auction.snipeCompleted();
     Auctions.endBlocking();

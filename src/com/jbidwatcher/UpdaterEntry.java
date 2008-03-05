@@ -9,9 +9,9 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
-import com.jbidwatcher.ui.OptionUI;
+import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.io.*;
 import java.net.*;
@@ -50,7 +50,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
 
   public void loadFromString(StringBuffer sb, String packageName) {
     if(sb == null || packageName == null) {
-      ErrorManagement.handleException("loadFromString Failed with a null pointer!", new Exception("Updater got incorrect XML file."));
+      com.jbidwatcher.util.config.ErrorManagement.handleException("loadFromString Failed with a null pointer!", new Exception("Updater got incorrect XML file."));
     } else {
       XMLElement xmlUpdate = new XMLElement(true);
 
@@ -197,7 +197,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
     JConfig.setConfiguration("updates.lastConfig", Long.toString(lastStamp));
     if(cfgChanged) JConfig.updateComplete();
     if(alert != null) {
-      OptionUI oui = new OptionUI();
+      com.jbidwatcher.ui.util.OptionUI oui = new OptionUI();
       Dimension aboutBoxSize = new Dimension(495, 245);
 
       oui.showTextDisplay(alert, aboutBoxSize, Constants.PROGRAM_NAME + " News Alert...");

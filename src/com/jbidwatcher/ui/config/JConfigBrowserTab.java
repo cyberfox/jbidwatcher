@@ -5,8 +5,8 @@ package com.jbidwatcher.ui.config;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.ui.JPasteListener;
-import com.jbidwatcher.util.config.JBConfig;
+import com.jbidwatcher.ui.util.JPasteListener;
+import com.jbidwatcher.platform.Browser;
 import com.jbidwatcher.util.config.JConfig;
 
 import java.awt.*;
@@ -50,7 +50,7 @@ public class JConfigBrowserTab extends JConfigTab {
     linuxBrowserLaunchCommand.getAccessibleContext().setAccessibleName("Command to use to launch the web browser under Linux");
 
     windowsBrowserLaunchCommand = new JTextField();
-	windowsBrowserLaunchCommand.addMouseListener(JPasteListener.getInstance());
+	windowsBrowserLaunchCommand.addMouseListener(com.jbidwatcher.ui.util.JPasteListener.getInstance());
 
     windowsBrowserLaunchCommand.setText(JConfig.queryConfiguration("browser.launch.Windows"));
     windowsBrowserLaunchCommand.setEditable(true);
@@ -83,7 +83,7 @@ public class JConfigBrowserTab extends JConfigTab {
             if(JConfig.getOS().equalsIgnoreCase("windows")) {
               String browser;
 
-              browser = JBConfig.getBrowserCommand();
+              browser = Browser.getBrowserCommand();
               if(browser != null) {
                 windowsBrowserLaunchCommand.setText(browser);
               } else {
@@ -91,7 +91,7 @@ public class JConfigBrowserTab extends JConfigTab {
                                               "Cannot detect browser", JOptionPane.INFORMATION_MESSAGE);
               }
             } else {
-              linuxBrowserLaunchCommand.setText(JBConfig.getBrowserCommand());
+              linuxBrowserLaunchCommand.setText(Browser.getBrowserCommand());
             }
           }
         }
@@ -113,7 +113,7 @@ public class JConfigBrowserTab extends JConfigTab {
           if(ae.getActionCommand().equals("Test Browser")) {
             boolean browserWorked = false;
             apply();
-            browserWorked = JBConfig.launchBrowser("http://www.jbidwatcher.com");
+            browserWorked = Browser.launchBrowser("http://www.jbidwatcher.com");
             if(!browserWorked) {
               JOptionPane.showMessageDialog(null, "<html><body>Failed to launch browser.  The error log contains more details,<br>" +
                                             "but some common problems are:" +

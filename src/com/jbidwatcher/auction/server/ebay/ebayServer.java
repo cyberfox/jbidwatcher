@@ -11,9 +11,11 @@ package com.jbidwatcher.auction.server.ebay;
 //  logic outside this class.  A pipe-dream, perhaps, but it seems
 //  mostly doable.
 
-import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.*;
+import com.jbidwatcher.util.config.Externalized;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.util.queue.*;
+import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.*;
@@ -54,7 +56,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private ebayLoginManager mLogin;
 
   /** @noinspection FieldCanBeLocal*/
-  private com.jbidwatcher.util.TimerHandler eQueue;
+  private TimerHandler eQueue;
   private Map<String, AuctionQObject> snipeMap = new HashMap<String, AuctionQObject>();
 
   /**< The full amount of time it takes to request a single page from this site. */
@@ -395,10 +397,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     } else {
       if (ac.getData() instanceof String) {
         String acData = (String) ac.getData();
-        ErrorManagement.logMessage("Dequeue'd unexpected command or fell through: " + ac.getCommand() + ':' + acData);
+        com.jbidwatcher.util.config.ErrorManagement.logMessage("Dequeue'd unexpected command or fell through: " + ac.getCommand() + ':' + acData);
       } else {
         //noinspection ObjectToString
-        ErrorManagement.logMessage("Can't recognize ebay-queued data: " + ac.getData());
+        com.jbidwatcher.util.config.ErrorManagement.logMessage("Can't recognize ebay-queued data: " + ac.getData());
       }
     }
   }
@@ -418,7 +420,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     mBidder = new ebayBidder(mLogin);
 
     _etqm = new eBayTimeQueueManager();
-    eQueue = new com.jbidwatcher.util.TimerHandler(_etqm);
+    eQueue = new TimerHandler(_etqm);
     eQueue.setName("eBay SuperQueue");
     //noinspection CallToThreadStartDuringObjectConstruction
     eQueue.start();
@@ -467,7 +469,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
     }
 
-    ErrorManagement.logDebug("extractIdentifierFromURLString failed.");
+    com.jbidwatcher.util.config.ErrorManagement.logDebug("extractIdentifierFromURLString failed.");
     return null;
   }
 
@@ -612,7 +614,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     String curName = htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.bidListPrequel"));
 
     if(curName == null) {
-      ErrorManagement.logMessage("Problem with loaded page when getting bidder names for auction " + ae.getIdentifier());
+      com.jbidwatcher.util.config.ErrorManagement.logMessage("Problem with loaded page when getting bidder names for auction " + ae.getIdentifier());
       return null;
     }
 
@@ -775,7 +777,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if (result == null || result.getDate() == null) {
       mPageRequestTime = 0;
       //  This is bad...
-      ErrorManagement.logMessage(getName() + ": Error, can't accurately set delta to server's official time.");
+      com.jbidwatcher.util.config.ErrorManagement.logMessage(getName() + ": Error, can't accurately set delta to server's official time.");
       mOfficialServerTimeDelta = 0;
       return null;
     } else {

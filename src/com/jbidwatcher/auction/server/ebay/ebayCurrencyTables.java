@@ -1,7 +1,6 @@
 package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.ErrorManagement;
 
 public class ebayCurrencyTables {
   private static Currency[][] us_incrementTable = {
@@ -152,7 +151,7 @@ public class ebayCurrencyTables {
         if (!endValue.less(correctedValue)) return incrementValue;
       } catch (Currency.CurrencyTypeException e) {
         /* Should never happen, since we've checked the currency already.  */
-        ErrorManagement.handleException("Currency comparison threw a bad currency exception, which should be impossible.", e);
+        com.jbidwatcher.util.config.ErrorManagement.handleException("Currency comparison threw a bad currency exception, which should be impossible.", e);
       }
     }
     return null;

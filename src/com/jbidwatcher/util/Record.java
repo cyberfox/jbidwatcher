@@ -1,4 +1,4 @@
-package com.jbidwatcher.util.db;
+package com.jbidwatcher.util;
 
 import java.util.HashMap;
 
@@ -9,4 +9,4 @@ import java.util.HashMap;
 * Time: 1:44:08 AM
 * To change this template use File | Settings | File Templates.
 */
-public class DBRecord extends HashMap<String, String> { }
+public class Record extends HashMap<String, String> { }

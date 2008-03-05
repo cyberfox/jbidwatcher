@@ -5,7 +5,7 @@ package com.jbidwatcher.ui.config;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.ui.JPasteListener;
+import com.jbidwatcher.ui.util.JPasteListener;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;

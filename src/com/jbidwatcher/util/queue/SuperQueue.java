@@ -1,6 +1,6 @@
-package com.jbidwatcher.util;
+package com.jbidwatcher.util.queue;
 
-import com.jbidwatcher.util.queue.TimeQueueManager;
+import com.jbidwatcher.util.queue.TimerHandler;
 
 /**
  * Created by IntelliJ IDEA.
@@ -34,7 +34,7 @@ public class SuperQueue {
   }
 
   public TimerHandler start() {
-    TimerHandler timeQueue = new TimerHandler(mTQM);
+    TimerHandler timeQueue = new com.jbidwatcher.util.queue.TimerHandler(mTQM);
     timeQueue.setName("SuperQueue");
     timeQueue.start();
 

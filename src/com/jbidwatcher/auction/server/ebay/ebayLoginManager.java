@@ -2,8 +2,7 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.util.Externalized;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -58,7 +57,7 @@ public class ebayLoginManager implements LoginManager {
 
       fw.write(sb.toString());
     } catch (IOException ioe) {
-      ErrorManagement.handleException("Threw exception in dump2File!", ioe);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Threw exception in dump2File!", ioe);
     } finally {
       if (fw != null) try {
         fw.close();
@@ -104,7 +103,7 @@ public class ebayLoginManager implements LoginManager {
               //noinspection StringContatenationInLoop
               url = url.substring(0, step) + encodedURL;
             } catch (UnsupportedEncodingException ignored) {
-              ErrorManagement.logMessage("Failed to build a URL because of encoding transformation failure.");
+              com.jbidwatcher.util.config.ErrorManagement.logMessage("Failed to build a URL because of encoding transformation failure.");
             }
           }
         }
@@ -159,7 +158,7 @@ public class ebayLoginManager implements LoginManager {
 
     String done_msg = "Done getting the sign in cookie.";
     MQFactory.getConcrete("Swing").enqueue(done_msg);
-    ErrorManagement.logDebug(done_msg);
+    com.jbidwatcher.util.config.ErrorManagement.logDebug(done_msg);
 
     return cj;
   }
@@ -176,9 +175,9 @@ public class ebayLoginManager implements LoginManager {
   public CookieJar getSignInCookie(CookieJar oldCookie, String username, String password) {
     boolean isAdult = JConfig.queryConfiguration(mSiteName + ".adult", "false").equals("true");
     CookieJar cj = (oldCookie == null) ? new CookieJar() : oldCookie;
-    String startURL = Externalized.getString("ebayServer.signInPage");
+    String startURL = com.jbidwatcher.util.config.Externalized.getString("ebayServer.signInPage");
     if (isAdult) {
-      startURL = Externalized.getString("ebayServer.adultPageLogin");
+      startURL = com.jbidwatcher.util.config.Externalized.getString("ebayServer.adultPageLogin");
     }
     URLConnection uc_signin = cj.getAllCookiesFromPage(startURL, null, false);
     try {

@@ -1,4 +1,4 @@
-package com.jbidwatcher.util;
+package com.jbidwatcher;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -9,6 +9,7 @@ import javazoom.jlme.util.*;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 public class AudioPlayer implements MessageQueue.Listener {
   private static AudioPlayer sAP = null;

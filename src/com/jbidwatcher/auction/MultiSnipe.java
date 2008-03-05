@@ -5,7 +5,7 @@ package com.jbidwatcher.auction;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.db.*;
 import com.jbidwatcher.util.db.ActiveRecord;
 

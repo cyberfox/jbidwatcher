@@ -8,7 +8,7 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.queue.DropQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.JDropHandler;
 
 import java.util.List;

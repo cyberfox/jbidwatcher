@@ -6,7 +6,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.io.*;
 import java.awt.*;
@@ -59,7 +59,7 @@ public class JDropListener implements DropTargetListener {
         try {
           df = new DataFlavor(_str_flavors[i][1]);
         } catch(ClassNotFoundException e) {
-          ErrorManagement.logDebug("Failed to initialize " + whichFlavor);
+          com.jbidwatcher.util.config.ErrorManagement.logDebug("Failed to initialize " + whichFlavor);
           df = null;
         }
         return df;
@@ -107,7 +107,7 @@ public class JDropListener implements DropTargetListener {
   private boolean testFlavor(DataFlavor inFlavor, Transferable t) {
     if(inFlavor != null) {
       if(t.isDataFlavorSupported(inFlavor)) {
-        if(do_uber_debug) ErrorManagement.logDebug("Accepting(2): " + inFlavor.getMimeType());
+        if(do_uber_debug) com.jbidwatcher.util.config.ErrorManagement.logDebug("Accepting(2): " + inFlavor.getMimeType());
         return true;
       }
     }
@@ -189,7 +189,7 @@ public class JDropListener implements DropTargetListener {
       return;
     }
     if(testAllFlavors(dtde) != null) {
-      if(do_uber_debug) ErrorManagement.logDebug("Accepting drag! (" + da + ")");
+      if(do_uber_debug) com.jbidwatcher.util.config.ErrorManagement.logDebug("Accepting drag! (" + da + ")");
       acceptDrag(dtde);
     } else {
       dtde.rejectDrag();
@@ -232,7 +232,7 @@ public class JDropListener implements DropTargetListener {
           //            System.err.println("Not even the clipboard...");
           //          }
         } catch(Exception e) {
-          ErrorManagement.handleException("Caught: " + e, e);
+          com.jbidwatcher.util.config.ErrorManagement.handleException("Caught: " + e, e);
         }
         if(do_uber_debug) ErrorManagement.logDebug("Done trying a second attack...");
       }
@@ -277,7 +277,7 @@ public class JDropListener implements DropTargetListener {
       } catch(IllegalAccessException iae) {
         ErrorManagement.logDebug("Failed to invoke getReaderForText!  Illegal Access!");
       } catch(InvocationTargetException ite) {
-        ErrorManagement.logDebug("Failed to invoke getReaderForText!  Bad Invocation Target!");
+        com.jbidwatcher.util.config.ErrorManagement.logDebug("Failed to invoke getReaderForText!  Bad Invocation Target!");
       }
 
       if(dropReader != null) {
@@ -297,7 +297,7 @@ public class JDropListener implements DropTargetListener {
       do {
         charsRead = br.read(buf, 0, 512);
         if(charsRead != -1) {
-          if(do_uber_debug) ErrorManagement.logDebug("Read: " + charsRead + " characters.");
+          if(do_uber_debug) com.jbidwatcher.util.config.ErrorManagement.logDebug("Read: " + charsRead + " characters.");
           if(xferData == null) {
             xferData = new StringBuffer();
           }
@@ -337,7 +337,7 @@ public class JDropListener implements DropTargetListener {
           br = new BufferedReader(isr);
         }
       } catch(UnsupportedEncodingException uee) {
-        ErrorManagement.logDebug("Unicode encoding unsupported.");
+        com.jbidwatcher.util.config.ErrorManagement.logDebug("Unicode encoding unsupported.");
         br = new BufferedReader(new InputStreamReader(dropStream));
       }
     }
@@ -356,7 +356,7 @@ public class JDropListener implements DropTargetListener {
 
     dtf = testAllFlavors(t);
 
-    if(do_uber_debug) ErrorManagement.logDebug("dtf == " + dtf);
+    if(do_uber_debug) com.jbidwatcher.util.config.ErrorManagement.logDebug("dtf == " + dtf);
 
     try {
       if(dtf == _htmlFlavor || dtf == _utf8HtmlFlavor || dtf == _thtmlFlavor) {
@@ -373,7 +373,7 @@ public class JDropListener implements DropTargetListener {
       }
     } catch(UnsupportedFlavorException ufe) {
       try { dropped = t.getTransferData(DataFlavor.stringFlavor); } catch(Exception e) {
-        ErrorManagement.logDebug("Unsupported flavor: " + dtf);
+        com.jbidwatcher.util.config.ErrorManagement.logDebug("Unsupported flavor: " + dtf);
         return null;
       }
     }
@@ -383,17 +383,17 @@ public class JDropListener implements DropTargetListener {
         if(do_uber_debug) ErrorManagement.logDebug("Dropped an InputStream");
         xferData = getInputStreamData(t, dtf, (InputStream)dropped);
       } else if(dropped instanceof Reader) {
-        if(do_uber_debug) ErrorManagement.logDebug("Dropped a Reader");
+        if(do_uber_debug) com.jbidwatcher.util.config.ErrorManagement.logDebug("Dropped a Reader");
         xferData = getDataFromReader(new BufferedReader((Reader)dropped));
       } else if(dropped instanceof java.net.URL) {
         if(do_uber_debug) {
           ErrorManagement.logDebug("Dropped a URL");
-          ErrorManagement.logDebug("Got: " + dropped.toString());
+          com.jbidwatcher.util.config.ErrorManagement.logDebug("Got: " + dropped.toString());
         }
 
         xferData = new StringBuffer(dropped.toString());
       } else if(dropped instanceof String) {
-        if(do_uber_debug) ErrorManagement.logDebug("Dropped a String");
+        if(do_uber_debug) com.jbidwatcher.util.config.ErrorManagement.logDebug("Dropped a String");
         xferData = new StringBuffer((String)dropped);
       }
 
@@ -419,9 +419,9 @@ public class JDropListener implements DropTargetListener {
       dfa2 = null;
 
       if(t2 != null) {
-        if(do_uber_debug) ErrorManagement.logDebug("t2 is not null: " + t2);
+        if(do_uber_debug) com.jbidwatcher.util.config.ErrorManagement.logDebug("t2 is not null: " + t2);
         dfa2 = t2.getTransferDataFlavors();
-        if(do_uber_debug) ErrorManagement.logDebug("Back from getTransferDataFlavors()!");
+        if(do_uber_debug) com.jbidwatcher.util.config.ErrorManagement.logDebug("Back from getTransferDataFlavors()!");
       } else {
         if(do_uber_debug) ErrorManagement.logDebug("t2 is null!");
       }
@@ -445,7 +445,7 @@ public class JDropListener implements DropTargetListener {
 
     dtf = testAllFlavors(t);
     if(dtf != null) {
-      if(do_uber_debug) ErrorManagement.logDebug("Accepting!");
+      if(do_uber_debug) com.jbidwatcher.util.config.ErrorManagement.logDebug("Accepting!");
       acceptDrop(dtde);
 
       dropData = getTransferData(t);
@@ -457,7 +457,7 @@ public class JDropListener implements DropTargetListener {
         }
       }
     } else {
-      if(do_uber_debug) ErrorManagement.logDebug("Rejecting!");
+      if(do_uber_debug) com.jbidwatcher.util.config.ErrorManagement.logDebug("Rejecting!");
       dtde.rejectDrop();
       handler.receiveDropString(dropData);
     }

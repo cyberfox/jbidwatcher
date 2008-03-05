@@ -3,7 +3,7 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.ByteBuffer;
 import com.jbidwatcher.util.GZip;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.auction.server.AuctionServer;
 
 import java.util.Date;

@@ -9,7 +9,7 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.queue.DropQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.AuctionsManager;

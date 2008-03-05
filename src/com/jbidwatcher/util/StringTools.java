@@ -1,9 +1,9 @@
 package com.jbidwatcher.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.platform.Platform;
+
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -15,6 +15,16 @@ public class StringTools {
   private static final int YEAR_BASE = 1990;
   private static GregorianCalendar sMidpointDate = new GregorianCalendar(YEAR_BASE, Calendar.JANUARY, 1);
   public static final int HIGHBIT_ASCII = 0x80;
+
+  public static String decodeLatin(String latinString) {
+    //  Why?  Because it seems to Just Work on Windows.  Argh.
+    if (!Platform.isMac()) return latinString;
+    try {
+      return new String(latinString.getBytes(), "ISO-8859-1");
+    } catch (UnsupportedEncodingException ignore) {
+      return latinString;
+    }
+  }
 
   public static String stripHigh(String inString, String fmtString) {
     char[] stripOut = new char[inString.length()];
@@ -224,7 +234,7 @@ public class StringTools {
       buf[0] = new byte[(int)fp.length()];
       FileInputStream fis = new FileInputStream(fp);
       int read = fis.read(buf[0], 0, (int)fp.length());
-      if(read != fp.length()) ErrorManagement.logDebug("Couldn't read any data from " + fp.getName());
+      if(read != fp.length()) com.jbidwatcher.util.config.ErrorManagement.logDebug("Couldn't read any data from " + fp.getName());
       fis.close();
     } catch(IOException e) {
       ErrorManagement.handleException("Can't read file " + fp.getName(), e);

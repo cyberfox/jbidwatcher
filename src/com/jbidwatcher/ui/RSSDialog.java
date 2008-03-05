@@ -8,7 +8,7 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.browser.BrowserLauncher;
 import com.jbidwatcher.FilterManager;
 
@@ -117,7 +117,7 @@ public class RSSDialog extends BasicDialog {
     getBasicContentPane().add(endingPanel);
     //basicContentPane.add(JConfigTab.makeLine(new JButton("Copy"), JConfigTab.makeLine(new JLabel(" Subscribe to soonest ending in "), tabList)));
     getBasicContentPane().add(getButtonOK());
-    SpringUtilities.makeCompactGrid(getBasicContentPane(), 4, 1, 6, 6, 6, 6);
+    com.jbidwatcher.ui.util.SpringUtilities.makeCompactGrid(getBasicContentPane(), 4, 1, 6, 6, 6, 6);
   }
 
   private void buildTabList() {

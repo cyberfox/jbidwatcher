@@ -313,7 +313,7 @@ public class Currency implements Comparable {
         try {
           actualValue = df.parse(valuePortion).doubleValue();
         } catch(java.text.ParseException e) {
-          ErrorManagement.handleException("currency parse!", e);
+          com.jbidwatcher.util.config.ErrorManagement.handleException("currency parse!", e);
           actualValue = 0.0;
         }
 

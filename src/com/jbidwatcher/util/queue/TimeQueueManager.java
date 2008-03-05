@@ -12,7 +12,7 @@ import java.util.*;
  * Date: May 19, 2005
  * Time: 11:41:40 PM
  */
-public class TimeQueueManager implements com.jbidwatcher.util.TimerHandler.WakeupProcess {
+public class TimeQueueManager implements TimerHandler.WakeupProcess {
   private TimeQueue m_tq = new TimeQueue();
 
   private class TQCarrier {

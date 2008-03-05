@@ -13,7 +13,7 @@ package com.jbidwatcher.auction;
  * server, etc.) is stored in AuctionEntry
  */
 
-import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.db.*;
 import com.jbidwatcher.util.db.ActiveRecord;
@@ -107,7 +107,7 @@ public class AuctionInfo extends ActiveRecord
     setNumBids(auctionBidCount);
   }
 
-  public DBRecord getMap() {
+  public Record getMap() {
     return getBacking();
   }
 
@@ -310,16 +310,16 @@ public class AuctionInfo extends ActiveRecord
       //  Okay, I don't allow loading auction data that's over 512K.  Duh.
       if(fp.length() < 512 * 1024) {
         try {
-          ErrorManagement.logDebug("Loading from backing page (file is " + fp.length() + " bytes)!");
+          com.jbidwatcher.util.config.ErrorManagement.logDebug("Loading from backing page (file is " + fp.length() + " bytes)!");
           localZip.load(fp);
         } catch(IOException ioe) {
-          ErrorManagement.handleException("Couldn't read " + fileName, ioe);
+          com.jbidwatcher.util.config.ErrorManagement.handleException("Couldn't read " + fileName, ioe);
           return null;
         }
 
         return localZip;
       } else {
-        ErrorManagement.logDebug("Can't load " + fileName + ", file is too large.");
+        com.jbidwatcher.util.config.ErrorManagement.logDebug("Can't load " + fileName + ", file is too large.");
       }
     }
     return null;
@@ -353,7 +353,7 @@ public class AuctionInfo extends ActiveRecord
     String outPath = JConfig.queryConfiguration("auctions.savepath");
     if(outPath != null) {
       String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
-      ErrorManagement.logDebug("filePath = " + filePath);
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("filePath = " + filePath);
       return loadFile(filePath);
     }
     return mLoadedPage;
@@ -371,12 +371,12 @@ public class AuctionInfo extends ActiveRecord
       if(outSB == null) outSB = new StringBuffer("mLoadedPage.getUncompressedData is null");
       sb = outSB;
     } else {
-      ErrorManagement.logDebug("mLoadedPage is null, returning the 'real' cached copy!");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("mLoadedPage is null, returning the 'real' cached copy!");
       GZip gz = getRealContent();
       if(gz != null) {
         sb = gz.getUncompressedData();
-        ErrorManagement.logDebug("Turned the uncompressed data into a StringBuffer!");
-        if(sb == null) ErrorManagement.logDebug(" Failed to uncompress for id " + getIdentifier());
+        com.jbidwatcher.util.config.ErrorManagement.logDebug("Turned the uncompressed data into a StringBuffer!");
+        if(sb == null) com.jbidwatcher.util.config.ErrorManagement.logDebug(" Failed to uncompress for id " + getIdentifier());
       } else {
         sb = new StringBuffer("Error getting real content.");
       }

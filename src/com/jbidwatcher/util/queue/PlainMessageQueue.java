@@ -5,7 +5,7 @@ package com.jbidwatcher.util.queue;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.util.ArrayList;
 import java.util.List;

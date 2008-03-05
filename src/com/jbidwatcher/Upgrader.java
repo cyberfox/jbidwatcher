@@ -1,7 +1,7 @@
 package com.jbidwatcher;
 
 import com.jbidwatcher.util.db.Database;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.config.JConfig;
 
@@ -59,8 +59,8 @@ public class Upgrader {
         mS.execute(statement);
       }
 
-      ErrorManagement.logDebug("Executed " + filename + ".");
-      ErrorManagement.logDebug("Created database and various tables.");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Executed " + filename + ".");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Created database and various tables.");
     }
   }
 }

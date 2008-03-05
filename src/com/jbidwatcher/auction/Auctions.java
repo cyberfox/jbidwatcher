@@ -9,11 +9,11 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.ui.auctionTableModel;
 import com.jbidwatcher.ui.table.TableSorter;
-import com.jbidwatcher.util.TimerHandler;
+import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 /**
  *  This class shouldn't have a 'TableSorter', it should defer to some
@@ -143,7 +143,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
       AuctionServerManager.getInstance().addEntry(aeNew);
       return true;
     }
-    ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
+    com.jbidwatcher.util.config.ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
 
     return false;
   }

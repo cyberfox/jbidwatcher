@@ -5,7 +5,6 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.util.queue.MessageQueue;
 
 import javax.swing.SwingUtilities;
@@ -24,7 +23,7 @@ public class SwingMessageQueue extends MessageQueue
       try {
         _listener.messageAction(data);
       } catch(Exception e) {
-        ErrorManagement.handleException("SMQ Caught exception: " + e, e);
+        com.jbidwatcher.util.config.ErrorManagement.handleException("SMQ Caught exception: " + e, e);
       }
     }
   }

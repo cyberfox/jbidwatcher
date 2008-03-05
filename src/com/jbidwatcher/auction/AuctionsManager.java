@@ -14,22 +14,21 @@ package com.jbidwatcher.auction;
  * verifying, adding, and retrieving auctions, and similar features
  */
 
-import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.config.*;
+import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionStats;
-import com.jbidwatcher.util.*;
 
 import java.io.*;
 import java.util.*;
 import java.text.SimpleDateFormat;
 
 /** @noinspection Singleton*/
-public class AuctionsManager implements com.jbidwatcher.util.TimerHandler.WakeupProcess,EntryManager {
+public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.WakeupProcess,EntryManager {
   private static AuctionsManager _instance = null;
   private DeletedManager _deleted = null;
   private int _auctionCount = 0;
@@ -241,17 +240,17 @@ public class AuctionsManager implements com.jbidwatcher.util.TimerHandler.Wakeup
       try {
         loadXMLFromFile(loadFile, xmlFile);
       } catch(IOException ioe) {
-        ErrorManagement.handleException("A serious problem occurred trying to load from auctions.xml.", ioe);
+        com.jbidwatcher.util.config.ErrorManagement.handleException("A serious problem occurred trying to load from auctions.xml.", ioe);
         MQFactory.getConcrete("Swing").enqueue("ERROR Failure to load your saved auctions.  Some or all items may be missing.");
       } catch(XMLParseException xme) {
-        ErrorManagement.handleException("Trying to load from auctions.xml.", xme);
+        com.jbidwatcher.util.config.ErrorManagement.handleException("Trying to load from auctions.xml.", xme);
         MQFactory.getConcrete("Swing").enqueue("ERROR Failure to load your saved auctions.  Some or all items may be missing.");
       }
     } else {
       //  This is a common thing, and we don't want to frighten new
       //  users, who are most likely to see it.
-      ErrorManagement.logDebug("JBW: Failed to load saved auctions, the auctions file is probably not there yet.");
-      ErrorManagement.logDebug("JBW: This is not an error, unless you're constantly getting it.");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("JBW: Failed to load saved auctions, the auctions file is probably not there yet.");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("JBW: This is not an error, unless you're constantly getting it.");
     }
     mDoSplash = false;
   }
@@ -370,7 +369,7 @@ public class AuctionsManager implements com.jbidwatcher.util.TimerHandler.Wakeup
       ps.println(_saveBuf);
       ps.close();
     } catch(IOException e) {
-      ErrorManagement.handleException("Failed to save auctions.", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to save auctions.", e);
       saveDone = false;
     }
 
@@ -445,13 +444,13 @@ public class AuctionsManager implements com.jbidwatcher.util.TimerHandler.Wakeup
 
     File keepFile = new File(retainFilename);
     if(!oldFile.renameTo(keepFile)) {
-      ErrorManagement.logDebug("Renaming the old file (" + oldFile + ") to the retain file (" + keepFile + ") failed!");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Renaming the old file (" + oldFile + ") to the retain file (" + keepFile + ") failed!");
     }
     JConfig.setConfiguration("save.file.0", retainFilename);
 
     File standard = new File(filename);
     if(!saveFile.renameTo(standard)) {
-      ErrorManagement.logDebug("Renaming the new file (" + saveFile + ") to the standard filename (" + standard + ") failed!");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Renaming the new file (" + saveFile + ") to the standard filename (" + standard + ") failed!");
     }
   }
 
@@ -479,12 +478,12 @@ public class AuctionsManager implements com.jbidwatcher.util.TimerHandler.Wakeup
   private static String makeBackupFilename(String filename, String toInsert) {
     int lastSlash = filename.lastIndexOf(System.getProperty("file.separator"));
     if(lastSlash == -1) {
-      ErrorManagement.logDebug("Filename has no separators: " + filename);
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Filename has no separators: " + filename);
       lastSlash = 0;
     }
     int firstDot = filename.indexOf('.', lastSlash);
     if(firstDot == -1) {
-      ErrorManagement.logDebug("Filename has no dot/extension: " + filename);
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Filename has no dot/extension: " + filename);
       firstDot = filename.length();
     }
 

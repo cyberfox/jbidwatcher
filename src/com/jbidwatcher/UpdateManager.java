@@ -9,8 +9,9 @@ package com.jbidwatcher;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
+import com.jbidwatcher.util.queue.TimerHandler;
 
-public class UpdateManager implements com.jbidwatcher.util.TimerHandler.WakeupProcess, MessageQueue.Listener {
+public class UpdateManager implements TimerHandler.WakeupProcess, MessageQueue.Listener {
   private static UpdateManager _instance=null;
   private static UpdaterEntry _ue = null;
 

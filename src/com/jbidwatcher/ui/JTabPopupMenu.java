@@ -7,7 +7,8 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.ui.config.JConfigFrame;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.ui.util.OptionUI;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.FilterManager;
 
 import java.awt.event.*;
@@ -74,7 +75,7 @@ public class JTabPopupMenu extends JContext {
       customize.setEnabled(false);
       _deleteSubmenu.setEnabled(false);
       _print.setEnabled(false);
-      ErrorManagement.logDebug("Whoops!  Click-point not found!");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Whoops!  Click-point not found!");
     } else {
       _print.setEnabled(true);
 
@@ -172,7 +173,7 @@ public class JTabPopupMenu extends JContext {
    */
   protected void DoAction(String actionString, int tabIndex) {
     if(actionString.equals("Add Tab")) {
-      OptionUI oui = new OptionUI();
+      OptionUI oui = new com.jbidwatcher.ui.util.OptionUI();
       String result = oui.promptString(_myTabs.getComponentAt(tabIndex>=0?tabIndex:0), "Enter the name of the tab to add.  Prefer brevity.", "Add New Tab", "");
 
       if(result == null) return;
@@ -220,7 +221,7 @@ public class JTabPopupMenu extends JContext {
 
     if(actionString.equals("Print")) {
       if(tabIndex == -1) {
-        ErrorManagement.logDebug("Can't print unknown tab, must prompt...");
+        com.jbidwatcher.util.config.ErrorManagement.logDebug("Can't print unknown tab, must prompt...");
       } else {
         if(!FilterManager.getInstance().printTab(tabName)) {
           JOptionPane.showMessageDialog(null, "Could not print tab [" + tabName + "].", "Print error", JOptionPane.PLAIN_MESSAGE);
@@ -238,7 +239,7 @@ public class JTabPopupMenu extends JContext {
     if(actionString.equals("Just Tab")) {
       //  If we couldn't have figured out which tab, prompt for delete.
       if(tabIndex == -1) {
-        ErrorManagement.logDebug("Prompting for Delete...\n");
+        com.jbidwatcher.util.config.ErrorManagement.logDebug("Prompting for Delete...\n");
       } else {
         ErrorManagement.logDebug("Deleting tab [" + tabName + "]...\n");
         if(!FilterManager.getInstance().deleteTab(tabName, eraseEntries)) {

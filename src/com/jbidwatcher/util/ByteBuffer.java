@@ -5,8 +5,6 @@ package com.jbidwatcher.util;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.JConfig;
-
 import java.io.*;
 import java.util.zip.*;
 
@@ -44,9 +42,7 @@ public class ByteBuffer {
       FileOutputStream fos = new FileOutputStream(fp);
       fos.write(data, 0, length);
     } catch(IOException ioe) {
-      if(JConfig.debugging) {
-        ErrorManagement.handleException("Error writing " + fileName, ioe);
-      }
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Error writing " + fileName, ioe);
     }
   }
 }

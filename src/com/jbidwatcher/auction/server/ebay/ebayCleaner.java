@@ -1,7 +1,7 @@
 package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.util.Externalized;
+import com.jbidwatcher.util.config.Externalized;
 
 /**
  * Created by IntelliJ IDEA.

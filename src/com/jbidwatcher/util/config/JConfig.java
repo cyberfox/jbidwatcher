@@ -18,8 +18,8 @@ package com.jbidwatcher.util.config;//  -*- Java -*-
 //  mrs: 22-July-1999 23:57 - First version.  Contains the  configuration
 //                            information, theoretically loaded once on startup.
 
-import com.jbidwatcher.util.ErrorManagement;
-import com.jbidwatcher.util.Base64;
+import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.Base64;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.Constants;
 
@@ -69,7 +69,7 @@ public class JConfig {
         inConfigFile.close();
       }
     } catch(IOException e) {
-      ErrorManagement.handleException("Fatal error loading config file.", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Fatal error loading config file.", e);
       System.exit(1);
     }
 
@@ -153,7 +153,7 @@ public class JConfig {
       else if (debugFlag.equalsIgnoreCase("false"))
         setDebugging(false);
       else {
-        ErrorManagement.logMessage("debugging flag is bad, only 'true' or 'false' allowed.  Presuming true.");
+        com.jbidwatcher.util.config.ErrorManagement.logMessage("debugging flag is bad, only 'true' or 'false' allowed.  Presuming true.");
         setDebugging(true);
       }
     }
@@ -170,9 +170,9 @@ public class JConfig {
         load(fis);
         fis.close();
       } catch (FileNotFoundException e) {
-        ErrorManagement.handleException("Property file " + configFile + " not found.  Retaining default settings!\n", e);
+        com.jbidwatcher.util.config.ErrorManagement.handleException("Property file " + configFile + " not found.  Retaining default settings!\n", e);
       } catch (IOException e) {
-        ErrorManagement.handleException("Failed to close property file!\n", e);
+        com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to close property file!\n", e);
       }
     }
   }
@@ -184,7 +184,7 @@ public class JConfig {
       fos.close();
     } catch(IOException e) {
       //  D'oh.  It failed to write the display information...
-      ErrorManagement.handleException("Failed to write configuration: " + cfgName, e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to write configuration: " + cfgName, e);
     }
   }
 
@@ -196,7 +196,7 @@ public class JConfig {
       slopsProps.load(inCfgStream);
       inCfgStream.close();
     } catch(IOException e) {
-      ErrorManagement.handleException("Failed to load arbitrary stream configuration.", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to load arbitrary stream configuration.", e);
       slopsProps = null;
     }
 
@@ -212,7 +212,7 @@ public class JConfig {
         return(loadArbitrary(fis));
       } catch(IOException e) {
         //  What do we do?  --  hackhack
-        ErrorManagement.handleException("Failed to load configuration " + cfgName, e);
+        com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to load configuration " + cfgName, e);
       }
     }
     return(null);
@@ -291,7 +291,7 @@ public class JConfig {
       }
     } catch(IOException e) {
       //  D'oh.  It failed to write the display information...
-      ErrorManagement.handleException("Failed to write display configuration.", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to write display configuration.", e);
     }
   }
 
@@ -337,10 +337,10 @@ public class JConfig {
 
     if(_configFileName != null) {
       saveArbitrary(_configFileName, soleProperty);
-      ErrorManagement.logDebug("Saving to: " + _configFileName);
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Saving to: " + _configFileName);
     } else {
       saveArbitrary("JBidWatch.cfg", soleProperty);
-      ErrorManagement.logDebug("Just saving to: JBidWatch.cfg!");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Just saving to: JBidWatch.cfg!");
     }
     passwordUnfixup_b64(soleProperty);
   }
@@ -361,7 +361,7 @@ public class JConfig {
       try {
         configStream = new FileInputStream(inConfig);
       } catch(FileNotFoundException ignore) {
-        ErrorManagement.logMessage(inConfig + " deleted between existence check and loading!");
+        com.jbidwatcher.util.config.ErrorManagement.logMessage(inConfig + " deleted between existence check and loading!");
       }
     } else {
       //  Just use the files name as the index in the class loader.
@@ -421,7 +421,7 @@ public class JConfig {
           setOwnProps = true;
         }
       } catch (IOException e) {
-        ErrorManagement.handleException("Error loading display properties.", e);
+        com.jbidwatcher.util.config.ErrorManagement.handleException("Error loading display properties.", e);
         setOwnProps = true;
       }
     } else {

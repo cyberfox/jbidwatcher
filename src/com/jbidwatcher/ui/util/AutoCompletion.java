@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;
+package com.jbidwatcher.ui.util;
 
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;

@@ -2,7 +2,7 @@ package com.jbidwatcher.util;
 
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
-import com.jbidwatcher.util.db.DBRecord;
+import com.jbidwatcher.util.Record;
 
 import java.util.Date;
 import java.util.Map;
@@ -17,8 +17,8 @@ import java.text.SimpleDateFormat;
  * Time: 1:54:43 PM
  */
 public abstract class HashBacked extends XMLSerializeSimple {
-  private static final DBRecord EMPTY = new DBRecord();
-  private DBRecord mBacking = EMPTY;
+  private static final Record EMPTY = new Record();
+  private Record mBacking = EMPTY;
   private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
   private Map<String, String> mTranslationTable;
   private String mDefaultCurrency;
@@ -26,7 +26,7 @@ public abstract class HashBacked extends XMLSerializeSimple {
 
   public HashBacked() {
     mDateFormat.setTimeZone(TimeZone.getDefault());
-    mBacking = new DBRecord();
+    mBacking = new Record();
     mDefaultCurrency = Currency.getCurrency("$1.00").fullCurrencyName();
   }
 
@@ -214,8 +214,8 @@ public abstract class HashBacked extends XMLSerializeSimple {
     return xadd;
   }
 
-  public DBRecord getBacking() { return mBacking; }
-  protected void setBacking(DBRecord r) { mBacking = r; clearDirty(); }
+  public Record getBacking() { return mBacking; }
+  protected void setBacking(Record r) { mBacking = r; clearDirty(); }
 
   protected void handleTag(int i, XMLElement curElement) {
     //To change body of implemented methods use File | Settings | File Templates.

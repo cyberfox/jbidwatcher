@@ -5,8 +5,6 @@ package com.jbidwatcher.webserver;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.ErrorManagement;
-
 import java.net.*;
 import java.io.*;
 
@@ -56,7 +54,7 @@ public abstract class ProxyClient extends Thread {
 
       clientSock.close();
     } catch(IOException e) {
-      ErrorManagement.handleException("Failed during communication with exception.", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Failed during communication with exception.", e);
     }
   }
 }

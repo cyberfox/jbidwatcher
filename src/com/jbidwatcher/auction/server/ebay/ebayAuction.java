@@ -4,7 +4,8 @@ import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.auction.ThumbnailManager;
 import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.*;
+import com.jbidwatcher.util.config.Externalized;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.*;
@@ -83,12 +84,12 @@ class ebayAuction extends SpecificAuction {
 
   boolean checkValidTitle(String auctionTitle) {
     if(auctionTitle.startsWith(Externalized.getString("ebayServer.liveAuctionsTitle"))) {
-      ErrorManagement.logMessage("JBidWatcher cannot handle live auctions!");
+      com.jbidwatcher.util.config.ErrorManagement.logMessage("JBidWatcher cannot handle live auctions!");
       return false;
     }
 
     if(auctionTitle.startsWith(Externalized.getString("ebayServer.greatCollectionsTitle"))) {
-      ErrorManagement.logMessage("JBidWatcher cannot handle Great Collections items yet.");
+      com.jbidwatcher.util.config.ErrorManagement.logMessage("JBidWatcher cannot handle Great Collections items yet.");
       return false;
     }
 
@@ -173,9 +174,9 @@ class ebayAuction extends SpecificAuction {
       MQFactory.getConcrete("Swing").enqueue("LINK DOWN eBay (or the link to eBay) appears to be down.");
       MQFactory.getConcrete("Swing").enqueue("eBay (or the link to eBay) appears to be down for the moment.");
     } else if(in_title.indexOf(Externalized.getString("ebayServer.invalidItem")) != -1) {
-      ErrorManagement.logDebug("Found bad/deleted item.");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Found bad/deleted item.");
     } else {
-      ErrorManagement.logDebug("Failed to load auction title from header: \"" + in_title + '\"');
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Failed to load auction title from header: \"" + in_title + '\"');
     }
   }
 
@@ -300,16 +301,6 @@ class ebayAuction extends SpecificAuction {
     return result;
   }
 
-  private String decodeLatin(String latinString) {
-    //  Why?  Because it seems to Just Work on Windows.  Argh.
-    if(!Platform.isMac()) return latinString;
-    try {
-      return new String(latinString.getBytes(), "ISO-8859-1");
-    } catch (UnsupportedEncodingException ignore) {
-      return latinString;
-    }
-  }
-
   /**
    * A utility function to check the provided preferred object against an arbitrary 'bad' value,
    * and return the preferred object if it's not bad, and an alternative object if it the preferred
@@ -374,7 +365,7 @@ class ebayAuction extends SpecificAuction {
       }
     } catch(Throwable t) {
       //  I don't actually CARE about any of this data, or any errors that occur on loading it, so don't mess things up on errors.
-      ErrorManagement.logDebug(t.getMessage());
+      com.jbidwatcher.util.config.ErrorManagement.logDebug(t.getMessage());
     }
   }
 
@@ -411,7 +402,7 @@ class ebayAuction extends SpecificAuction {
     try {
       load_buy_now();
     } catch(Exception e) {
-      ErrorManagement.handleException("Buy It Now Loading error", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Buy It Now Loading error", e);
     }
 
     if (isFixedPrice()) {
@@ -428,7 +419,7 @@ class ebayAuction extends SpecificAuction {
     try {
       load_shipping_insurance(getCurBid());
     } catch(Exception e) {
-      ErrorManagement.handleException("Shipping / Insurance Loading Failed", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Shipping / Insurance Loading Failed", e);
     }
 
     if (checkSeller(ae)) return AuctionServer.ParseErrors.SELLER_AWAY;
@@ -499,7 +490,7 @@ class ebayAuction extends SpecificAuction {
         Pattern newTitlePat = Pattern.compile(Externalized.getString("ebayServer.titleMatch"));
         Matcher newTitleMatch = newTitlePat.matcher(prelimTitle);
         if (newTitleMatch.find()) {
-          setTitle(decodeLatin(newTitleMatch.group(1)));
+          setTitle(StringTools.decodeLatin(newTitleMatch.group(1)));
           String endDate = newTitleMatch.group(4);
           if(getEnd() != null) setEnd(StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat")).getDate());
         }
@@ -520,9 +511,9 @@ class ebayAuction extends SpecificAuction {
 
         //  Always convert, at this point, from iso-8859-1 (iso latin-1) to UTF-8.
         if(htmlTitle) {
-          setTitle(decodeLatin(buildTitle(mDocument)));
+          setTitle(StringTools.decodeLatin(buildTitle(mDocument)));
         } else {
-          setTitle(decodeLatin(prelimTitle.substring(titleIndex+4).trim()));
+          setTitle(StringTools.decodeLatin(prelimTitle.substring(titleIndex+4).trim()));
         }
       }
 
@@ -594,7 +585,7 @@ class ebayAuction extends SpecificAuction {
               setEnd(Constants.FAR_FUTURE);
             }
           } else {
-            ErrorManagement.logMessage("Setting auction #" + getIdentifier() + " to be a 'Far Future' listing, as it has no date info.");
+            com.jbidwatcher.util.config.ErrorManagement.logMessage("Setting auction #" + getIdentifier() + " to be a 'Far Future' listing, as it has no date info.");
             setEnd(Constants.FAR_FUTURE);
           }
         }
@@ -619,7 +610,7 @@ class ebayAuction extends SpecificAuction {
       try {
         if(!ae.isBidOn() || ae.getBid().less(maxBid)) ae.setBid(maxBid);
       } catch(Currency.CurrencyTypeException cte) {
-        ErrorManagement.handleException("eBay says my max bid is a different type of currency than I have stored!", cte);
+        com.jbidwatcher.util.config.ErrorManagement.handleException("eBay says my max bid is a different type of currency than I have stored!", cte);
       }
     }
   }
@@ -709,7 +700,7 @@ class ebayAuction extends SpecificAuction {
         }
       }
     } catch(Exception e) {
-      ErrorManagement.handleException("Error handling thumbnail loading", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Error handling thumbnail loading", e);
     }
   }
 
@@ -880,9 +871,9 @@ class ebayAuction extends SpecificAuction {
     if(motorsTitle != null && motorsTitle.length() != 0 && !getTitle().equals(motorsTitle)) {
       if(motorsTitle.length() != 1 || motorsTitle.charAt(0) < HIGH_BIT_SET) {
         if(getTitle().length() == 0) {
-          setTitle(decodeLatin(motorsTitle));
+          setTitle(StringTools.decodeLatin(motorsTitle));
         } else {
-          setTitle(decodeLatin(motorsTitle + " (" + getTitle() + ')'));
+          setTitle(StringTools.decodeLatin(motorsTitle + " (" + getTitle() + ')'));
         }
       }
     }

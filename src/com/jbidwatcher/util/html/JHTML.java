@@ -11,7 +11,7 @@ import java.util.*;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLElement;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.CleanupHandler;
 import com.jbidwatcher.util.http.Http;
 
@@ -163,7 +163,7 @@ public class JHTML implements JHTMLListener {
       } else if (inputType.equals(FORM_HIDDEN)) {
         if (showInputs) ErrorManagement.logDebug("H: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else if(inputType.equals(FORM_CHECKBOX)) {
-        if (showInputs) ErrorManagement.logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        if (showInputs) com.jbidwatcher.util.config.ErrorManagement.logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else if(inputType.equals(FORM_RADIO)) {
         if (showInputs) ErrorManagement.logDebug("R: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else if(inputType.equals(FORM_SUBMIT)) {
@@ -171,7 +171,7 @@ public class JHTML implements JHTMLListener {
       } else if(inputType.equals("image")) {
         if (showInputs) ErrorManagement.logDebug("I: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else if(inputType.equals("button")) {
-        if (showInputs) ErrorManagement.logDebug("B: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        if (showInputs) com.jbidwatcher.util.config.ErrorManagement.logDebug("B: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else if(inputType.equals("reset")) {
         if (showInputs) ErrorManagement.logDebug("RST: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else {

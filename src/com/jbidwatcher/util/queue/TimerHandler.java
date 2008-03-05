@@ -1,12 +1,10 @@
-package com.jbidwatcher.util;
+package com.jbidwatcher.util.queue;
 
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
  * Developed by mrs (Morgan Schweers)
  */
-
-import com.jbidwatcher.util.ErrorManagement;
 
 /**
  * @file   TimerHandler.java
@@ -58,10 +56,10 @@ public class TimerHandler extends Thread {
       } catch(InterruptedException ignored) {
         interrupted = true;
       } catch(Exception e) {
-          ErrorManagement.handleException("Exception during the check() operation of " + _toWake.getClass().toString(), e);
+          com.jbidwatcher.util.config.ErrorManagement.handleException("Exception during the check() operation of " + _toWake.getClass().toString(), e);
       } catch(Error e) {
         //  This is more sketchy...
-        ErrorManagement.handleException("Serious error, consider dying.", e);
+        com.jbidwatcher.util.config.ErrorManagement.handleException("Serious error, consider dying.", e);
       }
     }
   }

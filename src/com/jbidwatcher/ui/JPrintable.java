@@ -5,8 +5,6 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.ErrorManagement;
-
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -47,7 +45,7 @@ public class JPrintable implements Printable, Runnable {
     try {
       pj.print();
     } catch (Exception pe) {
-      ErrorManagement.handleException("Failed to print: " + pe, pe);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to print: " + pe, pe);
     }
   }
 

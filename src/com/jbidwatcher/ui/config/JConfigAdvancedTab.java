@@ -5,8 +5,7 @@ package com.jbidwatcher.ui.config;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.ui.AutoCompletion;
-import com.jbidwatcher.ui.JPasteListener;
+import com.jbidwatcher.ui.util.AutoCompletion;
 import com.jbidwatcher.util.config.JConfig;
 
 import java.util.*;
@@ -106,7 +105,7 @@ public class JConfigAdvancedTab extends JConfigTab {
     tp.add(new JLabel("Configuration Key"));
 
     configValue = new JTextField();
-    configValue.addMouseListener(JPasteListener.getInstance());
+    configValue.addMouseListener(com.jbidwatcher.ui.util.JPasteListener.getInstance());
     configValue.setToolTipText("The associated configuration value for the entered key.");
     configValue.setEditable(true);
     configValue.getAccessibleContext().setAccessibleName("The configuration value for the entered key.");

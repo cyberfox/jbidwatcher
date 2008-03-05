@@ -1,7 +1,5 @@
 package com.jbidwatcher.util.browser;
 
-import com.jbidwatcher.util.ErrorManagement;
-
 import java.lang.reflect.*;
 import java.util.*;
 import java.io.*;
@@ -90,7 +88,7 @@ public class WindowsBrowserLauncher {
         }
       }
     } catch(IOException ioe) {
-      ErrorManagement.handleException("Caught an IO exception from a STRING?!?!", ioe);
+      //  Can't catch an IO exception from a String!
     }
 
     String[] output;
@@ -384,31 +382,5 @@ public class WindowsBrowserLauncher {
 
     cmdLine = splitCommandLine(launcher, destURL);
     return Runtime.getRuntime().exec(cmdLine);
-  }
-
- /** 
-   * Pass in a parameter of the protocol type, and it will print out a
-   * string containing the value extracted from the registry for what
-   * program is run to handle that protocol.
-   * 
-   * @param args - Any number of command line arguments.
-   */
-  public static void main(String[] args) {
-    String protocolLauncher;
-
-    if(args.length == 2) {
-      try {
-        Launch(args[1]);
-      } catch(IOException ioe) {
-        ErrorManagement.handleException("Failed to launch URL " + args[1], ioe);
-      }
-    } else if(args.length == 1) {
-      protocolLauncher = getBrowser(args[0]);
-
-      //  If we couldn't get a 'decent' protocol, fall back to HTTP,
-      //  and let the browser handle it.
-      if(protocolLauncher == null) protocolLauncher = getBrowser("http");
-      ErrorManagement.logMessage("Protocol launcher is: " + protocolLauncher);
-    }
   }
 }

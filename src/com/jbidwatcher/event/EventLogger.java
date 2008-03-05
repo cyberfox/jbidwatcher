@@ -1,4 +1,4 @@
-package com.jbidwatcher.util;
+package com.jbidwatcher.event;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -136,7 +136,7 @@ public class EventLogger implements XMLSerialize {
         whatHappened = new EventStatus(inStatus, new Date(), mId, mTitle);
 
         mAllEvents.add(whatHappened);
-        ErrorManagement.logMessage(whatHappened.toString());
+        com.jbidwatcher.util.config.ErrorManagement.logMessage(whatHappened.toString());
       }
     }
   }

@@ -2,6 +2,7 @@ package com.jbidwatcher.util.db;
 
 import com.jbidwatcher.util.HashBacked;
 import com.jbidwatcher.util.SoftMap;
+import com.jbidwatcher.util.Record;
 
 import java.util.HashMap;
 import java.util.List;
@@ -76,7 +77,7 @@ public abstract class ActiveRecord extends HashBacked {
     } catch (Exception e) {
       throw new RuntimeException("Can't instantiate " + klass.getName(), e);
     }
-    DBRecord result = getTable(found).findFirstBy(key, value);
+    Record result = getTable(found).findFirstBy(key, value);
     if (result != null && !result.isEmpty()) {
       found.setBacking(result);
     } else {
@@ -98,11 +99,11 @@ public abstract class ActiveRecord extends HashBacked {
       throw new RuntimeException("Can't instantiate " + klass.getName(), e);
     }
 
-    List<DBRecord> results = getTable(found).findAll(key, value, order);
+    List<Record> results = getTable(found).findAll(key, value, order);
     List<ActiveRecord> rval = new ArrayList<ActiveRecord>();
 
     try {
-      for (DBRecord record : results) {
+      for (Record record : results) {
         ActiveRecord row = (ActiveRecord) klass.newInstance();
         row.setBacking(record);
         rval.add(row);
@@ -149,12 +150,12 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   public static int precache(Class klass, String key) {
-    List<DBRecord> results = null;
+    List<Record> results = null;
     try {
       ActiveRecord o = (ActiveRecord) klass.newInstance();
       results = getTable(o).findAll();
 //      boolean first = true;
-      for (DBRecord record : results) {
+      for (Record record : results) {
         ActiveRecord row = (ActiveRecord) klass.newInstance();
         row.setBacking(record);
         cache(klass, key, row.get(key), row);

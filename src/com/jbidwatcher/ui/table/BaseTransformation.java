@@ -162,7 +162,7 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
     String s2 = o2.toString();
     int result = s1.compareTo(s2);
 
-    ErrorManagement.logDebug("Being asked to compare unknown type: " + type);
+    com.jbidwatcher.util.config.ErrorManagement.logDebug("Being asked to compare unknown type: " + type);
 
     return (result < 0) ? -1 : ((result > 0) ? 1 : 0);
   }

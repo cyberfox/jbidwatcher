@@ -4,8 +4,8 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.queue.MQFactory;
-import com.jbidwatcher.queue.MessageQueue;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.MessageQueue;
 
 import java.util.Date;
 

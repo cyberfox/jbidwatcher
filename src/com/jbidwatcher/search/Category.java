@@ -1,7 +1,7 @@
 package com.jbidwatcher.search;
 
 import com.jbidwatcher.util.HashBacked;
-import com.jbidwatcher.util.db.DBRecord;
+import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.xml.XMLElement;
 
@@ -22,7 +22,7 @@ public class Category extends HashBacked {
     setString("name", name);
   }
 
-  private Category(DBRecord base) {
+  private Category(Record base) {
     setBacking(base);
   }
 
@@ -38,7 +38,7 @@ public class Category extends HashBacked {
     if(categories.containsKey(newCategory)) {
       rval = categories.get(newCategory);
     } else {
-      DBRecord existing = sDB.findByColumn("name", newCategory);
+      Record existing = sDB.findByColumn("name", newCategory);
       if(existing != null) {
         rval = new Category(existing);
       } else {

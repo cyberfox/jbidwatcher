@@ -13,6 +13,8 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import com.jbidwatcher.util.config.ErrorManagement;
+
 /**
  * User: Morgan
  * Date: Dec 16, 2007
@@ -75,7 +77,7 @@ public class Scripting {
       mOutput.setOutput(old);
       return rval;
     } else {
-      ErrorManagement.logDebug("Calling ruby script with '" + command + "' before scripting enabled!");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Calling ruby script with '" + command + "' before scripting enabled!");
       return null;
     }
   }

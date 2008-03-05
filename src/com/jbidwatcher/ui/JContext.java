@@ -12,7 +12,7 @@ import java.util.TreeMap;
 import java.awt.event.MouseEvent;
 
 /** @noinspection AbstractClassExtendsConcreteClass*/
-public abstract class JContext extends JMouseAdapter {
+public abstract class JContext extends com.jbidwatcher.ui.util.JMouseAdapter {
   TreeMap<String, JMenuItem> m_menuToText;
 
   protected JContext(JPopupMenu inPop) {

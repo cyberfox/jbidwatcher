@@ -10,7 +10,6 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.ErrorManagement;
 import com.jbidwatcher.ui.IconFactory;
 import com.jbidwatcher.ui.table.ColumnState;
 import com.jbidwatcher.ui.table.ColumnStateList;
@@ -216,7 +215,7 @@ public class auctionTableModel extends com.jbidwatcher.ui.table.BaseTransformati
           try {
             return aEntry.getUSCurBid().add(shippingUSD);
           } catch (Currency.CurrencyTypeException e) {
-            ErrorManagement.handleException("Threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
+            com.jbidwatcher.util.config.ErrorManagement.handleException("Threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
             return Currency.NoValue();
           }
         case TableColumnController.SNIPE_TOTAL: {
@@ -229,7 +228,7 @@ public class auctionTableModel extends com.jbidwatcher.ui.table.BaseTransformati
           try {
             return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getSnipe()).add(shippingUSD2);
           } catch (Currency.CurrencyTypeException e) {
-            ErrorManagement.handleException("Currency addition or conversion threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
+            com.jbidwatcher.util.config.ErrorManagement.handleException("Currency addition or conversion threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
             return Currency.NoValue();
           }
         }
@@ -316,7 +315,7 @@ public class auctionTableModel extends com.jbidwatcher.ui.table.BaseTransformati
       totalSnipe = aEntry.getSnipe().add(shipping);
     } catch (Currency.CurrencyTypeException e) {
       /* Should never happen, since we've checked the currency already.  */
-      ErrorManagement.handleException("Currency addition threw a bad currency exception, which should be very difficult to cause to happen.", e); //$NON-NLS-1$
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Currency addition threw a bad currency exception, which should be very difficult to cause to happen.", e); //$NON-NLS-1$
       return "--";
     }
 
@@ -461,7 +460,7 @@ public class auctionTableModel extends com.jbidwatcher.ui.table.BaseTransformati
           try {
             return aEntry.getCurBid().add(shipping);
           } catch (Currency.CurrencyTypeException e) {
-            ErrorManagement.handleException("Currency addition threw a bad currency exception, which is odd...", e); //$NON-NLS-1$
+            com.jbidwatcher.util.config.ErrorManagement.handleException("Currency addition threw a bad currency exception, which is odd...", e); //$NON-NLS-1$
           }
           return "--";
         case TableColumnController.SNIPE_TOTAL:

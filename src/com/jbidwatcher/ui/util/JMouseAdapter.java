@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;//  -*- Java -*-
+package com.jbidwatcher.ui.util;//  -*- Java -*-
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -9,8 +9,6 @@ package com.jbidwatcher.ui;//  -*- Java -*-
 //  History:
 //  mrs: 24-July-1999 12:26 - Renamed class.
 //  mrs: 15-July-1999 01:14 - Removed printouts unless debugging...
-
-import com.jbidwatcher.util.ErrorManagement;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -180,7 +178,7 @@ public class JMouseAdapter extends MouseInputAdapter implements ActionListener {
       bounds.height -= (insets.top + insets.bottom);
       bounds.width -= (insets.left + insets.right);
     } catch (Exception ex) {
-      ErrorManagement.handleException("There was a problem getting screen-related information.", ex);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("There was a problem getting screen-related information.", ex);
     }
 
     return bounds;

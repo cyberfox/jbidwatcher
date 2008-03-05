@@ -7,7 +7,7 @@ package com.jbidwatcher.util.db;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.sql.*;
 import java.util.Properties;
@@ -47,7 +47,7 @@ public class Database {
        In an embedded environment, this will start up Derby, since it is not already running.
      */
     Class.forName(driver).newInstance();
-    ErrorManagement.logDebug("Loaded the appropriate driver.");
+    com.jbidwatcher.util.config.ErrorManagement.logDebug("Loaded the appropriate driver.");
 
     Properties props = new Properties();
     props.setProperty("user", JConfig.queryConfiguration("db.user", "user1"));
@@ -69,7 +69,7 @@ public class Database {
       mConn = DriverManager.getConnection(protocol + "jbdb;create=true", props);
       mNew = true;
     }
-    ErrorManagement.logDebug("Connected to " + (mNew?"and created ":"") + "database jbdb (JBidwatcher DataBase)");
+    com.jbidwatcher.util.config.ErrorManagement.logDebug("Connected to " + (mNew?"and created ":"") + "database jbdb (JBidwatcher DataBase)");
 
     mConn.setAutoCommit(false);
   }
@@ -97,7 +97,7 @@ public class Database {
   public boolean shutdown() {
     try {
       mConn.close();
-      ErrorManagement.logDebug("Closed connection");
+      com.jbidwatcher.util.config.ErrorManagement.logDebug("Closed connection");
 
       /*
          In embedded mode, an application should shut down Derby.
@@ -116,9 +116,9 @@ public class Database {
         }
 
         if (!gotSQLExc) {
-          ErrorManagement.logMessage("Database did not shut down normally");
+          com.jbidwatcher.util.config.ErrorManagement.logMessage("Database did not shut down normally");
         } else {
-          ErrorManagement.logDebug("Database shut down normally");
+          com.jbidwatcher.util.config.ErrorManagement.logDebug("Database shut down normally");
         }
       }
     } catch (Throwable e) {
@@ -141,7 +141,7 @@ public class Database {
 
   static void printSQLError(SQLException e) {
     while (e != null) {
-      ErrorManagement.logDebug(e.toString());
+      com.jbidwatcher.util.config.ErrorManagement.logDebug(e.toString());
       e = e.getNextException();
     }
   }

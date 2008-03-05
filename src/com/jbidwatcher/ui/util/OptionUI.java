@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;
+package com.jbidwatcher.ui.util;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -7,6 +7,7 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.ui.util.JBEditorPane;
 
 import java.awt.event.*;
 import java.awt.*;
@@ -151,7 +152,7 @@ public class OptionUI {
 
     jep = new JBEditorPane("text/html", sb.toString());
     jep.setEditable(false);
-    jep.addHyperlinkListener(new com.jbidwatcher.ui.Hyperactive(jep));
+    jep.addHyperlinkListener(new Hyperactive(jep));
 
     if(fixed) {
       jep.setPreferredSize(inSize);
@@ -223,7 +224,7 @@ public class OptionUI {
    */
   public JFrame showTextDisplay(StringBuffer inSB, Dimension inSize, String frameName) {
     JFrame otherFrame;
-    JBEditorPane jep;
+    com.jbidwatcher.ui.util.JBEditorPane jep;
     JScrollPane jsp;
 
     jep = getBasicEditor(inSB, inSize, false);
@@ -301,7 +302,7 @@ public class OptionUI {
    * @return - The JFrame of the display.
    */
   public JFrame showChoiceTextDisplay(StringBuffer inSB, Dimension inSize, String frameName, List<String> choices, String borderTitle, ActionListener al) {
-    JBEditorPane jep = getBasicEditor(inSB, inSize, true);
+    com.jbidwatcher.ui.util.JBEditorPane jep = getBasicEditor(inSB, inSize, true);
 
     JFrame otherFrame = new JFrame(frameName);
     Platform.setMacFrameMenu(otherFrame);

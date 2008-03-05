@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.html.AbstractURLPager;
 import com.jbidwatcher.util.http.CookieJar;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.server.LoginManager;
 
 public class EbayAuctionURLPager extends AbstractURLPager {

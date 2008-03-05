@@ -8,18 +8,19 @@ package com.jbidwatcher.search;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
+import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
 import com.jbidwatcher.Constants;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 
-public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, com.jbidwatcher.util.TimerHandler.WakeupProcess {
+public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, TimerHandler.WakeupProcess {
   private List<Searcher> _searches = new ArrayList<Searcher>();
   private static SearchManager _instance = null;
 
@@ -146,7 +147,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
       ErrorManagement.logDebug("JBW: Failed to load saved searches, the search file is probably not there yet.");
       ErrorManagement.logDebug("JBW: This is not an error, unless you are consistently getting it.");
     } catch(Exception e) {
-      ErrorManagement.handleException("JBW: Failed to load saved searches, file exists but can't be loaded!", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("JBW: Failed to load saved searches, file exists but can't be loaded!", e);
     }
   }
 
@@ -213,7 +214,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     } else if(type.equals("My Items")) {
       return new MyItemSearcher();
     } else {
-      ErrorManagement.logMessage("Failed to create searcher for: " + type);
+      com.jbidwatcher.util.config.ErrorManagement.logMessage("Failed to create searcher for: " + type);
     }
 
     return null;

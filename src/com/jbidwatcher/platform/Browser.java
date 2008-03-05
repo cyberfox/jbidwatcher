@@ -1,4 +1,4 @@
-package com.jbidwatcher.util.config;
+package com.jbidwatcher.platform;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -7,12 +7,12 @@ package com.jbidwatcher.util.config;
 
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.io.*;
 
-public class JBConfig extends JConfig implements MessageQueue.Listener {
-  public JBConfig() {
+public class Browser extends JConfig implements MessageQueue.Listener {
+  public Browser() {
     MQFactory.getConcrete("browse").registerListener(this);
   }
 
@@ -55,7 +55,7 @@ public class JBConfig extends JConfig implements MessageQueue.Listener {
     try {
       com.jbidwatcher.util.browser.BrowserLauncher.openURL(url, launchCommand, JConfig.queryConfiguration("browser.override","false").equals("true"));
     } catch(IOException e) {
-      ErrorManagement.handleException("Launching browser", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Launching browser", e);
       return false;
     }
     return true;

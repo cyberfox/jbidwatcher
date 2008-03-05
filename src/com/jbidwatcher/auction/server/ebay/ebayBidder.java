@@ -6,8 +6,8 @@ import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.util.Externalized;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.Externalized;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.Scripting;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.config.JConfig;
@@ -90,15 +90,15 @@ public class ebayBidder implements Bidder {
   }
 
   public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, com.jbidwatcher.util.Currency inCurr, int inQuant) throws BadBidException {
-    String bidRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
+    String bidRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + com.jbidwatcher.util.config.Externalized.getString("ebayServer.V3file");
     String bidInfo;
     if(inEntry.isDutch()) {
-      bidInfo = Externalized.getString("ebayServer.bidCmd") + "&co_partnerid=" + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() +
-                "&fb=2" + Externalized.getString("ebayServer.quantCGI") + inQuant +
-                Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();
+      bidInfo = com.jbidwatcher.util.config.Externalized.getString("ebayServer.bidCmd") + "&co_partnerid=" + com.jbidwatcher.util.config.Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() +
+                "&fb=2" + com.jbidwatcher.util.config.Externalized.getString("ebayServer.quantCGI") + inQuant +
+                com.jbidwatcher.util.config.Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();
     } else {
       bidInfo = Externalized.getString("ebayServer.bidCmd") + "&co_partnerid=" + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() + "&fb=2" +
-                Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();
+                com.jbidwatcher.util.config.Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();
     }
     StringBuffer loadedPage = null;
     JHTML htmlDocument = null;
@@ -139,7 +139,7 @@ public class ebayBidder implements Bidder {
           checked_signon = true;
           String signOn = htmlDocument.getFirstContent();
           if (signOn != null) {
-            ErrorManagement.logDebug("Checking sign in as bid key load failed!");
+            com.jbidwatcher.util.config.ErrorManagement.logDebug("Checking sign in as bid key load failed!");
             if (StringTools.startsWithIgnoreCase(signOn, "sign in")) {
               //  This means we somehow failed to keep the login in place.  Bad news, in the middle of a snipe.
               ErrorManagement.logDebug("Being prompted again for sign in, retrying.");
@@ -276,9 +276,9 @@ public class ebayBidder implements Bidder {
   }
 
   public int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, com.jbidwatcher.util.Currency inBid, int inQuantity) {
-    String bidRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
+    String bidRequest = Externalized.getString("ebayServer.protocol") + com.jbidwatcher.util.config.Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
     String bidInfo = Externalized.getString("ebayServer.bidCmd") + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() +
-        Externalized.getString("ebayServer.quantCGI") + inQuantity +
+        com.jbidwatcher.util.config.Externalized.getString("ebayServer.quantCGI") + inQuantity +
         Externalized.getString("ebayServer.bidCGI") + inBid.getValue();
     String bidURL = bidRequest + '?' + bidInfo;
 
@@ -368,7 +368,7 @@ public class ebayBidder implements Bidder {
     try {
       safeBidInfo = bidForm.getCGI();
     } catch(UnsupportedEncodingException uee) {
-      ErrorManagement.handleException("UTF-8 not supported locally, can't URLEncode CGI for debugging.", uee);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("UTF-8 not supported locally, can't URLEncode CGI for debugging.", uee);
     }
 
     if(JConfig.debugging) inEntry.setLastStatus("Failed to load post-bid data. 'Show Last Error' from context menu to see the failure page from the post-bid page.");

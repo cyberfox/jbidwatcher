@@ -1,7 +1,8 @@
 package com.jbidwatcher.util.db;
 
 import com.jbidwatcher.util.db.Database;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.Record;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -65,7 +66,7 @@ public class Table
     try {
       mS.close();
     } catch (SQLException e) {
-      ErrorManagement.handleException("Can't shut down database.", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Can't shut down database.", e);
     }
     mDB.commit();
     mDB.shutdown();
@@ -75,7 +76,7 @@ public class Table
     mDB.commit();
   }
 
-  public DBRecord find(int id) {
+  public Record find(int id) {
     return findFirst("SELECT * FROM " + mTableName + " where id = " + id);
   }
 
@@ -91,7 +92,7 @@ public class Table
     return true;
   }
 
-  public DBRecord findFirst(String query) {
+  public Record findFirst(String query) {
     try {
       ResultSet rs = mS.executeQuery(query);
       return getFirstResult(rs);
@@ -101,11 +102,11 @@ public class Table
     }
   }
 
-  public DBRecord findFirstBy(String key, String value) {
+  public Record findFirstBy(String key, String value) {
     return findByColumn(key, value);
   }
 
-  public DBRecord findFirstBy(String conditions) {
+  public Record findFirstBy(String conditions) {
     try {
       ResultSet rs = mS.executeQuery("select * FROM " + mTableName + " WHERE " + conditions);
       return getFirstResult(rs);
@@ -115,7 +116,7 @@ public class Table
     }
   }
 
-  public List<DBRecord> findAll(String key, String value, String order) {
+  public List<Record> findAll(String key, String value, String order) {
     String statement = "SELECT * FROM " + mTableName;
     statement += " WHERE " + key + " = ?";
 
@@ -136,11 +137,11 @@ public class Table
     return null;
   }
 
-  public List<DBRecord> findAll() {
+  public List<Record> findAll() {
     return findAll("SELECT * FROM " + mTableName);
   }
 
-  public List<DBRecord> findAll(String query) {
+  public List<Record> findAll(String query) {
     try {
       ResultSet rs = mS.executeQuery(query);
       return getAllResults(rs);
@@ -150,8 +151,8 @@ public class Table
     }
   }
 
-  private DBRecord getFirstResult(ResultSet rs) throws SQLException {
-    DBRecord rval = new DBRecord();
+  private Record getFirstResult(ResultSet rs) throws SQLException {
+    Record rval = new Record();
     ResultSetMetaData rsm = rs.getMetaData();
     if (rsm != null) {
       if (rs.next()) {
@@ -163,12 +164,12 @@ public class Table
     return rval;
   }
 
-  private List<DBRecord> getAllResults(ResultSet rs) throws SQLException {
-    ArrayList<DBRecord> rval = new ArrayList<DBRecord>();
+  private List<Record> getAllResults(ResultSet rs) throws SQLException {
+    ArrayList<Record> rval = new ArrayList<Record>();
     ResultSetMetaData rsm = rs.getMetaData();
     if (rsm != null) {
       while(rs.next()) {
-        DBRecord row = new DBRecord();
+        Record row = new Record();
         for (int i = 1; i <= rsm.getColumnCount(); i++) {
           row.put(rs.getMetaData().getColumnName(i).toLowerCase(), rs.getString(i));
         }
@@ -178,14 +179,14 @@ public class Table
     return rval;
   }
 
-  public String insertOrUpdate(DBRecord row) {
+  public String insertOrUpdate(Record row) {
     String value = row.get("id");
     if(value != null && value.length() == 0) value = null;
     return updateMap(mTableName, "id", value, row);
   }
 
-  public String updateMap(String tableName, String columnKey, String value, DBRecord newRow) {
-    DBRecord oldRow = null;
+  public String updateMap(String tableName, String columnKey, String value, Record newRow) {
+    Record oldRow = null;
     if(value != null) {
       oldRow = getOldRow(tableName, columnKey, value, true);
     }
@@ -214,16 +215,16 @@ public class Table
     return null;
   }
 
-  public DBRecord findByColumn(String columnKey, String value) {
+  public Record findByColumn(String columnKey, String value) {
     return findByColumn(columnKey, value, false);
   }
 
-  public DBRecord findByColumn(String columnKey, String value, boolean forUpdate) {
+  public Record findByColumn(String columnKey, String value, boolean forUpdate) {
     return getOldRow(mTableName, columnKey, value, forUpdate);
   }
 
-  private DBRecord getOldRow(String tableName, String columnKey, String value, boolean forUpdate) {
-    DBRecord oldRow = null;
+  private Record getOldRow(String tableName, String columnKey, String value, boolean forUpdate) {
+    Record oldRow = null;
     String statement;
 
     try {
@@ -235,12 +236,12 @@ public class Table
       ResultSet rs = ps.executeQuery();
       oldRow = getFirstResult(rs);
     } catch (SQLException e) {
-      ErrorManagement.handleException("Can't get row" + (forUpdate? " for update":"") + " (" + columnKey + " = '" + value +"').", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Can't get row" + (forUpdate? " for update":"") + " (" + columnKey + " = '" + value +"').", e);
     }
     return oldRow;
   }
 
-  public String storeMap(DBRecord newRow) {
+  public String storeMap(Record newRow) {
     String sql = createPreparedInsert(mTableName, newRow);
     if(sql == null) return null;
 
@@ -266,13 +267,13 @@ public class Table
   private String findKeys(PreparedStatement ps) throws SQLException {
     ResultSet rs = ps.getGeneratedKeys();
     if(rs != null) {
-      DBRecord insertMap = getFirstResult(rs);
+      Record insertMap = getFirstResult(rs);
       if (insertMap.containsKey("1")) return insertMap.get("1");
     }
     return "";
   }
 
-  private String createPreparedInsert(String tableName, DBRecord newRow) {
+  private String createPreparedInsert(String tableName, Record newRow) {
     String sql = null;
     boolean anyKeys = false;
     StringBuffer insert = new StringBuffer("INSERT INTO " + tableName + " (");
@@ -293,7 +294,7 @@ public class Table
     return sql;
   }
 
-  private String createPreparedUpdate(String tableName, DBRecord oldRow, DBRecord newRow) {
+  private String createPreparedUpdate(String tableName, Record oldRow, Record newRow) {
     boolean anyKeys = false;
     StringBuffer update = new StringBuffer("UPDATE " + tableName + " SET ");
     for (String key : newRow.keySet()) {
@@ -312,7 +313,7 @@ public class Table
     return anyKeys?update.toString():null;
   }
 
-  private int setPreparedUpdate(PreparedStatement ps, DBRecord oldRow, DBRecord newRow) {
+  private int setPreparedUpdate(PreparedStatement ps, Record oldRow, Record newRow) {
     boolean errors = false;
     int column = 1;
     for (String key : newRow.keySet()) {
@@ -370,7 +371,7 @@ public class Table
           }
         }
       } else {
-        ErrorManagement.logDebug("WTF?!?!");
+        com.jbidwatcher.util.config.ErrorManagement.logDebug("WTF?!?!");
       }
     } catch (SQLException e) {
       e.printStackTrace();
@@ -389,18 +390,18 @@ public class Table
         mColumnMap.put(key, new TypeColumn(value, i));
       }
     } catch (SQLException e) {
-      ErrorManagement.handleException("Can't load metadata for table " + mTableName + ".", e);
+      com.jbidwatcher.util.config.ErrorManagement.handleException("Can't load metadata for table " + mTableName + ".", e);
     }
   }
 
   public int count() {
-    DBRecord rm = findFirst("SELECT COUNT(*) AS count FROM " + mTableName);
+    Record rm = findFirst("SELECT COUNT(*) AS count FROM " + mTableName);
     String count = rm.get("count");
     return Integer.parseInt(count);
   }
 
   public int count_by(String condition) {
-    DBRecord rm = findFirst("SELECT COUNT(*) AS count FROM " + mTableName + " WHERE " + condition);
+    Record rm = findFirst("SELECT COUNT(*) AS count FROM " + mTableName + " WHERE " + condition);
     String count = rm.get("count");
     return Integer.parseInt(count);
   }

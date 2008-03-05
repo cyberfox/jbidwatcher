@@ -6,7 +6,7 @@ package com.jbidwatcher.util.html;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.util.Vector;
 import java.util.List;
@@ -71,7 +71,7 @@ public class JHTMLParser {
                  oddText.indexOf("name=\"Submit\"") == -1 &&
                  !oddText.startsWith("<META")) {
                 if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
-                  ErrorManagement.logMessage("Found an unusual tag @ " + charStep + "...  (" + oddText + ")");
+                  com.jbidwatcher.util.config.ErrorManagement.logMessage("Found an unusual tag @ " + charStep + "...  (" + oddText + ")");
                 }
               }
             }
@@ -89,7 +89,7 @@ public class JHTMLParser {
 
               inQuote = false;
               suspicious = false;
-              ErrorManagement.logDebug("Potential quote error!");
+              com.jbidwatcher.util.config.ErrorManagement.logDebug("Potential quote error!");
               spitNextTag = true;
             }
             //  This prevents opening a quote at the end of a tag.

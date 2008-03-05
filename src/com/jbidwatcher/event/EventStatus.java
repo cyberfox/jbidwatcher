@@ -1,4 +1,4 @@
-package com.jbidwatcher.util;
+package com.jbidwatcher.event;
 
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;

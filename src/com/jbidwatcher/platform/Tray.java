@@ -25,7 +25,7 @@ import java.awt.event.*;
 import java.net.URL;
 
 import com.jbidwatcher.*;
-import com.jbidwatcher.util.ErrorManagement;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.config.JConfig;
@@ -52,7 +52,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
         MQFactory.getConcrete("Swing").enqueue(cmd);
       } else {
         String s = "Action event detected." + '\n' + "    Event source: " + e.getSource() + " (an instance of " + getClassName(e.getSource()) + ")\n    ActionCommand: " + e.getActionCommand();
-        ErrorManagement.logDebug(s);
+        com.jbidwatcher.util.config.ErrorManagement.logDebug(s);
       }
     }
   }

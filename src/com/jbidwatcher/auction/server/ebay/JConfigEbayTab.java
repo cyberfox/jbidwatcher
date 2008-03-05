@@ -3,7 +3,7 @@ package com.jbidwatcher.auction.server.ebay;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
-import com.jbidwatcher.ui.JPasteListener;
+import com.jbidwatcher.ui.util.JPasteListener;
 
 import javax.swing.*;
 import java.awt.BorderLayout;

@@ -5,6 +5,8 @@ package com.jbidwatcher.util;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.util.config.ErrorManagement;
+
 import java.io.*;
 import java.util.zip.*;
 
@@ -138,7 +140,7 @@ public class GZip {
               System.arraycopy(outdata, 0, _byteHold, 0, accumOutputBytes);
               inflatedBytes = infl.inflate(_byteHold, accumOutputBytes, prevLength * 2);
             } catch(OutOfMemoryError oome) {
-              ErrorManagement.handleException("FAILING to allocate more bytes @ " + _byteHold.length * 3, oome);
+              com.jbidwatcher.util.config.ErrorManagement.handleException("FAILING to allocate more bytes @ " + _byteHold.length * 3, oome);
             }
           } else {
             inflatedBytes = infl.inflate(_byteHold, accumOutputBytes, prevLength - accumOutputBytes);
