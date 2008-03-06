@@ -789,6 +789,7 @@ class ebayAuction extends SpecificAuction {
       } else {
         if(rawBidCount.matches(Externalized.getString("ebayServer.bidderListCount"))) {
           bidCount = Integer.parseInt(_bidCountScript);
+          _bidCountScript = null;
         } else {
           bidCount = getDigits(rawBidCount);
         }

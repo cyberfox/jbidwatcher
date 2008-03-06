@@ -324,6 +324,7 @@ public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.
     return _deleted.isDeleted(id);
   }
 
+  //  This is silly!  TODO mrs -- Fix this, so it can be reclaimed?  WeakReference?
   private static final int ONEK = 1024;
   private static final StringBuffer _saveBuf = new StringBuffer(AUCTIONCOUNT *ONEK);
 

@@ -144,21 +144,21 @@ public class Http {
     return rval;
   }
 
-  /** 
+  /**
    * @brief Retrieve raw data from an already existing URL connection.
-   * 
+   *
    * @param uc - The URLConnection to pull the data from.
    *
    * @return - A structure containing the raw data and the length.
+   * @throws java.io.IOException if an error occurs while reading the data.
    */
   public static ByteBuffer receiveData(URLConnection uc) throws IOException {
     InputStream is = uc.getInputStream();
-    int curMax = 16384;
+    int curMax = 32768;
     byte[] mainBuf = new byte[curMax];
-    int offset = 0;
-    int count;
 
-    count = is.read(mainBuf, 0, curMax);
+    int count = is.read(mainBuf, 0, curMax);
+    int offset = 0;
 
     while(count != -1) {
       if(offset+count == curMax) {
