@@ -8,7 +8,7 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.search.Searcher;
-import com.jbidwatcher.Constants;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.search.SearchManager;
 

@@ -18,7 +18,6 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
-import com.jbidwatcher.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionStats;
@@ -47,7 +46,7 @@ public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.
    */
   private AuctionsManager() {
     //  This should be loaded from the configuration settings.
-    _checkpointFrequency = 10 * Constants.ONE_MINUTE;
+    _checkpointFrequency = 10 * com.jbidwatcher.util.Constants.ONE_MINUTE;
     _lastCheckpointed = System.currentTimeMillis();
     _deleted = new com.jbidwatcher.util.DeletedManager();
 
@@ -404,7 +403,7 @@ public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.
     synchronized(_saveBuf) {
       _saveBuf.setLength(0);
       _saveBuf.append("<?xml version=\"1.0\"?>\n\n");
-      _saveBuf.append(Constants.XML_SAVE_DOCTYPE);
+      _saveBuf.append(com.jbidwatcher.util.Constants.XML_SAVE_DOCTYPE);
       _saveBuf.append('\n');
       _saveBuf.append("<jbidwatcher format=\"0101\">\n");
       auctionsData.toStringBuffer(_saveBuf, 1);

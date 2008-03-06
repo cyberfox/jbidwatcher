@@ -5,7 +5,7 @@ package com.jbidwatcher.auction;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.Constants;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.*;
@@ -197,13 +197,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * the server once every minute.  Currently set so that at half an
    * hour from the end of the auction, start updating every minute.
    */
-  private long mQuickerUpdateStart = Constants.THIRTY_MINUTES;
+  private long mQuickerUpdateStart = com.jbidwatcher.util.Constants.THIRTY_MINUTES;
 
   /**
    * Every mUpdateFrequency milliseconds it will trigger an update of
    * the auction from the server.
    */
-  private long mUpdateFrequency = Constants.FORTY_MINUTES;
+  private long mUpdateFrequency = com.jbidwatcher.util.Constants.FORTY_MINUTES;
 
   /**
    * Delta in time from the end of the auction that sniping will
@@ -217,7 +217,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * will occur at.  This valus can be read and modified by
    * getDefaultSnipeTime() & setDefaultSnipeTime().
    */
-  private static long mDefaultSnipeAt = Constants.THIRTY_SECONDS;
+  private static long mDefaultSnipeAt = com.jbidwatcher.util.Constants.THIRTY_SECONDS;
 
   /**
    * The time at which this will cease being a 'recently added'
@@ -291,7 +291,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   private AuctionEntry(String auctionIdentifier) {
     checkConfigurationSnipeTime();
-    mAddedRecently = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
+    mAddedRecently = System.currentTimeMillis() + 5 * com.jbidwatcher.util.Constants.ONE_MINUTE;
     prepareAuctionEntry(auctionIdentifier);
   }
 
@@ -560,7 +560,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(strConfigSnipeAt != null) {
       snipeTime = Long.parseLong(strConfigSnipeAt);
     } else {
-      snipeTime = Constants.THIRTY_SECONDS;
+      snipeTime = com.jbidwatcher.util.Constants.THIRTY_SECONDS;
     }
 
     return snipeTime;
@@ -757,9 +757,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         if(serverTime > getEndDate().getTime()) {
           mNeedsUpdate = true;
         } else {
-          if( mUpdateFrequency != Constants.ONE_MINUTE ) {
+          if( mUpdateFrequency != com.jbidwatcher.util.Constants.ONE_MINUTE ) {
             if( (getEndDate().getTime() - mQuickerUpdateStart) < serverTime) {
-              mUpdateFrequency = Constants.ONE_MINUTE;
+              mUpdateFrequency = com.jbidwatcher.util.Constants.ONE_MINUTE;
               mNeedsUpdate = true;
             }
           }
@@ -1425,16 +1425,16 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         dateDiff = 0;
       }
 
-      if(dateDiff > Constants.ONE_DAY * 60) return "N/A";
+      if(dateDiff > com.jbidwatcher.util.Constants.ONE_DAY * 60) return "N/A";
 
       if(dateDiff >= 0) {
-        long days = dateDiff / (Constants.ONE_DAY);
-        dateDiff -= days * (Constants.ONE_DAY);
-        long hours = dateDiff / (Constants.ONE_HOUR);
-        dateDiff -= hours * (Constants.ONE_HOUR);
-        long minutes = dateDiff / (Constants.ONE_MINUTE);
-        dateDiff -= minutes * (Constants.ONE_MINUTE);
-        long seconds = dateDiff / Constants.ONE_SECOND;
+        long days = dateDiff / (com.jbidwatcher.util.Constants.ONE_DAY);
+        dateDiff -= days * (com.jbidwatcher.util.Constants.ONE_DAY);
+        long hours = dateDiff / (com.jbidwatcher.util.Constants.ONE_HOUR);
+        dateDiff -= hours * (com.jbidwatcher.util.Constants.ONE_HOUR);
+        long minutes = dateDiff / (com.jbidwatcher.util.Constants.ONE_MINUTE);
+        dateDiff -= minutes * (com.jbidwatcher.util.Constants.ONE_MINUTE);
+        long seconds = dateDiff / com.jbidwatcher.util.Constants.ONE_SECOND;
         String mf;
 
         String cfg;
@@ -1607,7 +1607,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(end != null) return end;
     }
 
-    return Constants.FAR_FUTURE;
+    return com.jbidwatcher.util.Constants.FAR_FUTURE;
   }
   public Date getSnipeDate() { return new Date(mAuction.getEndDate().getTime() - getSnipeTime()); }
 

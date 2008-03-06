@@ -6,14 +6,12 @@ import com.jbidwatcher.auction.ThumbnailManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.Externalized;
-import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.html.htmlToken;
-import com.jbidwatcher.Constants;
+import com.jbidwatcher.util.Constants;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -578,11 +576,11 @@ class ebayAuction extends SpecificAuction {
           if(durationRaw != null) {
             String duration = durationRaw.replaceAll("[^0-9]", "");
             long days = Long.parseLong(duration);
-            if(getStart() != null && !getStart().equals(Constants.LONG_AGO)) {
-              long endTime = getStart().getTime() + Constants.ONE_DAY * days;
+            if(getStart() != null && !getStart().equals(com.jbidwatcher.util.Constants.LONG_AGO)) {
+              long endTime = getStart().getTime() + com.jbidwatcher.util.Constants.ONE_DAY * days;
               setEnd(new Date(endTime));
             } else {
-              setEnd(Constants.FAR_FUTURE);
+              setEnd(com.jbidwatcher.util.Constants.FAR_FUTURE);
             }
           } else {
             com.jbidwatcher.util.config.ErrorManagement.logMessage("Setting auction #" + getIdentifier() + " to be a 'Far Future' listing, as it has no date info.");
@@ -592,8 +590,8 @@ class ebayAuction extends SpecificAuction {
       }
     }
 
-    if (getStart() == null) setStart(Constants.LONG_AGO);
-    if (getEnd() == null) setEnd(Constants.FAR_FUTURE);
+    if (getStart() == null) setStart(com.jbidwatcher.util.Constants.LONG_AGO);
+    if (getEnd() == null) setEnd(com.jbidwatcher.util.Constants.FAR_FUTURE);
   }
 
   /**

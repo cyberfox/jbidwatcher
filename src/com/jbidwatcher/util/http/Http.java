@@ -8,7 +8,6 @@ package com.jbidwatcher.util.http;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.Base64;
 import com.jbidwatcher.util.ByteBuffer;
-import com.jbidwatcher.Constants;
 
 import java.net.*;
 import java.io.*;
@@ -55,7 +54,7 @@ public class Http {
         if(cgiData != null) {
           System.err.println("Content-Type: application/x-www-form-urlencoded");
           System.err.println("Content-Length: " + Integer.toString(cgiData.length()));
-          System.err.println("User-Agent: " + Constants.FAKE_BROWSER);
+          System.err.println("User-Agent: " + com.jbidwatcher.util.Constants.FAKE_BROWSER);
           System.err.println("Cookie: " + cookie);
         } else {
           System.err.println("CGI Data is null!");
@@ -64,7 +63,7 @@ public class Http {
 
       huc.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
       huc.setRequestProperty("Content-Length", Integer.toString(cgiData.length()));
-      huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
+      huc.setRequestProperty("User-Agent", com.jbidwatcher.util.Constants.FAKE_BROWSER);
       if(referer != null) huc.setRequestProperty("Referer", referer);
       if(cookie != null) {
         huc.setRequestProperty("Cookie", cookie);
@@ -108,7 +107,7 @@ public class Http {
 
     //  We fake our user-agent, since some auction servers only let
     //  you bid/read if we are a 'supported' browser.
-    uc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
+    uc.setRequestProperty("User-Agent", com.jbidwatcher.util.Constants.FAKE_BROWSER);
 
     return uc;
   }
@@ -252,7 +251,7 @@ public class Http {
       huc.setInstanceFollowRedirects(redirect);
       setConnectionProxyInfo(huc);
 
-      huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
+      huc.setRequestProperty("User-Agent", com.jbidwatcher.util.Constants.FAKE_BROWSER);
       if(referer != null) huc.setRequestProperty("Referer", referer);
       if(cookie != null) huc.setRequestProperty("Cookie", cookie);
     } catch(Exception e) {

@@ -10,6 +10,7 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.TimerHandler;
+import com.jbidwatcher.util.Constants;
 
 public class UpdateManager implements TimerHandler.WakeupProcess, MessageQueue.Listener {
   private static UpdateManager _instance=null;
@@ -53,7 +54,7 @@ public class UpdateManager implements TimerHandler.WakeupProcess, MessageQueue.L
     }
     String lastKnownVersion = JConfig.queryConfiguration("updates.last_version", null);
 
-    if(lastKnownVersion == null) lastKnownVersion = Constants.PROGRAM_VERS;
+    if(lastKnownVersion == null) lastKnownVersion = com.jbidwatcher.util.Constants.PROGRAM_VERS;
     if(!lastKnownVersion.equals(ue.getVersion())) {
       JConfig.setConfiguration("updates.last_version", ue.getVersion());
       if(!Constants.PROGRAM_VERS.equals(ue.getVersion())) {

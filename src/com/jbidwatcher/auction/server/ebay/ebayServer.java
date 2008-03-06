@@ -26,7 +26,6 @@ import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.Bidder;
-import com.jbidwatcher.Constants;
 
 import javax.swing.*;
 import java.net.URL;
@@ -41,7 +40,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private final static String eBayDisplayName = "eBay";
   private final static String eBayServerName = "ebay";
 
-  private static final int THREE_SECONDS = 3 * Constants.ONE_SECOND;
+  private static final int THREE_SECONDS = 3 * com.jbidwatcher.util.Constants.ONE_SECOND;
 
   /**
    * The human-readable name of the auction server.
@@ -321,7 +320,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           snipeMap.remove(snipeOn.getIdentifier());
         }
 
-        long two_minutes = Constants.ONE_MINUTE*2;
+        long two_minutes = com.jbidwatcher.util.Constants.ONE_MINUTE*2;
         AuctionQObject payload = new AuctionQObject(AuctionQObject.SNIPE, new Snipe(mLogin, mBidder, snipeOn), null);
 
         _etqm.add(payload, "snipes", (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime())-two_minutes);
@@ -693,7 +692,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       if(mCal == null) {
         mCal = new GregorianCalendar(serverTZ);
         if(JConfig.queryConfiguration("display.ebayTime", "false").equals("true")) {
-          Constants.remoteClockFormat.setCalendar(mCal);
+          com.jbidwatcher.util.Constants.remoteClockFormat.setCalendar(mCal);
         }
       }
 
@@ -707,10 +706,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       mCal.setTime(mNow);
       //  Just in case it changes because of the setup.
       mNow.setTime(mCal.getTimeInMillis());
-      return mLogin.getUserId() + '@' + getName() + ": " + Constants.remoteClockFormat.format(mNow);
+      return mLogin.getUserId() + '@' + getName() + ": " + com.jbidwatcher.util.Constants.remoteClockFormat.format(mNow);
     } else {
       mNow.setTime(System.currentTimeMillis());
-      return mLogin.getUserId() + '@' + getName() + ": " + Constants.localClockFormat.format(mNow);
+      return mLogin.getUserId() + '@' + getName() + ": " + com.jbidwatcher.util.Constants.localClockFormat.format(mNow);
     }
   }
 
@@ -789,7 +788,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       //noinspection MultiplyOrDivideByPowerOfTwo
       mOfficialServerTimeDelta = (result.getDate().getTime() - localDateBeforePage) - (reqTime / 2);
       if (result.getZone() != null) mOfficialServerTimeZone = (result.getZone());
-      if(Math.abs(mOfficialServerTimeDelta) > Constants.ONE_DAY * 7) {
+      if(Math.abs(mOfficialServerTimeDelta) > com.jbidwatcher.util.Constants.ONE_DAY * 7) {
         MQFactory.getConcrete("Swing").enqueue("NOTIFY Your system time is off from eBay's by more than a week.");
       }
     }

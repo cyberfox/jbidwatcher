@@ -21,6 +21,7 @@ import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.ui.RuntimeInfo;
 import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.queue.SuperQueue;
 import com.jbidwatcher.util.db.DBManager;

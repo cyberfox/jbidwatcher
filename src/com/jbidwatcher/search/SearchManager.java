@@ -12,7 +12,6 @@ import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
-import com.jbidwatcher.Constants;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 
@@ -110,7 +109,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
 
       ps.println("<?xml version=\"1.0\"?>");
       ps.println("");
-      ps.println(Constants.XML_SEARCHES_DOCTYPE);
+      ps.println(com.jbidwatcher.util.Constants.XML_SEARCHES_DOCTYPE);
       ps.println("");
       ps.println(saveData);
       ps.close();

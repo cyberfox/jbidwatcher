@@ -21,7 +21,7 @@ package com.jbidwatcher.util.config;//  -*- Java -*-
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.config.Base64;
 import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.Constants;
+import com.jbidwatcher.util.Constants;
 
 import java.io.*;
 import java.util.*;

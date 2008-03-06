@@ -12,6 +12,7 @@ import com.jbidwatcher.util.xml.XMLSerializeSimple;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.Constants;
 
 import java.io.*;
 import java.net.*;
@@ -87,7 +88,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
         //  Allow validating individual configuration settings by program version.
         String vNum = curElement.getProperty("VERSION");
         if(vNum != null) {
-          valid = vNum.equals(Constants.PROGRAM_VERS);
+          valid = vNum.equals(com.jbidwatcher.util.Constants.PROGRAM_VERS);
         }
         //  Allow validating individual configuration settings by configuration settings.
         String checkTrue = curElement.getProperty("CHECKTRUE");

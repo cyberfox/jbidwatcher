@@ -6,7 +6,6 @@ package com.jbidwatcher.ui.config;
  */
 
 import com.jbidwatcher.platform.Platform;
-import com.jbidwatcher.Constants;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 
@@ -38,7 +37,7 @@ public class JConfigFrame implements ActionListener {
   public void spinWait() {
     while(!buttonPressed) {
       try { //noinspection MultiplyOrDivideByPowerOfTwo,BusyWait
-        Thread.sleep(Constants.ONE_SECOND/2);
+        Thread.sleep(com.jbidwatcher.util.Constants.ONE_SECOND/2);
       } catch(InterruptedException ignored) {
         //  We don't care that we caught an exception, just that we woke up.
       }

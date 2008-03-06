@@ -7,7 +7,7 @@ package com.jbidwatcher.ui.table;
 
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;
-import com.jbidwatcher.Constants;
+import com.jbidwatcher.util.Constants;
 
 import java.util.*;
 import java.text.SimpleDateFormat;
@@ -98,7 +98,7 @@ public class SearchTableModel extends BaseTransformation
     SimpleDateFormat sdf = new SimpleDateFormat("MM.dd/yyyy @ hh:mm");
     long base = s.getLastRun();
     if(base == 0) base = System.currentTimeMillis();
-    base += s.getPeriod() * Constants.ONE_HOUR;
+    base += s.getPeriod() * com.jbidwatcher.util.Constants.ONE_HOUR;
     return sdf.format(new Date(base));
   }
 

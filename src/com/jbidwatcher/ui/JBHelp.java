@@ -12,7 +12,7 @@ import java.net.URL;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.Constants;
+import com.jbidwatcher.util.Constants;
 
 public class JBHelp {
   private static final String paypalDonate =

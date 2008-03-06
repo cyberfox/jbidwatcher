@@ -24,7 +24,6 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.net.URL;
 
-import com.jbidwatcher.*;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
@@ -138,7 +137,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
   public void messageAction(Object deQ) {
     String msg = (String)deQ;
     if(msg.startsWith("TOOLTIP ")) {
-      ti.setToolTip(Constants.PROGRAM_NAME + ' ' + Constants.PROGRAM_VERS + '\n' + msg.substring(8));
+      ti.setToolTip(com.jbidwatcher.util.Constants.PROGRAM_NAME + ' ' + com.jbidwatcher.util.Constants.PROGRAM_VERS + '\n' + msg.substring(8));
     } else if(msg.startsWith("NOTIFY ")) {
       ti.displayMessage("JBidwatcher Alert", msg.substring(7), TrayIcon.INFO_MESSAGE_TYPE);
     } else if(msg.startsWith("HIDDEN")) {

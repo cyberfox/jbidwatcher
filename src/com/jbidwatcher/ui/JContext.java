@@ -5,7 +5,7 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.Constants;
+import com.jbidwatcher.util.Constants;
 
 import javax.swing.*;
 import java.util.TreeMap;

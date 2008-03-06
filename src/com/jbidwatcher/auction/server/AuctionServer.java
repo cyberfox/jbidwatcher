@@ -23,7 +23,6 @@ import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.search.SearchManagerInterface;
-import com.jbidwatcher.*;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.auction.AuctionInfo;
@@ -158,7 +157,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
     if(doLocalServer.equals("false")) {
       browseTo = getBrowsableURLFromItem(entryId);
     } else {
-      String localServerPort = JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING);
+      String localServerPort = JConfig.queryConfiguration("server.port", com.jbidwatcher.util.Constants.DEFAULT_SERVER_PORT_STRING);
       if(inEntry.isInvalid()) {
         browseTo = "http://localhost:" + localServerPort + "/cached_" + entryId;
       } else {
@@ -342,7 +341,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
     //  Whoops!  Bad thing happened on the way to loading the auction!
     com.jbidwatcher.util.config.ErrorManagement.logDebug("Failed to parse auction!  Bad return result from auction server.");
     //  Only retry the login cookie once every ten minutes of these errors.
-    if ((sLastUpdated + Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
+    if ((sLastUpdated + com.jbidwatcher.util.Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
       sLastUpdated = System.currentTimeMillis();
       MQFactory.getConcrete(getName()).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$ //$NON-NLS-2$
     }
