@@ -1054,7 +1054,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     long now = System.currentTimeMillis();
 
     if (JConfig.queryConfiguration("updates.enabled", "true").equals("true")) {
-      q.preQueue("CHECK", "update", now + (Constants.ONE_SECOND * 10));
+      q.preQueue(Boolean.FALSE, "update", now + (Constants.ONE_SECOND * 10));
     }
     //noinspection MultiplyOrDivideByPowerOfTwo
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {

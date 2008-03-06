@@ -30,8 +30,12 @@ public class UpdateManager implements TimerHandler.WakeupProcess, MessageQueue.L
   }
 
   public void messageAction(Object deQ) {
+    boolean interactive = false;
+    if(deQ instanceof Boolean) {
+      interactive = (Boolean)deQ;
+    }
     //  Ignore the parameter deQ, it's just a 'ping'.
-    checkUpdate(false);
+    checkUpdate(interactive);
   }
 
   public UpdaterEntry getUpdateInfo() { return _ue; }

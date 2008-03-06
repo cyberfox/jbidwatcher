@@ -1470,7 +1470,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     // Force the 'last known version' to be the current, so that users can check
     // later, and have it still find the new version.
     JConfig.setConfiguration("updates.last_version", Constants.PROGRAM_VERS);
-    UpdateManager.checkUpdate(true);
+    MQFactory.getConcrete("update").enqueue(Boolean.TRUE);
   }
 
   protected void DoSetBackgroundColor(Component src) {
