@@ -86,9 +86,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   /**
    * A logging class for keeping track of events.
    *
-   * @see com.jbidwatcher.event.EventLogger
+   * @see com.jbidwatcher.auction.event.EventLogger
    */
-  private com.jbidwatcher.event.EventLogger mEntryEvents = null;
+  private com.jbidwatcher.auction.event.EventLogger mEntryEvents = null;
 
   /**
    * Allow the user to add a personal comment about this auction.
@@ -831,7 +831,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @param inStatus - A string that explains what the event is.
    */
   public void setLastStatus(String inStatus) {
-    if(mEntryEvents == null) mEntryEvents = new com.jbidwatcher.event.EventLogger(getIdentifier(), getTitle());
+    if(mEntryEvents == null) mEntryEvents = new com.jbidwatcher.auction.event.EventLogger(getIdentifier(), getTitle());
     mEntryEvents.setLastStatus(inStatus);
   }
 
@@ -908,7 +908,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         setComment(curElement.getContents());
         break;
       case 6:
-        mEntryEvents = new com.jbidwatcher.event.EventLogger(getIdentifier(), getTitle());
+        mEntryEvents = new com.jbidwatcher.auction.event.EventLogger(getIdentifier(), getTitle());
         mEntryEvents.fromXML(curElement);
         break;
       case 7:
@@ -1046,7 +1046,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(!isComplete()) setNeedsUpdate();
 
       if(mEntryEvents == null) {
-        mEntryEvents = new com.jbidwatcher.event.EventLogger(getIdentifier(), getTitle());
+        mEntryEvents = new com.jbidwatcher.auction.event.EventLogger(getIdentifier(), getTitle());
       }
       checkHighBidder(false);
       checkSeller();

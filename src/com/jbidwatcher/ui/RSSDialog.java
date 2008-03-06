@@ -10,7 +10,6 @@ import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.browser.BrowserLauncher;
-import com.jbidwatcher.FilterManager;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -123,7 +122,7 @@ public class RSSDialog extends BasicDialog {
   private void buildTabList() {
     tabList.removeAllItems();
     tabList.setEditable(true);
-    java.util.List<String> tabs = FilterManager.getInstance().allCategories();
+    java.util.List<String> tabs = com.jbidwatcher.auction.FilterManager.getInstance().allCategories();
     if(tabs != null) {
       tabs.remove("complete");
       tabs.remove("selling");

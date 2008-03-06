@@ -1,14 +1,12 @@
-package com.jbidwatcher;
+package com.jbidwatcher.app;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.auction.AuctionsManager;
-import com.jbidwatcher.auction.ThumbnailManager;
-import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.AuctionTransformer;
+import com.jbidwatcher.auction.*;
+import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionStats;
@@ -30,6 +28,7 @@ import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -150,7 +149,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     if(msg.startsWith(HEADER_MSG)) {
       JBidToolBar.getInstance().setText(msg.substring(HEADER_MSG.length()));
       //      JBidToolBar.getInstance().paintImmediately(JBidToolBar.getInstance().getVisibleRect());
-      FilterManager.getInstance().check();
+      com.jbidwatcher.auction.FilterManager.getInstance().check();
     } else if(msg.startsWith(LINK_MSG)) {
       String linkStat = msg.substring(LINK_MSG.length());
       if(!gcSafe.isEmpty()) {
@@ -1038,7 +1037,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     clockTimer.start();
     gcSafe.add(clockTimer);
 
-    gcSafe.add(AudioPlayer.getInstance());
+    gcSafe.add(com.jbidwatcher.AudioPlayer.getInstance());
 
     if(JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo();
     try {

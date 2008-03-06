@@ -9,7 +9,6 @@ import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.FilterManager;
 
 import java.awt.event.*;
 import java.awt.*;
@@ -114,7 +113,7 @@ public class JTabPopupMenu extends JContext {
   }
 
   private void setColumnChecks(String tabName) {
-    List<String> columns = FilterManager.getInstance().getColumns(tabName);
+    List<String> columns = com.jbidwatcher.auction.FilterManager.getInstance().getColumns(tabName);
     for (String colName : columns) {
       JCheckBoxMenuItem jch = menuItemMap.get(colName);
       jch.setState(true);
@@ -180,13 +179,13 @@ public class JTabPopupMenu extends JContext {
       result = result.trim();
       if(result.length() == 0) return;
 
-      FilterManager.getInstance().addTab(result);
+      com.jbidwatcher.auction.FilterManager.getInstance().addTab(result);
       return;
     }
 
     String tabName = _myTabs.getTitleAt(tabIndex);
     if(actionString.charAt(0) == '~') {
-      boolean result = FilterManager.getInstance().toggleField(tabName, actionString.substring(1));
+      boolean result = com.jbidwatcher.auction.FilterManager.getInstance().toggleField(tabName, actionString.substring(1));
       if(tabToProperties != null) {
         JTabProperties properties = tabToProperties.get(tabName);
         if(properties != null) {
@@ -208,7 +207,7 @@ public class JTabPopupMenu extends JContext {
       switch(result) {
         case JFileChooser.APPROVE_OPTION:
           String fname = jfc.getSelectedFile().getAbsolutePath();
-          if(!FilterManager.getInstance().exportTab(tabName, fname)) {
+          if(!com.jbidwatcher.auction.FilterManager.getInstance().exportTab(tabName, fname)) {
             JOptionPane.showMessageDialog(null, "Could not export tab [" + tabName + "].", "Export error", JOptionPane.PLAIN_MESSAGE);
           }
           return;
@@ -223,7 +222,7 @@ public class JTabPopupMenu extends JContext {
       if(tabIndex == -1) {
         com.jbidwatcher.util.config.ErrorManagement.logDebug("Can't print unknown tab, must prompt...");
       } else {
-        if(!FilterManager.getInstance().printTab(tabName)) {
+        if(!com.jbidwatcher.auction.FilterManager.getInstance().printTab(tabName)) {
           JOptionPane.showMessageDialog(null, "Could not print tab [" + tabName + "].", "Print error", JOptionPane.PLAIN_MESSAGE);
         }
       }
@@ -242,7 +241,7 @@ public class JTabPopupMenu extends JContext {
         com.jbidwatcher.util.config.ErrorManagement.logDebug("Prompting for Delete...\n");
       } else {
         ErrorManagement.logDebug("Deleting tab [" + tabName + "]...\n");
-        if(!FilterManager.getInstance().deleteTab(tabName, eraseEntries)) {
+        if(!com.jbidwatcher.auction.FilterManager.getInstance().deleteTab(tabName, eraseEntries)) {
           JOptionPane.showMessageDialog(null, "Could not delete tab [" + tabName + "].", "Tab deletion error", JOptionPane.PLAIN_MESSAGE);
         }
       }

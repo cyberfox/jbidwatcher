@@ -7,7 +7,6 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.config.JConfigTab;
-import com.jbidwatcher.FilterManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,7 +56,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
       apply();
       _frame.setVisible(false);
     } else {
-      FilterManager.getInstance().toggleField(_tab, cmd);
+      com.jbidwatcher.auction.FilterManager.getInstance().toggleField(_tab, cmd);
     }
   }
 
@@ -97,7 +96,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
 
   private static void prepareComboBox(JComboBox target) {
     target.removeAllItems();
-    List<String> tabs = FilterManager.getInstance().allCategories();
+    List<String> tabs = com.jbidwatcher.auction.FilterManager.getInstance().allCategories();
 
     target.setEditable(true);
     if(tabs != null) {
@@ -117,7 +116,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
     JPanel internal = new JPanel();
     internal.setLayout(new GridLayout(0, 4, 2*10, 0));
 
-    List<String> columns = FilterManager.getInstance().getColumns(_tab);
+    List<String> columns = com.jbidwatcher.auction.FilterManager.getInstance().getColumns(_tab);
     Object[] names = com.jbidwatcher.ui.table.TableColumnController.getInstance().getColumnNames().toArray();
     Arrays.sort(names);
     for (Object name1 : names) {

@@ -1,4 +1,4 @@
-package com.jbidwatcher;
+package com.jbidwatcher.util;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -8,6 +8,7 @@ package com.jbidwatcher;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLSerialize;
+import com.jbidwatcher.Constants;
 
 import java.util.*;
 import java.io.File;

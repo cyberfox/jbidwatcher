@@ -11,7 +11,7 @@ import com.jbidwatcher.ui.auctionTableModel;
 import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.Comparison;
-import com.jbidwatcher.FilterManager;
+import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.ErrorManagement;
 

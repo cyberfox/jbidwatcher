@@ -7,7 +7,7 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.FilterManager;
+import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
 

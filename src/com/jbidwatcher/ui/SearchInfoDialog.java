@@ -9,7 +9,6 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.search.SearchManager;
-import com.jbidwatcher.FilterManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -223,7 +222,7 @@ public class SearchInfoDialog extends BasicDialog {
     tabList.removeAllItems();
     tabList.setEditable(true);
 
-    List<String> tabs = FilterManager.getInstance().allCategories();
+    List<String> tabs = com.jbidwatcher.auction.FilterManager.getInstance().allCategories();
     if(tabs != null) {
       tabs.remove("complete");
       tabs.remove("selling");

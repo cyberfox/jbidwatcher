@@ -30,6 +30,7 @@ import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.*;
 import com.jbidwatcher.auction.*;
+import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.webserver.JBidProxy;
@@ -1117,7 +1118,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
         multiAuctionIds.add(tempEntry.getIdentifier());
       }
-      JBidProxy.setItems(multiAuctionIds);
+//      TODO -- Find another way to do this...
+//      JBidProxy.setItems(multiAuctionIds);
 
       ae = (AuctionEntry) getIndexedEntry(rowList[0]);
     } else {

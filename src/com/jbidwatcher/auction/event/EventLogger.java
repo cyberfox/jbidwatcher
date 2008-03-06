@@ -1,4 +1,4 @@
-package com.jbidwatcher.event;
+package com.jbidwatcher.auction.event;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *

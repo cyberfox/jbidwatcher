@@ -1,6 +1,7 @@
 package com.jbidwatcher.util;
 
 import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.platform.Platform;
 
 import java.io.*;
@@ -18,7 +19,7 @@ public class StringTools {
 
   public static String decodeLatin(String latinString) {
     //  Why?  Because it seems to Just Work on Windows.  Argh.
-    if (!Platform.isMac()) return latinString;
+    if (!JConfig.queryConfiguration("mac", "false").equals("true")) return latinString;
     try {
       return new String(latinString.getBytes(), "ISO-8859-1");
     } catch (UnsupportedEncodingException ignore) {

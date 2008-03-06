@@ -30,7 +30,7 @@ import java.text.SimpleDateFormat;
 /** @noinspection Singleton*/
 public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.WakeupProcess,EntryManager {
   private static AuctionsManager _instance = null;
-  private DeletedManager _deleted = null;
+  private com.jbidwatcher.util.DeletedManager _deleted = null;
   private int _auctionCount = 0;
   private FilterManager _filter;
 
@@ -49,7 +49,7 @@ public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.
     //  This should be loaded from the configuration settings.
     _checkpointFrequency = 10 * Constants.ONE_MINUTE;
     _lastCheckpointed = System.currentTimeMillis();
-    _deleted = new DeletedManager();
+    _deleted = new com.jbidwatcher.util.DeletedManager();
 
     _filter = FilterManager.getInstance();
   }
