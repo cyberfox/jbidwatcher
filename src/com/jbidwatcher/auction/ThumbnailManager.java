@@ -11,7 +11,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.ByteBuffer;
-import com.jbidwatcher.ui.IconFactory;
+import com.jbidwatcher.util.IconFactory;
 
 import java.net.*;
 import java.io.File;

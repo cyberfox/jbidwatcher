@@ -11,6 +11,7 @@ import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.IconFactory;
 import com.jbidwatcher.ui.table.ColumnState;
 import com.jbidwatcher.ui.table.ColumnStateList;
 import com.jbidwatcher.ui.table.TableColumnController;
