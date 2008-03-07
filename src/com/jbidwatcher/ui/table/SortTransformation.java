@@ -16,9 +16,9 @@ import java.util.ArrayList;
  *
  */
 public class SortTransformation extends Transformation {
-  private com.jbidwatcher.ui.table.ColumnStateList mColumnStateList;
+  private ColumnStateList mColumnStateList;
 
-  SortTransformation(com.jbidwatcher.ui.table.BaseTransformation chain) {
+  SortTransformation(BaseTransformation chain) {
     super(chain);
   }
 
@@ -29,7 +29,7 @@ public class SortTransformation extends Transformation {
     shuttlesort(new ArrayList<Integer>(m_row_xform), m_row_xform, 0, m_row_xform.size());
   }
 
-  public void setSortList(com.jbidwatcher.ui.table.ColumnStateList columnStateList) {
+  public void setSortList(ColumnStateList columnStateList) {
     mColumnStateList = columnStateList;
   }
 

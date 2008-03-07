@@ -7,7 +7,9 @@ package com.jbidwatcher.util.http;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.Base64;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.ByteBuffer;
+import com.jbidwatcher.util.Constants;
 
 import java.net.*;
 import java.io.*;
@@ -27,7 +29,7 @@ public class Http {
         System.setProperty("http.proxyPassword", pass);
         if (user != null && pass != null) {
           String str = user + ':' + pass;
-          String encoded = "Basic " + com.jbidwatcher.util.config.Base64.encodeString(str);
+          String encoded = "Basic " + Base64.encodeString(str);
           huc.setRequestProperty("Proxy-Authorization", encoded);
         }
       }
@@ -54,7 +56,7 @@ public class Http {
         if(cgiData != null) {
           System.err.println("Content-Type: application/x-www-form-urlencoded");
           System.err.println("Content-Length: " + Integer.toString(cgiData.length()));
-          System.err.println("User-Agent: " + com.jbidwatcher.util.Constants.FAKE_BROWSER);
+          System.err.println("User-Agent: " + Constants.FAKE_BROWSER);
           System.err.println("Cookie: " + cookie);
         } else {
           System.err.println("CGI Data is null!");
@@ -63,7 +65,7 @@ public class Http {
 
       huc.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
       huc.setRequestProperty("Content-Length", Integer.toString(cgiData.length()));
-      huc.setRequestProperty("User-Agent", com.jbidwatcher.util.Constants.FAKE_BROWSER);
+      huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
       if(referer != null) huc.setRequestProperty("Referer", referer);
       if(cookie != null) {
         huc.setRequestProperty("Cookie", cookie);
@@ -72,10 +74,10 @@ public class Http {
       obw.println(cgiData);
       obw.close();
     } catch(ConnectException ce) {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("postFormPage: " + ce);
+      ErrorManagement.logMessage("postFormPage: " + ce);
       huc = null;
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("postFormPage: " + e, e);
+      ErrorManagement.handleException("postFormPage: " + e, e);
       huc = null;
     }
     return(huc);
@@ -107,7 +109,7 @@ public class Http {
 
     //  We fake our user-agent, since some auction servers only let
     //  you bid/read if we are a 'supported' browser.
-    uc.setRequestProperty("User-Agent", com.jbidwatcher.util.Constants.FAKE_BROWSER);
+    uc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
 
     return uc;
   }
@@ -135,9 +137,9 @@ public class Http {
     } catch(IOException e) {
       //  Mostly ignore HTTP 504 error, it's just a temporary 'gateway down' error.
       if(e.getMessage().indexOf("HTTP response code: 504")==-1) {
-        com.jbidwatcher.util.config.ErrorManagement.handleException("Error loading data URL (" + dataURL.toString() + ')', e);
+        ErrorManagement.handleException("Error loading data URL (" + dataURL.toString() + ')', e);
       } else {
-        com.jbidwatcher.util.config.ErrorManagement.logMessage("HTTP 504 error loading URL (" + dataURL.toString() + ')');
+        ErrorManagement.logMessage("HTTP 504 error loading URL (" + dataURL.toString() + ')');
       }
       rval = null;
     }
@@ -199,15 +201,15 @@ public class Http {
       } catch(java.net.ConnectException jnce) {
         br = null;
         retry++;
-        com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to connect via URLConnection (retry: " + retry + ")", jnce);
+        ErrorManagement.handleException("Failed to connect via URLConnection (retry: " + retry + ")", jnce);
       } catch(java.net.NoRouteToHostException cantGetThere) {
         br = null;
         retry++;
-        com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to find a route to receive the page (retry: " + retry + ")", cantGetThere);
+        ErrorManagement.handleException("Failed to find a route to receive the page (retry: " + retry + ")", cantGetThere);
       } catch(java.net.SocketException jnse) {
         br = null;
         retry++;
-        com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to load from URLConnection (retry: " + retry + ")", jnse);
+        ErrorManagement.handleException("Failed to load from URLConnection (retry: " + retry + ")", jnse);
       }
     }
 
@@ -219,7 +221,7 @@ public class Http {
         loadUp.append(readData);
         loadUp.append("\n");
         if(do_uber_debug && JConfig.debugging) {
-          com.jbidwatcher.util.config.ErrorManagement.logFile("Read the following data", new StringBuffer(readData));
+          ErrorManagement.logFile("Read the following data", new StringBuffer(readData));
         }
       }
     } while(readData != null);
@@ -251,11 +253,11 @@ public class Http {
       huc.setInstanceFollowRedirects(redirect);
       setConnectionProxyInfo(huc);
 
-      huc.setRequestProperty("User-Agent", com.jbidwatcher.util.Constants.FAKE_BROWSER);
+      huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
       if(referer != null) huc.setRequestProperty("Referer", referer);
       if(cookie != null) huc.setRequestProperty("Cookie", cookie);
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("getPage: " + e, e);
+      ErrorManagement.handleException("getPage: " + e, e);
       huc = null;
     }
     return(huc);

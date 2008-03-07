@@ -9,7 +9,7 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.html.*;
 import com.jbidwatcher.auction.server.AuctionServer;
 
-public abstract class SpecificAuction extends AuctionInfo implements com.jbidwatcher.util.html.CleanupHandler
+public abstract class SpecificAuction extends AuctionInfo implements CleanupHandler
 {
   protected JHTML mDocument;
 

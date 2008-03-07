@@ -78,7 +78,7 @@ public class Snipe {
     m_auction.setLastStatus(snipeResult);
 
     MQFactory.getConcrete("Swing").enqueue("NOTIFY " + snipeResult);
-    com.jbidwatcher.util.config.ErrorManagement.logDebug(snipeResult);
+    ErrorManagement.logDebug(snipeResult);
 
     m_auction.snipeCompleted();
     Auctions.endBlocking();

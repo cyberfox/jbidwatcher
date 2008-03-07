@@ -7,9 +7,11 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.ui.config.JConfigTab;
+import com.jbidwatcher.ui.util.SpringUtilities;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.browser.BrowserLauncher;
+import com.jbidwatcher.auction.FilterManager;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -116,13 +118,13 @@ public class RSSDialog extends BasicDialog {
     getBasicContentPane().add(endingPanel);
     //basicContentPane.add(JConfigTab.makeLine(new JButton("Copy"), JConfigTab.makeLine(new JLabel(" Subscribe to soonest ending in "), tabList)));
     getBasicContentPane().add(getButtonOK());
-    com.jbidwatcher.ui.util.SpringUtilities.makeCompactGrid(getBasicContentPane(), 4, 1, 6, 6, 6, 6);
+    SpringUtilities.makeCompactGrid(getBasicContentPane(), 4, 1, 6, 6, 6, 6);
   }
 
   private void buildTabList() {
     tabList.removeAllItems();
     tabList.setEditable(true);
-    java.util.List<String> tabs = com.jbidwatcher.auction.FilterManager.getInstance().allCategories();
+    java.util.List<String> tabs = FilterManager.getInstance().allCategories();
     if(tabs != null) {
       tabs.remove("complete");
       tabs.remove("selling");

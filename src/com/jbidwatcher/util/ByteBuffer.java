@@ -7,6 +7,7 @@ package com.jbidwatcher.util;
 
 import java.io.*;
 import java.util.zip.*;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 public class ByteBuffer {
   private byte[] data;
@@ -42,7 +43,7 @@ public class ByteBuffer {
       FileOutputStream fos = new FileOutputStream(fp);
       fos.write(data, 0, length);
     } catch(IOException ioe) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Error writing " + fileName, ioe);
+      ErrorManagement.handleException("Error writing " + fileName, ioe);
     }
   }
 }

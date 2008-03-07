@@ -546,16 +546,16 @@ public class BrowserLauncher {
               String cmdLine[];
 
               if(!forceOverride) {
-                process = com.jbidwatcher.util.browser.WindowsBrowserLauncher.Launch(url);
+                process = WindowsBrowserLauncher.Launch(url);
               }
 
               if(process == null) {
                 if(optlaunch != null) {
                   if(optlaunch.indexOf("%1") != -1) {
-                    cmdLine = com.jbidwatcher.util.browser.WindowsBrowserLauncher.splitCommandLine(optlaunch, url);
+                    cmdLine = WindowsBrowserLauncher.splitCommandLine(optlaunch, url);
                   } else {
                     String[] cmdLine2;
-                    cmdLine2 = com.jbidwatcher.util.browser.WindowsBrowserLauncher.splitCommandLine(optlaunch);
+                    cmdLine2 = WindowsBrowserLauncher.splitCommandLine(optlaunch);
                     cmdLine = new String[cmdLine2.length + 1];
                     System.arraycopy(cmdLine2, 0, cmdLine, 0, cmdLine2.length);
                     cmdLine[cmdLine2.length] = '"' + url + '"';

@@ -310,16 +310,16 @@ public class AuctionInfo extends ActiveRecord
       //  Okay, I don't allow loading auction data that's over 512K.  Duh.
       if(fp.length() < 512 * 1024) {
         try {
-          com.jbidwatcher.util.config.ErrorManagement.logDebug("Loading from backing page (file is " + fp.length() + " bytes)!");
+          ErrorManagement.logDebug("Loading from backing page (file is " + fp.length() + " bytes)!");
           localZip.load(fp);
         } catch(IOException ioe) {
-          com.jbidwatcher.util.config.ErrorManagement.handleException("Couldn't read " + fileName, ioe);
+          ErrorManagement.handleException("Couldn't read " + fileName, ioe);
           return null;
         }
 
         return localZip;
       } else {
-        com.jbidwatcher.util.config.ErrorManagement.logDebug("Can't load " + fileName + ", file is too large.");
+        ErrorManagement.logDebug("Can't load " + fileName + ", file is too large.");
       }
     }
     return null;
@@ -353,7 +353,7 @@ public class AuctionInfo extends ActiveRecord
     String outPath = JConfig.queryConfiguration("auctions.savepath");
     if(outPath != null) {
       String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("filePath = " + filePath);
+      ErrorManagement.logDebug("filePath = " + filePath);
       return loadFile(filePath);
     }
     return mLoadedPage;
@@ -371,12 +371,12 @@ public class AuctionInfo extends ActiveRecord
       if(outSB == null) outSB = new StringBuffer("mLoadedPage.getUncompressedData is null");
       sb = outSB;
     } else {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("mLoadedPage is null, returning the 'real' cached copy!");
+      ErrorManagement.logDebug("mLoadedPage is null, returning the 'real' cached copy!");
       GZip gz = getRealContent();
       if(gz != null) {
         sb = gz.getUncompressedData();
-        com.jbidwatcher.util.config.ErrorManagement.logDebug("Turned the uncompressed data into a StringBuffer!");
-        if(sb == null) com.jbidwatcher.util.config.ErrorManagement.logDebug(" Failed to uncompress for id " + getIdentifier());
+        ErrorManagement.logDebug("Turned the uncompressed data into a StringBuffer!");
+        if(sb == null) ErrorManagement.logDebug(" Failed to uncompress for id " + getIdentifier());
       } else {
         sb = new StringBuffer("Error getting real content.");
       }
@@ -510,6 +510,6 @@ public class AuctionInfo extends ActiveRecord
   }
 
   public static AuctionInfo findFirstBy(String key, String value) {
-    return (AuctionInfo) com.jbidwatcher.util.db.ActiveRecord.findFirstBy(AuctionInfo.class, key, value);
+    return (AuctionInfo) ActiveRecord.findFirstBy(AuctionInfo.class, key, value);
   }
 }

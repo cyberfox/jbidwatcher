@@ -1,6 +1,7 @@
 package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.util.html.CleanupHandler;
 import com.jbidwatcher.util.config.Externalized;
 
 /**
@@ -11,7 +12,7 @@ import com.jbidwatcher.util.config.Externalized;
  *
  * The core code to clean up eBay HTML pages before trying to parse them.
  */
-public class ebayCleaner implements com.jbidwatcher.util.html.CleanupHandler
+public class ebayCleaner implements CleanupHandler
 {
   /**
    * @param sb - The StringBuffer to eliminate script entries from.

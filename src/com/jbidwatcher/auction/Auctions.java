@@ -29,7 +29,7 @@ import com.jbidwatcher.util.config.ErrorManagement;
 public class Auctions implements TimerHandler.WakeupProcess {
   boolean _selling = false;
   boolean _complete = false;
-  private volatile com.jbidwatcher.ui.table.TableSorter _tSort;
+  private volatile TableSorter _tSort;
   private String _name;
   private static volatile boolean isBlocked =false;
   private static final int LINE_LENGTH = 80;
@@ -49,7 +49,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
   public static boolean isBlocked() { return isBlocked; }
 
   //  A single accessor...
-  public com.jbidwatcher.ui.table.TableSorter getTableSorter() { return _tSort; }
+  public TableSorter getTableSorter() { return _tSort; }
 
   public void setSelling() { _selling = true; }
   public boolean isSelling() { return _selling; }
@@ -143,7 +143,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
       AuctionServerManager.getInstance().addEntry(aeNew);
       return true;
     }
-    com.jbidwatcher.util.config.ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
+    ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
 
     return false;
   }

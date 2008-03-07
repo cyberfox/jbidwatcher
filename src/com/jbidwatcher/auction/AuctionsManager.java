@@ -18,6 +18,8 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
+import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.DeletedManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionStats;
@@ -27,9 +29,9 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 
 /** @noinspection Singleton*/
-public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.WakeupProcess,EntryManager {
+public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager {
   private static AuctionsManager _instance = null;
-  private com.jbidwatcher.util.DeletedManager _deleted = null;
+  private DeletedManager _deleted = null;
   private int _auctionCount = 0;
   private FilterManager _filter;
 
@@ -46,9 +48,9 @@ public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.
    */
   private AuctionsManager() {
     //  This should be loaded from the configuration settings.
-    _checkpointFrequency = 10 * com.jbidwatcher.util.Constants.ONE_MINUTE;
+    _checkpointFrequency = 10 * Constants.ONE_MINUTE;
     _lastCheckpointed = System.currentTimeMillis();
-    _deleted = new com.jbidwatcher.util.DeletedManager();
+    _deleted = new DeletedManager();
 
     _filter = FilterManager.getInstance();
   }
@@ -239,17 +241,17 @@ public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.
       try {
         loadXMLFromFile(loadFile, xmlFile);
       } catch(IOException ioe) {
-        com.jbidwatcher.util.config.ErrorManagement.handleException("A serious problem occurred trying to load from auctions.xml.", ioe);
+        ErrorManagement.handleException("A serious problem occurred trying to load from auctions.xml.", ioe);
         MQFactory.getConcrete("Swing").enqueue("ERROR Failure to load your saved auctions.  Some or all items may be missing.");
       } catch(XMLParseException xme) {
-        com.jbidwatcher.util.config.ErrorManagement.handleException("Trying to load from auctions.xml.", xme);
+        ErrorManagement.handleException("Trying to load from auctions.xml.", xme);
         MQFactory.getConcrete("Swing").enqueue("ERROR Failure to load your saved auctions.  Some or all items may be missing.");
       }
     } else {
       //  This is a common thing, and we don't want to frighten new
       //  users, who are most likely to see it.
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("JBW: Failed to load saved auctions, the auctions file is probably not there yet.");
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("JBW: This is not an error, unless you're constantly getting it.");
+      ErrorManagement.logDebug("JBW: Failed to load saved auctions, the auctions file is probably not there yet.");
+      ErrorManagement.logDebug("JBW: This is not an error, unless you're constantly getting it.");
     }
     mDoSplash = false;
   }
@@ -369,7 +371,7 @@ public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.
       ps.println(_saveBuf);
       ps.close();
     } catch(IOException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to save auctions.", e);
+      ErrorManagement.handleException("Failed to save auctions.", e);
       saveDone = false;
     }
 
@@ -404,7 +406,7 @@ public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.
     synchronized(_saveBuf) {
       _saveBuf.setLength(0);
       _saveBuf.append("<?xml version=\"1.0\"?>\n\n");
-      _saveBuf.append(com.jbidwatcher.util.Constants.XML_SAVE_DOCTYPE);
+      _saveBuf.append(Constants.XML_SAVE_DOCTYPE);
       _saveBuf.append('\n');
       _saveBuf.append("<jbidwatcher format=\"0101\">\n");
       auctionsData.toStringBuffer(_saveBuf, 1);
@@ -444,13 +446,13 @@ public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.
 
     File keepFile = new File(retainFilename);
     if(!oldFile.renameTo(keepFile)) {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Renaming the old file (" + oldFile + ") to the retain file (" + keepFile + ") failed!");
+      ErrorManagement.logDebug("Renaming the old file (" + oldFile + ") to the retain file (" + keepFile + ") failed!");
     }
     JConfig.setConfiguration("save.file.0", retainFilename);
 
     File standard = new File(filename);
     if(!saveFile.renameTo(standard)) {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Renaming the new file (" + saveFile + ") to the standard filename (" + standard + ") failed!");
+      ErrorManagement.logDebug("Renaming the new file (" + saveFile + ") to the standard filename (" + standard + ") failed!");
     }
   }
 
@@ -478,12 +480,12 @@ public class AuctionsManager implements com.jbidwatcher.util.queue.TimerHandler.
   private static String makeBackupFilename(String filename, String toInsert) {
     int lastSlash = filename.lastIndexOf(System.getProperty("file.separator"));
     if(lastSlash == -1) {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Filename has no separators: " + filename);
+      ErrorManagement.logDebug("Filename has no separators: " + filename);
       lastSlash = 0;
     }
     int firstDot = filename.indexOf('.', lastSlash);
     if(firstDot == -1) {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Filename has no dot/extension: " + filename);
+      ErrorManagement.logDebug("Filename has no dot/extension: " + filename);
       firstDot = filename.length();
     }
 

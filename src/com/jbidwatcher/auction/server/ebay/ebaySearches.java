@@ -52,7 +52,7 @@ public class ebaySearches {
     int item_count = 0;
 
     if (allItemsOnPage == null) {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("No items on page!");
+      ErrorManagement.logDebug("No items on page!");
     } else {
       for (ListIterator<String> it = allItemsOnPage.listIterator(); it.hasNext();) {
         String url = it.next();
@@ -143,14 +143,14 @@ public class ebaySearches {
     if (cj != null) userCookie = cj.toString();
 
     if (userId == null || userId.equals("default")) {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("Cannot load selling pages without at least a userid.");
+      ErrorManagement.logMessage("Cannot load selling pages without at least a userid.");
       return;
     }
 
-    String myEBayURL = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.sellingListHost") + com.jbidwatcher.util.config.Externalized.getString("ebayServer.V3file") +
+    String myEBayURL = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.sellingListHost") + Externalized.getString("ebayServer.V3file") +
         Externalized.getString("ebayServer.listedCGI") +
         Externalized.getString("ebayServer.sortOrderCGI") +
-        com.jbidwatcher.util.config.Externalized.getString("ebayServer.userIdCGI") + userId;
+        Externalized.getString("ebayServer.userIdCGI") + userId;
 
     JHTML htmlDocument = new JHTML(myEBayURL, userCookie, mCleaner);
 
@@ -158,7 +158,7 @@ public class ebaySearches {
       int count = addAllItemsOnPage(htmlDocument, label, userId.equals(curUser));
       MQFactory.getConcrete("Swing").enqueue("Loaded " + count + " items for seller " + userId);
     } else {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("getSellingItems failed!");
+      ErrorManagement.logMessage("getSellingItems failed!");
     }
   }
 
@@ -189,7 +189,7 @@ public class ebaySearches {
           Externalized.getString("ebayServer.bigWatchingURL2") + page +
           Externalized.getString("ebayServer.bigWatchingURL3") + (page + 1);
       ErrorManagement.logDebug("Loading page " + page + " of My eBay for user " + curUser);
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("URL: " + watchingURL);
+      ErrorManagement.logDebug("URL: " + watchingURL);
 
       JHTML htmlDocument = new JHTML(watchingURL, userCookie, mCleaner);
       addAllItemsOnPage(htmlDocument, label, true);
@@ -207,7 +207,7 @@ public class ebaySearches {
     while (!done_bidding) {
       //  Now load items the user is bidding on...
       String biddingURL = Externalized.getString("ebayServer.biddingURL");
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Loading page: " + biddingURL);
+      ErrorManagement.logDebug("Loading page: " + biddingURL);
 
       JHTML htmlDocument = new JHTML(biddingURL, userCookie, mCleaner);
       addAllItemsOnPage(htmlDocument, label, true);
@@ -230,7 +230,7 @@ public class ebaySearches {
       encodedSearch = URLEncoder.encode(search, "UTF-8");
     } catch (UnsupportedEncodingException ignored) {
       encodedSearch = null;
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("Failed to search because of encoding transformation failure.");
+      ErrorManagement.logMessage("Failed to search because of encoding transformation failure.");
     }
     int allResults = 0;
 
@@ -244,9 +244,9 @@ public class ebaySearches {
       String fullSearch;
 
       if (title_only) {
-        fullSearch = com.jbidwatcher.util.config.Externalized.getString("ebayServer.searchURL1") + encodedSearch + sacur + com.jbidwatcher.util.config.Externalized.getString("ebayServer.searchURLNoDesc");
+        fullSearch = Externalized.getString("ebayServer.searchURL1") + encodedSearch + sacur + Externalized.getString("ebayServer.searchURLNoDesc");
       } else {
-        fullSearch = com.jbidwatcher.util.config.Externalized.getString("ebayServer.searchURL1") + encodedSearch + sacur + com.jbidwatcher.util.config.Externalized.getString("ebayServer.searchURL2");
+        fullSearch = Externalized.getString("ebayServer.searchURL1") + encodedSearch + sacur + Externalized.getString("ebayServer.searchURL2");
       }
       int skipCount = 0;
       boolean done;
@@ -263,7 +263,7 @@ public class ebaySearches {
           if (pageResults != 0) {
             if (pageResults >= ITEMS_PER_PAGE) {
               skipCount += ITEMS_PER_PAGE;
-              fullSearch = new StringBuffer(Externalized.getString("ebayServer.searchURL1")).append(encodedSearch).append(sacur).append(title_only ? Externalized.getString("ebayServer.searchURLNoDesc") : com.jbidwatcher.util.config.Externalized.getString("ebayServer.searchURL2")).append("&skip=").append(skipCount).toString();
+              fullSearch = new StringBuffer(Externalized.getString("ebayServer.searchURL1")).append(encodedSearch).append(sacur).append(title_only ? Externalized.getString("ebayServer.searchURLNoDesc") : Externalized.getString("ebayServer.searchURL2")).append("&skip=").append(skipCount).toString();
               done = false;
             }
 

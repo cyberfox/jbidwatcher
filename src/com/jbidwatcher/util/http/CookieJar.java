@@ -147,7 +147,7 @@ public class CookieJar {
 
       if(redirect != null) {
         if (do_uber_debug) {
-          com.jbidwatcher.util.config.ErrorManagement.logDebug("Redirecting to: " + redirect);
+          ErrorManagement.logDebug("Redirecting to: " + redirect);
         }
         return getAllCookiesFromPage(redirect, referer, post, pages);
       }
@@ -164,7 +164,7 @@ public class CookieJar {
       nextKey = uc.getHeaderFieldKey(i);
       if(nextKey != null) {
         if(do_uber_debug) {
-          com.jbidwatcher.util.config.ErrorManagement.logDebug(nextKey+": " + uc.getHeaderField(i));
+          ErrorManagement.logDebug(nextKey+": " + uc.getHeaderField(i));
         }
         //  If we're redirected, shortcut to loading the new page.
         if(nextKey.startsWith("Location") ||

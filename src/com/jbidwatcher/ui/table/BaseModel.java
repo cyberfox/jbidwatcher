@@ -17,7 +17,7 @@ package com.jbidwatcher.ui.table;
 public interface BaseModel {
   int getRowCount();
   Object getValueAt(int rowIndex, int columnIndex);
-  int compare(int row1, int row2, com.jbidwatcher.ui.table.ColumnStateList columnStateList);
+  int compare(int row1, int row2, ColumnStateList columnStateList);
   void delete(int row);
   int insert(Object newObj);
 }

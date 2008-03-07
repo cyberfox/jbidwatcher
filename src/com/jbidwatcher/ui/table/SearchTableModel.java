@@ -98,7 +98,7 @@ public class SearchTableModel extends BaseTransformation
     SimpleDateFormat sdf = new SimpleDateFormat("MM.dd/yyyy @ hh:mm");
     long base = s.getLastRun();
     if(base == 0) base = System.currentTimeMillis();
-    base += s.getPeriod() * com.jbidwatcher.util.Constants.ONE_HOUR;
+    base += s.getPeriod() * Constants.ONE_HOUR;
     return sdf.format(new Date(base));
   }
 
@@ -106,11 +106,11 @@ public class SearchTableModel extends BaseTransformation
     super();
   }
 
-  public int compare(int row1, int row2, com.jbidwatcher.ui.table.ColumnStateList columnStateList) {
+  public int compare(int row1, int row2, ColumnStateList columnStateList) {
 	  int result = 0;
 	  
-	  for(ListIterator<com.jbidwatcher.ui.table.ColumnState> li = columnStateList.listIterator(); li.hasNext();) {
-		  com.jbidwatcher.ui.table.ColumnState cs = li.next();
+	  for(ListIterator<ColumnState> li = columnStateList.listIterator(); li.hasNext();) {
+		  ColumnState cs = li.next();
 		  
 		  Class type = getSortByColumnClass(cs.getColumn());
 

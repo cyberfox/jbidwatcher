@@ -56,17 +56,17 @@ import javax.swing.*;
 
 public class TableSorter extends Transformation implements TableModelListener {
   private JTable _table = null;
-  private com.jbidwatcher.ui.table.ColumnStateList columnStateList;
-  private com.jbidwatcher.ui.table.BaseTransformation _model = null;
-  private com.jbidwatcher.ui.table.SortTransformation _sorted = null;
+  private ColumnStateList columnStateList;
+  private BaseTransformation _model = null;
+  private SortTransformation _sorted = null;
 
   private static final Icon ascend = new ImageIcon(JConfig.getResource("/icons/ascend_10x5.gif"));
   private static final Icon descend = new ImageIcon(JConfig.getResource("/icons/descend_10x5.gif"));
 
-  public TableSorter(String name, String defaultColumn, com.jbidwatcher.ui.table.BaseTransformation tm) {
+  public TableSorter(String name, String defaultColumn, BaseTransformation tm) {
     _model = tm;
-    columnStateList = new com.jbidwatcher.ui.table.ColumnStateList();
-    _sorted = new com.jbidwatcher.ui.table.SortTransformation(_model);
+    columnStateList = new ColumnStateList();
+    _sorted = new SortTransformation(_model);
     m_tm = _sorted;
     setDefaults(name, defaultColumn);
   }
@@ -123,7 +123,7 @@ public class TableSorter extends Transformation implements TableModelListener {
 			  break;
 		  }
 
-      com.jbidwatcher.ui.table.ColumnState cs = new com.jbidwatcher.ui.table.ColumnState(getColumnNumber(sortByColumn), sortDirection.equals("ascending") ? 1 : -1);
+      ColumnState cs = new ColumnState(getColumnNumber(sortByColumn), sortDirection.equals("ascending") ? 1 : -1);
 
       if(columnStateList.indexOf(cs) == -1) columnStateList.add(cs);
 	  }
@@ -156,7 +156,7 @@ public class TableSorter extends Transformation implements TableModelListener {
   private static class Selection {
     protected   final int[] selected;   // used ONLY within save/restoreSelection();
     protected   int     lead = -1;
-    protected com.jbidwatcher.ui.table.SortTransformation sorter;
+    protected SortTransformation sorter;
 
     protected void delete(int viewRow) {
       int modelRow = sorter.convertRowIndexToModel(viewRow);
@@ -170,7 +170,7 @@ public class TableSorter extends Transformation implements TableModelListener {
       if(lead > modelRow) lead--; else if(lead == modelRow) lead = -1;
     }
 
-    protected Selection(JTable table, com.jbidwatcher.ui.table.SortTransformation sortBy) {
+    protected Selection(JTable table, SortTransformation sortBy) {
       sorter = sortBy;
       selected = table.getSelectedRows(); // in view coordinates
       for (int i = 0; i < selected.length; i++) {
@@ -282,7 +282,7 @@ public class TableSorter extends Transformation implements TableModelListener {
   public Properties getSortProperties(String prefix, Properties outProps) {
     TableColumnModel tableColumnModel = _table.getColumnModel();
     for(int i=0; i < columnStateList.size(); i++) {
-      com.jbidwatcher.ui.table.ColumnState columnState = columnStateList.get(i);
+      ColumnState columnState = columnStateList.get(i);
 
       // Restore original header
       int viewCol = _table.convertColumnIndexToView(columnState.getColumn());
@@ -332,7 +332,7 @@ public class TableSorter extends Transformation implements TableModelListener {
   // Add a mouse listener to the Table to trigger a table sort
   // when a column heading is clicked in the JTable.
   public void addMouseListenerToHeaderInTable(JTable table) {
-    com.jbidwatcher.ui.table.ColumnState columnState;
+    ColumnState columnState;
     TableColumnModel tableColumnModel = table.getColumnModel();
     TableColumn tableColumn;
 
@@ -362,7 +362,7 @@ public class TableSorter extends Transformation implements TableModelListener {
   }
 
   public void removeColumn(String colId, JTable table) {
-    com.jbidwatcher.ui.table.ColumnState cs;
+    ColumnState cs;
     for(int i=0; i<columnStateList.size(); i++) {
       cs = columnStateList.get(i);
       if(cs.getHeaderValue().equals(colId)) {
@@ -377,7 +377,7 @@ public class TableSorter extends Transformation implements TableModelListener {
     int skipped = 0;
     TableColumnModel columnModel = table.getColumnModel();
     for(int i=0; i<columnStateList.size(); i++) {
-      com.jbidwatcher.ui.table.ColumnState cs = columnStateList.get(i);
+      ColumnState cs = columnStateList.get(i);
       int view = table.convertColumnIndexToView(cs.getColumn());
       if(view != -1) {
         TableColumn tc = columnModel.getColumn(view);
@@ -412,7 +412,7 @@ public class TableSorter extends Transformation implements TableModelListener {
     return null;
   }
 
-  public boolean select(com.jbidwatcher.ui.table.Selector s) {
+  public boolean select(Selector s) {
     return s.select(_table);
   }
 
@@ -437,7 +437,7 @@ public class TableSorter extends Transformation implements TableModelListener {
       int modelColumn = mTable.convertColumnIndexToModel(viewColumn);
 
       if(e.getClickCount() == 1) {
-        com.jbidwatcher.ui.table.ColumnState columnState = new com.jbidwatcher.ui.table.ColumnState(modelColumn);
+        ColumnState columnState = new ColumnState(modelColumn);
         int csidx = columnStateList.indexOf(columnState);
         if ((e.getModifiers() & InputEvent.CTRL_MASK) != InputEvent.CTRL_MASK) {
           if(columnStateList.size() > 1 || csidx == -1) {

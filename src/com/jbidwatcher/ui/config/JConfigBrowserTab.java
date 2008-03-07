@@ -50,7 +50,7 @@ public class JConfigBrowserTab extends JConfigTab {
     linuxBrowserLaunchCommand.getAccessibleContext().setAccessibleName("Command to use to launch the web browser under Linux");
 
     windowsBrowserLaunchCommand = new JTextField();
-	windowsBrowserLaunchCommand.addMouseListener(com.jbidwatcher.ui.util.JPasteListener.getInstance());
+	windowsBrowserLaunchCommand.addMouseListener(JPasteListener.getInstance());
 
     windowsBrowserLaunchCommand.setText(JConfig.queryConfiguration("browser.launch.Windows"));
     windowsBrowserLaunchCommand.setEditable(true);

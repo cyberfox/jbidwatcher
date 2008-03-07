@@ -8,6 +8,7 @@ package com.jbidwatcher.auction.event;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerialize;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.util.*;
 
@@ -136,7 +137,7 @@ public class EventLogger implements XMLSerialize {
         whatHappened = new EventStatus(inStatus, new Date(), mId, mTitle);
 
         mAllEvents.add(whatHappened);
-        com.jbidwatcher.util.config.ErrorManagement.logMessage(whatHappened.toString());
+        ErrorManagement.logMessage(whatHappened.toString());
       }
     }
   }

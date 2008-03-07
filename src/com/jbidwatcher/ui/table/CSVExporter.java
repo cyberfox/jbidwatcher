@@ -5,6 +5,8 @@ package com.jbidwatcher.ui.table;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.util.config.ErrorManagement;
+
 import javax.swing.*;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -63,7 +65,7 @@ public class CSVExporter {
       ps.close();
     } catch(IOException ioe) {
       //  Log the exceptions for now, and just return false.
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Failed to write CSV file.", ioe);
+      ErrorManagement.handleException("Failed to write CSV file.", ioe);
       return false;
     }
 

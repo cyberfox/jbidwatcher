@@ -9,6 +9,8 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.search.SearchManager;
+import com.jbidwatcher.ui.util.SpringUtilities;
+import com.jbidwatcher.auction.FilterManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -195,7 +197,7 @@ public class SearchInfoDialog extends BasicDialog {
     form.add(currencyBox);
     form.add(new JLabel("Repeat every: "));
     form.add(boxUp(periodList, periodEnabled));
-    com.jbidwatcher.ui.util.SpringUtilities.makeCompactGrid(form, 5, 2, 6, 6, 6, 3);
+    SpringUtilities.makeCompactGrid(form, 5, 2, 6, 6, 6, 3);
     getBasicContentPane().add(form, BorderLayout.CENTER);
   }
 
@@ -222,7 +224,7 @@ public class SearchInfoDialog extends BasicDialog {
     tabList.removeAllItems();
     tabList.setEditable(true);
 
-    List<String> tabs = com.jbidwatcher.auction.FilterManager.getInstance().allCategories();
+    List<String> tabs = FilterManager.getInstance().allCategories();
     if(tabs != null) {
       tabs.remove("complete");
       tabs.remove("selling");

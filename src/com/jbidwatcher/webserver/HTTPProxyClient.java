@@ -5,6 +5,8 @@ package com.jbidwatcher.webserver;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.util.Constants;
+
 import java.net.*;
 
 public abstract class HTTPProxyClient extends ProxyClient {
@@ -108,7 +110,7 @@ public abstract class HTTPProxyClient extends ProxyClient {
       totalResponse.append(getServerName());
       totalResponse.append('\n');
       totalResponse.append("WWW-Authenticate: Basic realm=\"");
-      totalResponse.append(com.jbidwatcher.util.Constants.PROGRAM_NAME);
+      totalResponse.append(Constants.PROGRAM_NAME);
       totalResponse.append('\"').append('\n');
       totalResponse.append("Content-Type: text/html; charset=UTF-8\n");
       totalResponse.append('\n');

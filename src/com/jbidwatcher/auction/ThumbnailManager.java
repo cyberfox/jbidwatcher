@@ -6,6 +6,7 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.http.Http;
@@ -97,7 +98,7 @@ public class ThumbnailManager implements MessageQueue.Listener {
             //  using the standard image file.
             conversionAttempted.createNewFile();
           } catch (IOException e) {
-            com.jbidwatcher.util.config.ErrorManagement.handleException("Can't create 'bad' lock file.", e);
+            ErrorManagement.handleException("Can't create 'bad' lock file.", e);
           }
         }
       }

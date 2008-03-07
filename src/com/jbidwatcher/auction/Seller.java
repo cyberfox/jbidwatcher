@@ -10,7 +10,7 @@ import com.jbidwatcher.util.xml.XMLElement;
  * Time: 7:27:30 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Seller extends com.jbidwatcher.util.db.ActiveRecord
+public class Seller extends ActiveRecord
 {
   public String getSeller() { return getString("seller"); }
   public void setSeller(String name) { setString("seller", name); }

@@ -6,14 +6,17 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.auction.event.EventLogger;
 import com.jbidwatcher.util.config.*;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.*;
-import com.jbidwatcher.util.db.*;
 import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.xml.XMLElement;
 
 import java.io.FileNotFoundException;
@@ -88,7 +91,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @see com.jbidwatcher.auction.event.EventLogger
    */
-  private com.jbidwatcher.auction.event.EventLogger mEntryEvents = null;
+  private EventLogger mEntryEvents = null;
 
   /**
    * Allow the user to add a personal comment about this auction.
@@ -197,13 +200,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * the server once every minute.  Currently set so that at half an
    * hour from the end of the auction, start updating every minute.
    */
-  private long mQuickerUpdateStart = com.jbidwatcher.util.Constants.THIRTY_MINUTES;
+  private long mQuickerUpdateStart = Constants.THIRTY_MINUTES;
 
   /**
    * Every mUpdateFrequency milliseconds it will trigger an update of
    * the auction from the server.
    */
-  private long mUpdateFrequency = com.jbidwatcher.util.Constants.FORTY_MINUTES;
+  private long mUpdateFrequency = Constants.FORTY_MINUTES;
 
   /**
    * Delta in time from the end of the auction that sniping will
@@ -217,7 +220,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * will occur at.  This valus can be read and modified by
    * getDefaultSnipeTime() & setDefaultSnipeTime().
    */
-  private static long mDefaultSnipeAt = com.jbidwatcher.util.Constants.THIRTY_SECONDS;
+  private static long mDefaultSnipeAt = Constants.THIRTY_SECONDS;
 
   /**
    * The time at which this will cease being a 'recently added'
@@ -291,7 +294,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   private AuctionEntry(String auctionIdentifier) {
     checkConfigurationSnipeTime();
-    mAddedRecently = System.currentTimeMillis() + 5 * com.jbidwatcher.util.Constants.ONE_MINUTE;
+    mAddedRecently = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
     prepareAuctionEntry(auctionIdentifier);
   }
 
@@ -381,7 +384,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         rval = true;
       }
     } catch(Currency.CurrencyTypeException cte) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("This should never happen (" + nextBid + ", " + getSnipe() + ")!", cte);
+      ErrorManagement.handleException("This should never happen (" + nextBid + ", " + getSnipe() + ")!", cte);
     }
 
     return rval;
@@ -560,7 +563,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(strConfigSnipeAt != null) {
       snipeTime = Long.parseLong(strConfigSnipeAt);
     } else {
-      snipeTime = com.jbidwatcher.util.Constants.THIRTY_SECONDS;
+      snipeTime = Constants.THIRTY_SECONDS;
     }
 
     return snipeTime;
@@ -689,7 +692,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
           if(curBid.less(mBid)) mHighBidder = true;
         } catch(Currency.CurrencyTypeException cte) {
           /* Should never happen...?  */
-          com.jbidwatcher.util.config.ErrorManagement.handleException("This should never happen (bad Currency at this point!).", cte);
+          ErrorManagement.handleException("This should never happen (bad Currency at this point!).", cte);
         }
         if(curBid.equals(mBid)) {
           mHighBidder = numBidders == 1;
@@ -757,9 +760,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         if(serverTime > getEndDate().getTime()) {
           mNeedsUpdate = true;
         } else {
-          if( mUpdateFrequency != com.jbidwatcher.util.Constants.ONE_MINUTE ) {
+          if( mUpdateFrequency != Constants.ONE_MINUTE ) {
             if( (getEndDate().getTime() - mQuickerUpdateStart) < serverTime) {
-              mUpdateFrequency = com.jbidwatcher.util.Constants.ONE_MINUTE;
+              mUpdateFrequency = Constants.ONE_MINUTE;
               mNeedsUpdate = true;
             }
           }
@@ -831,7 +834,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @param inStatus - A string that explains what the event is.
    */
   public void setLastStatus(String inStatus) {
-    if(mEntryEvents == null) mEntryEvents = new com.jbidwatcher.auction.event.EventLogger(getIdentifier(), getTitle());
+    if(mEntryEvents == null) mEntryEvents = new EventLogger(getIdentifier(), getTitle());
     mEntryEvents.setLastStatus(inStatus);
   }
 
@@ -908,7 +911,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         setComment(curElement.getContents());
         break;
       case 6:
-        mEntryEvents = new com.jbidwatcher.auction.event.EventLogger(getIdentifier(), getTitle());
+        mEntryEvents = new EventLogger(getIdentifier(), getTitle());
         mEntryEvents.fromXML(curElement);
         break;
       case 7:
@@ -1046,7 +1049,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(!isComplete()) setNeedsUpdate();
 
       if(mEntryEvents == null) {
-        mEntryEvents = new com.jbidwatcher.auction.event.EventLogger(getIdentifier(), getTitle());
+        mEntryEvents = new EventLogger(getIdentifier(), getTitle());
       }
       checkHighBidder(false);
       checkSeller();
@@ -1186,7 +1189,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     try {
       mServer.reloadAuction(this);
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Unexpected exception during auction reload/update.", e);
+      ErrorManagement.handleException("Unexpected exception during auction reload/update.", e);
     }
     mLastUpdatedAt = System.currentTimeMillis();
     mUpdating =false;
@@ -1196,7 +1199,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       checkHighBidder(true);
       if(isDutch()) checkDutchHighBidder();
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Unexpected exception during high bidder check.", e);
+      ErrorManagement.handleException("Unexpected exception during high bidder check.", e);
     }
     checkSeller();
     if (isComplete()) {
@@ -1276,7 +1279,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     setBid(bid);
     mBidAt = System.currentTimeMillis();
 
-    com.jbidwatcher.util.config.ErrorManagement.logDebug("Bidding " + bid + " on " + bidQuantity + " item[s] of (" + getIdentifier() + ")-" + getTitle());
+    ErrorManagement.logDebug("Bidding " + bid + " on " + bidQuantity + " item[s] of (" + getIdentifier() + ")-" + getTitle());
 
     return(mServer.bid(this, bid, bidQuantity));
   }
@@ -1293,7 +1296,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(bin != null && !bin.isNull()) {
       setBid(getBuyNow());
       mBidAt = System.currentTimeMillis();
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
+      ErrorManagement.logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
       return mServer.buy(this, quant);
     }
     return AuctionServer.BID_ERROR_NOT_BIN;
@@ -1421,20 +1424,20 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       try {
         dateDiff = getEndDate().getTime() - ((rightNow + officialDelta) - pageReqTime);
       } catch(Exception endDateException) {
-        com.jbidwatcher.util.config.ErrorManagement.handleException("Error getting the end date.", endDateException);
+        ErrorManagement.handleException("Error getting the end date.", endDateException);
         dateDiff = 0;
       }
 
-      if(dateDiff > com.jbidwatcher.util.Constants.ONE_DAY * 60) return "N/A";
+      if(dateDiff > Constants.ONE_DAY * 60) return "N/A";
 
       if(dateDiff >= 0) {
-        long days = dateDiff / (com.jbidwatcher.util.Constants.ONE_DAY);
-        dateDiff -= days * (com.jbidwatcher.util.Constants.ONE_DAY);
-        long hours = dateDiff / (com.jbidwatcher.util.Constants.ONE_HOUR);
-        dateDiff -= hours * (com.jbidwatcher.util.Constants.ONE_HOUR);
-        long minutes = dateDiff / (com.jbidwatcher.util.Constants.ONE_MINUTE);
-        dateDiff -= minutes * (com.jbidwatcher.util.Constants.ONE_MINUTE);
-        long seconds = dateDiff / com.jbidwatcher.util.Constants.ONE_SECOND;
+        long days = dateDiff / (Constants.ONE_DAY);
+        dateDiff -= days * (Constants.ONE_DAY);
+        long hours = dateDiff / (Constants.ONE_HOUR);
+        dateDiff -= hours * (Constants.ONE_HOUR);
+        long minutes = dateDiff / (Constants.ONE_MINUTE);
+        dateDiff -= minutes * (Constants.ONE_MINUTE);
+        long seconds = dateDiff / Constants.ONE_SECOND;
         String mf;
 
         String cfg;
@@ -1607,7 +1610,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(end != null) return end;
     }
 
-    return com.jbidwatcher.util.Constants.FAR_FUTURE;
+    return Constants.FAR_FUTURE;
   }
   public Date getSnipeDate() { return new Date(mAuction.getEndDate().getTime() - getSnipeTime()); }
 
@@ -1640,7 +1643,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         try {
           ship = ship.add(getInsurance());
         } catch(Currency.CurrencyTypeException cte) {
-          com.jbidwatcher.util.config.ErrorManagement.handleException("Insurance is somehow a different type than shipping?!?", cte);
+          ErrorManagement.handleException("Insurance is somehow a different type than shipping?!?", cte);
         }
       }
     }
@@ -1709,7 +1712,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public static AuctionEntry findFirstBy(String key, String value) {
-    return (AuctionEntry) com.jbidwatcher.util.db.ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
+    return (AuctionEntry) ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
   }
 
   public boolean delete() {

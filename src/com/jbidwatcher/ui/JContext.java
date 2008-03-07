@@ -6,13 +6,14 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.ui.util.JMouseAdapter;
 
 import javax.swing.*;
 import java.util.TreeMap;
 import java.awt.event.MouseEvent;
 
 /** @noinspection AbstractClassExtendsConcreteClass*/
-public abstract class JContext extends com.jbidwatcher.ui.util.JMouseAdapter {
+public abstract class JContext extends JMouseAdapter {
   TreeMap<String, JMenuItem> m_menuToText;
 
   protected JContext(JPopupMenu inPop) {

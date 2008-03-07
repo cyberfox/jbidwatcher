@@ -18,8 +18,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import com.jbidwatcher.util.config.*;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.OptionUI;
+import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
@@ -29,7 +31,6 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.*;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -59,7 +60,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     MQFactory.getConcrete("user").registerListener(this);
   }
 
-  public static void setConfigFrame(com.jbidwatcher.ui.config.JConfigFrame curCfg) {
+  public static void setConfigFrame(JConfigFrame curCfg) {
     if(curCfg != null) jcf = curCfg;
   }
 
@@ -295,7 +296,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DoConfigure() {
     if(jcf == null) {
-      jcf = new com.jbidwatcher.ui.config.JConfigFrame();
+      jcf = new JConfigFrame();
     } else {
       jcf.show();
     }
@@ -307,7 +308,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     StringBuffer stBuff;
     String clipString;
 
-    com.jbidwatcher.util.config.ErrorManagement.logDebug("Clipboard: " + sysClip.getName() + ", valid flavors: " + Arrays.toString(t.getTransferDataFlavors()));
+    ErrorManagement.logDebug("Clipboard: " + sysClip.getName() + ", valid flavors: " + Arrays.toString(t.getTransferDataFlavors()));
 
     stBuff = _jdl.getTransferData(t);
 
@@ -344,7 +345,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
         Matcher digits = digitSearch.matcher(auctionId);
         if(digits.find()) auctionId = digits.group();
         if(auctionId == null) {
-          com.jbidwatcher.util.config.ErrorManagement.logDebug("Failed to paste auction id: " + original);
+          ErrorManagement.logDebug("Failed to paste auction id: " + original);
         }
       }
     }
@@ -438,7 +439,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
         }
         if(ae2.getCurBid().getCurrencyType() != Currency.US_DOLLAR) approx=true;
       } catch(Exception e) {
-        com.jbidwatcher.util.config.ErrorManagement.handleException("Sum currency exception!", e);
+        ErrorManagement.handleException("Sum currency exception!", e);
         return "<unknown>";
       }
     }
@@ -566,7 +567,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
           addedThumbnail = true;
         } catch (UnknownHostException e) {
           //  Couldn't find THIS host?!?  Perhaps that means we're not online?
-          com.jbidwatcher.util.config.ErrorManagement.logMessage("Unknown host trying to look up the local host.  Is the network off?");
+          ErrorManagement.logMessage("Unknown host trying to look up the local host.  Is the network off?");
         }
       } else {
         prompt += newRow + "<img src=\"" + ae.getThumbnail() + "\">" + newCol + "<table>";
@@ -756,7 +757,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     //  same currency, and other similar requirements.
     for(i=0; i<rowList.length; i++) {
       AuctionEntry tempAE = (AuctionEntry) getIndexedEntry(rowList[i]);
-      com.jbidwatcher.util.Currency curBid = tempAE.getCurBid();
+      Currency curBid = tempAE.getCurBid();
       Currency minBid;
 
       if(tempAE.getServer().isDefaultUser()) {
@@ -848,7 +849,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       sd.setPrompt(prompt);
       sd.useQuantity(false);
       sd.pack();
-      Rectangle rec = com.jbidwatcher.ui.util.OptionUI.findCenterBounds(sd.getPreferredSize());
+      Rectangle rec = OptionUI.findCenterBounds(sd.getPreferredSize());
       sd.setLocation(rec.x, rec.y);
       sd.setVisible(true);
 
@@ -975,7 +976,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
                                     "Bad snipe value", JOptionPane.PLAIN_MESSAGE);
       return;
     } catch (Currency.CurrencyTypeException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Couldn't subtract shipping from bid amount.", e);
+      ErrorManagement.handleException("Couldn't subtract shipping from bid amount.", e);
       return;
     }
 
@@ -1134,7 +1135,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DeleteComment(AuctionEntry ae) {
     if(ae == null) {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("Auction selected to delete comment from is null, unexpected error!");
+      ErrorManagement.logMessage("Auction selected to delete comment from is null, unexpected error!");
       return;
     }
 
@@ -1147,7 +1148,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     String curComment;
 
     if(inAuction == null) {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("Auction selected to comment on is null, unexpected error!");
+      ErrorManagement.logMessage("Auction selected to comment on is null, unexpected error!");
       return;
     }
 
@@ -1162,7 +1163,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void ShowComment(Component src, AuctionEntry inAuction) {
     if(inAuction == null) {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("Can't show comments from menu items yet.");
+      ErrorManagement.logMessage("Can't show comments from menu items yet.");
       return;
     }
 
@@ -1309,7 +1310,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
       AuctionServerManager.getInstance().fromXML(xmlFile);
     } catch(IOException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Error loading XML file with auctions: " + canonicalFName, e);
+      ErrorManagement.handleException("Error loading XML file with auctions: " + canonicalFName, e);
     }
   }
 
@@ -1695,10 +1696,10 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Toolbar")) DoHideShowToolbar();
     else if(actionString.equals("Search")) DoSearch();
     else if(actionString.equals("Scripting")) DoScripting();
-    else if(actionString.equals("Dump")) com.jbidwatcher.util.db.ActiveRecord.saveCached();
+    else if(actionString.equals("Dump")) ActiveRecord.saveCached();
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
     else if(actionString.equals("View Log")) DoLog(c_src);
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://sourceforge.net/tracker/?func=add&group_id=3914&atid=103914");
-    else com.jbidwatcher.util.config.ErrorManagement.logDebug('[' + actionString + ']');
+    else ErrorManagement.logDebug('[' + actionString + ']');
   }
 }

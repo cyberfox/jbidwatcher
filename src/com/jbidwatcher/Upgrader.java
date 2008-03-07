@@ -19,7 +19,7 @@ import java.sql.Statement;
  */
 public class Upgrader {
   public static void upgrade() throws SQLException, IllegalAccessException, InstantiationException, ClassNotFoundException {
-    Database mDB = new com.jbidwatcher.util.db.Database(null);
+    Database mDB = new Database(null);
     dbMake(mDB);
     mDB.commit();
     mDB.shutdown();
@@ -59,8 +59,8 @@ public class Upgrader {
         mS.execute(statement);
       }
 
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Executed " + filename + ".");
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Created database and various tables.");
+      ErrorManagement.logDebug("Executed " + filename + ".");
+      ErrorManagement.logDebug("Created database and various tables.");
     }
   }
 }

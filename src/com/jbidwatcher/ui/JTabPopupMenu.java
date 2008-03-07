@@ -8,7 +8,10 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.OptionUI;
+import com.jbidwatcher.ui.util.JBidFrame;
+import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.auction.FilterManager;
 
 import java.awt.event.*;
 import java.awt.*;
@@ -74,7 +77,7 @@ public class JTabPopupMenu extends JContext {
       customize.setEnabled(false);
       _deleteSubmenu.setEnabled(false);
       _print.setEnabled(false);
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Whoops!  Click-point not found!");
+      ErrorManagement.logDebug("Whoops!  Click-point not found!");
     } else {
       _print.setEnabled(true);
 
@@ -90,7 +93,7 @@ public class JTabPopupMenu extends JContext {
 
   public void prepCustomColumnMenu(Integer tabIndex) {
     customize.removeAll();
-    Collection<String> nameCollection = com.jbidwatcher.ui.table.TableColumnController.getInstance().getColumnNames();
+    Collection<String> nameCollection = TableColumnController.getInstance().getColumnNames();
     ArrayList<String> sortedNames = new ArrayList<String>(nameCollection);
     Collections.sort(sortedNames);
 
@@ -113,7 +116,7 @@ public class JTabPopupMenu extends JContext {
   }
 
   private void setColumnChecks(String tabName) {
-    List<String> columns = com.jbidwatcher.auction.FilterManager.getInstance().getColumns(tabName);
+    List<String> columns = FilterManager.getInstance().getColumns(tabName);
     for (String colName : columns) {
       JCheckBoxMenuItem jch = menuItemMap.get(colName);
       jch.setState(true);
@@ -135,7 +138,7 @@ public class JTabPopupMenu extends JContext {
   private TreeMap<String, JTabProperties> tabToProperties = null;
 
   protected JFrame getFrame(String tabName) {
-    if(propFrame == null) propFrame = new JFrame("Tab Properties");
+    if(propFrame == null) propFrame = new JBidFrame("Tab Properties");
     if(tabToProperties == null) tabToProperties = new TreeMap<String, JTabProperties>();
     JTabProperties properties = tabToProperties.get(tabName);
 
@@ -143,8 +146,6 @@ public class JTabPopupMenu extends JContext {
       properties = new JTabProperties(tabName);
       tabToProperties.put(tabName, properties);
     }
-
-    Platform.setMacFrameMenu(propFrame);
 
     Container content = propFrame.getContentPane();
     content.removeAll();
@@ -172,20 +173,20 @@ public class JTabPopupMenu extends JContext {
    */
   protected void DoAction(String actionString, int tabIndex) {
     if(actionString.equals("Add Tab")) {
-      OptionUI oui = new com.jbidwatcher.ui.util.OptionUI();
+      OptionUI oui = new OptionUI();
       String result = oui.promptString(_myTabs.getComponentAt(tabIndex>=0?tabIndex:0), "Enter the name of the tab to add.  Prefer brevity.", "Add New Tab", "");
 
       if(result == null) return;
       result = result.trim();
       if(result.length() == 0) return;
 
-      com.jbidwatcher.auction.FilterManager.getInstance().addTab(result);
+      FilterManager.getInstance().addTab(result);
       return;
     }
 
     String tabName = _myTabs.getTitleAt(tabIndex);
     if(actionString.charAt(0) == '~') {
-      boolean result = com.jbidwatcher.auction.FilterManager.getInstance().toggleField(tabName, actionString.substring(1));
+      boolean result = FilterManager.getInstance().toggleField(tabName, actionString.substring(1));
       if(tabToProperties != null) {
         JTabProperties properties = tabToProperties.get(tabName);
         if(properties != null) {
@@ -207,7 +208,7 @@ public class JTabPopupMenu extends JContext {
       switch(result) {
         case JFileChooser.APPROVE_OPTION:
           String fname = jfc.getSelectedFile().getAbsolutePath();
-          if(!com.jbidwatcher.auction.FilterManager.getInstance().exportTab(tabName, fname)) {
+          if(!FilterManager.getInstance().exportTab(tabName, fname)) {
             JOptionPane.showMessageDialog(null, "Could not export tab [" + tabName + "].", "Export error", JOptionPane.PLAIN_MESSAGE);
           }
           return;
@@ -220,9 +221,9 @@ public class JTabPopupMenu extends JContext {
 
     if(actionString.equals("Print")) {
       if(tabIndex == -1) {
-        com.jbidwatcher.util.config.ErrorManagement.logDebug("Can't print unknown tab, must prompt...");
+        ErrorManagement.logDebug("Can't print unknown tab, must prompt...");
       } else {
-        if(!com.jbidwatcher.auction.FilterManager.getInstance().printTab(tabName)) {
+        if(!FilterManager.getInstance().printTab(tabName)) {
           JOptionPane.showMessageDialog(null, "Could not print tab [" + tabName + "].", "Print error", JOptionPane.PLAIN_MESSAGE);
         }
       }
@@ -238,10 +239,10 @@ public class JTabPopupMenu extends JContext {
     if(actionString.equals("Just Tab")) {
       //  If we couldn't have figured out which tab, prompt for delete.
       if(tabIndex == -1) {
-        com.jbidwatcher.util.config.ErrorManagement.logDebug("Prompting for Delete...\n");
+        ErrorManagement.logDebug("Prompting for Delete...\n");
       } else {
         ErrorManagement.logDebug("Deleting tab [" + tabName + "]...\n");
-        if(!com.jbidwatcher.auction.FilterManager.getInstance().deleteTab(tabName, eraseEntries)) {
+        if(!FilterManager.getInstance().deleteTab(tabName, eraseEntries)) {
           JOptionPane.showMessageDialog(null, "Could not delete tab [" + tabName + "].", "Tab deletion error", JOptionPane.PLAIN_MESSAGE);
         }
       }

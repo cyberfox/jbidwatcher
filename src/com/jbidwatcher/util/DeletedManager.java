@@ -75,7 +75,7 @@ public class DeletedManager implements XMLSerialize {
 
     long now = System.currentTimeMillis();
     //  60 days ago is the cut off point for keeping deleted entries around.
-    long past = now - (com.jbidwatcher.util.Constants.ONE_DAY * 60);
+    long past = now - (Constants.ONE_DAY * 60);
 
     //  Walk over all the deleted entries and store them.
     Iterator<XMLElement> delWalk = deletedEntries.getChildren();

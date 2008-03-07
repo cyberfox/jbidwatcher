@@ -73,7 +73,7 @@ public class JSearchContext extends JBidMouse {
   }
 
   private void changeTable() {
-    TableSorter tm = (com.jbidwatcher.ui.table.TableSorter)_inTable.getModel();
+    TableSorter tm = (TableSorter)_inTable.getModel();
 
     tm.tableChanged(new TableModelEvent(tm));
   }

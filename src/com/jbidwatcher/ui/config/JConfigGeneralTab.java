@@ -9,6 +9,7 @@ import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
@@ -78,7 +79,7 @@ public class JConfigGeneralTab extends JConfigTab {
     JConfig.setConfiguration("debugging", debuggingBox.isSelected() ? "true" : "false");
     JConfig.setConfiguration("logging", loggingBox.isSelected() ? "true" : "false");
     if(!loggingBox.isSelected()) {
-      com.jbidwatcher.util.config.ErrorManagement.closeLog();
+      ErrorManagement.closeLog();
     }
     JConfig.setConfiguration("deleted.ignore", ignoreDeletedBox.isSelected() ? "true" : "false");
 

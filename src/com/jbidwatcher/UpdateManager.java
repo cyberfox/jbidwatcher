@@ -58,7 +58,7 @@ public class UpdateManager implements TimerHandler.WakeupProcess, MessageQueue.L
     }
     String lastKnownVersion = JConfig.queryConfiguration("updates.last_version", null);
 
-    if(lastKnownVersion == null) lastKnownVersion = com.jbidwatcher.util.Constants.PROGRAM_VERS;
+    if(lastKnownVersion == null) lastKnownVersion = Constants.PROGRAM_VERS;
     if(!lastKnownVersion.equals(ue.getVersion())) {
       JConfig.setConfiguration("updates.last_version", ue.getVersion());
       if(!Constants.PROGRAM_VERS.equals(ue.getVersion())) {

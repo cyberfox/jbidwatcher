@@ -22,6 +22,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
@@ -157,7 +158,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
     if(doLocalServer.equals("false")) {
       browseTo = getBrowsableURLFromItem(entryId);
     } else {
-      String localServerPort = JConfig.queryConfiguration("server.port", com.jbidwatcher.util.Constants.DEFAULT_SERVER_PORT_STRING);
+      String localServerPort = JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING);
       if(inEntry.isInvalid()) {
         browseTo = "http://localhost:" + localServerPort + "/cached_" + entryId;
       } else {
@@ -203,10 +204,10 @@ public abstract class AuctionServer implements AuctionServerInterface {
       loadedPage = Http.receivePage(uc);
       if(loadedPage != null && loadedPage.length() == 0) loadedPage = null;
     } catch(FileNotFoundException fnfe) {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Item not found: " + auctionURL.toString());
+      ErrorManagement.logDebug("Item not found: " + auctionURL.toString());
       throw fnfe;
     } catch(IOException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Error loading URL (" + auctionURL.toString() + ')', e);
+      ErrorManagement.handleException("Error loading URL (" + auctionURL.toString() + ')', e);
       loadedPage = null;
     }
     return loadedPage;
@@ -266,7 +267,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
         try {
           curAuction = doParse(sb, ae, item_id);
         } catch (ReloadItemException e1) {
-          com.jbidwatcher.util.config.ErrorManagement.logMessage("Multiple failures attempting to load item " + item_id + ", giving up.");
+          ErrorManagement.logMessage("Multiple failures attempting to load item " + item_id + ", giving up.");
         }
       }
     }
@@ -290,7 +291,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
         //  punt.  It's not a communications error, either.
       } catch (Exception catchall) {
         if (JConfig.debugging()) {
-          com.jbidwatcher.util.config.ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
+          ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
         }
       }
     }
@@ -316,7 +317,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
               getNecessaryCookie(true);
               throw new ReloadItemException();
             } else {
-              com.jbidwatcher.util.config.ErrorManagement.logDebug("Failed to load adult item, user possibly not marked for Mature Items access.  Check your eBay configuration.");
+              ErrorManagement.logDebug("Failed to load adult item, user possibly not marked for Mature Items access.  Check your eBay configuration.");
             }
           }
           case BAD_TITLE: {
@@ -329,7 +330,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
     } else error = "Bad pre-parse!";
 
     if(error != null) {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage(error);
+      ErrorManagement.logMessage(error);
       checkLogError(ae);
       curAuction = null;
     }
@@ -339,9 +340,9 @@ public abstract class AuctionServer implements AuctionServerInterface {
   private void noteRetrieveError(AuctionEntry ae) {
     checkLogError(ae);
     //  Whoops!  Bad thing happened on the way to loading the auction!
-    com.jbidwatcher.util.config.ErrorManagement.logDebug("Failed to parse auction!  Bad return result from auction server.");
+    ErrorManagement.logDebug("Failed to parse auction!  Bad return result from auction server.");
     //  Only retry the login cookie once every ten minutes of these errors.
-    if ((sLastUpdated + com.jbidwatcher.util.Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
+    if ((sLastUpdated + Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
       sLastUpdated = System.currentTimeMillis();
       MQFactory.getConcrete(getName()).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$ //$NON-NLS-2$
     }

@@ -26,22 +26,6 @@ public class Platform {
   }
 
   /** 
-   * @brief In order to support the everpresent top-of-screen menu bar
-   * on the Mac, we need this assistance function to add a menu bar to
-   * any frames we create.
-   * 
-   * @param newFrame - The frame to add the standard menu bar to.
-   */
-  public static void setMacFrameMenu(javax.swing.JFrame newFrame) {
-    if(isMac()) {
-      JTabManager jtm = AuctionsUIModel.getTabManager();
-      JBidMenuBar mb2 = JBidMenuBar.getInstance(jtm, "Search Editor");
-
-      newFrame.setJMenuBar(mb2);
-    }
-  }
-
-  /** 
    * @brief Is the current machine a Mac?
    *
    * Note: Since MacOS 9 and prior never had a Java runtime later than
@@ -92,7 +76,7 @@ public class Platform {
       }
       return true;
     } catch (Exception exMe) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Can't set Quaqua UI (" + whatLaF + ")", exMe);
+      ErrorManagement.handleException("Can't set Quaqua UI (" + whatLaF + ")", exMe);
       return false;
     }
   }
@@ -141,7 +125,7 @@ public class Platform {
     try {
       f.createNewFile();
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Can't create output file to copy from JAR.", e);
+      ErrorManagement.handleException("Can't create output file to copy from JAR.", e);
       return false;
     }
     InputStream source = Platform.class.getClassLoader().getResourceAsStream(inJarName);
@@ -169,7 +153,7 @@ public class Platform {
         //  I really don't care about *close* exceptions.
       }
     } catch (IOException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Couldn't extract file (" + inJarName + " from jar to " + destination + ".", e);
+      ErrorManagement.handleException("Couldn't extract file (" + inJarName + " from jar to " + destination + ".", e);
       return false;
     }
     return true;

@@ -71,7 +71,7 @@ public class JHTMLParser {
                  oddText.indexOf("name=\"Submit\"") == -1 &&
                  !oddText.startsWith("<META")) {
                 if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
-                  com.jbidwatcher.util.config.ErrorManagement.logMessage("Found an unusual tag @ " + charStep + "...  (" + oddText + ")");
+                  ErrorManagement.logMessage("Found an unusual tag @ " + charStep + "...  (" + oddText + ")");
                 }
               }
             }
@@ -89,7 +89,7 @@ public class JHTMLParser {
 
               inQuote = false;
               suspicious = false;
-              com.jbidwatcher.util.config.ErrorManagement.logDebug("Potential quote error!");
+              ErrorManagement.logDebug("Potential quote error!");
               spitNextTag = true;
             }
             //  This prevents opening a quote at the end of a tag.

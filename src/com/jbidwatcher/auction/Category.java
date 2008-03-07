@@ -1,6 +1,8 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.util.db.*;
+
+import com.jbidwatcher.util.db.Table;
+import com.jbidwatcher.util.db.ActiveRecord;
 
 /**
  * Category DB accessor.
@@ -10,7 +12,7 @@ import com.jbidwatcher.util.db.*;
  * Time: 12:47:22 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Category extends com.jbidwatcher.util.db.ActiveRecord
+public class Category extends ActiveRecord
 {
   public Category() {
   }

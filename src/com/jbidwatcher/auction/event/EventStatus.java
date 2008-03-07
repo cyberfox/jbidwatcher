@@ -79,15 +79,15 @@ public class EventStatus extends ActiveRecord {
   }
 
   public static EventStatus find(Integer id) {
-    return (EventStatus) com.jbidwatcher.util.db.ActiveRecord.findFirstBy(EventStatus.class, "id", Integer.toString(id));
+    return (EventStatus) ActiveRecord.findFirstBy(EventStatus.class, "id", Integer.toString(id));
   }
 
   public static List<EventStatus> findAllByEntry(String entry_id) {
-    List<ActiveRecord> records = com.jbidwatcher.util.db.ActiveRecord.findAllBy(EventStatus.class, "entry_id", entry_id, "logged_at ASC");
+    List<ActiveRecord> records = ActiveRecord.findAllBy(EventStatus.class, "entry_id", entry_id, "logged_at ASC");
 
     if(records != null) {
       List<EventStatus> results = new ArrayList<EventStatus>(records.size());
-      for(com.jbidwatcher.util.db.ActiveRecord record : records) {
+      for(ActiveRecord record : records) {
         results.add((EventStatus)record);
       }
 

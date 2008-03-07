@@ -77,7 +77,7 @@ public class Scripting {
       mOutput.setOutput(old);
       return rval;
     } else {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Calling ruby script with '" + command + "' before scripting enabled!");
+      ErrorManagement.logDebug("Calling ruby script with '" + command + "' before scripting enabled!");
       return null;
     }
   }

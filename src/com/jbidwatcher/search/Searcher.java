@@ -8,6 +8,7 @@ package com.jbidwatcher.search;
 
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
+import com.jbidwatcher.util.Constants;
 
 public abstract class Searcher extends XMLSerializeSimple {
   protected long _id;             /**< The unique id for this search. */
@@ -81,7 +82,7 @@ public abstract class Searcher extends XMLSerializeSimple {
 
       //  If the last time we ran, plus the repeat period is earlier or
       //  exactly at the current time, then it's time to run the search.
-      if( (_last + (_period * com.jbidwatcher.util.Constants.ONE_HOUR)) <= curTime) return true;
+      if( (_last + (_period * Constants.ONE_HOUR)) <= curTime) return true;
     }
 
     return false;

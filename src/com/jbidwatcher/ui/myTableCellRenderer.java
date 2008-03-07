@@ -223,7 +223,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     if(fixedFont == null) fixedFont = new Font("Monospaced", base.getStyle(), base.getSize());
     if(boldFont == null) boldFont = base.deriveFont(Font.BOLD);
     if(col == TableColumnController.TIME_LEFT) return fixedFont;
-    if(hasComment && col == com.jbidwatcher.ui.table.TableColumnController.ID) return boldFont;
+    if(hasComment && col == TableColumnController.ID) return boldFont;
     if(ae.isShippingOverridden() && col == TableColumnController.SHIPPING_INSURANCE) return boldFont;
     return base;
   }

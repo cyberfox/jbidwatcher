@@ -81,7 +81,7 @@ public class SimpleProxy extends Thread {
         }
       } catch(IOException e) {
         if(!_halted) {
-          com.jbidwatcher.util.config.ErrorManagement.handleException("Exception raised during server accept.", e);
+          ErrorManagement.handleException("Exception raised during server accept.", e);
         }
       }
       try {

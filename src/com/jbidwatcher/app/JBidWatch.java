@@ -11,19 +11,24 @@ import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
+import com.jbidwatcher.AudioPlayer;
 import com.jbidwatcher.platform.Browser;
 import com.jbidwatcher.util.config.*;
+import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.ui.config.JConfigFrame;
+import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.platform.Tray;
-import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.ui.RuntimeInfo;
+import com.jbidwatcher.ui.util.JBidFrame;
+import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
-import com.jbidwatcher.util.queue.SuperQueue;
 import com.jbidwatcher.util.db.DBManager;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.webserver.JBidProxy;
@@ -76,11 +81,10 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private boolean _linkUp = true;
   private boolean _userValid;
   private JLabel _statusBar;
-  private com.jbidwatcher.util.queue.TimerHandler itemUpdateTimer;
-  private com.jbidwatcher.util.queue.TimerHandler searchTimer;
+  private TimerHandler itemUpdateTimer;
+  private TimerHandler searchTimer;
   private JTabManager jtmAuctions;
   private AuctionsManager aucManager;
-  private SearchManager searchManager;
 
   private static String _cfgLoad = "JBidWatch.cfg";
   private RuntimeInfo _rti;
@@ -150,7 +154,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     if(msg.startsWith(HEADER_MSG)) {
       JBidToolBar.getInstance().setText(msg.substring(HEADER_MSG.length()));
       //      JBidToolBar.getInstance().paintImmediately(JBidToolBar.getInstance().getVisibleRect());
-      com.jbidwatcher.auction.FilterManager.getInstance().check();
+      FilterManager.getInstance().check();
     } else if(msg.startsWith(LINK_MSG)) {
       String linkStat = msg.substring(LINK_MSG.length());
       if(!gcSafe.isEmpty()) {
@@ -214,7 +218,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       int configLen = configstr.indexOf(' ');
       String realMsg = configstr.substring(configLen+1);
       configstr = configstr.substring(0, configLen);
-      com.jbidwatcher.ui.util.OptionUI oui = new com.jbidwatcher.ui.util.OptionUI();
+      OptionUI oui = new OptionUI();
       oui.promptWithCheckbox(null, realMsg, "Alert", configstr, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
     } else if(msg.startsWith(ERROR_MSG)) {
       JOptionPane.showMessageDialog(null, msg.substring(ERROR_MSG.length()), "An error occurred", JOptionPane.PLAIN_MESSAGE);
@@ -233,7 +237,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       if(itemUpdateTimer == null) {
         //  This timer handles updating auctions and saving a snapshot of
         //  all the auctions.
-        itemUpdateTimer = new com.jbidwatcher.util.queue.TimerHandler(aucManager);
+        itemUpdateTimer = new TimerHandler(aucManager);
         itemUpdateTimer.setName("Updates");
         itemUpdateTimer.start();
       }
@@ -242,7 +246,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
         //  This thread / timer handles the periodic searching that the
         //  search feature allows to be set up.  Check only once a minute,
         //  because searching isn't a very time-critical feature.
-        searchTimer = new com.jbidwatcher.util.queue.TimerHandler(searchManager, Constants.ONE_MINUTE);
+        searchTimer = new TimerHandler(SearchManager.getInstance(), Constants.ONE_MINUTE);
         searchTimer.setName("Searches");
         searchTimer.start();
       }
@@ -266,7 +270,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       if(itemUpdateTimer == null) {
         //  This timer handles updating auctions and saving a snapshot of
         //  all the auctions.
-        itemUpdateTimer = new com.jbidwatcher.util.queue.TimerHandler(aucManager);
+        itemUpdateTimer = new TimerHandler(aucManager);
         itemUpdateTimer.setName("Updates");
         itemUpdateTimer.start();
       }
@@ -275,7 +279,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
         //  This thread / timer handles the periodic searching that the
         //  search feature allows to be set up.  Check only once a minute,
         //  because searching isn't a very time-critical feature.
-        searchTimer = new com.jbidwatcher.util.queue.TimerHandler(searchManager, Constants.ONE_MINUTE);
+        searchTimer = new TimerHandler(SearchManager.getInstance(), Constants.ONE_MINUTE);
         searchTimer.setName("Searches");
         searchTimer.start();
       }
@@ -328,7 +332,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
           m_within = null;
         }
       };
-    com.jbidwatcher.ui.util.OptionUI oui = new com.jbidwatcher.ui.util.OptionUI();
+    OptionUI oui = new OptionUI();
     JFrame newFrame = oui.showChoiceTextDisplay(new JHTMLOutput("Version " + ue.getVersion() + " available!", fullMsg).getStringBuffer(),
                                                 new Dimension(UPDATE_FRAME_WIDTH, UPDATE_FRAME_HEIGHT), "Version " + ue.getVersion() + " available!", buttons,
                                                 "Upgrade information", mal);
@@ -359,7 +363,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       _statusBar.setText("<html><body>" + statusToDisplay + "</body></html>");
       _statusBar.paintImmediately(_statusBar.getVisibleRect());
     } else {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug(newStatus + bracketed);
+      ErrorManagement.logDebug(newStatus + bracketed);
     }
   }
 
@@ -588,7 +592,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       try {
         UIManager.setLookAndFeel(whatLaF);
       } catch (Exception exMe) {
-        com.jbidwatcher.util.config.ErrorManagement.handleException("Exception in setUI, failure to set " + whatLaF + ": " + exMe, exMe);
+        ErrorManagement.handleException("Exception in setUI, failure to set " + whatLaF + ": " + exMe, exMe);
         //  Don't try to update the frame with the new UI.
         inFrame = null;
       }
@@ -660,7 +664,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     try {
       Upgrader.upgrade();
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Upgrading error", e);
+      ErrorManagement.handleException("Upgrading error", e);
     }
 
     if(!ebayLoaded) AuctionServerManager.getInstance().addServer(new ebayServer());
@@ -693,7 +697,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
 
       program.repaint();
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("JBidWatcher: " + e, e);
+      ErrorManagement.handleException("JBidWatcher: " + e, e);
     }
   }
 
@@ -734,9 +738,9 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * if there are any outstanding snipes.
    */
   public void shutdown() {
-    com.jbidwatcher.util.db.ActiveRecord.saveCached();
+    ActiveRecord.saveCached();
     if(AuctionsManager.getInstance().anySnipes()) {
-      com.jbidwatcher.ui.util.OptionUI oui = new com.jbidwatcher.ui.util.OptionUI();
+      OptionUI oui = new OptionUI();
     //  Use the right parent!  FIXME -- mrs: 17-February-2003 23:53
       int rval = oui.promptWithCheckbox(null, "There are outstanding snipes that will not be able to fire while " + Constants.PROGRAM_NAME +
                                               " is not running.  Are you sure you want to quit?", "Pending Snipes confirmation",
@@ -799,7 +803,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
   private void handleSleepDeprivation() {
     Date now = new Date();
     String status = "We appear to be waking from sleep; networking may not be up yet.";
-    com.jbidwatcher.util.config.ErrorManagement.logDebug(status);
+    ErrorManagement.logDebug(status);
     List<AuctionEntry> sniped = AuctionServerManager.getInstance().allSniped();
     if(sniped != null && !sniped.isEmpty()) {
       boolean foundSnipe = false;
@@ -912,7 +916,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
       }
     }
 
-    com.jbidwatcher.ui.util.JMouseAdapter myFrameAdapter = new JBidFrameMouse();
+    JMouseAdapter myFrameAdapter = new JBidFrameMouse();
 
     _statusBar = new JLabel("Ready!", SwingConstants.LEFT);
 
@@ -925,6 +929,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     newFrame.setIconImage(new ImageIcon(iconURL).getImage());
 
     jtmAuctions = AuctionsUIModel.getTabManager();
+    JBidFrame.setDefaultMenuBar(JBidMenuBar.getInstance(jtmAuctions, "Search Editor"));
     JPanel _headerBar = JBidToolBar.getInstance().buildHeaderBar(newFrame, jtmAuctions);
 
     newFrame.getContentPane().add(jtmAuctions.getTabs());
@@ -975,8 +980,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     //  This needs to be after the auction manager, so that all the
     //  auction servers that are loaded by loading auctions will be
     //  available to add searches if they need to.
-    searchManager = SearchManager.getInstance();
-    searchManager.loadSearches();
+    SearchManager.getInstance().loadSearches();
 
     Scripting.initialize();
     AuctionServerManager.getInstance().getDefaultServerTime();
@@ -1016,7 +1020,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
 
     SuperQueue sq = SuperQueue.getInstance();
     preQueueServices(sq);
-    com.jbidwatcher.util.queue.TimerHandler timeQueue = sq.start();
+    TimerHandler timeQueue = sq.start();
     gcSafe.add(timeQueue);
 
     //  Because the program is starting to get widely spread around,
@@ -1028,7 +1032,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     updateTimer.start();
     gcSafe.add(updateTimer);
 
-    com.jbidwatcher.util.queue.TimerHandler clockTimer = new com.jbidwatcher.util.queue.TimerHandler(new com.jbidwatcher.util.queue.TimerHandler.WakeupProcess() {
+    TimerHandler clockTimer = new TimerHandler(new TimerHandler.WakeupProcess() {
       public boolean check() {
         checkClock();
         return true;
@@ -1038,14 +1042,14 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
     clockTimer.start();
     gcSafe.add(clockTimer);
 
-    gcSafe.add(com.jbidwatcher.AudioPlayer.getInstance());
+    gcSafe.add(AudioPlayer.getInstance());
 
     if(JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo();
     try {
       //  Don't leave this thread until the timeQueue has completed; i.e. the program is exiting.
       timeQueue.join();
     } catch (InterruptedException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("timeQueue interrupted", e);
+      ErrorManagement.handleException("timeQueue interrupted", e);
     }
   }
 

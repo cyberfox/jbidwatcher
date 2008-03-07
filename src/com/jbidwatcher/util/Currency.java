@@ -5,6 +5,7 @@ package com.jbidwatcher.util;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.util.config.ErrorManagement;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -313,7 +314,7 @@ public class Currency implements Comparable {
         try {
           actualValue = df.parse(valuePortion).doubleValue();
         } catch(java.text.ParseException e) {
-          com.jbidwatcher.util.config.ErrorManagement.handleException("currency parse!", e);
+          ErrorManagement.handleException("currency parse!", e);
           actualValue = 0.0;
         }
 

@@ -8,9 +8,10 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.db.*;
 import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.Currency;
 
-import java.util.*;
 import java.util.List;
+import java.util.LinkedList;
 import java.awt.*;
 
 /**
@@ -21,7 +22,7 @@ public class MultiSnipe extends ActiveRecord {
   private LinkedList<AuctionEntry> auctionEntriesInThisGroup = new LinkedList<AuctionEntry>();
   private static final int HEX_BASE = 16;
 
-  private void setValues(Color groupColor, com.jbidwatcher.util.Currency snipeValue, long id, boolean subtractShipping) {
+  private void setValues(Color groupColor, Currency snipeValue, long id, boolean subtractShipping) {
     mBackground = groupColor;
     setString("color", makeRGB(groupColor));
     setMonetary("default_bid", snipeValue);
@@ -60,13 +61,13 @@ public class MultiSnipe extends ActiveRecord {
     super();
   }
 
-  public MultiSnipe(String groupColor, com.jbidwatcher.util.Currency snipeValue, long id, boolean subtractShipping) {
+  public MultiSnipe(String groupColor, Currency snipeValue, long id, boolean subtractShipping) {
     Color rgb = reverseColor(groupColor);
     setString("color", groupColor);
     setValues(rgb, snipeValue, id, subtractShipping);
   }
 
-  public MultiSnipe(Color groupColor, com.jbidwatcher.util.Currency snipeValue, boolean subtractShipping) {
+  public MultiSnipe(Color groupColor, Currency snipeValue, boolean subtractShipping) {
     setValues(groupColor, snipeValue, System.currentTimeMillis(), subtractShipping);
   }
 
@@ -77,13 +78,13 @@ public class MultiSnipe extends ActiveRecord {
     return mBackground;
   }
   public String getColorString() { return getString("color"); }
-  public com.jbidwatcher.util.Currency getSnipeValue(AuctionEntry ae) {
+  public Currency getSnipeValue(AuctionEntry ae) {
     if(ae != null && getBoolean("subtract_shipping")) {
-      com.jbidwatcher.util.Currency shipping = ae.getShippingWithInsurance();
+      Currency shipping = ae.getShippingWithInsurance();
       if(shipping != null && !shipping.isNull()) {
         try {
           return getMonetary("default_bid").subtract(shipping);
-        } catch (com.jbidwatcher.util.Currency.CurrencyTypeException e) {
+        } catch (Currency.CurrencyTypeException e) {
           //  It's not relevant (although odd), we fall through to the return.
         }
       }
@@ -183,7 +184,7 @@ public class MultiSnipe extends ActiveRecord {
   }
 
   public static MultiSnipe findFirstBy(String key, String value) {
-    return (MultiSnipe) com.jbidwatcher.util.db.ActiveRecord.findFirstBy(MultiSnipe.class, key, value);
+    return (MultiSnipe) ActiveRecord.findFirstBy(MultiSnipe.class, key, value);
   }
 
   public static MultiSnipe find(Integer id) {

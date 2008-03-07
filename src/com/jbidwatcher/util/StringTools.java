@@ -235,7 +235,7 @@ public class StringTools {
       buf[0] = new byte[(int)fp.length()];
       FileInputStream fis = new FileInputStream(fp);
       int read = fis.read(buf[0], 0, (int)fp.length());
-      if(read != fp.length()) com.jbidwatcher.util.config.ErrorManagement.logDebug("Couldn't read any data from " + fp.getName());
+      if(read != fp.length()) ErrorManagement.logDebug("Couldn't read any data from " + fp.getName());
       fis.close();
     } catch(IOException e) {
       ErrorManagement.handleException("Can't read file " + fp.getName(), e);

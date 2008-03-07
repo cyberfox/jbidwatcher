@@ -6,6 +6,7 @@ package com.jbidwatcher.ui.config;
  */
 
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.ui.util.JPasteListener;
 
 import java.awt.*;
 import javax.swing.*;
@@ -35,7 +36,7 @@ public class JConfigSnipeTab extends JConfigTab {
     tp.setLayout(new BorderLayout());
 
     snipeTime = new JTextField();
-    snipeTime.addMouseListener(com.jbidwatcher.ui.util.JPasteListener.getInstance());
+    snipeTime.addMouseListener(JPasteListener.getInstance());
 	snipeTime.setToolTipText("Number of seconds prior to auction end to fire a snipe.");
 
     updateValues();

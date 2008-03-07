@@ -612,7 +612,7 @@ public class Base64
                 try {
                   throw new Exception("Bad Base64 input character at " + i + ": " + source[i] + "(decimal)");
                 } catch(Exception e) {
-                  com.jbidwatcher.util.config.ErrorManagement.handleException("Base64 Decode Problem", e);
+                  ErrorManagement.handleException("Base64 Decode Problem", e);
                 }
                 return null;
             }   // end else: 

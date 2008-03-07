@@ -1,5 +1,7 @@
 package com.jbidwatcher.util.queue;
 
+import com.jbidwatcher.util.config.ErrorManagement;
+
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -56,10 +58,10 @@ public class TimerHandler extends Thread {
       } catch(InterruptedException ignored) {
         interrupted = true;
       } catch(Exception e) {
-          com.jbidwatcher.util.config.ErrorManagement.handleException("Exception during the check() operation of " + _toWake.getClass().toString(), e);
+          ErrorManagement.handleException("Exception during the check() operation of " + _toWake.getClass().toString(), e);
       } catch(Error e) {
         //  This is more sketchy...
-        com.jbidwatcher.util.config.ErrorManagement.handleException("Serious error, consider dying.", e);
+        ErrorManagement.handleException("Serious error, consider dying.", e);
       }
     }
   }

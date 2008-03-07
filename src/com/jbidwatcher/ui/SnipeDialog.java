@@ -87,7 +87,7 @@ public class SnipeDialog extends BasicDialog {
     promptPane.add(quantityLabel = new JLabel("Quantity?", JLabel.TRAILING));
     quantityLabel.setLabelFor(quantityField);
     promptPane.add(quantityField);
-    com.jbidwatcher.ui.util.SpringUtilities.makeCompactGrid(promptPane, 2, 2, 6, 6, 6, 3);
+    SpringUtilities.makeCompactGrid(promptPane, 2, 2, 6, 6, 6, 3);
     //inputPane.add(JConfigTab.makeLine(new JLabel("How much do you wish to snipe?"), snipeAmount));
     //inputPane.add(JConfigTab.makeLine(quantityLabel = new JLabel("Quantity?"), quantityField));
     //inputPane.add(subtractShipping);

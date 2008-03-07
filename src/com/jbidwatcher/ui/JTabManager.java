@@ -127,7 +127,7 @@ public class JTabManager extends JBidMouse {
 
   public void selectBySearch(String srch) {
     TableSorter curTable = getCurrentTable();
-    com.jbidwatcher.ui.table.Selector mySelector = new mySelector(srch);
+    Selector mySelector = new mySelector(srch);
     if(!curTable.select(mySelector)) {
       java.awt.Toolkit.getDefaultToolkit().beep();
       MQFactory.getConcrete("Swing").enqueue("No entries matched!");

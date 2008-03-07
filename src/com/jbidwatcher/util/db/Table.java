@@ -50,7 +50,7 @@ public class Table
    * @throws ClassNotFoundException - If we can't find the JDBC driver for the database at all.
    */
   public Table(String tablename) throws SQLException, IllegalAccessException, InstantiationException, ClassNotFoundException {
-    mDB = new com.jbidwatcher.util.db.Database(null);
+    mDB = new Database(null);
     mTableName = tablename;
 
     PreparedStatement query = mDB.prepare("SELECT * FROM " + mTableName);
@@ -66,7 +66,7 @@ public class Table
     try {
       mS.close();
     } catch (SQLException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Can't shut down database.", e);
+      ErrorManagement.handleException("Can't shut down database.", e);
     }
     mDB.commit();
     mDB.shutdown();
@@ -236,7 +236,7 @@ public class Table
       ResultSet rs = ps.executeQuery();
       oldRow = getFirstResult(rs);
     } catch (SQLException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Can't get row" + (forUpdate? " for update":"") + " (" + columnKey + " = '" + value +"').", e);
+      ErrorManagement.handleException("Can't get row" + (forUpdate? " for update":"") + " (" + columnKey + " = '" + value +"').", e);
     }
     return oldRow;
   }
@@ -371,7 +371,7 @@ public class Table
           }
         }
       } else {
-        com.jbidwatcher.util.config.ErrorManagement.logDebug("WTF?!?!");
+        ErrorManagement.logDebug("WTF?!?!");
       }
     } catch (SQLException e) {
       e.printStackTrace();
@@ -390,7 +390,7 @@ public class Table
         mColumnMap.put(key, new TypeColumn(value, i));
       }
     } catch (SQLException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Can't load metadata for table " + mTableName + ".", e);
+      ErrorManagement.handleException("Can't load metadata for table " + mTableName + ".", e);
     }
   }
 

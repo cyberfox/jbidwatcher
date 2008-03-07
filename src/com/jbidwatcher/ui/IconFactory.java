@@ -114,7 +114,7 @@ public class IconFactory {
     try {
       image = ImageIO.read(input);
     } catch (IOException ioe) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Can't read " + inFile + " to create thumbnail.", ioe);
+      ErrorManagement.handleException("Can't read " + inFile + " to create thumbnail.", ioe);
       return false;
     }
 
@@ -140,7 +140,7 @@ public class IconFactory {
       FileOutputStream fos = new FileOutputStream(outFile);
       ImageIO.write(createResizedCopy(image, new_x, new_y, true), "jpeg", fos);
     } catch (FileNotFoundException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Can't write " + outFile + " to create thumbnail.", e);
+      ErrorManagement.handleException("Can't write " + outFile + " to create thumbnail.", e);
       return false;
     } catch (IOException e) {
       ErrorManagement.handleException("Can't generate image " + outFile + ".", e);

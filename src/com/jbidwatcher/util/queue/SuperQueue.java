@@ -34,7 +34,7 @@ public class SuperQueue {
   }
 
   public TimerHandler start() {
-    TimerHandler timeQueue = new com.jbidwatcher.util.queue.TimerHandler(mTQM);
+    TimerHandler timeQueue = new TimerHandler(mTQM);
     timeQueue.setName("SuperQueue");
     timeQueue.start();
 

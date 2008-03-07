@@ -224,13 +224,12 @@ public class OptionUI {
    */
   public JFrame showTextDisplay(StringBuffer inSB, Dimension inSize, String frameName) {
     JFrame otherFrame;
-    com.jbidwatcher.ui.util.JBEditorPane jep;
+    JBEditorPane jep;
     JScrollPane jsp;
 
     jep = getBasicEditor(inSB, inSize, false);
 
-    otherFrame = new JFrame(frameName);
-    Platform.setMacFrameMenu(otherFrame);
+    otherFrame = new JBidFrame(frameName);
 
     jsp = new JScrollPane(jep);
     jsp.getVerticalScrollBar().setValue(0);
@@ -246,11 +245,10 @@ public class OptionUI {
 
   public JFrame showTextDisplayWithButtons(StringBuffer inSB, Dimension inSize, String frameName, final String config, final String buttonText1, final String value1, final String buttonText2, final String value2) {
     final JBEditorPane jep = getBasicEditor(inSB, inSize, false);
-    final JFrame otherFrame = new JFrame(frameName);
+    final JFrame otherFrame = new JBidFrame(frameName);
     final JScrollPane jsp;
 
     otherFrame.getContentPane().setLayout(new BorderLayout());
-    Platform.setMacFrameMenu(otherFrame);
     JPanel buttonPanel = new JPanel(new BorderLayout());
     JButton button1 = new JButton(buttonText1);
     button1.addActionListener(new ActionListener() {
@@ -302,10 +300,9 @@ public class OptionUI {
    * @return - The JFrame of the display.
    */
   public JFrame showChoiceTextDisplay(StringBuffer inSB, Dimension inSize, String frameName, List<String> choices, String borderTitle, ActionListener al) {
-    com.jbidwatcher.ui.util.JBEditorPane jep = getBasicEditor(inSB, inSize, true);
+    JBEditorPane jep = getBasicEditor(inSB, inSize, true);
 
-    JFrame otherFrame = new JFrame(frameName);
-    Platform.setMacFrameMenu(otherFrame);
+    JFrame otherFrame = new JBidFrame(frameName);
 
     JPanel insidePanel = new JPanel(new BorderLayout());
 

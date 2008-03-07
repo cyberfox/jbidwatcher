@@ -82,12 +82,12 @@ class ebayAuction extends SpecificAuction {
 
   boolean checkValidTitle(String auctionTitle) {
     if(auctionTitle.startsWith(Externalized.getString("ebayServer.liveAuctionsTitle"))) {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("JBidWatcher cannot handle live auctions!");
+      ErrorManagement.logMessage("JBidWatcher cannot handle live auctions!");
       return false;
     }
 
     if(auctionTitle.startsWith(Externalized.getString("ebayServer.greatCollectionsTitle"))) {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("JBidWatcher cannot handle Great Collections items yet.");
+      ErrorManagement.logMessage("JBidWatcher cannot handle Great Collections items yet.");
       return false;
     }
 
@@ -107,11 +107,11 @@ class ebayAuction extends SpecificAuction {
     return false;
   }
 
-  private com.jbidwatcher.util.Currency getUSCurrency(Currency val, JHTML _htmlDoc) {
+  private Currency getUSCurrency(Currency val, JHTML _htmlDoc) {
     Currency newCur = zeroDollars;
 
     if(val != null && !val.isNull()) {
-      if (val.getCurrencyType() == com.jbidwatcher.util.Currency.US_DOLLAR) {
+      if (val.getCurrencyType() == Currency.US_DOLLAR) {
         newCur = val;
       } else {
         newCur = walkForUSCurrency(_htmlDoc, newCur);
@@ -172,9 +172,9 @@ class ebayAuction extends SpecificAuction {
       MQFactory.getConcrete("Swing").enqueue("LINK DOWN eBay (or the link to eBay) appears to be down.");
       MQFactory.getConcrete("Swing").enqueue("eBay (or the link to eBay) appears to be down for the moment.");
     } else if(in_title.indexOf(Externalized.getString("ebayServer.invalidItem")) != -1) {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Found bad/deleted item.");
+      ErrorManagement.logDebug("Found bad/deleted item.");
     } else {
-      com.jbidwatcher.util.config.ErrorManagement.logDebug("Failed to load auction title from header: \"" + in_title + '\"');
+      ErrorManagement.logDebug("Failed to load auction title from header: \"" + in_title + '\"');
     }
   }
 
@@ -206,7 +206,7 @@ class ebayAuction extends SpecificAuction {
 
   private Pattern amountPat = Pattern.compile("(([0-9]+\\.[0-9]+|(?i)free))");
 
-  private void load_shipping_insurance(com.jbidwatcher.util.Currency sampleAmount) {
+  private void load_shipping_insurance(Currency sampleAmount) {
     String shipString = mDocument.getNextContentAfterRegex(Externalized.getString("ebayServer.shipping"));
     //  Sometimes the next content might not be the shipping amount, it might be the next-next.
     Matcher amount = null;
@@ -363,7 +363,7 @@ class ebayAuction extends SpecificAuction {
       }
     } catch(Throwable t) {
       //  I don't actually CARE about any of this data, or any errors that occur on loading it, so don't mess things up on errors.
-      com.jbidwatcher.util.config.ErrorManagement.logDebug(t.getMessage());
+      ErrorManagement.logDebug(t.getMessage());
     }
   }
 
@@ -400,7 +400,7 @@ class ebayAuction extends SpecificAuction {
     try {
       load_buy_now();
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Buy It Now Loading error", e);
+      ErrorManagement.handleException("Buy It Now Loading error", e);
     }
 
     if (isFixedPrice()) {
@@ -417,7 +417,7 @@ class ebayAuction extends SpecificAuction {
     try {
       load_shipping_insurance(getCurBid());
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Shipping / Insurance Loading Failed", e);
+      ErrorManagement.handleException("Shipping / Insurance Loading Failed", e);
     }
 
     if (checkSeller(ae)) return AuctionServer.ParseErrors.SELLER_AWAY;
@@ -576,22 +576,22 @@ class ebayAuction extends SpecificAuction {
           if(durationRaw != null) {
             String duration = durationRaw.replaceAll("[^0-9]", "");
             long days = Long.parseLong(duration);
-            if(getStart() != null && !getStart().equals(com.jbidwatcher.util.Constants.LONG_AGO)) {
-              long endTime = getStart().getTime() + com.jbidwatcher.util.Constants.ONE_DAY * days;
+            if(getStart() != null && !getStart().equals(Constants.LONG_AGO)) {
+              long endTime = getStart().getTime() + Constants.ONE_DAY * days;
               setEnd(new Date(endTime));
             } else {
-              setEnd(com.jbidwatcher.util.Constants.FAR_FUTURE);
+              setEnd(Constants.FAR_FUTURE);
             }
           } else {
-            com.jbidwatcher.util.config.ErrorManagement.logMessage("Setting auction #" + getIdentifier() + " to be a 'Far Future' listing, as it has no date info.");
+            ErrorManagement.logMessage("Setting auction #" + getIdentifier() + " to be a 'Far Future' listing, as it has no date info.");
             setEnd(Constants.FAR_FUTURE);
           }
         }
       }
     }
 
-    if (getStart() == null) setStart(com.jbidwatcher.util.Constants.LONG_AGO);
-    if (getEnd() == null) setEnd(com.jbidwatcher.util.Constants.FAR_FUTURE);
+    if (getStart() == null) setStart(Constants.LONG_AGO);
+    if (getEnd() == null) setEnd(Constants.FAR_FUTURE);
   }
 
   /**
@@ -608,7 +608,7 @@ class ebayAuction extends SpecificAuction {
       try {
         if(!ae.isBidOn() || ae.getBid().less(maxBid)) ae.setBid(maxBid);
       } catch(Currency.CurrencyTypeException cte) {
-        com.jbidwatcher.util.config.ErrorManagement.handleException("eBay says my max bid is a different type of currency than I have stored!", cte);
+        ErrorManagement.handleException("eBay says my max bid is a different type of currency than I have stored!", cte);
       }
     }
   }
@@ -698,7 +698,7 @@ class ebayAuction extends SpecificAuction {
         }
       }
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Error handling thumbnail loading", e);
+      ErrorManagement.handleException("Error handling thumbnail loading", e);
     }
   }
 

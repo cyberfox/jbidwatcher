@@ -28,6 +28,7 @@ import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.Constants;
 
 public class Tray implements ItemListener, MessageQueue.Listener {
   //  This creates a new Thread (currently named Thread 9).
@@ -51,7 +52,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
         MQFactory.getConcrete("Swing").enqueue(cmd);
       } else {
         String s = "Action event detected." + '\n' + "    Event source: " + e.getSource() + " (an instance of " + getClassName(e.getSource()) + ")\n    ActionCommand: " + e.getActionCommand();
-        com.jbidwatcher.util.config.ErrorManagement.logDebug(s);
+        ErrorManagement.logDebug(s);
       }
     }
   }
@@ -137,7 +138,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
   public void messageAction(Object deQ) {
     String msg = (String)deQ;
     if(msg.startsWith("TOOLTIP ")) {
-      ti.setToolTip(com.jbidwatcher.util.Constants.PROGRAM_NAME + ' ' + com.jbidwatcher.util.Constants.PROGRAM_VERS + '\n' + msg.substring(8));
+      ti.setToolTip(Constants.PROGRAM_NAME + ' ' + Constants.PROGRAM_VERS + '\n' + msg.substring(8));
     } else if(msg.startsWith("NOTIFY ")) {
       ti.displayMessage("JBidwatcher Alert", msg.substring(7), TrayIcon.INFO_MESSAGE_TYPE);
     } else if(msg.startsWith("HIDDEN")) {

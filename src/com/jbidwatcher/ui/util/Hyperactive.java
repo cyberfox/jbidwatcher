@@ -12,8 +12,8 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 public class Hyperactive implements HyperlinkListener {
-  com.jbidwatcher.ui.util.JBEditorPane _pane;
-  public Hyperactive(com.jbidwatcher.ui.util.JBEditorPane tPane) {
+  JBEditorPane _pane;
+  public Hyperactive(JBEditorPane tPane) {
     super();
     _pane = tPane;
   }

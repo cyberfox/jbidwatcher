@@ -4,6 +4,7 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.ui.util.JPasteListener;
+import com.jbidwatcher.ui.config.JConfigTab;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -16,7 +17,7 @@ import java.awt.Font;
 * Time: 3:08:00 AM
 * To change this template use File | Settings | File Templates.
 */
-public class JConfigEbayTab extends com.jbidwatcher.ui.config.JConfigTab
+public class JConfigEbayTab extends JConfigTab
 {
   JCheckBox adultBox;
   JCheckBox synchBox = null;

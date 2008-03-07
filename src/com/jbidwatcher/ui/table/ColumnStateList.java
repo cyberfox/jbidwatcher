@@ -11,29 +11,29 @@ import java.util.ListIterator;
 
 public class ColumnStateList {
 	
-	private ArrayList<com.jbidwatcher.ui.table.ColumnState> columnStateList;
+	private ArrayList<ColumnState> columnStateList;
 	
 	public ColumnStateList() {
-		columnStateList = new ArrayList<com.jbidwatcher.ui.table.ColumnState>();
+		columnStateList = new ArrayList<ColumnState>();
 	}
 	
 	public void clear() {
 		columnStateList.clear();
 	}
 	
-	public boolean add(com.jbidwatcher.ui.table.ColumnState columnState) {
+	public boolean add(ColumnState columnState) {
 		return columnStateList.add(columnState);
 	}
 	
-	public boolean remove(com.jbidwatcher.ui.table.ColumnState columnState) {
+	public boolean remove(ColumnState columnState) {
 		return columnStateList.remove(columnState);
 	}
 	
-	public com.jbidwatcher.ui.table.ColumnState get(int index) {
+	public ColumnState get(int index) {
 		return columnStateList.get(index);
 	}
 	
-	public int indexOf(com.jbidwatcher.ui.table.ColumnState columnState) {
+	public int indexOf(ColumnState columnState) {
 		return columnStateList.indexOf(columnState);
 	}
 	
@@ -41,7 +41,7 @@ public class ColumnStateList {
 		return columnStateList.size();
 	}
 	
-	public ListIterator<com.jbidwatcher.ui.table.ColumnState> listIterator() {
+	public ListIterator<ColumnState> listIterator() {
 		return columnStateList.listIterator();
 	}
 	

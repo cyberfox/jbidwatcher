@@ -13,11 +13,11 @@ package com.jbidwatcher.ui.table;
  * Time: 1:40:30 AM
  *
  */
-public class Transformation extends com.jbidwatcher.ui.table.BaseTransformation
+public class Transformation extends BaseTransformation
 {
   Transformation() { }
 
-  Transformation(com.jbidwatcher.ui.table.BaseTransformation chain) {
+  Transformation(BaseTransformation chain) {
     super(chain);
   }
 
@@ -46,7 +46,7 @@ public class Transformation extends com.jbidwatcher.ui.table.BaseTransformation
     return m_tm.getValueAt(newrow, newcol);
   }
 
-  public synchronized int compare(int row1, int row2, com.jbidwatcher.ui.table.ColumnStateList columnStateList) {
+  public synchronized int compare(int row1, int row2, ColumnStateList columnStateList) {
     if (!checkRowModel()) {
       initializeRows(m_tm);
       postInitialize();

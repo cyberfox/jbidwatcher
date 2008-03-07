@@ -11,6 +11,7 @@ import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.ui.table.SearchTableModel;
 import com.jbidwatcher.ui.table.TableSorter;
+import com.jbidwatcher.ui.util.JBidFrame;
 
 import java.awt.event.*;
 import javax.swing.*;
@@ -62,8 +63,7 @@ public class SearchFrame implements ActionListener {
     Box buttonBox = Box.createHorizontalBox();
     JSearchContext jsc = new JSearchContext();
 
-    final JFrame w = new JFrame("Search Manager");
-    Platform.setMacFrameMenu(w);
+    final JFrame w = new JBidFrame("Search Manager");
 
     Container contentPane = w.getContentPane();
     contentPane.setLayout(new BorderLayout());
@@ -134,7 +134,7 @@ public class SearchFrame implements ActionListener {
   }
 
   private JScrollPane buildSearchTable(JSearchContext jsc) {
-    _stm = new com.jbidwatcher.ui.table.SearchTableModel();
+    _stm = new SearchTableModel();
     _ts = new TableSorter("search", "Name", _stm);
     JTable searchTable = new JTable(_ts);
     searchTable.addMouseListener(jsc);

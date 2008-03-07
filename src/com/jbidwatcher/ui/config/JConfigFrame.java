@@ -7,7 +7,10 @@ package com.jbidwatcher.ui.config;
 
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.config.*;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.ui.util.JBidFrame;
+import com.jbidwatcher.ui.util.OptionUI;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -37,7 +40,7 @@ public class JConfigFrame implements ActionListener {
   public void spinWait() {
     while(!buttonPressed) {
       try { //noinspection MultiplyOrDivideByPowerOfTwo,BusyWait
-        Thread.sleep(com.jbidwatcher.util.Constants.ONE_SECOND/2);
+        Thread.sleep(Constants.ONE_SECOND/2);
       } catch(InterruptedException ignored) {
         //  We don't care that we caught an exception, just that we woke up.
       }
@@ -46,7 +49,7 @@ public class JConfigFrame implements ActionListener {
 
   public JConfigFrame() {
     mainFrame = createConfigFrame();
-    Rectangle rec = com.jbidwatcher.ui.util.OptionUI.findCenterBounds(mainFrame.getPreferredSize());
+    Rectangle rec = OptionUI.findCenterBounds(mainFrame.getPreferredSize());
     mainFrame.setLocation(rec.x, rec.y);
     show();
   }
@@ -112,12 +115,11 @@ public class JConfigFrame implements ActionListener {
     final JFrame w;
 
     if(cfgCount == 2) {
-      w = new JFrame("Configuration Manager (2)");
+      w = new JBidFrame("Configuration Manager (2)");
     } else {
       anotherConfig();
-      w = new JFrame("Configuration Manager");
+      w = new JBidFrame("Configuration Manager");
     }
-    Platform.setMacFrameMenu(w);
 
     Container contentPane = w.getContentPane();
     contentPane.setLayout(new BorderLayout());
@@ -139,14 +141,14 @@ public class JConfigFrame implements ActionListener {
     } else {
       allTabs.add(new JConfigBrowserTab());
     }
-    allTabs.add(new com.jbidwatcher.ui.config.JConfigFirewallTab());
+    allTabs.add(new JConfigFirewallTab());
     allTabs.add(new JConfigSnipeTab());
-    allTabs.add(new com.jbidwatcher.ui.config.JConfigFilePathTab());
+    allTabs.add(new JConfigFilePathTab());
     allTabs.add(new JConfigWebserverTab());
 
     //  Don't add the tabs that don't work yet.  -- BUGBUG (need to write the tabs)
     allTabs.add(new JConfigSecurityTab());
-    allTabs.add(new com.jbidwatcher.ui.config.JConfigAdvancedTab());
+    allTabs.add(new JConfigAdvancedTab());
 
     //  HACKHACK -- Presently all tabs created need to have 3 rows of
     //  GridLayout.  In general, all tabs have to have the same number

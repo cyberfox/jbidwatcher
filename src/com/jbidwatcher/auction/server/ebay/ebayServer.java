@@ -13,6 +13,7 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.Externalized;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
@@ -40,7 +41,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private final static String eBayDisplayName = "eBay";
   private final static String eBayServerName = "ebay";
 
-  private static final int THREE_SECONDS = 3 * com.jbidwatcher.util.Constants.ONE_SECOND;
+  private static final int THREE_SECONDS = 3 * Constants.ONE_SECOND;
 
   /**
    * The human-readable name of the auction server.
@@ -121,7 +122,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return false;
   }
 
-  public com.jbidwatcher.util.Currency getMinimumBidIncrement(com.jbidwatcher.util.Currency currentBid, int bidCount) {
+  public Currency getMinimumBidIncrement(Currency currentBid, int bidCount) {
     return sCurrencies.getMinimumBidIncrement(currentBid, bidCount);
   }
 
@@ -148,7 +149,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *
    * @return - A new tab to be added to the configuration display.
    */
-  public List<com.jbidwatcher.ui.config.JConfigTab> getConfigurationTabs() {
+  public List<JConfigTab> getConfigurationTabs() {
     List<JConfigTab> tabs = new ArrayList<JConfigTab>();
     //  Always return a new one, to fix a problem on first startup.
     tabs.add(new JConfigEbayTab(eBayDisplayName, sSiteChoices));
@@ -224,7 +225,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
       //  Check the next two columns for acceptable values.
       for(int i=0; i<2; i++) {
-        com.jbidwatcher.util.Currency highBid = com.jbidwatcher.util.Currency.getCurrency(newCurrency);
+        Currency highBid = Currency.getCurrency(newCurrency);
         if(!highBid.isNull()) {
           if(ae.isDutch()) {
             String quant = htmlDocument.getNextContent();
@@ -240,7 +241,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
               ae.setBid(highBid);
               ae.setBidQuantity(bidCount);
             }
-          } catch(com.jbidwatcher.util.Currency.CurrencyTypeException cte) {
+          } catch(Currency.CurrencyTypeException cte) {
             //  Bad things happen here.  Ignore it for now.
           }
         }
@@ -320,7 +321,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           snipeMap.remove(snipeOn.getIdentifier());
         }
 
-        long two_minutes = com.jbidwatcher.util.Constants.ONE_MINUTE*2;
+        long two_minutes = Constants.ONE_MINUTE*2;
         AuctionQObject payload = new AuctionQObject(AuctionQObject.SNIPE, new Snipe(mLogin, mBidder, snipeOn), null);
 
         _etqm.add(payload, "snipes", (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime())-two_minutes);
@@ -396,10 +397,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     } else {
       if (ac.getData() instanceof String) {
         String acData = (String) ac.getData();
-        com.jbidwatcher.util.config.ErrorManagement.logMessage("Dequeue'd unexpected command or fell through: " + ac.getCommand() + ':' + acData);
+        ErrorManagement.logMessage("Dequeue'd unexpected command or fell through: " + ac.getCommand() + ':' + acData);
       } else {
         //noinspection ObjectToString
-        com.jbidwatcher.util.config.ErrorManagement.logMessage("Can't recognize ebay-queued data: " + ac.getData());
+        ErrorManagement.logMessage("Can't recognize ebay-queued data: " + ac.getData());
       }
     }
   }
@@ -468,7 +469,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
     }
 
-    com.jbidwatcher.util.config.ErrorManagement.logDebug("extractIdentifierFromURLString failed.");
+    ErrorManagement.logDebug("extractIdentifierFromURLString failed.");
     return null;
   }
 
@@ -613,7 +614,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     String curName = htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.bidListPrequel"));
 
     if(curName == null) {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("Problem with loaded page when getting bidder names for auction " + ae.getIdentifier());
+      ErrorManagement.logMessage("Problem with loaded page when getting bidder names for auction " + ae.getIdentifier());
       return null;
     }
 
@@ -692,7 +693,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       if(mCal == null) {
         mCal = new GregorianCalendar(serverTZ);
         if(JConfig.queryConfiguration("display.ebayTime", "false").equals("true")) {
-          com.jbidwatcher.util.Constants.remoteClockFormat.setCalendar(mCal);
+          Constants.remoteClockFormat.setCalendar(mCal);
         }
       }
 
@@ -706,10 +707,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       mCal.setTime(mNow);
       //  Just in case it changes because of the setup.
       mNow.setTime(mCal.getTimeInMillis());
-      return mLogin.getUserId() + '@' + getName() + ": " + com.jbidwatcher.util.Constants.remoteClockFormat.format(mNow);
+      return mLogin.getUserId() + '@' + getName() + ": " + Constants.remoteClockFormat.format(mNow);
     } else {
       mNow.setTime(System.currentTimeMillis());
-      return mLogin.getUserId() + '@' + getName() + ": " + com.jbidwatcher.util.Constants.localClockFormat.format(mNow);
+      return mLogin.getUserId() + '@' + getName() + ": " + Constants.localClockFormat.format(mNow);
     }
   }
 
@@ -776,7 +777,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if (result == null || result.getDate() == null) {
       mPageRequestTime = 0;
       //  This is bad...
-      com.jbidwatcher.util.config.ErrorManagement.logMessage(getName() + ": Error, can't accurately set delta to server's official time.");
+      ErrorManagement.logMessage(getName() + ": Error, can't accurately set delta to server's official time.");
       mOfficialServerTimeDelta = 0;
       return null;
     } else {
@@ -788,7 +789,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       //noinspection MultiplyOrDivideByPowerOfTwo
       mOfficialServerTimeDelta = (result.getDate().getTime() - localDateBeforePage) - (reqTime / 2);
       if (result.getZone() != null) mOfficialServerTimeZone = (result.getZone());
-      if(Math.abs(mOfficialServerTimeDelta) > com.jbidwatcher.util.Constants.ONE_DAY * 7) {
+      if(Math.abs(mOfficialServerTimeDelta) > Constants.ONE_DAY * 7) {
         MQFactory.getConcrete("Swing").enqueue("NOTIFY Your system time is off from eBay's by more than a week.");
       }
     }

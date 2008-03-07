@@ -13,6 +13,7 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
 import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 
 import java.io.*;
@@ -22,6 +23,13 @@ import java.util.ArrayList;
 public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, TimerHandler.WakeupProcess {
   private List<Searcher> _searches = new ArrayList<Searcher>();
   private static SearchManager _instance = null;
+
+  private SearchManager() { }
+  public static SearchManager getInstance() {
+    if (_instance == null) _instance = new SearchManager();
+
+    return _instance;
+  }
 
   public void addSearch(Searcher newSearch) {
     _searches.add(newSearch);
@@ -109,7 +117,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
 
       ps.println("<?xml version=\"1.0\"?>");
       ps.println("");
-      ps.println(com.jbidwatcher.util.Constants.XML_SEARCHES_DOCTYPE);
+      ps.println(Constants.XML_SEARCHES_DOCTYPE);
       ps.println("");
       ps.println(saveData);
       ps.close();
@@ -146,7 +154,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
       ErrorManagement.logDebug("JBW: Failed to load saved searches, the search file is probably not there yet.");
       ErrorManagement.logDebug("JBW: This is not an error, unless you are consistently getting it.");
     } catch(Exception e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("JBW: Failed to load saved searches, file exists but can't be loaded!", e);
+      ErrorManagement.handleException("JBW: Failed to load saved searches, file exists but can't be loaded!", e);
     }
   }
 
@@ -213,7 +221,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     } else if(type.equals("My Items")) {
       return new MyItemSearcher();
     } else {
-      com.jbidwatcher.util.config.ErrorManagement.logMessage("Failed to create searcher for: " + type);
+      ErrorManagement.logMessage("Failed to create searcher for: " + type);
     }
 
     return null;
@@ -235,16 +243,6 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     s.setPeriod(period);
     s.setCurrency(currency);
     return s;
-  }
-
-  private SearchManager() {
-    AuctionServerManager.getInstance().addSearches(this);
-  }
-
-  public static SearchManager getInstance() {
-    if(_instance == null) _instance = new SearchManager();
-
-    return _instance;
   }
 
   public void saveSearchDisplay() {

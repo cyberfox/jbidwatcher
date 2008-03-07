@@ -22,7 +22,7 @@ public class DBManager {
 
   private class DBSaveManager implements MessageQueue.Listener {
     public void messageAction(Object deQ) {
-      mStores.add((com.jbidwatcher.util.db.ActiveRecord)deQ);
+      mStores.add((ActiveRecord)deQ);
     }
   }
 
@@ -45,7 +45,7 @@ public class DBManager {
   }
 
   private DBManager() {
-    mStores = Collections.synchronizedSet(new HashSet<com.jbidwatcher.util.db.ActiveRecord>());
+    mStores = Collections.synchronizedSet(new HashSet<ActiveRecord>());
 
     DBSaveManager saveManager = new DBSaveManager();
     MQFactory.getConcrete("dbsave").registerListener(saveManager);

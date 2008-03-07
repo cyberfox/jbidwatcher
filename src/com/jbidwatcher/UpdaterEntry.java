@@ -51,7 +51,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
 
   public void loadFromString(StringBuffer sb, String packageName) {
     if(sb == null || packageName == null) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("loadFromString Failed with a null pointer!", new Exception("Updater got incorrect XML file."));
+      ErrorManagement.handleException("loadFromString Failed with a null pointer!", new Exception("Updater got incorrect XML file."));
     } else {
       XMLElement xmlUpdate = new XMLElement(true);
 
@@ -88,7 +88,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
         //  Allow validating individual configuration settings by program version.
         String vNum = curElement.getProperty("VERSION");
         if(vNum != null) {
-          valid = vNum.equals(com.jbidwatcher.util.Constants.PROGRAM_VERS);
+          valid = vNum.equals(Constants.PROGRAM_VERS);
         }
         //  Allow validating individual configuration settings by configuration settings.
         String checkTrue = curElement.getProperty("CHECKTRUE");
@@ -198,7 +198,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
     JConfig.setConfiguration("updates.lastConfig", Long.toString(lastStamp));
     if(cfgChanged) JConfig.updateComplete();
     if(alert != null) {
-      com.jbidwatcher.ui.util.OptionUI oui = new OptionUI();
+      OptionUI oui = new OptionUI();
       Dimension aboutBoxSize = new Dimension(495, 245);
 
       oui.showTextDisplay(alert, aboutBoxSize, Constants.PROGRAM_NAME + " News Alert...");

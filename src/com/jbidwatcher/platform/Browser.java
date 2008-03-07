@@ -8,6 +8,9 @@ package com.jbidwatcher.platform;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.browser.WindowsBrowserLauncher;
+import com.jbidwatcher.util.browser.BrowserLauncher;
 
 import java.io.*;
 
@@ -26,7 +29,7 @@ public class Browser extends JConfig implements MessageQueue.Listener {
     String osName = getOS();
 
     if(osName.equalsIgnoreCase("windows")) {
-      return com.jbidwatcher.util.browser.WindowsBrowserLauncher.getBrowser("http");
+      return WindowsBrowserLauncher.getBrowser("http");
     } else {
       return "netscape";
     }
@@ -53,9 +56,9 @@ public class Browser extends JConfig implements MessageQueue.Listener {
     }
 
     try {
-      com.jbidwatcher.util.browser.BrowserLauncher.openURL(url, launchCommand, JConfig.queryConfiguration("browser.override","false").equals("true"));
+      BrowserLauncher.openURL(url, launchCommand, JConfig.queryConfiguration("browser.override","false").equals("true"));
     } catch(IOException e) {
-      com.jbidwatcher.util.config.ErrorManagement.handleException("Launching browser", e);
+      ErrorManagement.handleException("Launching browser", e);
       return false;
     }
     return true;
