@@ -5,7 +5,6 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.JBidFrame;

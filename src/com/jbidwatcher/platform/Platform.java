@@ -6,9 +6,6 @@ package com.jbidwatcher.platform;
  */
 
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.ui.JTabManager;
-import com.jbidwatcher.ui.AuctionsUIModel;
-import com.jbidwatcher.ui.JBidMenuBar;
 import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.*;
