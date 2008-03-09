@@ -13,7 +13,7 @@ public class Constants {
  * in just one place.
  */
   public static final String PROGRAM_NAME = "JBidWatcher";
-  public static final String PROGRAM_VERS = "2.0pre1";
+  public static final String PROGRAM_VERS = "2.0alpha1";
 /** The clock format to use everywhere, when referring to remote times.
  */
   public static final SimpleDateFormat remoteClockFormat = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss z");
@@ -23,7 +23,7 @@ public class Constants {
 
   /** The URL to use when checking for updates.
  */
-  public static final String UPDATE_URL = "http://www.jbidwatcher.com/jbidwatcher.xml";
+  public static final String UPDATE_URL = "http://www.jbidwatcher.com/jbidwatcher2.xml";
 /** One second in microseconds.
  */
   public static final int ONE_SECOND = 1000;

@@ -13,7 +13,7 @@
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidWatcher" />
-  <property name="VER" value="2.0pre1" />
+  <property name="VER" value="2.0alpha1" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
@@ -121,8 +121,8 @@
       <fileset dir="${user.home}/.jbidwatcher" includes="display.cfg" />
       <fileset dir="${build.dir}" includes="**/*.class" />
       <!-- <fileset dir="${lib.dir}" includes="**/*.class" /> -->
-      <fileset dir="${main.dir}" includes="icons/*.gif" />
-      <fileset dir="${main.dir}" includes="icons/*.png" />
+      <fileset dir="${main.dir}" includes="icons/**/*.gif" />
+      <fileset dir="${main.dir}" includes="icons/**/*.png" />
       <fileset dir="${main.dir}" includes="audio/*.mp3" />
       <fileset dir="${main.dir}" includes="help/*.jpg" />
       <fileset dir="${main.dir}" includes="help/*.jbh" />
@@ -160,8 +160,8 @@
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="platform/jbidwatcher.jnlp" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="${MANIFEST}" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="jbidwatcher.properties" />
-      <tarfileset prefix="${TARSRC}/icons" dir="${main.dir}/icons" includes="*.gif" />
-      <tarfileset prefix="${TARSRC}/icons" dir="${main.dir}/icons" includes="*.png" />
+      <tarfileset prefix="${TARSRC}/icons" dir="${main.dir}/icons" includes="**/*.gif" />
+      <tarfileset prefix="${TARSRC}/icons" dir="${main.dir}/icons" includes="**/*.png" />
       <tarfileset prefix="${TARSRC}/audio" dir="${main.dir}/audio" includes="*.mp3" />
       <tarfileset prefix="${TARSRC}/platform" dir="${main.dir}/platform" />
       <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jpg" />
