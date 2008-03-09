@@ -14,7 +14,7 @@
   <icon>/tmp/jbidwatcher.ico</icon>
   <jre>
     <path></path>
-    <minVersion>1.5</minVersion>
+    <minVersion>1.5.0</minVersion>
     <maxVersion></maxVersion>
     <dontUsePrivateJres>false</dontUsePrivateJres>
     <initialHeapSize>0</initialHeapSize>
