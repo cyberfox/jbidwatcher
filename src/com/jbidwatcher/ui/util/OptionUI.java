@@ -5,7 +5,6 @@ package com.jbidwatcher.ui.util;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.util.JBEditorPane;
 
@@ -144,13 +143,14 @@ public class OptionUI {
    * @param sb - The StringBuffer to fill in as the text.
    * @param inSize - The preferred size for the editor.
    * @param fixed - Whether it's fixed in position or not.
+   * @param html - True if this is HTML data.
    *
    * @return - A JBEditorPane to be embedded in a frame.
    */
-  public JBEditorPane getBasicEditor(StringBuffer sb, Dimension inSize, boolean fixed) {
+  public JBEditorPane getBasicEditor(StringBuffer sb, Dimension inSize, boolean fixed, boolean html) {
     JBEditorPane jep;
 
-    jep = new JBEditorPane("text/html", sb.toString());
+    jep = new JBEditorPane(html ? "text/html" : "text/plain", sb.toString());
     jep.setEditable(false);
     jep.addHyperlinkListener(new Hyperactive(jep));
 
@@ -213,21 +213,26 @@ public class OptionUI {
     );
   }
 
+  public JFrame showTextDisplay(StringBuffer inSB, Dimension inSize, String frameName) {
+    return showTextDisplay(inSB, inSize, frameName, true);
+  }
+
   /**
    * @brief Show a big HTML-formatted text display.
    *
    * @param inSB - The data to show.
    * @param inSize - The size to show it at.
    * @param frameName - The name of the frame to show.
+   * @param isHTML - Is the StringBuffer
    *
    * @return - The JFrame of the display.
    */
-  public JFrame showTextDisplay(StringBuffer inSB, Dimension inSize, String frameName) {
+  public JFrame showTextDisplay(StringBuffer inSB, Dimension inSize, String frameName, boolean isHTML) {
     JFrame otherFrame;
     JBEditorPane jep;
     JScrollPane jsp;
 
-    jep = getBasicEditor(inSB, inSize, false);
+    jep = getBasicEditor(inSB, inSize, false, isHTML);
 
     otherFrame = new JBidFrame(frameName);
 
@@ -244,7 +249,7 @@ public class OptionUI {
   }
 
   public JFrame showTextDisplayWithButtons(StringBuffer inSB, Dimension inSize, String frameName, final String config, final String buttonText1, final String value1, final String buttonText2, final String value2) {
-    final JBEditorPane jep = getBasicEditor(inSB, inSize, false);
+    final JBEditorPane jep = getBasicEditor(inSB, inSize, false, true);
     final JFrame otherFrame = new JBidFrame(frameName);
     final JScrollPane jsp;
 
@@ -300,7 +305,7 @@ public class OptionUI {
    * @return - The JFrame of the display.
    */
   public JFrame showChoiceTextDisplay(StringBuffer inSB, Dimension inSize, String frameName, List<String> choices, String borderTitle, ActionListener al) {
-    JBEditorPane jep = getBasicEditor(inSB, inSize, true);
+    JBEditorPane jep = getBasicEditor(inSB, inSize, true, true);
 
     JFrame otherFrame = new JBidFrame(frameName);
 

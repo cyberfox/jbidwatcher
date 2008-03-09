@@ -5,31 +5,32 @@ package com.jbidwatcher.util.config;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.JConfig;
-
 import java.io.*;
 import java.util.Date;
 
 @SuppressWarnings({"UseOfSystemOutOrSystemErr", "UtilityClass"})
 public class ErrorManagement {
   private static int MAX_BUFFER_SIZE=50000;
-  static PrintWriter _pw = null;
-  static StringBuffer sb = new StringBuffer();
-  static LoggerWriter lw = new LoggerWriter(null);
+  private static PrintWriter _pw = null;
+  private static final StringBuffer sLogBuffer = new StringBuffer();
+  private static LoggerWriter lw = new LoggerWriter();
 
   private ErrorManagement() { }
 
   public static StringBuffer getLog() {
-    return sb;
+    return sLogBuffer;
   }
 
   private static void addLog(String s) {
     if(s == null) return;
-    if(s.length() + sb.length() > MAX_BUFFER_SIZE) {
-      int newline = sb.indexOf("\n", s.length());
-      sb.delete(0, newline);
+    synchronized(sLogBuffer) {
+      if(s.length() + sLogBuffer.length() > MAX_BUFFER_SIZE) {
+        int newline = sLogBuffer.indexOf("\n", s.length());
+        sLogBuffer.delete(0, newline);
+      }
+      sLogBuffer.append(s);
+      sLogBuffer.append("\n");
     }
-    sb.append(s);
   }
 
   private static void init() {
@@ -91,8 +92,8 @@ public class ErrorManagement {
   }
 
   private static class LoggerWriter extends PrintWriter {
-    public LoggerWriter(Writer out) {
-      super(out);
+    public LoggerWriter() {
+      super(System.out);
     }
 
     public void println(String x) {

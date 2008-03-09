@@ -1266,8 +1266,21 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
   }
 
-  private static JFrame faqFrame = null;
+  private static JFrame logFrame = null;
+  private static final StringBuffer EMPTY_LOG = new StringBuffer("The log is empty.");
+  private void DoViewLog(Component c_src) {
+    Dimension logBoxSize = new Dimension(625, 500);
 
+    StringBuffer logText = ErrorManagement.getLog();
+    if(logText == null || logText.length() == 0) {
+      logText = EMPTY_LOG;
+    }
+
+    logFrame = _oui.showTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " Log", false);
+    logFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+  }
+
+  private static JFrame faqFrame = null;
   private void DoFAQ() {
     if(faqFrame == null) {
       Dimension faqBoxSize = new Dimension(625, 500);
@@ -1420,13 +1433,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
    */
   private void DoCopyID(Component src, AuctionEntry ae) {
     DoCopySomething(src, ae, DO_COPY_ID, "No auctions selected to copy IDs of!", ", ");
-  }
-
-  private void DoLog(Component src) {
-    //  Not really implemented yet...  --  BUGBUG (need to write help!)
-    JOptionPane.showMessageDialog(src,
-                                  "I'm very sorry, but this feature has not been implemented yet.",
-                                  "Sorry, no log view...", JOptionPane.INFORMATION_MESSAGE);
   }
 
   private void DoHelp(Component src) {
@@ -1698,7 +1704,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Scripting")) DoScripting();
     else if(actionString.equals("Dump")) ActiveRecord.saveCached();
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
-    else if(actionString.equals("View Log")) DoLog(c_src);
+    else if(actionString.equals("View Log")) DoViewLog(c_src);
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://sourceforge.net/tracker/?func=add&group_id=3914&atid=103914");
     else ErrorManagement.logDebug('[' + actionString + ']');
   }
