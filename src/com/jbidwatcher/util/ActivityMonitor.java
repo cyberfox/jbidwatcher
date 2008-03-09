@@ -1,4 +1,4 @@
-package com.jbidwatcher.app;
+package com.jbidwatcher.util;
 
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;

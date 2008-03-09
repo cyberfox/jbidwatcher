@@ -6,8 +6,6 @@ package com.jbidwatcher.util.queue;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.Heap;
-
 import java.util.List;
 
 /**

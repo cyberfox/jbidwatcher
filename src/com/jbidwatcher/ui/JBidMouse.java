@@ -35,7 +35,6 @@ import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.app.ActivityMonitor;
 
 public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private static JConfigFrame jcf = null;

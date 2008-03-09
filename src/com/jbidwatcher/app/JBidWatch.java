@@ -24,6 +24,7 @@ import com.jbidwatcher.ui.util.JBidFrame;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.ActivityMonitor;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.db.DBManager;

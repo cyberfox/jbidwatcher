@@ -1,4 +1,4 @@
-package com.jbidwatcher.util;
+package com.jbidwatcher.util.queue;
 /*
   File: Heap.java
 
