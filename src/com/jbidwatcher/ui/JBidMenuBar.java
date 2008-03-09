@@ -11,6 +11,8 @@ import com.jbidwatcher.util.config.JConfig;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.PopupMenuListener;
+import javax.swing.event.PopupMenuEvent;
 import java.util.HashMap;
 
 /**
@@ -25,6 +27,7 @@ public class JBidMenuBar extends JMenuBar {
   protected JMenu _editMenu;
   protected JMenu _serverMenu;
   protected JMenu mWindowMenu;
+  protected JMenu mTabMenu;
   protected JMenu _auctionMenu;
   protected JMenu _helpMenu;
   protected ActionListener _actionDirector;
@@ -290,25 +293,42 @@ public class JBidMenuBar extends JMenuBar {
     _editMenu.setMnemonic('E');
     _serverMenu = new JMenu("Servers");
     _serverMenu.setMnemonic('S');
-    mWindowMenu = new JMenu("Windows");
-    mWindowMenu.setMnemonic('W');
     _auctionMenu = new JMenu("Auction");
     _auctionMenu.setMnemonic('A');
+    mTabMenu = new JMenu("Tab");
+    mTabMenu.setMnemonic('T');
+    mWindowMenu = new JMenu("Windows");
+    mWindowMenu.setMnemonic('W');
     _helpMenu = new JMenu("Help");
     _helpMenu.setMnemonic('H');
 
     establishFileMenu(_fileMenu);
     establishEditMenu(_editMenu);
     establishServerMenu(_serverMenu);
-    establishWindowMenu(mWindowMenu);
     establishAuctionMenu(_auctionMenu);
+    establishTabMenu(mTabMenu);
+    establishWindowMenu(mWindowMenu);
     establishHelpMenu(_helpMenu);
 
     add(_fileMenu);
     add(_editMenu);
     add(_serverMenu);
-    add(mWindowMenu);
     add(_auctionMenu);
+    add(mTabMenu);
+    add(mWindowMenu);
     add(_helpMenu);
+  }
+
+  private void establishTabMenu(JMenu tabMenu) {
+    final JTabPopupMenu pop = new JTabPopupMenu(AuctionsUIModel.getTabManager().getTabs(), tabMenu.getPopupMenu());
+
+    tabMenu.getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
+      public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+        pop.preparePopup(AuctionsUIModel.getTabManager().getTabs().getSelectedIndex());
+      }
+
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }
+      public void popupMenuCanceled(PopupMenuEvent e) { }
+    });
   }
 }

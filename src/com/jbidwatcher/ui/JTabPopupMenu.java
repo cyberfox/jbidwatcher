@@ -24,20 +24,17 @@ public class JTabPopupMenu extends JContext {
   private JTabbedPane _myTabs = null;
   private JMenu customize = null;
   private JMenuItem _print = null;
-  private JMenuItem _export = null;
   private JMenu _deleteSubmenu = null;
   private Map<String, JCheckBoxMenuItem> menuItemMap = new TreeMap<String, JCheckBoxMenuItem>();
-  private JMenuItem _properties = null;
 
   /**
    * @brief Make a small menu for tabs.
    *
-   * @return The pop-up menu to be displayed on 'context menu' at any of the tabs.
+   * @param myPopup - The pop-up menu to be displayed on 'context menu' at any of the tabs.
+   *
    * @noinspection StringContatenationInLoop
    */
-  private JPopupMenu makeTabMenu() {
-    JPopupMenu myPopup = new JPopupMenu();
-
+  public void makeTabMenu(JPopupMenu myPopup) {
     customize = new JMenu("Custom Columns");
 
     customize.getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
@@ -54,10 +51,8 @@ public class JTabPopupMenu extends JContext {
     myPopup.add(customize).addActionListener(this);
     //myPopup.add(makeMenuItem("+/- Comment")).addActionListener(this);
     myPopup.add(_print = makeMenuItem("Print")).addActionListener(this);
-    myPopup.add(_export = makeMenuItem("Export")).addActionListener(this);
-    myPopup.add(_properties = makeMenuItem("Properties")).addActionListener(this);
-
-    return myPopup;
+    myPopup.add(makeMenuItem("Export")).addActionListener(this);
+    myPopup.add(makeMenuItem("Properties")).addActionListener(this);
   }
 
   /**
@@ -72,6 +67,10 @@ public class JTabPopupMenu extends JContext {
   protected void beforePopup(JPopupMenu inPopup, MouseEvent e) {
     super.beforePopup(inPopup, e);
     int curIndex = _myTabs.indexAtLocation(e.getX(), e.getY());
+    preparePopup(curIndex);
+  }
+
+  public void preparePopup(int curIndex) {
     if (curIndex == -1) {
       customize.setEnabled(false);
       _deleteSubmenu.setEnabled(false);
@@ -249,13 +248,26 @@ public class JTabPopupMenu extends JContext {
   }
 
   /**
+   * @param inTabs - The tab display to act as a context menu for.
+   * @brief Construct a menu & listener to be used as a context menu
+   * on the tabbed display.
+   */
+  public JTabPopupMenu(JTabbedPane inTabs) {
+    _myTabs = inTabs;
+    localPopup = new JPopupMenu();
+    makeTabMenu(localPopup);
+  }
+
+  /**
    * @brief Construct a menu & listener to be used as a context menu
    * on the tabbed display.
    *
    * @param inTabs - The tab display to act as a context menu for.
+   * @param popup - The popup to add the behavior to.
    */
-  public JTabPopupMenu(JTabbedPane inTabs) {
+  public JTabPopupMenu(JTabbedPane inTabs, JPopupMenu popup) {
     _myTabs = inTabs;
-    localPopup = makeTabMenu();
+    localPopup = popup;
+    makeTabMenu(localPopup);
   }
 }
