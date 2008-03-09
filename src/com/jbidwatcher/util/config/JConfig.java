@@ -59,6 +59,7 @@ public class JConfig {
 
   //  Were there any configuration changes since the last updateComplete()?
   private static boolean _anyUpdates = false;
+  private static String sHomeDirectory;
 
   //  A core loader which loads from an InputStream.  Used so that we can
   //  load config files from a resource in a JAR file.
@@ -218,6 +219,15 @@ public class JConfig {
     return(null);
   }
 
+  public static void setHome(String newHome) {
+    sHomeDirectory = newHome;
+  }
+
+  public static String getHome() {
+    if(sHomeDirectory == null) return System.getProperty("user.home");
+    return sHomeDirectory;
+  }
+
   /** 
    * @brief Gets a path to the 'optimal' place to put application-specific files.
    *
@@ -231,9 +241,9 @@ public class JConfig {
 
     if(queryConfiguration("mac", "false").equals("true")) {
       if(dirname.equals("jbidwatcher")) dirname = "JBidwatcher";
-      homePath = System.getProperty("user.home") + sep + "Library" + sep + "Preferences" + sep + dirname;
+      homePath = getHome() + sep + "Library" + sep + "Preferences" + sep + dirname;
     } else {
-      homePath = System.getProperty("user.home") + sep + '.' + dirname;
+      homePath = getHome() + sep + '.' + dirname;
     }
 
     File fp = new File(homePath);

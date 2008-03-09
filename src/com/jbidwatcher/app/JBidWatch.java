@@ -468,40 +468,48 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
 
   /**
    * @brief Check to see if the user tried to use any of the help parameters.
+   * Check for a parameter (--help or -h) to show help for.
    *
    * @param inArgs - The arguments passed into the command line.
    *
    * @return - true if the usage was displayed, false otherwise.
    */
-  private static boolean CheckHelp(String[] inArgs) {
-    if(inArgs.length != 0) {
-      if(inArgs[0].startsWith("--help") ||
-         inArgs[0].startsWith("-h")) {
-        //noinspection UseOfSystemOutOrSystemErr
-        System.out.println("usage: java JBidWatch [{cfg-file}]");
-        JOptionPane.showMessageDialog(null, "<html><body>usage:<br><center>java JBidWatch [{cfg-file}]</center><br>Default user home: " +
-                                            System.getProperty("user.home") + "</body></html>", "Help display", JOptionPane.PLAIN_MESSAGE);
-        return true;
-      } else if(inArgs[0].startsWith("--test-ruby")) {
-        try {
-          Scripting.initialize();
-          Scripting.ruby("require 'jbidwatcher/utilities'");
-          Scripting.rubyMethod("play_around", "Zarf");
-        } catch(Exception e) { e.printStackTrace(); }
-        return true;
-      }
+  private static boolean checkArguments(String[] inArgs) {
+    boolean rval = false;
+    for(String arg : inArgs) {
+      rval |= handleArgument(arg);
     }
 
+    return rval;
+  }
+
+  private static boolean handleArgument(String arg) {
+    if (arg.startsWith("--help") || arg.startsWith("-h")) {
+      //noinspection UseOfSystemOutOrSystemErr
+      System.out.println("usage: java JBidWatch [{cfg-file}]");
+      JOptionPane.showMessageDialog(null, "<html><body>usage:<br><center>java JBidWatch [{cfg-file}]</center><br>Default user home: " +
+          JConfig.getHome() + "</body></html>", "Help display", JOptionPane.PLAIN_MESSAGE);
+      return true;
+    } else if (arg.startsWith("--test-ruby")) {
+      try {
+        Scripting.initialize();
+        Scripting.ruby("require 'jbidwatcher/utilities'");
+        Scripting.rubyMethod("play_around", "Zarf");
+      } catch (Exception e) { e.printStackTrace(); }
+      return true;
+    } else if (arg.startsWith("--usb")) {
+      JConfig.setHome(System.getProperty("user.dir"));
+    }
     return false;
   }
 
   /**
-   * @brief Set the proxy values if they are indicated by the configuration.
-   *
-   * @param inProps - The properties list to check.
-   *
-   * @return - true if proxies were set, false otherwise.
-   */
+ * @brief Set the proxy values if they are indicated by the configuration.
+ *
+ * @param inProps - The properties list to check.
+ *
+ * @return - true if proxies were set, false otherwise.
+ */
   private static boolean EstablishProxy(Properties inProps) {
     String webProxyHost = JConfig.queryConfiguration("proxy.host", null);
     String webProxyPort = JConfig.queryConfiguration("proxy.port", null);
@@ -611,8 +619,7 @@ public final class JBidWatch implements JConfig.ConfigListener, MessageQueue.Lis
    * @param args Command line arguments.
    */
   public static void main(String[] args) {
-    //  Check for a parameter (--help or -h) to show help for.
-    if( CheckHelp(args) ) {
+    if(checkArguments(args)) {
       System.exit(0);
     }
 
