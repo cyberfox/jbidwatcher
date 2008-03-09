@@ -1111,14 +1111,14 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     int[] rowList = getPossibleRows();
 
     if(rowList.length != 0) {
-      Vector<String> multiAuctionIds = new Vector<String>();
-      int i;
-
-      for(i=0; i<rowList.length; i++) {
-        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
-
-        multiAuctionIds.add(tempEntry.getIdentifier());
-      }
+//      Vector<String> multiAuctionIds = new Vector<String>();
+//      int i;
+//
+//      for(i=0; i<rowList.length; i++) {
+//        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
+//
+//        multiAuctionIds.add(tempEntry.getIdentifier());
+//      }
 //      TODO -- Find another way to do this...
 //      JBidProxy.setItems(multiAuctionIds);
 
@@ -1266,9 +1266,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
   }
 
-  private static JFrame logFrame = null;
   private static final StringBuffer EMPTY_LOG = new StringBuffer("The log is empty.");
-  private void DoViewLog(Component c_src) {
+  private void DoViewLog() {
     Dimension logBoxSize = new Dimension(625, 500);
 
     StringBuffer logText = ErrorManagement.getLog();
@@ -1276,7 +1275,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       logText = EMPTY_LOG;
     }
 
-    logFrame = _oui.showTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " Log", false);
+    JFrame logFrame = _oui.showTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " Log", false);
     logFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
   }
 
@@ -1704,7 +1703,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Scripting")) DoScripting();
     else if(actionString.equals("Dump")) ActiveRecord.saveCached();
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
-    else if(actionString.equals("View Log")) DoViewLog(c_src);
+    else if(actionString.equals("View Log")) DoViewLog();
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://sourceforge.net/tracker/?func=add&group_id=3914&atid=103914");
     else ErrorManagement.logDebug('[' + actionString + ']');
   }
