@@ -80,11 +80,8 @@ public class JMouseAdapter extends MouseInputAdapter implements ActionListener {
 
   //  The following two functions are stubs, generally to be
   //  overridden if you want to do anything particularly useful.
-  protected void beforePopup(JPopupMenu inPopup, MouseEvent e) {
-  }
-
-  protected void afterPopup(JPopupMenu inPopup, MouseEvent e) {
-  }
+  protected void beforePopup(JPopupMenu inPopup, MouseEvent e) { }
+  protected void afterPopup(JPopupMenu inPopup, MouseEvent e) { }
 
   private void internalPopupMenu(MouseEvent e) {
     Component activeComp = (Component)e.getSource();
@@ -111,10 +108,6 @@ public class JMouseAdapter extends MouseInputAdapter implements ActionListener {
   }
 
   protected void internalDoubleClick(MouseEvent e) {
-  }
-
-  //  This is to be overridden, generally...
-  protected void OnDoubleClick(JTable inTable, Object inObject, MouseEvent inEvent) {
   }
 
   public void actionPerformed(java.awt.event.ActionEvent ae) {
@@ -169,8 +162,6 @@ public class JMouseAdapter extends MouseInputAdapter implements ActionListener {
     }
 
     Rectangle bounds = new Rectangle(gconf.getBounds());
-
-    String str;
 
     try {
       Toolkit toolkit = Toolkit.getDefaultToolkit();
