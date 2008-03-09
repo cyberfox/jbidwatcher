@@ -12,9 +12,25 @@ import java.util.Date;
 
 @SuppressWarnings({"UseOfSystemOutOrSystemErr", "UtilityClass"})
 public class ErrorManagement {
+  private static int MAX_BUFFER_SIZE=50000;
   static PrintWriter _pw = null;
+  static StringBuffer sb = new StringBuffer();
+  static LoggerWriter lw = new LoggerWriter(null);
 
   private ErrorManagement() { }
+
+  public static StringBuffer getLog() {
+    return sb;
+  }
+
+  private static void addLog(String s) {
+    if(s == null) return;
+    if(s.length() + sb.length() > MAX_BUFFER_SIZE) {
+      int newline = sb.indexOf("\n", s.length());
+      sb.delete(0, newline);
+    }
+    sb.append(s);
+  }
 
   private static void init() {
     String sep = System.getProperty("file.separator");
@@ -54,10 +70,13 @@ public class ErrorManagement {
 
     System.err.println(log_time + ": " + msg);
 
+    String logMsg = log_time + ": " + msg;
+    addLog(logMsg);
+
     String doLogging = JConfig.queryConfiguration("logging", "true");
     if(doLogging.equals("true")) {
       if(_pw != null) {
-        _pw.println(log_time + ": " + msg);
+        _pw.println(logMsg);
         _pw.flush();
       }
     }
@@ -69,6 +88,16 @@ public class ErrorManagement {
 
   public static void handleDebugException(String sError, Throwable e) {
     if(JConfig.debugging) handleException(sError, e);
+  }
+
+  private static class LoggerWriter extends PrintWriter {
+    public LoggerWriter(Writer out) {
+      super(out);
+    }
+
+    public void println(String x) {
+      addLog(x);
+    }
   }
 
   public static void handleException(String sError, Throwable e) {
@@ -84,14 +113,20 @@ public class ErrorManagement {
     e.printStackTrace();
 
     String doLogging = JConfig.queryConfiguration("logging", "true");
+
+    String logMsg;
+    if (sError == null || sError.length() == 0) {
+      logMsg = "[" + log_time + "]";
+    } else {
+      logMsg = log_time + ": " + sError;
+    }
+
+    addLog(logMsg);
+    e.printStackTrace(lw);
+
     if(doLogging.equals("true")) {
       if(_pw != null) {
-
-        if(sError == null || sError.length() == 0) {
-          _pw.println("[" + log_time + "]");
-        } else {
-          _pw.println(log_time + ": " + sError);
-        }
+        _pw.println(logMsg);
         e.printStackTrace(_pw);
         _pw.flush();
       }
