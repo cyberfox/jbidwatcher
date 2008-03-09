@@ -12,17 +12,7 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
 
 public class AudioPlayer implements MessageQueue.Listener {
-  private static AudioPlayer sAP = null;
-
-  public static AudioPlayer getInstance() {
-    if(sAP == null) sAP = new AudioPlayer();
-
-    return sAP;
-  }
-
-  private AudioPlayer() {
-    MQFactory.getConcrete("sfx").registerListener(this);
-  }
+  private AudioPlayer() { }
 
   public void messageAction(Object deQ) {
     String s=(String)deQ;
@@ -33,5 +23,9 @@ public class AudioPlayer implements MessageQueue.Listener {
     } catch(Exception mp3Exception) {
       ErrorManagement.handleException("Failed to play.", mp3Exception);
     }
+  }
+
+  public static void start() {
+    MQFactory.getConcrete("sfx").registerListener(new AudioPlayer());
   }
 }

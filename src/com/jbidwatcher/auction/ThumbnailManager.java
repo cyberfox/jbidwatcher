@@ -19,10 +19,9 @@ import java.io.IOException;
 
 /** @noinspection MagicNumber,Singleton*/
 public class ThumbnailManager implements MessageQueue.Listener {
-  private static ThumbnailManager _instance = new ThumbnailManager();
-  private ThumbnailManager() {
-    MQFactory.getConcrete("thumbnail").registerListener(this);
-  }
+  private static ThumbnailManager sInstance = new ThumbnailManager();
+  private ThumbnailManager() { }
+  public static ThumbnailManager getInstance() { return sInstance; }
 
   public void messageAction(Object deQ) {
     AuctionInfo ai = (AuctionInfo) deQ;
@@ -55,10 +54,6 @@ public class ThumbnailManager implements MessageQueue.Listener {
       tmpThumb = null;
     }
     return tmpThumb;
-  }
-
-  public static ThumbnailManager getInstance() {
-    return _instance;
   }
 
   public static String getValidImagePath(AuctionInfo ai) {
@@ -104,5 +99,11 @@ public class ThumbnailManager implements MessageQueue.Listener {
       }
     }
     return imgPath;
+  }
+
+  public static void start() {
+    if(sInstance == null) {
+      MQFactory.getConcrete("thumbnail").registerListener(sInstance = new ThumbnailManager());
+    }
   }
 }

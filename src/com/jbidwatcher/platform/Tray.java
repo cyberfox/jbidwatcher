@@ -57,7 +57,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
     }
   }
 
-  public Tray() {
+  private Tray() {
     TrayMenuAction tma = new TrayMenuAction();
     if( Integer.parseInt(System.getProperty("java.version").substring(2,3)) >=5 )
         System.setProperty("javax.swing.adjustPopupLocationToFit", "false");
@@ -106,10 +106,6 @@ public class Tray implements ItemListener, MessageQueue.Listener {
           //  Balloon message has been clicked?
         }
     });
-
-    MQFactory.getConcrete("tray").registerListener(this);
-    //ti.displayMessage("JBidwatcher", "Just a brief message from JBidwatcher.", 0);
-    //ti.displayMessage(captionField.getText(), messageArea.getText(), typeBox.getSelectedIndex());
   }
 
   // Returns just the class name -- no package info.
@@ -155,5 +151,9 @@ public class Tray implements ItemListener, MessageQueue.Listener {
         tray.removeTrayIcon(ti);
       }
     }
+  }
+
+  public static void start() {
+    MQFactory.getConcrete("tray").registerListener(new Tray());
   }
 }

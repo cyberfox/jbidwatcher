@@ -10,28 +10,10 @@ import java.util.Date;
 
 @SuppressWarnings({"UseOfSystemOutOrSystemErr", "UtilityClass"})
 public class ErrorManagement {
-  private static int MAX_BUFFER_SIZE=50000;
-  private static PrintWriter _pw = null;
-  private static final StringBuffer sLogBuffer = new StringBuffer();
-  private static LoggerWriter lw = new LoggerWriter();
-
+  public static int MAX_BUFFER_SIZE = 50000;
+  private static PrintWriter mLogWriter = null;
+  private static ScrollingBuffer sLogBuffer = new ScrollingBuffer(MAX_BUFFER_SIZE);
   private ErrorManagement() { }
-
-  public static StringBuffer getLog() {
-    return sLogBuffer;
-  }
-
-  private static void addLog(String s) {
-    if(s == null) return;
-    synchronized(sLogBuffer) {
-      if(s.length() + sLogBuffer.length() > MAX_BUFFER_SIZE) {
-        int newline = sLogBuffer.indexOf("\n", s.length());
-        sLogBuffer.delete(0, newline);
-      }
-      sLogBuffer.append(s);
-      sLogBuffer.append("\n");
-    }
-  }
 
   private static void init() {
     String sep = System.getProperty("file.separator");
@@ -39,7 +21,7 @@ public class ErrorManagement {
 
     String doLogging = JConfig.queryConfiguration("logging", "true");
     if(doLogging.equals("true")) {
-      if(_pw == null) {
+      if(mLogWriter == null) {
         try {
           File fp;
           String increment = "";
@@ -49,7 +31,7 @@ public class ErrorManagement {
             increment = "." + stepper++;
           } while(fp.exists());
 
-          _pw = new PrintWriter(new FileOutputStream(fp));
+          mLogWriter = new PrintWriter(new FileOutputStream(fp));
         } catch(IOException ioe) {
           System.err.println("FAILED TO OPEN AN ERROR LOG.");
           ioe.printStackTrace();
@@ -59,9 +41,9 @@ public class ErrorManagement {
   }
 
   public static void closeLog() {
-    if(_pw != null) {
-      _pw.close();
-      _pw = null;
+    if(mLogWriter != null) {
+      mLogWriter.close();
+      mLogWriter = null;
     }
   }
 
@@ -72,13 +54,13 @@ public class ErrorManagement {
     System.err.println(log_time + ": " + msg);
 
     String logMsg = log_time + ": " + msg;
-    addLog(logMsg);
+    sLogBuffer.addLog(logMsg);
 
     String doLogging = JConfig.queryConfiguration("logging", "true");
     if(doLogging.equals("true")) {
-      if(_pw != null) {
-        _pw.println(logMsg);
-        _pw.flush();
+      if(mLogWriter != null) {
+        mLogWriter.println(logMsg);
+        mLogWriter.flush();
       }
     }
   }
@@ -89,16 +71,6 @@ public class ErrorManagement {
 
   public static void handleDebugException(String sError, Throwable e) {
     if(JConfig.debugging) handleException(sError, e);
-  }
-
-  private static class LoggerWriter extends PrintWriter {
-    public LoggerWriter() {
-      super(System.out);
-    }
-
-    public void println(String x) {
-      addLog(x);
-    }
   }
 
   public static void handleException(String sError, Throwable e) {
@@ -122,14 +94,14 @@ public class ErrorManagement {
       logMsg = log_time + ": " + sError;
     }
 
-    addLog(logMsg);
-    e.printStackTrace(lw);
+    sLogBuffer.addLog(logMsg);
+    sLogBuffer.addStackTrace(e);
 
     if(doLogging.equals("true")) {
-      if(_pw != null) {
-        _pw.println(logMsg);
-        e.printStackTrace(_pw);
-        _pw.flush();
+      if(mLogWriter != null) {
+        mLogWriter.println(logMsg);
+        e.printStackTrace(mLogWriter);
+        mLogWriter.flush();
       }
     }
   }
@@ -139,19 +111,23 @@ public class ErrorManagement {
     if(doLogging.equals("true")) {
       if(JConfig.debugging) {
         init();
-        if(_pw != null) {
-          _pw.println("+------------------------------");
-          _pw.println("| " + msgtop);
-          _pw.println("+------------------------------");
+        if(mLogWriter != null) {
+          mLogWriter.println("+------------------------------");
+          mLogWriter.println("| " + msgtop);
+          mLogWriter.println("+------------------------------");
           if(dumpsb != null) {
-            _pw.println(dumpsb);
+            mLogWriter.println(dumpsb);
           } else {
-            _pw.println("(null)");
+            mLogWriter.println("(null)");
           }
-          _pw.println("+------------end---------------");
-          _pw.flush();
+          mLogWriter.println("+------------end---------------");
+          mLogWriter.flush();
         }
       }
     }
+  }
+
+  public static StringBuffer getLog() {
+    return sLogBuffer.getLog();
   }
 }

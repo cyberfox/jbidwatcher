@@ -24,6 +24,7 @@ public class JBidMenuBar extends JMenuBar {
   protected JMenu _fileMenu;
   protected JMenu _editMenu;
   protected JMenu _serverMenu;
+  protected JMenu mWindowMenu;
   protected JMenu _auctionMenu;
   protected JMenu _helpMenu;
   protected ActionListener _actionDirector;
@@ -166,6 +167,14 @@ public class JBidMenuBar extends JMenuBar {
       makeMenuItem(inMenu, "Time Information", "Show Time Info", 'T');
   }
 
+  protected void establishWindowMenu(JMenu inMenu) {
+    makeMenuItem(inMenu, "Activity Log", "View Activity", 'A');
+    makeMenuItem(inMenu, "Errors Log", "View Log", 'E');
+    makeMenuItem(inMenu, "Search Manager", "Search", 'S');
+    makeMenuItem(inMenu, "Configuration", "Configure", 'C');
+    makeMenuItem(inMenu, "Scripting", 'P');
+  }
+
   protected void establishAuctionMenu(JMenu inMenu) {
     //  The mac doesn't have an 'INSERT' key.  I suppose 'Overwrite'
     //  mode is too complex?  Frustration abounds, as CMD-A is 'select
@@ -281,6 +290,8 @@ public class JBidMenuBar extends JMenuBar {
     _editMenu.setMnemonic('E');
     _serverMenu = new JMenu("Servers");
     _serverMenu.setMnemonic('S');
+    mWindowMenu = new JMenu("Windows");
+    mWindowMenu.setMnemonic('W');
     _auctionMenu = new JMenu("Auction");
     _auctionMenu.setMnemonic('A');
     _helpMenu = new JMenu("Help");
@@ -289,12 +300,14 @@ public class JBidMenuBar extends JMenuBar {
     establishFileMenu(_fileMenu);
     establishEditMenu(_editMenu);
     establishServerMenu(_serverMenu);
+    establishWindowMenu(mWindowMenu);
     establishAuctionMenu(_auctionMenu);
     establishHelpMenu(_helpMenu);
 
     add(_fileMenu);
     add(_editMenu);
     add(_serverMenu);
+    add(mWindowMenu);
     add(_auctionMenu);
     add(_helpMenu);
   }

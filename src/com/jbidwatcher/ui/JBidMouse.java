@@ -35,6 +35,7 @@ import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.app.ActivityMonitor;
 
 public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private static JConfigFrame jcf = null;
@@ -1279,6 +1280,18 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     logFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
   }
 
+  private void DoViewActivity() {
+    Dimension logBoxSize = new Dimension(625, 500);
+
+    StringBuffer logText = ActivityMonitor.getInstance().getLog();
+    if (logText == null || logText.length() == 0) {
+      logText = EMPTY_LOG;
+    }
+
+    JFrame logFrame = _oui.showTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " Activity Log", false);
+    logFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+  }
+
   private static JFrame faqFrame = null;
   private void DoFAQ() {
     if(faqFrame == null) {
@@ -1704,6 +1717,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Dump")) ActiveRecord.saveCached();
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
     else if(actionString.equals("View Log")) DoViewLog();
+    else if(actionString.equals("View Activity")) DoViewActivity();
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://sourceforge.net/tracker/?func=add&group_id=3914&atid=103914");
     else ErrorManagement.logDebug('[' + actionString + ']');
   }

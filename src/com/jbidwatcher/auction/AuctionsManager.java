@@ -30,17 +30,18 @@ import java.text.SimpleDateFormat;
 
 /** @noinspection Singleton*/
 public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager {
-  private static AuctionsManager _instance = null;
-  private DeletedManager _deleted = null;
-  private int _auctionCount = 0;
-  private FilterManager _filter;
+  private static AuctionsManager mInstance = null;
+  private DeletedManager mDeleted = null;
+  private int mAuctionCount = 0;
+  private FilterManager mFilter;
 
   //  Checkpoint (save) every N minutes where N is configurable.
-  private long _checkpointFrequency;
-  private long _lastCheckpointed = 0;
+  private long mCheckpointFrequency;
+  private long mLastCheckpointed = 0;
   private static final int AUCTIONCOUNT = 100;
   private static final int MAX_PERCENT = AUCTIONCOUNT;
   private boolean mDoSplash = false;
+  private static TimerHandler sTimer;
 
   /**
    * @brief AuctionsManager is a singleton, there should only be one
@@ -48,15 +49,15 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    */
   private AuctionsManager() {
     //  This should be loaded from the configuration settings.
-    _checkpointFrequency = 10 * Constants.ONE_MINUTE;
-    _lastCheckpointed = System.currentTimeMillis();
-    _deleted = new DeletedManager();
+    mCheckpointFrequency = 10 * Constants.ONE_MINUTE;
+    mLastCheckpointed = System.currentTimeMillis();
+    mDeleted = new DeletedManager();
 
-    _filter = FilterManager.getInstance();
+    mFilter = FilterManager.getInstance();
   }
 
   static {
-    _instance = new AuctionsManager();
+    mInstance = new AuctionsManager();
   }
 
   /**
@@ -66,7 +67,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    * @return The one reference to this object.
    */
   public static AuctionsManager getInstance() {
-    return _instance;
+    return mInstance;
   }
 
   /////////////////////////////////////////////////////////
@@ -79,8 +80,8 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    * @return True if any Auctions have pending snipes.
    */
   public boolean anySnipes() {
-    for(int i = 0; i<_filter.listLength(); i++) {
-      if(_filter.getList(i).anySnipes()) return true;
+    for(int i = 0; i< mFilter.listLength(); i++) {
+      if(mFilter.getList(i).anySnipes()) return true;
     }
 
     return false;
@@ -95,8 +96,8 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
   private boolean checkAuctions() {
     boolean retval = false;
 
-    for(int i = 0; i<_filter.listLength(); i++) {
-      if(_filter.getList(i).check()) retval = true;
+    for(int i = 0; i< mFilter.listLength(); i++) {
+      if(mFilter.getList(i).check()) retval = true;
     }
 
     return retval;
@@ -106,8 +107,8 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    * @brief Check if it's time to save the auctions out yet.
    */
   private void checkSnapshot() {
-    if( (_lastCheckpointed + _checkpointFrequency) < System.currentTimeMillis() ) {
-      _lastCheckpointed = System.currentTimeMillis();
+    if( (mLastCheckpointed + mCheckpointFrequency) < System.currentTimeMillis() ) {
+      mLastCheckpointed = System.currentTimeMillis();
       saveAuctions();
       System.gc();
     }
@@ -146,7 +147,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    * @return - True if the item exists someplace in our list of Auctions.
    */
   public boolean verifyEntry(String id) {
-    Auctions whereIs = _filter.whereIsAuction(id);
+    Auctions whereIs = mFilter.whereIsAuction(id);
     return whereIs != null;
   }
 
@@ -161,7 +162,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    * @param ae - The auction entry to add.
    */
   public void addEntry(AuctionEntry ae) {
-    if(mDoSplash) MQFactory.getConcrete("splash").enqueue("SET " + Integer.toString(++_auctionCount));
+    if(mDoSplash) MQFactory.getConcrete("splash").enqueue("SET " + Integer.toString(++mAuctionCount));
 
     FilterManager.getInstance().addAuction(ae);
   }
@@ -176,7 +177,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    */
   public void delEntry(AuctionEntry ae) {
     String id = ae.getIdentifier();
-    _deleted.delete(id);
+    mDeleted.delete(id);
     ae.cancelSnipe(false);
     FilterManager.getInstance().deleteAuction(ae);
     //  TODO -- Actually delete the auction from the database.
@@ -193,7 +194,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    * our list of auctions.
    */
   public AuctionEntry getEntry(String id) {
-    Auctions located = _filter.whereIsAuction(id);
+    Auctions located = mFilter.whereIsAuction(id);
     if(located == null) return null;
 
     return located.getEntry(id);
@@ -280,7 +281,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
       MQFactory.getConcrete("splash").enqueue("SET 0");
       MQFactory.getConcrete("splash").enqueue("WIDTH " + auctionTotal);
 
-      _auctionCount = 0;
+      mAuctionCount = 0;
     }
 
     AuctionServerManager.setEntryManager(this);
@@ -295,13 +296,13 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
         MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions.");
       }
     }
-    _deleted.fromXML(xmlFile.getChild("deleted"));
+    mDeleted.fromXML(xmlFile.getChild("deleted"));
   }
 
   public AuctionEntry newAuctionEntry(String id) {
     String strippedId = stripId(id);
 
-    if(!_deleted.isDeleted(strippedId) && !verifyEntry(strippedId)) {
+    if(!mDeleted.isDeleted(strippedId) && !verifyEntry(strippedId)) {
       return AuctionEntry.buildEntry(id);
     }
 
@@ -319,11 +320,11 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
   }
 
   public void undelete(String id) {
-    _deleted.undelete(id);
+    mDeleted.undelete(id);
   }
 
   public boolean isDeleted(String id) {
-    return _deleted.isDeleted(id);
+    return mDeleted.isDeleted(id);
   }
 
   //  This is silly!  TODO mrs -- Fix this, so it can be reclaimed?  WeakReference?
@@ -341,7 +342,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
    */
   public boolean saveAuctions() {
     XMLElement auctionsData = AuctionServerManager.getInstance().toXML();
-    XMLElement deletedData = _deleted.toXML();
+    XMLElement deletedData = mDeleted.toXML();
     String oldSave = JConfig.queryConfiguration("savefile", "auctions.xml");
     String saveFilename = JConfig.getCanonicalFile(JConfig.queryConfiguration("savefile", "auctions.xml"), "jbidwatcher", false);
     String newSave=saveFilename;
@@ -387,7 +388,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
   }
 
   public int clearDeleted() {
-    int rval = _deleted.clearDeleted();
+    int rval = mDeleted.clearDeleted();
 
     saveAuctions();
     System.gc();
@@ -490,5 +491,13 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
     }
 
     return filename.substring(0, firstDot) + '-' + toInsert + filename.substring(firstDot);
+  }
+
+  public static void start() {
+    if(sTimer == null) {
+      sTimer = new TimerHandler(getInstance());
+      sTimer.setName("Updates");
+      sTimer.start();
+    }
   }
 }

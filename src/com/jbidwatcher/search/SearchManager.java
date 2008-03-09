@@ -23,6 +23,7 @@ import java.util.ArrayList;
 public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, TimerHandler.WakeupProcess {
   private List<Searcher> _searches = new ArrayList<Searcher>();
   private static SearchManager _instance = null;
+  private static TimerHandler sTimer;
 
   private SearchManager() { }
   public static SearchManager getInstance() {
@@ -262,5 +263,16 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
   public void deleteSearch(String searchName) {
     Searcher old = getSearchByName(searchName);
     if(old != null) deleteSearch(old);
+  }
+
+  //  This thread / timer handles the periodic searching that the
+  //  search feature allows to be set up.  Check only once a minute,
+  //  because searching isn't a very time-critical feature.
+  public static void start() {
+    if (sTimer == null) {
+      sTimer = new TimerHandler(getInstance(), Constants.ONE_MINUTE);
+      sTimer.setName("Searches");
+      sTimer.start();
+    }
   }
 }

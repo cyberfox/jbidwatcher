@@ -15,9 +15,7 @@ import com.jbidwatcher.util.browser.BrowserLauncher;
 import java.io.*;
 
 public class Browser extends JConfig implements MessageQueue.Listener {
-  public Browser() {
-    MQFactory.getConcrete("browse").registerListener(this);
-  }
+  private static Browser sInstance;
 
   public void messageAction(Object deQ) {
     String msg = (String)deQ;
@@ -62,5 +60,9 @@ public class Browser extends JConfig implements MessageQueue.Listener {
       return false;
     }
     return true;
+  }
+
+  public static void start() {
+    if(sInstance == null) MQFactory.getConcrete("browse").registerListener(sInstance = new Browser());
   }
 }

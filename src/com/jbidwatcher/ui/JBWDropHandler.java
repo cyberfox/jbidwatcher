@@ -16,13 +16,9 @@ import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 
 public class JBWDropHandler implements MessageQueue.Listener {
+  private static JBWDropHandler sInstance;
   private static boolean do_uber_debug = false;
-
-  public JBWDropHandler() {
-    MQFactory.getConcrete("drop").registerListener(this);
-  }
-
-  static String lastSeen = null;
+  private static String lastSeen = null;
 
   public void messageAction(Object deQ) {
     DropQObject dObj;
@@ -75,5 +71,9 @@ public class JBWDropHandler implements MessageQueue.Listener {
         AuctionServerManager.getInstance().deleteEntry(aeNew);
       }
     }
+  }
+
+  public static void start() {
+    if(sInstance == null) MQFactory.getConcrete("drop").registerListener(sInstance = new JBWDropHandler());
   }
 }

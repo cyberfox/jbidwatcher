@@ -1,6 +1,5 @@
 package com.jbidwatcher.util.db;
 
-import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 
@@ -37,13 +36,6 @@ public class DBManager {
     }
   }
 
-  public static DBManager getInstance() {
-    if(sInstance == null) {
-      sInstance = new DBManager();
-    }
-    return sInstance;
-  }
-
   private DBManager() {
     mStores = Collections.synchronizedSet(new HashSet<ActiveRecord>());
 
@@ -52,5 +44,9 @@ public class DBManager {
 
     DBFlushManager flushManager = new DBFlushManager();
     MQFactory.getConcrete("dbflush").registerListener(flushManager);
+  }
+
+  public static void start() {
+    if(sInstance == null) sInstance = new DBManager();
   }
 }

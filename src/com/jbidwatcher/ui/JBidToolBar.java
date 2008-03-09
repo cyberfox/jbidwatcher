@@ -23,10 +23,10 @@ import java.net.URL;
  */
 public class JBidToolBar {
   private static final int SELECT_BOX_SIZE=20;
-  private JLabel _headerStatus;
-  private JPanel _bidBarPanel;
-  private JBidMenuBar _bidMenu;
-  private JTextField selectBox;
+  private JLabel mHeaderStatus;
+  private JPanel mBidBarPanel;
+  private JBidMenuBar mBidMenu;
+  private JTextField mSelectBox;
   private static JBidToolBar mInstance = null;
 
   private String getSource(String icon) {
@@ -48,19 +48,19 @@ public class JBidToolBar {
    * @return - A JPanel containing the entire toolbar and header status bar.
    */
   public JPanel buildHeaderBar(JFrame inFrame, final JTabManager inAction) {
-    _bidBarPanel = new JPanel(new BorderLayout());
-    _bidMenu = JBidMenuBar.getInstance(inAction, "JBidwatcher");
+    mBidBarPanel = new JPanel(new BorderLayout());
+    mBidMenu = JBidMenuBar.getInstance(inAction, "JBidwatcher");
 
-    _headerStatus = new JLabel("", SwingConstants.RIGHT);
-    inFrame.setJMenuBar(_bidMenu);
+    mHeaderStatus = new JLabel("", SwingConstants.RIGHT);
+    inFrame.setJMenuBar(mBidMenu);
     AuctionServerManager.getInstance().addAuctionServerMenus();
 
-    _bidMenu.add(Box.createHorizontalGlue());
+    mBidMenu.add(Box.createHorizontalGlue());
 
     JToolBar _bidBar = new JToolBar();
 
-    _bidBarPanel.setBorder(BorderFactory.createEtchedBorder());
-    _bidBarPanel.add(_headerStatus, BorderLayout.EAST);
+    mBidBarPanel.setBorder(BorderFactory.createEtchedBorder());
+    mBidBarPanel.add(mHeaderStatus, BorderLayout.EAST);
 
     JBidToolBar.addbutton(_bidBar, inAction, "Add", getSource("add_auction.png"), "Add auction");
     JBidToolBar.addbutton(_bidBar, inAction, "Delete", getSource("delete.png"), "Delete Auction");
@@ -113,23 +113,23 @@ public class JBidToolBar {
         public void removeUpdate(DocumentEvent de) {
         }
       };
-    JConfigTab.adjustField(selectBox, "Search and select items from the current table.", selectListener);
+    JConfigTab.adjustField(mSelectBox, "Search and select items from the current table.", selectListener);
     ActionListener doSearch = new ActionListener() {
         public void actionPerformed(ActionEvent ae) {
-          inAction.selectBySearch(selectBox.getText());
+          inAction.selectBySearch(mSelectBox.getText());
         }
       };
-    selectBox.addActionListener(doSearch);
+    mSelectBox.addActionListener(doSearch);
     JPanel jp = new JPanel(new GridBagLayout());
-    jp.add(selectBox, new GridBagConstraints());
+    jp.add(mSelectBox, new GridBagConstraints());
     _bidBar.add(jp);
 
-    _bidBarPanel.add(_bidBar, BorderLayout.WEST);
-    _bidBarPanel.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
+    mBidBarPanel.add(_bidBar, BorderLayout.WEST);
+    mBidBarPanel.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
 
-    _bidBarPanel.setVisible(JConfig.queryConfiguration("display.toolbar", "true").equals("true"));
+    mBidBarPanel.setVisible(JConfig.queryConfiguration("display.toolbar", "true").equals("true"));
 
-    return _bidBarPanel;
+    return mBidBarPanel;
   }
 
   /**
@@ -175,9 +175,9 @@ public class JBidToolBar {
   }
 
   private JBidToolBar() {
-    selectBox = new SearchField("Select", SELECT_BOX_SIZE);
+    mSelectBox = new SearchField("Select", SELECT_BOX_SIZE);
     if(Platform.isMac()) {
-      selectBox.putClientProperty("Quaqua.TextField.style", "search");
+      mSelectBox.putClientProperty("Quaqua.TextField.style", "search");
     }
   }
 
@@ -187,28 +187,28 @@ public class JBidToolBar {
   }
 
   public void setText(String msg) {
-    _headerStatus.setText(msg);
+    if(mHeaderStatus != null) mHeaderStatus.setText(msg);
   }
 
   public void setToolTipText(String tooltip) {
-    _headerStatus.setToolTipText(tooltip);
+    if (mHeaderStatus != null) mHeaderStatus.setToolTipText(tooltip);
   }
 
   public void show(boolean visible) {
-    _headerStatus.setVisible(visible);
+    if (mHeaderStatus != null) mHeaderStatus.setVisible(visible);
   }
 
   public void togglePanel() {
-    _bidBarPanel.setVisible(!_bidBarPanel.isVisible());
-    JConfig.setConfiguration("display.toolbar", _bidBarPanel.isVisible()?"true":"false");
-    if (_bidBarPanel.isVisible()) {
+    mBidBarPanel.setVisible(!mBidBarPanel.isVisible());
+    JConfig.setConfiguration("display.toolbar", mBidBarPanel.isVisible()?"true":"false");
+    if (mBidBarPanel.isVisible()) {
       show(false);
-      _bidBarPanel.add(_headerStatus, BorderLayout.EAST);
+      mBidBarPanel.add(mHeaderStatus, BorderLayout.EAST);
       show(true);
     } else {
       //  If it's a mac, the clock display can't move into the 'menu' component, because there isn't one!
       if (!Platform.isMac()) {
-        _bidMenu.add(_headerStatus);
+        mBidMenu.add(mHeaderStatus);
       }
     }
   }
