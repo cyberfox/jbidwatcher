@@ -29,7 +29,7 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 
 /** @noinspection Singleton*/
-public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager {
+public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager, JConfig.ConfigListener {
   private static AuctionsManager mInstance = null;
   private DeletedManager mDeleted = null;
   private int mAuctionCount = 0;
@@ -498,6 +498,14 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager 
       sTimer = new TimerHandler(getInstance());
       sTimer.setName("Updates");
       sTimer.start();
+    }
+    JConfig.registerListener(getInstance());
+  }
+
+  public void updateConfiguration() {
+    String newSnipeTime = JConfig.queryConfiguration("snipemilliseconds");
+    if(newSnipeTime != null) {
+      AuctionEntry.setDefaultSnipeTime(Long.parseLong(newSnipeTime));
     }
   }
 }

@@ -11,7 +11,6 @@ import com.jbidwatcher.ui.auctionTableModel;
 import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.Comparison;
-import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.ErrorManagement;
 
@@ -95,7 +94,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
         delEntry(ae);
       } else {
         ae.setCategory(null);
-        FilterManager.getInstance().refilterAuction(ae, false);
+        FilterManager.getInstance().refilterAuction(ae);
       }
     }
   }
@@ -228,7 +227,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
     if(!ae.isComplete() || ae.isUpdateForced()) {
       MQFactory.getConcrete("Swing").enqueue("Updating " + titleWithComment);
       ae.update();
-      Auctions newAuction = FilterManager.getInstance().refilterAuction(ae, false);
+      Auctions newAuction = FilterManager.getInstance().refilterAuction(ae);
       if(newAuction == null) {
         MQFactory.getConcrete("Swing").enqueue("Done updating " + titleWithComment);
       } else {

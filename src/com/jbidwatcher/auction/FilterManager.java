@@ -9,8 +9,6 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.ui.AuctionsUIModel;
-import com.jbidwatcher.auction.Auctions;
-import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.util.*;
@@ -66,6 +64,15 @@ public class FilterManager implements MessageQueue.Listener {
   private class AuctionListHolder {
     private Auctions auctionList;
     private AuctionsUIModel auctionUI;
+    private boolean mDeletable = true;
+
+    public boolean isDeletable() {
+      return mDeletable;
+    }
+
+    public void setDeletable(boolean deletable) {
+      mDeletable = deletable;
+    }
 
     AuctionListHolder(String name) {
       auctionList = new Auctions(name);
@@ -78,11 +85,12 @@ public class FilterManager implements MessageQueue.Listener {
       auctionUI.setBackground(presetBackground);
     }
 
-    AuctionListHolder(String name, boolean _completed, boolean _selling) {
+    AuctionListHolder(String name, boolean _completed, boolean _selling, boolean deletable) {
       auctionList = new Auctions(name);
       if(_completed) auctionList.setComplete();
       if(_selling) auctionList.setSelling();
       auctionUI = new AuctionsUIModel(auctionList);
+      mDeletable = deletable;
     }
 
     public Auctions getList() { return auctionList; }
@@ -92,10 +100,11 @@ public class FilterManager implements MessageQueue.Listener {
   public void loadFilters() {
     //  BUGBUG -- Hardcoded for now, make dynamic later (post 0.8 release).
     _main = new AuctionListHolder("current");
+    _main.setDeletable(false);
     _allLists.add(_main);
 
-    _allLists.add(new AuctionListHolder("complete", true, false));
-    _allLists.add(new AuctionListHolder("selling", false, true));
+    _allLists.add(new AuctionListHolder("complete", true, false, false));
+    _allLists.add(new AuctionListHolder("selling", false, true, false));
 
     String tabName;
     int i=1;
@@ -135,9 +144,7 @@ public class FilterManager implements MessageQueue.Listener {
     for(int i=_allLists.size()-1; i>=0; i--) {
       AuctionListHolder step = _allLists.get(i);
       if(step.getList().getName().equals(oldTab)) {
-        if(step == _main || step.getList().isCompleted() || step.getList().isSelling()) {
-          return false;
-        }
+        if(!step.isDeletable()) return false;
         _allLists.remove(i);
         step.getList().refilterAll(deleteFirst);
         AuctionsUIModel.getTabManager().getTabs().remove(i);
@@ -341,13 +348,12 @@ public class FilterManager implements MessageQueue.Listener {
    * to a List of Auctions that it's part of.
    *
    * @param ae - The auction entry to refilter.
-   * @param force - reserved.
-   * 
+   *
    * @return an Auctions entry if it moved the auction somewhere else,
    * and null if it didn't find the auction, or it was in the same
    * filter as it was before.
    */
-  public Auctions refilterAuction(AuctionEntry ae, boolean force) {
+  public Auctions refilterAuction(AuctionEntry ae) {
     Auctions newAuctions = matchAuction(ae);
     Auctions oldAuctions = _allOrderedAuctionEntries.get(ae);
 

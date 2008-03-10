@@ -220,7 +220,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * will occur at.  This valus can be read and modified by
    * getDefaultSnipeTime() & setDefaultSnipeTime().
    */
-  private static long mDefaultSnipeAt = Constants.THIRTY_SECONDS;
+  private static long sDefaultSnipeAt = Constants.THIRTY_SECONDS;
 
   /**
    * The time at which this will cease being a 'recently added'
@@ -590,7 +590,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * entry, and update the default if it does.
    */
   private void checkConfigurationSnipeTime() {
-    mDefaultSnipeAt = getGlobalSnipeTime();
+    sDefaultSnipeAt = getGlobalSnipeTime();
   }
 
   /**
@@ -601,8 +601,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * snipe should fire.
    */
   public static long getDefaultSnipeTime() {
-    mDefaultSnipeAt = getGlobalSnipeTime();
-    return mDefaultSnipeAt;
+    sDefaultSnipeAt = getGlobalSnipeTime();
+    return sDefaultSnipeAt;
   }
 
   /**
@@ -614,8 +614,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * setSnipeTime() on a per-auction basis.
    */
   public static void setDefaultSnipeTime(long newSnipeAt) {
-    JConfig.setConfiguration("snipemilliseconds", Long.toString(newSnipeAt));
-    mDefaultSnipeAt = newSnipeAt;
+    sDefaultSnipeAt = newSnipeAt;
   }
 
   /**
@@ -626,7 +625,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * snipe will be fired.
    */
   public long getSnipeTime() {
-    return hasDefaultSnipeTime()? mDefaultSnipeAt : mSnipeAt;
+    return hasDefaultSnipeTime()? sDefaultSnipeAt : mSnipeAt;
   }
 
   /**
@@ -1110,7 +1109,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         //  mSnipeAt / 1000 seconds before the end of the auction.
         long adjustedDate;
         if(hasDefaultSnipeTime()) {
-          adjustedDate = curDate + mDefaultSnipeAt;
+          adjustedDate = curDate + sDefaultSnipeAt;
         } else {
           adjustedDate = curDate + mSnipeAt;
         }

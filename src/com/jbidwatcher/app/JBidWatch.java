@@ -15,6 +15,7 @@ import com.jbidwatcher.platform.Browser;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigFrame;
+import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.platform.Tray;
 import com.jbidwatcher.search.SearchManager;
@@ -39,6 +40,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
+import java.util.List;
 
 /**
  * @file   JBidWatch.java
@@ -129,7 +131,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
   private static void getUserSetup() {
     JConfig.setConfiguration("config.firstrun", "true");
-    JConfigFrame jcf = new JConfigFrame();
+    List<JConfigTab> serverTabs = AuctionServerManager.getInstance().getServerConfigurationTabs();
+    JConfigFrame jcf = new JConfigFrame(serverTabs);
     jcf.spinWait();
   }
 

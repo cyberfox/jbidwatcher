@@ -47,8 +47,8 @@ public class JConfigFrame implements ActionListener {
     }
   }
 
-  public JConfigFrame() {
-    mainFrame = createConfigFrame();
+  public JConfigFrame(List<JConfigTab> serverTabs) {
+    mainFrame = createConfigFrame(serverTabs);
     Rectangle rec = OptionUI.findCenterBounds(mainFrame.getPreferredSize());
     mainFrame.setLocation(rec.x, rec.y);
     show();
@@ -110,7 +110,7 @@ public class JConfigFrame implements ActionListener {
     cfgCount++;
   }
 
-  private JFrame createConfigFrame() {
+  private JFrame createConfigFrame(List<JConfigTab> serverTabs) {
     JTabbedPane jtpAllTabs = new JTabbedPane();
     final JFrame w;
 
@@ -130,7 +130,6 @@ public class JConfigFrame implements ActionListener {
     //  Add all non-server-specific tabs here.
     allTabs.add(new JConfigGeneralTab());
 
-    List<JConfigTab> serverTabs = AuctionServerManager.getInstance().getServerConfigurationTabs();
     for (JConfigTab serverTab : serverTabs) {
       allTabs.add(serverTab);
     }

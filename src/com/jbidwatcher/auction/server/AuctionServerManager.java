@@ -8,7 +8,6 @@ package com.jbidwatcher.auction.server;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
-import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.StringTools;

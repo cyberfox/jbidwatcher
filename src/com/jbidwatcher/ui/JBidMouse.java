@@ -20,6 +20,7 @@ import java.net.UnknownHostException;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigFrame;
+import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -296,7 +297,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DoConfigure() {
     if(jcf == null) {
-      jcf = new JConfigFrame();
+      List<JConfigTab> serverTabs = AuctionServerManager.getInstance().getServerConfigurationTabs();
+      jcf = new JConfigFrame(serverTabs);
     } else {
       jcf.show();
     }
@@ -484,7 +486,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     //  Now move all entries in the temporary table to the new tab.
     for (AuctionEntry moveEntry : tempTable) {
       moveEntry.setCategory(tab);
-      FilterManager.getInstance().refilterAuction(moveEntry, true);
+      FilterManager.getInstance().refilterAuction(moveEntry);
     }
   }
 
