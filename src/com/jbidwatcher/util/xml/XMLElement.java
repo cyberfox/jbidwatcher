@@ -1223,7 +1223,7 @@ public class XMLElement {
     return offset;
   }
 
-  static Map<Character, String> sEncodeMap;
+  static Map<Character, String> sEncodeMap = new HashMap<Character, String>(4);
   static {
     sEncodeMap.put('<', "&lt;");
     sEncodeMap.put('>', "&gt;");
