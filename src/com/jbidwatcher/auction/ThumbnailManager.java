@@ -19,9 +19,8 @@ import java.io.IOException;
 
 /** @noinspection MagicNumber,Singleton*/
 public class ThumbnailManager implements MessageQueue.Listener {
-  private static ThumbnailManager sInstance = new ThumbnailManager();
+  private static ThumbnailManager sInstance = null;
   private ThumbnailManager() { }
-  public static ThumbnailManager getInstance() { return sInstance; }
 
   public void messageAction(Object deQ) {
     AuctionInfo ai = (AuctionInfo) deQ;
