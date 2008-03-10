@@ -465,7 +465,7 @@ public class JConfig {
 
   public static void setDebugging(boolean doDebug) {
     //  You CANNOT turn off debugging in a pre-release now.
-    debugging = Constants.PROGRAM_VERS.indexOf("pre") != -1 || doDebug;
+    debugging = Constants.PROGRAM_VERS.matches(".*(pre|alpha|beta).*") || doDebug;
   }
 
   public static void setDisplayConfiguration(String key, String value) {
