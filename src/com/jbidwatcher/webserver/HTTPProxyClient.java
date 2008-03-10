@@ -50,11 +50,7 @@ public abstract class HTTPProxyClient extends ProxyClient {
   protected abstract boolean needsAuthorization(String reqFile);
 
   protected boolean isDone(String inLine) {
-    if(inLine != null) {
-      return(inLine.length() == 0);
-    }
-
-    return true;
+    return inLine == null || (inLine.length() == 0);
   }
 
   protected abstract StringBuffer buildHeaders(String whatDocument, byte[][] buf);

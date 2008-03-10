@@ -15,8 +15,6 @@ import java.awt.datatransfer.*;
 import java.lang.reflect.*;
 
 public class JDropListener implements DropTargetListener {
-  private static boolean do_uber_debug = false;
-
   private JDropHandler handler;
 
   private boolean _windows = false;
@@ -30,7 +28,7 @@ public class JDropListener implements DropTargetListener {
   private DataFlavor _urlFlavor = null;
 
   private static final String[][] _str_flavors = {
-	{ "UTF8Html", "text/html; class=java.io.InputStream; charset=utf-8" },
+    { "UTF8Html", "text/html; class=java.io.InputStream; charset=utf-8" },
     { "isoFlavor", "text/plain; class=java.io.InputStream; charset=iso8859-1" },
     { "ascFlavor", "text/plain; class=java.io.InputStream; charset=ascii" },
     { "pl2Flavor", "text/plain; class=java.io.InputStream" },
@@ -49,7 +47,7 @@ public class JDropListener implements DropTargetListener {
   }
 
   private DataFlavor getDataFlavor(DataFlavor inFlavor, String whichFlavor) {
-    DataFlavor df = null;
+    DataFlavor df;
     int i;
 
     if(inFlavor != null) return inFlavor;
@@ -107,7 +105,7 @@ public class JDropListener implements DropTargetListener {
   private boolean testFlavor(DataFlavor inFlavor, Transferable t) {
     if(inFlavor != null) {
       if(t.isDataFlavorSupported(inFlavor)) {
-        if(do_uber_debug) ErrorManagement.logDebug("Accepting(2): " + inFlavor.getMimeType());
+        ErrorManagement.logVerboseDebug("Accepting(2): " + inFlavor.getMimeType());
         return true;
       }
     }
@@ -120,7 +118,7 @@ public class JDropListener implements DropTargetListener {
         /*
          * I think this has been debugged enough.  This gets annoying.
          */
-        if(do_uber_debug) ErrorManagement.logDebug("Accepting(1): " + inFlavor.getMimeType());
+        ErrorManagement.logVerboseDebug("Accepting(1): " + inFlavor.getMimeType());
         return true;
       }
     }
@@ -184,33 +182,33 @@ public class JDropListener implements DropTargetListener {
   private void checkDrag(DropTargetDragEvent dtde) {
     int da = dtde.getDropAction();
     if(dtde.getCurrentDataFlavors().length == 0) {
-      if(do_uber_debug) ErrorManagement.logDebug("Zero length accepted... (" + da + ")");
+      ErrorManagement.logVerboseDebug("Zero length accepted... (" + da + ")");
       acceptDrag(dtde);
       return;
     }
     if(testAllFlavors(dtde) != null) {
-      if(do_uber_debug) ErrorManagement.logDebug("Accepting drag! (" + da + ")");
+      ErrorManagement.logVerboseDebug("Accepting drag! (" + da + ")");
       acceptDrag(dtde);
     } else {
       dtde.rejectDrag();
-      if(do_uber_debug) ErrorManagement.logDebug("Rejecting drag! (" + da + ")");
+      ErrorManagement.logVerboseDebug("Rejecting drag! (" + da + ")");
     }
   }
 
   public void dragEnter(DropTargetDragEvent dtde) {
-    if(do_uber_debug) ErrorManagement.logDebug("DragEnter!");
+    ErrorManagement.logVerboseDebug("DragEnter!");
     checkDrag(dtde);
-    if(do_uber_debug && JConfig.debugging) dumpDataFlavors(dtde.getCurrentDataFlavors());
+    if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) dumpDataFlavors(dtde.getCurrentDataFlavors());
   }
 
   public void dragOver(DropTargetDragEvent dtde) {
     checkDrag(dtde);
   }
 
-  public void dragExit(DropTargetEvent dtde) { if(do_uber_debug) ErrorManagement.logDebug("Drag exited!"); }
+  public void dragExit(DropTargetEvent dtde) { ErrorManagement.logVerboseDebug("Drag exited!"); }
   public void dropActionChanged(DropTargetDragEvent dtde) {
     acceptDrag(dtde);
-    if(do_uber_debug) ErrorManagement.logDebug("Drag Action Changed!");
+    ErrorManagement.logVerboseDebug("Drag Action Changed!");
   }
 
   private void dumpFlavorsOld(Transferable t) {
@@ -218,23 +216,18 @@ public class JDropListener implements DropTargetListener {
 
     if(dfa != null) {
       if(dfa.length == 0) {
-        if(do_uber_debug) ErrorManagement.logDebug("Trying a second attack...");
+        ErrorManagement.logVerboseDebug("Trying a second attack...");
         try {
           Clipboard sysClip = Toolkit.getDefaultToolkit().getSystemClipboard();
           Transferable t2 = sysClip.getContents(null);
           StringBuffer stBuff;
 
           stBuff = getTransferData(t2);
-          if(do_uber_debug) ErrorManagement.logDebug("Check out: " + stBuff);
-          //          if(dfa.length != 0) {
-          //          System.err.println("Failing, but trying: " + (String)t.getTransferData(DataFlavor.stringFlavor));
-          //          } else {
-          //            System.err.println("Not even the clipboard...");
-          //          }
+          ErrorManagement.logVerboseDebug("Check out: " + stBuff);
         } catch(Exception e) {
           ErrorManagement.handleException("Caught: " + e, e);
         }
-        if(do_uber_debug) ErrorManagement.logDebug("Done trying a second attack...");
+        ErrorManagement.logVerboseDebug("Done trying a second attack...");
       }
     }
     dumpDataFlavors(dfa);
@@ -242,7 +235,7 @@ public class JDropListener implements DropTargetListener {
 
   private Method getSpecialAPI() {
     Class[] specialClasses = new Class[1];
-    java.lang.reflect.Method acting=null;
+    java.lang.reflect.Method acting;
 
     specialClasses[0] = Transferable.class;
 
@@ -257,16 +250,16 @@ public class JDropListener implements DropTargetListener {
   }
 
   private BufferedReader useNewAPI(Transferable t, DataFlavor dtf) {
-    java.lang.reflect.Method acting=null;
+    java.lang.reflect.Method acting;
     Object[] transfer = new Object[1];
     Reader dropReader = null;
-    BufferedReader br = null;
+    BufferedReader br;
 
     acting = getSpecialAPI();
 
     if(acting != null) {
       try {
-        if(do_uber_debug) ErrorManagement.logDebug("Trying getReaderForText");
+        ErrorManagement.logVerboseDebug("Trying getReaderForText");
 
         //  This translates to:
         //          dropped = dtf.getReaderForText(t);
@@ -291,13 +284,13 @@ public class JDropListener implements DropTargetListener {
   private StringBuffer getDataFromReader(Reader br) {
     StringBuffer xferData = null;
     char[] buf = new char[513];
-    int charsRead = -1;
+    int charsRead;
 
     try {
       do {
         charsRead = br.read(buf, 0, 512);
         if(charsRead != -1) {
-          if(do_uber_debug) ErrorManagement.logDebug("Read: " + charsRead + " characters.");
+          ErrorManagement.logVerboseDebug("Read: " + charsRead + " characters.");
           if(xferData == null) {
             xferData = new StringBuffer();
           }
@@ -318,15 +311,14 @@ public class JDropListener implements DropTargetListener {
   }
 
   private StringBuffer getInputStreamData(Transferable t, DataFlavor dtf, InputStream dropStream) {
-    StringBuffer xferData = null;
+    StringBuffer xferData;
     BufferedReader br;
 
     br = useNewAPI(t, dtf);
 
     //  If the 'new' API failed...
     if(br == null) {
-      if(do_uber_debug) ErrorManagement.logDebug("Non-getReaderForText: " + dropStream);
-
+      if(JConfig.queryConfiguration("debug.uber", "false").equals("true")) ErrorManagement.logDebug("Non-getReaderForText: " + dropStream);
       try {
         InputStreamReader isr = new InputStreamReader(dropStream,"utf-16le");
 
@@ -342,28 +334,26 @@ public class JDropListener implements DropTargetListener {
       }
     }
 
-    if(br != null) {
-      xferData = getDataFromReader(br);
-    }
+    xferData = getDataFromReader(br);
 
     return xferData;
   }
 
   public StringBuffer getTransferData(Transferable t) {
     StringBuffer xferData = null;
-    Object dropped = null;
+    Object dropped;
     DataFlavor dtf;
 
     dtf = testAllFlavors(t);
 
-    if(do_uber_debug) ErrorManagement.logDebug("dtf == " + dtf);
+    ErrorManagement.logVerboseDebug("dtf == " + dtf);
 
     try {
       if(dtf == _htmlFlavor || dtf == _utf8HtmlFlavor || dtf == _thtmlFlavor) {
         /*
          * Annoying.
          */
-        if(do_uber_debug && JConfig.debugging) System.out.println("Ick: " + t.getTransferData(DataFlavor.getTextPlainUnicodeFlavor()));
+        if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) System.out.println("Ick: " + t.getTransferData(DataFlavor.getTextPlainUnicodeFlavor()));
       }
       dropped = t.getTransferData(dtf);
     } catch(IOException ioe) {
@@ -380,20 +370,18 @@ public class JDropListener implements DropTargetListener {
 
     if(dropped != null) {
       if(dropped instanceof InputStream) {
-        if(do_uber_debug) ErrorManagement.logDebug("Dropped an InputStream");
+        ErrorManagement.logVerboseDebug("Dropped an InputStream");
         xferData = getInputStreamData(t, dtf, (InputStream)dropped);
       } else if(dropped instanceof Reader) {
-        if(do_uber_debug) ErrorManagement.logDebug("Dropped a Reader");
+        ErrorManagement.logVerboseDebug("Dropped a Reader");
         xferData = getDataFromReader(new BufferedReader((Reader)dropped));
       } else if(dropped instanceof java.net.URL) {
-        if(do_uber_debug) {
-          ErrorManagement.logDebug("Dropped a URL");
-          ErrorManagement.logDebug("Got: " + dropped.toString());
-        }
+        ErrorManagement.logVerboseDebug("Dropped a URL");
+        ErrorManagement.logVerboseDebug("Got: " + dropped.toString());
 
         xferData = new StringBuffer(dropped.toString());
       } else if(dropped instanceof String) {
-        if(do_uber_debug) ErrorManagement.logDebug("Dropped a String");
+        ErrorManagement.logVerboseDebug("Dropped a String");
         xferData = new StringBuffer((String)dropped);
       }
 
@@ -407,7 +395,7 @@ public class JDropListener implements DropTargetListener {
     StringBuffer dropData=null;
     DataFlavor dtf;
 
-    if(do_uber_debug) ErrorManagement.logDebug("Dropping!");
+    ErrorManagement.logVerboseDebug("Dropping!");
 
     if(t.getTransferDataFlavors().length == 0) {
       Clipboard sysClip = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -419,33 +407,33 @@ public class JDropListener implements DropTargetListener {
       dfa2 = null;
 
       if(t2 != null) {
-        if(do_uber_debug) ErrorManagement.logDebug("t2 is not null: " + t2);
+        ErrorManagement.logVerboseDebug("t2 is not null: " + t2);
         dfa2 = t2.getTransferDataFlavors();
-        if(do_uber_debug) ErrorManagement.logDebug("Back from getTransferDataFlavors()!");
+        ErrorManagement.logVerboseDebug("Back from getTransferDataFlavors()!");
       } else {
-        if(do_uber_debug) ErrorManagement.logDebug("t2 is null!");
+        ErrorManagement.logVerboseDebug("t2 is null!");
       }
 
-      if(do_uber_debug) {
+      if(JConfig.queryConfiguration("debug.uber", "false").equals("true")) {
         if(dfa2 != null) {
           if(dfa2.length == 0) {
-            ErrorManagement.logDebug("Length is still zero!");
+            ErrorManagement.logVerboseDebug("Length is still zero!");
           }
           for(j=0; j<dfa2.length; j++) {
-            ErrorManagement.logDebug("Flavah " + j + " == " + dfa2[j].getHumanPresentableName());
-            ErrorManagement.logDebug("Flavah/mime " + j + " == " + dfa2[j].getMimeType());
+            ErrorManagement.logVerboseDebug("Flavah " + j + " == " + dfa2[j].getHumanPresentableName());
+            ErrorManagement.logVerboseDebug("Flavah/mime " + j + " == " + dfa2[j].getMimeType());
           }
         } else {
-          ErrorManagement.logDebug("Flavahs supported: none!\n");
+          ErrorManagement.logVerboseDebug("Flavahs supported: none!\n");
         }
       }
     }
 
-    if(do_uber_debug && JConfig.debugging) dumpFlavorsOld(t);
+    if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) dumpFlavorsOld(t);
 
     dtf = testAllFlavors(t);
     if(dtf != null) {
-      if(do_uber_debug) ErrorManagement.logDebug("Accepting!");
+      ErrorManagement.logVerboseDebug("Accepting!");
       acceptDrop(dtde);
 
       dropData = getTransferData(t);
@@ -457,7 +445,7 @@ public class JDropListener implements DropTargetListener {
         }
       }
     } else {
-      if(do_uber_debug) ErrorManagement.logDebug("Rejecting!");
+      ErrorManagement.logVerboseDebug("Rejecting!");
       dtde.rejectDrop();
       handler.receiveDropString(dropData);
     }

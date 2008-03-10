@@ -111,10 +111,8 @@ public class JConfigBrowserTab extends JConfigTab {
     testButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent ae) {
           if(ae.getActionCommand().equals("Test Browser")) {
-            boolean browserWorked = false;
             apply();
-            browserWorked = Browser.launchBrowser("http://www.jbidwatcher.com");
-            if(!browserWorked) {
+            if(!Browser.launchBrowser("http://www.jbidwatcher.com")) {
               JOptionPane.showMessageDialog(null, "<html><body>Failed to launch browser.  The error log contains more details,<br>" +
                                             "but some common problems are:" +
                                             "<ul><li>Your path does not include the binary to launch.</li>" +

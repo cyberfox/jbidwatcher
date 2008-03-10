@@ -235,7 +235,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     return null;
   }
 
-  Color titleColor(AuctionEntry ae) {
+  private Color titleColor(AuctionEntry ae) {
     if (ae != null && ae.getHighBidder() != null) {
       if (ae.isHighBidder()) {
         if (!ae.isReserve() || ae.isReserveMet()) {
@@ -245,7 +245,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
         }
       } else {
         if (ae.getNumBidders() > 0 && (!ae.isReserve() || ae.isReserveMet())) {
-          if (true) { // !_isSelling) {
+          if (!ae.isSeller()) {
             return darkRed;
           } else {
             return darkGreen;

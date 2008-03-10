@@ -276,8 +276,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    */
   public boolean check() {
     //  Don't allow updates to interfere with sniping.
-    if(isBlocked) return false;
-    return doNextUpdate();
+    return !(isBlocked || !doNextUpdate());
   }
 
   public void updateTime() {

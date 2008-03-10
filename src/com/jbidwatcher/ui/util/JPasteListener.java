@@ -13,7 +13,6 @@ import javax.swing.*;
 public class JPasteListener extends MouseAdapter {
   private static JPopupMenu _jpm = null;
   private static JPasteListener _instance = null;
-  private static JMenuItem _pasteMenuItem = null;
   private static MouseEvent _me = null;
   private static ActionListener _aep = new ActionListener() {
       public void actionPerformed(ActionEvent ae) {
@@ -26,9 +25,9 @@ public class JPasteListener extends MouseAdapter {
     _jpm = new JPopupMenu();
     _jpm.add("Cut").setEnabled(false);
     _jpm.add("Copy").setEnabled(false);
-    _pasteMenuItem = _jpm.add("Paste");
-    _pasteMenuItem.setEnabled(true);
-    _pasteMenuItem.addActionListener(_aep);
+    JMenuItem paste = _jpm.add("Paste");
+    paste.setEnabled(true);
+    paste.addActionListener(_aep);
     _jpm.add("Delete").setEnabled(false);
   }
 

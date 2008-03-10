@@ -15,8 +15,6 @@ import java.net.*;
 import java.io.*;
 
 public class Http {
-  private final static boolean do_uber_debug = false;
-
   private static void setConnectionProxyInfo(URLConnection huc) {
     if(JConfig.queryConfiguration("proxyfirewall", "none").equals("proxy")) {
       String proxyHost = JConfig.queryConfiguration("proxy.host", null);
@@ -49,18 +47,12 @@ public class Http {
       huc.setDoOutput(true);
 
       if(huc instanceof HttpURLConnection) {
-        ((HttpURLConnection)huc).setRequestMethod("POST");
-        if(!follow_redirects) ((HttpURLConnection)huc).setInstanceFollowRedirects(false);
+        HttpURLConnection conn = (HttpURLConnection)huc;
+        conn.setRequestMethod("POST");
+        if(!follow_redirects) conn.setInstanceFollowRedirects(false);
       }
-      if(do_uber_debug && JConfig.debugging) {
-        if(cgiData != null) {
-          System.err.println("Content-Type: application/x-www-form-urlencoded");
-          System.err.println("Content-Length: " + Integer.toString(cgiData.length()));
-          System.err.println("User-Agent: " + Constants.FAKE_BROWSER);
-          System.err.println("Cookie: " + cookie);
-        } else {
-          System.err.println("CGI Data is null!");
-        }
+      if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) {
+        dumpFormHeaders(cgiData, cookie);
       }
 
       huc.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -81,6 +73,17 @@ public class Http {
       huc = null;
     }
     return(huc);
+  }
+
+  private static void dumpFormHeaders(String cgiData, String cookie) {
+    if(cgiData != null) {
+      System.err.println("Content-Type: application/x-www-form-urlencoded");
+      System.err.println("Content-Length: " + Integer.toString(cgiData.length()));
+      System.err.println("User-Agent: " + Constants.FAKE_BROWSER);
+      System.err.println("Cookie: " + cookie);
+    } else {
+      System.err.println("CGI Data is null!");
+    }
   }
 
 
@@ -220,7 +223,7 @@ public class Http {
       if(readData != null) {
         loadUp.append(readData);
         loadUp.append("\n");
-        if(do_uber_debug && JConfig.debugging) {
+        if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) {
           ErrorManagement.logFile("Read the following data", new StringBuffer(readData));
         }
       }

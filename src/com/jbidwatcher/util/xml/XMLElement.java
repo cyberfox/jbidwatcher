@@ -65,7 +65,7 @@ import java.util.*;
  *         >Marc.DeScheemaecker@advalvas.be</A>&gt;
  * @version 1.5
  */
-@SuppressWarnings({"JavaDoc"})
+@SuppressWarnings({"JavaDoc", "ThrowableInstanceNeverThrown"})
 public class XMLElement {
   /**
    * Major version of NanoXML.
@@ -679,12 +679,9 @@ public class XMLElement {
     int[] lineNr = new int[1];
     lineNr[0] = contentLineNr;
 
-    if (! _skipLeadingWhitespace) {
+    if (!_skipLeadingWhitespace) {
       String str = new String(input, contentOffset, contentSize);
-      _contents = decodeString(str, lineNr[0]);
-      if(_contents.startsWith("<![CDATA[")) {
-        _contents = _contents.substring(9, _contents.length()-3);
-      }
+      handleCData(str);
       return;
     }
 
@@ -699,26 +696,22 @@ public class XMLElement {
       while ((ch == '\r') || (ch == '\n')) {
         lineNr[0]++;
         result.append(ch);
-
         i++;
+
         ch = input[i];
+        if (ch != '\n') result.append(ch);
 
-        if (ch != '\n') {
-          result.append(ch);
-        }
-
-        do {
-          i++;
-          ch = input[i];
-        } while ((ch == ' ') || (ch == '\t'));
+        do { ch = input[++i]; } while ((ch == ' ') || (ch == '\t'));
       }
 
-      if (i < end) {
-        result.append(ch);
-      }
+      if (i < end) result.append(ch);
     }
 
-    _contents = decodeString(result.toString(), lineNr[0]);
+    handleCData(result.toString());
+  }
+
+  private void handleCData(String content) {
+    _contents = decodeString(content);
     if(_contents.startsWith("<![CDATA[")) {
       _contents = _contents.substring(9, _contents.length()-3);
     }
@@ -829,16 +822,13 @@ public class XMLElement {
       contentSize[0] = 0;
 
       //  Return an offset pointing to right after the tag.
-      if (input[offset + 1] == '>') return offset + 2;
-
-      throw expectedInput("'>'", lineNr[0]);
+      if (input[offset + 1] != '>') throw expectedInput("'>'", lineNr[0]);
+      return offset + 2;
     }
 
     //  Otherwise this REALLY should be a '>', to end the open-tag we've just
     //  processed.
-    if (ch != '>') {
-      throw expectedInput("'>'", lineNr[0]);
-    }
+    if (ch != '>') throw expectedInput("'>'", lineNr[0]);
 
     //  Everything's okay so far, now skip all whitespace between the backside of the
     //  open tag, and the first non-whitespace character.
@@ -944,9 +934,7 @@ public class XMLElement {
 
     //  If there weren't an equal amount of tag starts as tag ends,
     //  then punt.
-    if (level >= 0) {
-      throw unexpectedEndOfData(lineNr[0]);
-    }
+    if (level >= 0) throw unexpectedEndOfData(lineNr[0]);
 
     //  If we're supposed to skip whitespace then go ahead and do
     //  that.  NOTE: skipLeadingWhitespace is a misnomer!  This skips
@@ -1027,7 +1015,7 @@ public class XMLElement {
       }
     }
 
-    if(!key.equals("/")) _attributes.put(key, decodeString(value, lineNr[0]));
+    if(!key.equals("/")) _attributes.put(key, decodeString(value));
     return offset + value.length();
   }
 
@@ -1235,66 +1223,54 @@ public class XMLElement {
     return offset;
   }
 
+  static Map<Character, String> sEncodeMap;
+  static {
+    sEncodeMap.put('<', "&lt;");
+    sEncodeMap.put('>', "&gt;");
+    sEncodeMap.put('"', "&quot;");
+    sEncodeMap.put('&', "&amp;");
+  }
   /**
    * Converts 'normal' characters into escaped '&amp;...;' sequences.
    * BUG -- This does not use the same conversion table as the main
    * decode routine.
    */
   public static String encodeString(String s) {
-    char trueBytes[] = new char[s.length()];
+    char raw[] = new char[s.length()];
 
-    s.getChars(0, s.length(), trueBytes, 0);
+    s.getChars(0, s.length(), raw, 0);
     int lastIndex = 0;
     String insertString = null;
     StringBuffer outBuffer = null;
-    for(int i = 0; i<trueBytes.length; i++) {
-      char ch = trueBytes[i];
-      switch(ch) {
-        case '<':
-          insertString = "&lt;";
-          break;
-        case '>':
-          insertString = "&gt;";
-          break;
-        case '\"':
-          insertString = "&quot;";
-          break;
-        case '\'':
-          insertString = "&apos;";
-          break;
-        case '&':
-          insertString = "&amp;";
-          break;
-        case '#':
-          if(i == 0 || (i>0 && trueBytes[i-1] != '&')) insertString = "&pound;";
-          break;
-        default:
-          insertString = null;
-          break;
+    for(int i = 0; i<raw.length; i++) {
+      char ch = raw[i];
+      insertString = null;
+
+      if(ch == '#') {
+        if (i == 0 || (i > 0 && raw[i - 1] != '&')) insertString = "&pound;";
+      } else {
+        insertString = sEncodeMap.get(ch);
       }
       if(ch > 0x80) insertString = "&#" + (int)ch + ";";
       if(insertString != null) {
         if(outBuffer == null) outBuffer = new StringBuffer();
-        outBuffer.append(s.substring(lastIndex, i));  //  TODO -- Relies on byte<->char mapping being 1:1 for UTF8.  Fix this?
-        lastIndex = i+1;
+        outBuffer.append(s.substring(lastIndex, i));
         outBuffer.append(insertString);
+        lastIndex = i + 1;
       }
     }
-    if(insertString == null) {
-      if(lastIndex != 0) {
-        outBuffer.append(s.substring(lastIndex));
-      }
-    }
-    if(lastIndex == 0) return s;
 
-  if(outBuffer == null) return null;
-    return outBuffer.toString();
+    if (insertString == null && lastIndex != 0) {
+      outBuffer.append(s.substring(lastIndex));
+    }
+
+    return lastIndex == 0 ? s : outBuffer.toString();
   }
 
   /**
    * Converts &amp;...; sequences to "normal" chars.
    */
-  public String decodeString(String s, int    lineNr) {
+  public String decodeString(String s) {
     if(s == null) return "";
     StringBuffer result = new StringBuffer(s.length());
     int index = 0;

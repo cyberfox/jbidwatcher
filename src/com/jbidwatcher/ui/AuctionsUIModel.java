@@ -10,11 +10,10 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
-import com.jbidwatcher.ui.TargetDrop;
-import com.jbidwatcher.ui.util.JBidFrame;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
+import com.jbidwatcher.platform.Platform;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -80,14 +79,13 @@ public class AuctionsUIModel {
     }
     _table.addMouseListener(tableAdapter);
     _dataModel.getTableSorter().addMouseListenerToHeaderInTable(_table);
-    if(JConfig.queryConfiguration("mac.aqua", "false").equals("true")) {
+    if(Platform.isMac() || JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
       _scroller = new JScrollPane(_table, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     } else {
-      //_scroller = new JScrollPane(_table, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
       _scroller = new JScrollPane(_table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     }
 
-    //  Eventually this will become a button to manage the custom columns for the current tab.  That's just a bit tough right now.
+    //  This is a button to manage the custom columns for the current tab.
     if(JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
       final JButton bangButton = new JButton("*");
       final JMenu bangMenu = allTabs.getCustomColumnMenu();
@@ -97,15 +95,7 @@ public class AuctionsUIModel {
         }
       });
 
-//      public void processMouseEvent(MouseEvent e) {
-//      if (e.isPopupTrigger()) {
-//        popup.show(this, e.getX(), e.getY());
-//      } else {
-//        super.processMouseEvent(e);
-//      }
-//    }
       _scroller.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, bangButton);
-//      _scroller.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, mine);
     }
 
     _bgColor = UIManager.getColor("window");

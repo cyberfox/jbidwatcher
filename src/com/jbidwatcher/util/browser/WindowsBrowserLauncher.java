@@ -241,7 +241,7 @@ public class WindowsBrowserLauncher {
     }
     nativeHandle = result[NATIVE_HANDLE];
 
-    m = theClass.getDeclaredMethod("WindowsRegQueryValueEx", new Class[]{int.class, byte[].class});
+    m = theClass.getDeclaredMethod("WindowsRegQueryValueEx", int.class, byte[].class);
     m.setAccessible(true);
 
     windowsName = toWindowsName(key);
@@ -273,7 +273,7 @@ public class WindowsBrowserLauncher {
    */
   public static int WindowsRegCloseKey(int nativeHandle) throws Exception {
     Class theClass = Class.forName("java.util.prefs.WindowsPreferences");
-    Method m = theClass.getDeclaredMethod("WindowsRegCloseKey", new Class[]{int.class});
+    Method m = theClass.getDeclaredMethod("WindowsRegCloseKey", int.class);
     Object ret;
 
     m.setAccessible(true);
@@ -298,9 +298,7 @@ public class WindowsBrowserLauncher {
    */
   public static int[] openKey1(int hkey, byte[] windowsAbsolutePath, int securityMask) throws Exception {
     Class theClass = Class.forName("java.util.prefs.WindowsPreferences");
-    Method m = theClass.getDeclaredMethod("WindowsRegOpenKey", new Class[]{int.class, 
-                                                                           byte[].class, 
-                                                                           int.class});
+    Method m = theClass.getDeclaredMethod("WindowsRegOpenKey", int.class, byte[].class, int.class);
     m.setAccessible(true);
     Object ret = m.invoke(null, hkey, windowsAbsolutePath, securityMask);
     return (int[]) ret;

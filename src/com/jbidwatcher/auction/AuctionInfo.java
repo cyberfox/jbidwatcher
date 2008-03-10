@@ -120,7 +120,7 @@ public class AuctionInfo extends ActiveRecord
   protected void handleTag(int i, XMLElement curElement) {
     switch(i) {
       case 0:  //  Title
-        setString(infoTags[i], curElement.decodeString(curElement.getContents(), 0));
+        setString(infoTags[i], curElement.decodeString(curElement.getContents()));
         break;
       case 1:  //  Seller name
         if(curElement.getChild("name") == null) {

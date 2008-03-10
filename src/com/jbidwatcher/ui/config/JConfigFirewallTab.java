@@ -13,7 +13,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 public class JConfigFirewallTab extends JConfigTab {
-  private ButtonGroup allButtons;
   private JRadioButton noFirewall;
   private JRadioButton socksFirewall;
   private JRadioButton webProxy;
@@ -264,7 +263,7 @@ public class JConfigFirewallTab extends JConfigTab {
 
   public final void updateValues() {
     String proxyFirewall = JConfig.queryConfiguration("proxyfirewall");
-    boolean proxyP=false, firewallP=false;
+    boolean proxyP, firewallP;
 
     if(proxyFirewall == null) {
       noFirewall.setSelected(true);
@@ -301,7 +300,7 @@ public class JConfigFirewallTab extends JConfigTab {
     socksFirewall = new JRadioButton("SOCKS 4/5 Firewall");
     webProxy = new JRadioButton("HTTP Web Proxy");
 
-    allButtons = new ButtonGroup();
+    ButtonGroup allButtons = new ButtonGroup();
     allButtons.add(socksFirewall);
     allButtons.add(webProxy);
     allButtons.add(noFirewall);

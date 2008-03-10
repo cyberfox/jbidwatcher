@@ -392,7 +392,7 @@ public class auctionTableModel extends BaseTransformation
           endTime = fmt.format(aEntry.getEndDate());
           return endTime;
         }
-        case TableColumnController.TITLE: return cvt.decodeString(aEntry.getTitle(), 0);
+        case TableColumnController.TITLE: return cvt.decodeString(aEntry.getTitle());
         case TableColumnController.STATUS: return getEntryIcon(aEntry);
         case TableColumnController.THUMBNAIL: {
           String thumb = aEntry.getThumbnail();

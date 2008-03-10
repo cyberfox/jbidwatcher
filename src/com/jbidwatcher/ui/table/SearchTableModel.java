@@ -57,7 +57,6 @@ public class SearchTableModel extends BaseTransformation
   }
 
   public Object getValueAt(int i, int j) {
-    String result;
     Searcher s = SearchManager.getInstance().getSearchByIndex(i);
 
     switch(j) {

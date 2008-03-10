@@ -69,6 +69,10 @@ public class ErrorManagement {
     if(JConfig.debugging) logMessage(msg);
   }
 
+  public static void logVerboseDebug(String msg) {
+    if(JConfig.queryConfiguration("debug.uber", "false").equals("true")) logMessage(msg);
+  }
+
   public static void handleDebugException(String sError, Throwable e) {
     if(JConfig.debugging) handleException(sError, e);
   }
