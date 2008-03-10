@@ -6,6 +6,7 @@ package com.jbidwatcher.auction.server;
  */
 
 import com.jbidwatcher.ui.config.JConfigTab;
+import com.jbidwatcher.ui.ServerMenu;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.search.SearchManager;
@@ -267,8 +268,8 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     return null;
   }
 
-  public void addAuctionServerMenus() {
-    mServer.establishMenu();
+  public ServerMenu addAuctionServerMenus() {
+    return mServer.establishMenu();
   }
 
   /**

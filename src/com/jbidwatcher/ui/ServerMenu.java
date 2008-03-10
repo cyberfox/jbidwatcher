@@ -11,19 +11,19 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public abstract class ServerMenu implements ActionListener {
-  protected JMenu _thisMenu;
+  protected JMenu mMenu;
 
   public abstract void initialize();
 
   public ServerMenu(String serverName, char ch) {
-    _thisMenu = new JMenu(serverName);
-    _thisMenu.setMnemonic(ch);
-    JBidMenuBar.getInstance(null).add(_thisMenu);
+    mMenu = new JMenu(serverName);
+    mMenu.setMnemonic(ch);
+    JBidMenuBar.getInstance(null).add(mMenu);
   }
 
   public ServerMenu(String serverName) {
-    _thisMenu = new JMenu(serverName);
-    JBidMenuBar.getInstance(null).add(_thisMenu);
+    mMenu = new JMenu(serverName);
+    JBidMenuBar.getInstance(null).add(mMenu);
   }
 
   public ServerMenu() {
@@ -33,7 +33,7 @@ public abstract class ServerMenu implements ActionListener {
     JMenuItem constructItem = new JMenuItem(inName);
     constructItem.addActionListener(this);
 
-    _thisMenu.add(constructItem);
+    mMenu.add(constructItem);
   }
 
   public void addMenuItem(String inName, char ch) {
@@ -42,7 +42,7 @@ public abstract class ServerMenu implements ActionListener {
     constructItem.setMnemonic(ch);
     constructItem.addActionListener(this);
 
-    _thisMenu.add(constructItem);
+    mMenu.add(constructItem);
   }
 
   public void addMenuItem(String inName, String actionCmd, char ch) {
@@ -52,6 +52,10 @@ public abstract class ServerMenu implements ActionListener {
     constructItem.setActionCommand(actionCmd);
     constructItem.addActionListener(this);
 
-    _thisMenu.add(constructItem);
+    mMenu.add(constructItem);
+  }
+
+  public JMenu getMenu() {
+    return mMenu;
   }
 }

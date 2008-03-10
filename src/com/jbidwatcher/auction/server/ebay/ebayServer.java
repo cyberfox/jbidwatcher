@@ -15,6 +15,7 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.Externalized;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigTab;
+import com.jbidwatcher.ui.ServerMenu;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.html.JHTML;
@@ -161,9 +162,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * menu, to do eBay-specific things.
    *
    */
-  public void establishMenu() {
+  public ServerMenu establishMenu() {
     ebayServerMenu esm = new ebayServerMenu(eBayDisplayName, 'b');
     esm.initialize();
+
+    return esm;
   }
 
   /**

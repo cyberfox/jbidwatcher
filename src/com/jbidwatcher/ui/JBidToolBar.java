@@ -53,7 +53,7 @@ public class JBidToolBar {
 
     mHeaderStatus = new JLabel("", SwingConstants.RIGHT);
     inFrame.setJMenuBar(mBidMenu);
-    AuctionServerManager.getInstance().addAuctionServerMenus();
+    mBidMenu.add(AuctionServerManager.getInstance().addAuctionServerMenus().getMenu());
 
     mBidMenu.add(Box.createHorizontalGlue());
 
