@@ -3,12 +3,16 @@ package com.jbidwatcher.auction.server.ebay;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
+import com.jbidwatcher.util.queue.MessageQueue;
+import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.config.JConfigTab;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 /**
  * Created by IntelliJ IDEA.
@@ -25,6 +29,42 @@ public class JConfigEbayTab extends JConfigTab
   JTextField password;
   JComboBox siteSelect;
   private String mDisplayName;
+
+  private class LoginTestListener implements ActionListener, MessageQueue.Listener {
+    CookieJar cj = null;
+
+    public void actionPerformed(ActionEvent ae) {
+      if (ae.getActionCommand().equals("Test Login")) {
+        MQFactory.getConcrete("login").registerListener(this);
+        System.err.println("TESTING LOGIN (" + username.getText() + ", " + password.getText() + ")!");
+        ebayLoginManager login = new ebayLoginManager("ebay", password.getText(), username.getText());
+        cj = login.getNecessaryCookie(true);
+      }
+    }
+
+    public void messageAction(Object deQ) {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException ignored) { }
+      String result = (String)deQ;
+      String loginMessage = "An unrecognized result occurred ("+result+"); please report this.";
+      if(result.equals("FAILED")) {
+        loginMessage = "Login failed.";
+      } else if(result.equals("NEUTRAL")) {
+        if(cj == null) {
+          loginMessage = "The login did not cause any errors but found no\ncookies.  It probably failed.";
+        } else {
+          loginMessage = "The login did not cause any errors and delivered\ncookies, but was not clearly recognized as successful.";
+        }
+      } else if(result.equals("CAPTCHA")) {
+        loginMessage = "eBay put up a 'captcha', to prevent programs from logging into your account.  Login failed.";
+      } else if(result.equals("SUCCESSFUL")) {
+        loginMessage = "Successfully logged in.";
+      }
+      JOptionPane.showMessageDialog(null, loginMessage, "Login Test", JOptionPane.INFORMATION_MESSAGE);
+      MQFactory.getConcrete("login").deRegisterListener(this);
+    }
+  }
 
   public String getTabName() { return mDisplayName; }
   public void cancel() { }
@@ -85,6 +125,9 @@ public class JConfigEbayTab extends JConfigTab
     Box userBox = Box.createVerticalBox();
     userBox.add(makeLine(new JLabel("Username: "), username));
     userBox.add(makeLine(new JLabel("Password:  "), password));
+    JButton testButton = new JButton("Test Login");
+    testButton.addActionListener(new LoginTestListener());
+    tp.add(testButton, BorderLayout.EAST);
     tp.add(userBox);
 
     return(tp);

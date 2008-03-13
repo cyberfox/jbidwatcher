@@ -125,6 +125,7 @@ public class ebayLoginManager implements LoginManager {
   }
 
   private static boolean getAdultConfirmation(URLConnection uc_signin, CookieJar cj) throws IOException {
+    boolean enqueued = false;
     StringBuffer confirm = Http.receivePage(uc_signin);
     if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-a2.html", confirm);
     JHTML confirmPage = new JHTML(confirm);
@@ -134,14 +135,22 @@ public class ebayLoginManager implements LoginManager {
       if (finalForm.hasInput("MfcISAPICommand")) {
         uc_signin = cj.getAllCookiesFromPage(finalForm.getCGI(), null, false);
         StringBuffer confirmed = Http.receivePage(uc_signin);
-        if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-a2.html", confirmed);
+        if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-a3.html", confirmed);
         JHTML htdoc = new JHTML(confirmed);
         JHTML.Form curForm = htdoc.getFormWithInput("pass");
         if (curForm != null) {
+          MQFactory.getConcrete("login").enqueue("FAILED");
           return false;
+        }
+        enqueued = true;
+        if(htdoc.grep("(?ms).*Your information has been verified.*")!=null) {
+          MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
+        } else {
+          MQFactory.getConcrete("login").enqueue("NEUTRAL");
         }
       }
     }
+    if(!enqueued) MQFactory.getConcrete("login").enqueue("NEUTRAL");
     return true;
   }
 
@@ -212,7 +221,14 @@ public class ebayLoginManager implements LoginManager {
           JHTML doc = new JHTML(confirm);
           if (checkSecurityConfirmation(doc)) {
             cj = null;
+            MQFactory.getConcrete("login").enqueue("FAILED");
           } else {
+            JHTML.Form redirect_form = doc.getFormWithInput("hidUrl");
+            if(redirect_form != null && redirect_form.getInputValue("hidUrl").equals("http://my.ebay.com/ws/eBayISAPI.dll?MyeBay")) {
+              MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
+            } else {
+              MQFactory.getConcrete("login").enqueue("NEUTRAL");
+            }
             MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
           }
         }
@@ -220,10 +236,12 @@ public class ebayLoginManager implements LoginManager {
     } catch (IOException e) {
       //  We don't know how far we might have gotten...  The cookies
       //  may be valid, even!  We can't assume it, though.
+      MQFactory.getConcrete("login").enqueue("FAILED");
       MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN " + e.getMessage());
       ErrorManagement.handleException("Couldn't sign in!", e);
       cj = null;
     } catch(CaptchaException ce) {
+      MQFactory.getConcrete("login").enqueue("CAPTCHA");
       MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's increased security monitoring has been triggered, JBidwatcher cannot log in for a while.");
       notifySecurityIssue();
       ErrorManagement.handleException("Couldn't sign in, captcha interference!", ce);

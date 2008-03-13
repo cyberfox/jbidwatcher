@@ -379,6 +379,7 @@ public class UIBackbone implements MessageQueue.Listener {
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
     if (JConfig.queryConfiguration("display.toolbar", "true").equals("true")) {
       defaultServerTime = "<b>" + defaultServerTime.replace("@", "</b><br>");
+//      defaultServerTime = "<b style=\"background-color: #c0c0c0\">" + defaultServerTime.replace("@", "</b><br>");
     }
 
     if (!_userValid) defaultServerTime = "Not logged in...";
