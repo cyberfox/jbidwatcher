@@ -94,11 +94,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   private EventLogger mEntryEvents = null;
 
   /**
-   * Allow the user to add a personal comment about this auction.
-   */
-  private String mComment = null;
-
-  /**
    * Are we in the middle of updating?  This should probably be
    * synchronized, and therefore a Boolean.  BUGBUG -- mrs: 01-January-2003 23:59
    */
@@ -126,13 +121,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * be null, and will point to a MultiSnipe object.
    */
   private MultiSnipe mMultiSnipe =null;
-
-  /**
-   * Is the data reasonably synchronized with the server?  (When the
-   * site stops providing the data, or an error occurs when retrieving
-   * this auction, this will be true.)
-   */
-  private boolean mInvalid =false;
 
   /**
    * Is the current user the high bidder?  This is a tougher problem
@@ -245,7 +233,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @param auctionIdentifier - Each auction site has an identifier that
    *                            is used to key the auction.
    */
-
   private synchronized void prepareAuctionEntry(String auctionIdentifier) {
     mLastUpdatedAt = 0;
     mNeedsUpdate = true;
@@ -786,36 +773,41 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @brief Mark this entry as being not-invalid.
    */
   public void clearInvalid() {
-    mInvalid = false;
+    setBoolean("invalid", false);
   }
 
   /**
    * @brief Mark this entry as being invalid for some reason.
    */
   public void setInvalid() {
-    mInvalid = true;
+    setBoolean("invalid", true);
   }
 
   /**
    * @brief Is this entry invalid for any reason?
    *
+   * Is the data reasonably synchronized with the server?  (When the
+   * site stops providing the data, or an error occurs when retrieving
+   * this auction, this will be true.)
+   *
    * @return - True if this auction is considered invalid, false if it's okay.
    */
   public boolean isInvalid() {
-    return(mInvalid);
+    return getBoolean("invalid", false);
   }
 
   /**
    * @brief Store a user-specified comment about this item.
+   * Allow the user to add a personal comment about this auction.
    *
    * @param newComment - The comment to keep track of.  If it's empty,
    * we effectively delete the comment.
    */
   public void setComment(String newComment) {
     if(newComment.trim().length() == 0)
-      mComment = null;
+      setString("comment", null);
     else
-      mComment = newComment;
+      setString("comment", newComment.trim());
   }
 
   /**
@@ -824,7 +816,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @return Any comment the user may have stored about this item.
    */
   public String getComment() {
-    return mComment;
+    return getString("comment");
   }
 
   /**
