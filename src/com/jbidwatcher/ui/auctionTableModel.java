@@ -82,7 +82,8 @@ public class auctionTableModel extends BaseTransformation
   private static final ImageIcon imageIcon = new ImageIcon(JConfig.getResource("/icons/camera.gif"));
   private static final ImageIcon commentIcon=new ImageIcon(JConfig.getResource("/icons/note3.gif"));
   private static final ImageIcon winningIcon=new ImageIcon(JConfig.getResource("/icons/winning.gif"));
-  private static final ImageIcon invalidIcon=new ImageIcon(JConfig.getResource("/icons/invalid.gif"));
+  private static final ImageIcon invalidIcon=new ImageIcon(JConfig.getResource("/icons/invalid.png"));
+  private static final ImageIcon deletedIcon=new ImageIcon(JConfig.getResource("/icons/deleted.png"));
   private static final ImageIcon paypalIcon =new ImageIcon(JConfig.getResource("/icons/paypal16x16.gif"));
   //  private final static ImageIcon boughtIcon = new ImageIcon(JConfig.getResource("/icons/blue_check_ball.gif"));
   //  private final static ImageIcon soldIcon = new ImageIcon(JConfig.getResource("/icons/green_check_ball.gif"));
@@ -161,6 +162,9 @@ public class auctionTableModel extends BaseTransformation
     if(ae.isInvalid()) {
       ret_icon = IconFactory.getCombination(ret_icon, invalidIcon);
     }
+//    if(ae.isDeleted()) {
+//      ret_icon = IconFactory.getCombination(ret_icon, deletedIcon);
+//    }
     if(ae.hasPaypal()) {
       ret_icon = IconFactory.getCombination(ret_icon, paypalIcon);
     }
