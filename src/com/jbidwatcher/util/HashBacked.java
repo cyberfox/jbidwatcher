@@ -2,7 +2,6 @@ package com.jbidwatcher.util;
 
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
-import com.jbidwatcher.util.Record;
 
 import java.util.Date;
 import java.util.Map;
@@ -16,7 +15,7 @@ import java.text.SimpleDateFormat;
  * Date: Sep 30, 2007
  * Time: 1:54:43 PM
  */
-public abstract class HashBacked extends XMLSerializeSimple {
+public class HashBacked extends XMLSerializeSimple {
   private static final Record EMPTY = new Record();
   private Record mBacking = EMPTY;
   private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -25,8 +24,12 @@ public abstract class HashBacked extends XMLSerializeSimple {
   private boolean mDirty = false;
 
   public HashBacked() {
+    this(new Record());
+  }
+
+  public HashBacked(Record data) {
     mDateFormat.setTimeZone(TimeZone.getDefault());
-    mBacking = new Record();
+    mBacking = data;
     mDefaultCurrency = Currency.getCurrency("$1.00").fullCurrencyName();
   }
 

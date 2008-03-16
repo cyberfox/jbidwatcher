@@ -1,13 +1,18 @@
 package com.jbidwatcher;
 
 import com.jbidwatcher.util.db.Database;
+import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.util.Record;
+import com.jbidwatcher.util.HashBacked;
 import com.jbidwatcher.util.config.JConfig;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import java.text.NumberFormat;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,10 +24,35 @@ import java.sql.Statement;
  */
 public class Upgrader {
   public static void upgrade() throws SQLException, IllegalAccessException, InstantiationException, ClassNotFoundException {
-    Database mDB = new Database(null);
-    dbMake(mDB);
-    mDB.commit();
-    mDB.shutdown();
+    Database db = new Database(null);
+    if(dbMake(db)) {
+      dbMigrate(db);
+    }
+    db.commit();
+    db.shutdown();
+  }
+
+  private static void dbMigrate(Database db) throws IllegalAccessException, SQLException, ClassNotFoundException, InstantiationException {
+    Table schemaInfo = new Table("SCHEMA_INFO");
+    List<Record> info = schemaInfo.findAll();
+    if(info != null) {
+      Record first = info.get(0);
+      HashBacked record = new HashBacked(first);
+      int version = record.getInteger("version", -1);
+      if(version != -1) {
+        int last_version = version;
+        version++;
+        NumberFormat nf = NumberFormat.getIntegerInstance();
+        nf.setMinimumIntegerDigits(3);
+        Statement s = db.getStatement();
+        while(runFile(s, "/db/" + nf.format(version) + ".sql")) {
+          record.setInteger("version", version);
+          schemaInfo.updateMap("SCHEMA_INFO", "version", Integer.toString(last_version), record.getBacking());
+          last_version = version;
+          version++;
+        }
+      }
+    }
   }
 
   private static boolean dbMake(Database db) {
@@ -38,7 +68,6 @@ public class Upgrader {
         runFile(mS, "/jbidwatcher.sql");
         JConfig.setConfiguration("jbidwatcher.created_db", "true");
       } else {
-//        runFile(mS, "/upgrade.sql");
         ErrorManagement.logDebug("Auction information database already exists.");
       }
       rs.close();
@@ -49,10 +78,9 @@ public class Upgrader {
     return true;
   }
 
-  private static void runFile(Statement mS, String filename) throws SQLException {
+  private static boolean runFile(Statement mS, String filename) throws SQLException {
     String sql = StringTools.cat(JConfig.getResource(filename));
-//    if(sql == null) sql = StringTools.cat(JConfig.getCanonicalFile("jbidwatcher.sql", "jbidwatcher", true));
-    if(sql != null) {
+    if(sql != null && sql.length() != 0) {
       String[] statements = sql.split("(?m)^$");
       for (String statement : statements) {
         System.err.println("statement == " + statement);
@@ -61,6 +89,9 @@ public class Upgrader {
 
       ErrorManagement.logDebug("Executed " + filename + ".");
       ErrorManagement.logDebug("Created database and various tables.");
+      return true;
+    } else {
+      return false;
     }
   }
 }
