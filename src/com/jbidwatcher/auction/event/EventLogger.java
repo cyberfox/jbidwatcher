@@ -49,7 +49,6 @@ public class EventLogger implements XMLSerialize {
    */
   public void fromXML(XMLElement curElement) {
     Iterator<XMLElement> logStep = curElement.getChildren();
-    EventStatus newEvent;
 
     while(logStep.hasNext()) {
       XMLElement curEntry = logStep.next();
@@ -64,9 +63,9 @@ public class EventLogger implements XMLSerialize {
           XMLElement entryField = entryStep.next();
           if(entryField.getTagName().equals("message")) msg = entryField.getContents();
           if(entryField.getTagName().equals("date")) msgtime = Long.parseLong(entryField.getContents());
-        } 
+        }
 
-        newEvent = new EventStatus(msg, new Date(msgtime), mId, mTitle);
+        EventStatus newEvent = new EventStatus(msg, new Date(msgtime), mId, mTitle);
         newEvent.setRepeatCount(curCount);
         newEvent.saveDB();
 
@@ -170,6 +169,12 @@ public class EventLogger implements XMLSerialize {
         sb.append("<br>");
       }
       return(sb.toString());
+    }
+  }
+
+  public void save() {
+    for(EventStatus step : mAllEvents) {
+      step.saveDB();
     }
   }
 }

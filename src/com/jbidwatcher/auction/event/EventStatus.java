@@ -43,19 +43,17 @@ public class EventStatus extends ActiveRecord {
   }
 
   public String toBulkString() {
-    String outStatus;
     String count = "";
     if(getRepeatCount() > 1) count = " (" + getRepeatCount() + ")";
-    outStatus = getLoggedAt() + ": " + getMessage() + count;
+    String outStatus = getLoggedAt() + ": " + getMessage() + count;
 
     return(outStatus);
   }
 
   public String toString() {
-    String outStatus;
     String count = "";
     if (getRepeatCount() > 1) count = " (" + getRepeatCount() + ")";
-    outStatus = getLoggedAt() + ": " + getEntryId() + " (" + getTitle() + ") - " + getMessage() + count;
+    String outStatus = getLoggedAt() + ": " + getEntryId() + " (" + getTitle() + ") - " + getMessage() + count;
 
     return(outStatus);
   }

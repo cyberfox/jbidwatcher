@@ -1688,6 +1688,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(category_id != null) set("category_id", category_id);
     }
 
+    if(mEntryEvents != null) {
+      mEntryEvents.save();
+    }
     String id = super.saveDB();
     set("id", id);
     return id;

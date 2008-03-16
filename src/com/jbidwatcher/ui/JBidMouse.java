@@ -517,20 +517,17 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void CancelSnipe(Component src, AuctionEntry ae) {
     int[] rowList = getPossibleRows();
-	int len = rowList.length;
+    int len = rowList.length;
 
-	if(ae == null && len == 0) {
+    if(ae == null && len == 0) {
       JOptionPane.showMessageDialog(src, "You must select an auction to be able to cancel snipes.",
                                     "Snipe-cancel error", JOptionPane.PLAIN_MESSAGE);
       return;
     }
 
     if(len != 0) {
-      AuctionEntry tempEntry;
-      int i;
-
-      for(i=0; i<rowList.length; i++) {
-        tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
+      for (int aRowList : rowList) {
+        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(aRowList);
 
         tempEntry.cancelSnipe(false);
         FilterManager.getInstance().redrawEntry(tempEntry);
