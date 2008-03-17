@@ -12,6 +12,8 @@ import com.jbidwatcher.auction.FilterManager
 import com.jbidwatcher.ui.table.TableColumnController
 
 class JBidwatcherUtilities
+  MY_JBIDWATCHER_URL = "http://my.jbidwatcher.com:9876/advanced"
+
   def test_basics
     # Check that the basic libraries work.
     puts "This is a test..."
@@ -40,7 +42,7 @@ class JBidwatcherUtilities
   def build_url(meth, hash)
     params = hash.collect {|x,y| "#{CGI.escape(x.to_s)}=#{CGI.escape(y.to_s)}"}.join('&')
 
-    uri = "http://my.jbidwatcher.com:9876/advanced/#{meth}"
+    uri = "#{MY_JBIDWATCHER_URL}/#{meth}"
     url = URI.parse(uri)
     [uri, url, params]
   end
@@ -55,6 +57,12 @@ class JBidwatcherUtilities
     Net::HTTP.new(url.host, url.port).start do |http|
       http.request p
     end
+  end
+
+  def report_exception(exception)
+    result = post "exception", {:body => exception}
+    puts result.body
+    result.body
   end
 
   def recognize_bidpage(entry, page)

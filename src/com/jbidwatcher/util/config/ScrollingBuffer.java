@@ -16,12 +16,20 @@ public class ScrollingBuffer {
   private int mMaxSize;
 
   public class LoggerWriter extends PrintWriter {
+    private StringBuffer mSnapshot = null;
     public LoggerWriter() {
       super(System.out);
     }
 
     public void println(String x) {
+      if(mSnapshot != null) {
+        mSnapshot.append(x);
+        mSnapshot.append('\n');
+      }
       addLog(x);
+    }
+    public void setSnapshot(StringBuffer sb) {
+      mSnapshot = sb;
     }
   }
 
@@ -46,7 +54,12 @@ public class ScrollingBuffer {
     }
   }
 
-  public void addStackTrace(Throwable e) {
+  public String addStackTrace(Throwable e) {
+    StringBuffer sb = new StringBuffer();
+    mWriter.setSnapshot(sb);
     e.printStackTrace(mWriter);
+    mWriter.setSnapshot(null);
+
+    return sb.toString();
   }
 }

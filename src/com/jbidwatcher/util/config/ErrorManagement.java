@@ -5,6 +5,8 @@ package com.jbidwatcher.util.config;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.util.Scripting;
+
 import java.io.*;
 import java.util.Date;
 
@@ -99,7 +101,11 @@ public class ErrorManagement {
     }
 
     sLogBuffer.addLog(logMsg);
-    sLogBuffer.addStackTrace(e);
+    String trace = sLogBuffer.addStackTrace(e);
+    if(JConfig.queryConfiguration("logging.remote", "false").equals("true")) {
+      String result = (String) Scripting.rubyMethod("report_exception", logMsg + "\n" + e.toString() + "\n" + trace);
+      ErrorManagement.logDebug(result);
+    }
 
     if(doLogging.equals("true")) {
       if(mLogWriter != null) {
