@@ -825,8 +825,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @param inStatus - A string that explains what the event is.
    */
   public void setLastStatus(String inStatus) {
-    if(mEntryEvents == null) mEntryEvents = new EventLogger(getIdentifier(), getTitle());
-    mEntryEvents.setLastStatus(inStatus);
+    getEvents().setLastStatus(inStatus);
   }
 
   public void setShipping(Currency newShipping) {
@@ -852,13 +851,18 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @return A string with all the event information included.
    */
   public String getLastStatus(boolean bulk) {
-    if(mEntryEvents != null) return mEntryEvents.getLastStatus(bulk);
-    return "";
+    return getEvents().getLastStatus(bulk);
   }
 
   public int getStatusCount() {
-    return mEntryEvents.getStatusCount();
+    return getEvents().getStatusCount();
   }
+
+  private EventLogger getEvents() {
+    if(mEntryEvents == null) mEntryEvents = new EventLogger(getIdentifier(), getTitle());
+    return mEntryEvents;
+  }
+
   //////////////////////////
   //  XML Handling functions
 
@@ -1040,7 +1044,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(!isComplete()) setNeedsUpdate();
 
       if(mEntryEvents == null) {
-        mEntryEvents = new EventLogger(getIdentifier(), getTitle());
+        getEvents();
       }
       checkHighBidder(false);
       checkSeller();
