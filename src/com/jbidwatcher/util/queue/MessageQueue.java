@@ -18,9 +18,11 @@ public abstract class MessageQueue implements Runnable {
     void messageAction(Object deQ);
   }
 
-  public void registerListener(MessageQueue.Listener ml) {
+  public Listener registerListener(MessageQueue.Listener ml) {
+    Listener old = _listener;
     _listener = ml;
     handleListener();
+    return old;
   }
 
   public abstract void enqueue(Object objToEnqueue);

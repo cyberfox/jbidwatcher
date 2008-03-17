@@ -40,6 +40,7 @@ public class UIBackbone implements MessageQueue.Listener {
   private Date mNow = new Date();
   private Calendar mCal = new GregorianCalendar();
   private MacFriendlyFrame mFrame;
+  private String userColor="";
 
   public UIBackbone() {
     TimerHandler clockTimer = new TimerHandler(new TimerHandler.WakeupProcess() {
@@ -145,6 +146,21 @@ public class UIBackbone implements MessageQueue.Listener {
     if (msg.startsWith(HEADER_MSG)) {
       String headerMsg = msg.substring(HEADER_MSG.length());
       handleHeader(headerMsg);
+    } else if (msg.startsWith("LOGINSTATUS ")) {
+      String status = msg.substring("LOGINSTATUS ".length());
+      if(status.equals("FAILED")) {
+        JBidToolBar.getInstance().setToolTipText("Login failed.");
+        userColor = "c00000";
+      } else if(status.equals("CAPTCHA")) {
+        JBidToolBar.getInstance().setToolTipText("Login failed due to CAPTCHA.");
+        userColor = "e00000";
+      } else if(status.equals("SUCCESSFUL")) {
+        JBidToolBar.getInstance().setToolTipText("Last login was successful.");
+        userColor = "";
+      } else {   //  Status == NEUTRAL
+        JBidToolBar.getInstance().setToolTipText("Last login did not fail, but no valid cookies were received.");
+        userColor = "ffff00";
+      }
     } else if (msg.startsWith(LINK_MSG)) {
       String linkMsg = msg.substring(LINK_MSG.length());
       handleLinkStatus(linkMsg);
@@ -378,8 +394,11 @@ public class UIBackbone implements MessageQueue.Listener {
     lastTime = System.currentTimeMillis();
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
     if (JConfig.queryConfiguration("display.toolbar", "true").equals("true")) {
-      defaultServerTime = "<b>" + defaultServerTime.replace("@", "</b><br>");
-//      defaultServerTime = "<b style=\"background-color: #c0c0c0\">" + defaultServerTime.replace("@", "</b><br>");
+      if(userColor.length()==0) {
+        defaultServerTime = "<b>" + defaultServerTime.replace("@", "</b><br>");
+      } else {
+        defaultServerTime = "<b style=\"background-color: #" + userColor + "\">" + defaultServerTime.replace("@", "</b><br>");
+      }
     }
 
     if (!_userValid) defaultServerTime = "Not logged in...";

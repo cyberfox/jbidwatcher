@@ -28,6 +28,7 @@ public class JConfigEbayTab extends JConfigTab
   JTextField username;
   JTextField password;
   JComboBox siteSelect;
+  MessageQueue.Listener oldLoginListener = null;
   private String mDisplayName;
 
   private class LoginTestListener implements ActionListener, MessageQueue.Listener {
@@ -35,7 +36,7 @@ public class JConfigEbayTab extends JConfigTab
 
     public void actionPerformed(ActionEvent ae) {
       if (ae.getActionCommand().equals("Test Login")) {
-        MQFactory.getConcrete("login").registerListener(this);
+        oldLoginListener = MQFactory.getConcrete("login").registerListener(this);
         System.err.println("TESTING LOGIN (" + username.getText() + ", " + password.getText() + ")!");
         ebayLoginManager login = new ebayLoginManager("ebay", password.getText(), username.getText());
         cj = login.getNecessaryCookie(true);
@@ -63,6 +64,7 @@ public class JConfigEbayTab extends JConfigTab
       }
       JOptionPane.showMessageDialog(null, loginMessage, "Login Test", JOptionPane.INFORMATION_MESSAGE);
       MQFactory.getConcrete("login").deRegisterListener(this);
+      MQFactory.getConcrete("login").registerListener(oldLoginListener);
     }
   }
 

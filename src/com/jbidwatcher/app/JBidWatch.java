@@ -505,6 +505,11 @@ public final class JBidWatch implements JConfig.ConfigListener {
     DBManager.start();
     ActivityMonitor.start();
     UIBackbone backbone = new UIBackbone();
+    MQFactory.getConcrete("login").registerListener(new MessageQueue.Listener() {
+      public void messageAction(Object deQ) {
+        MQFactory.getConcrete("Swing").enqueue("LOGINSTATUS " + deQ.toString());
+      }
+    });
     ThumbnailManager.start();
     FilterManager.getInstance().loadFilters();
     AuctionsManager.getInstance().loadAuctions();
