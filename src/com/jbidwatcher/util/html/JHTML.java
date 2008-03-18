@@ -12,7 +12,6 @@ import java.util.*;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.html.CleanupHandler;
 import com.jbidwatcher.util.http.Http;
 
 public class JHTML implements JHTMLListener {
@@ -76,11 +75,12 @@ public class JHTML implements JHTMLListener {
     }
 
     public String getName() { return formTag.getProperty("name"); }
-    public boolean hasInput(String srchFor) {
+    public boolean hasInput(String srchFor) { return hasInput(srchFor, null); }
+    public boolean hasInput(String srchFor, String value) {
       for (XMLElement curInput : allInputs) {
         String name = curInput.getProperty("name");
         if (name != null) {
-          if (srchFor.equalsIgnoreCase(name)) {
+          if (srchFor.equalsIgnoreCase(name) && (value == null || curInput.getProperty("value").equalsIgnoreCase(value))) {
             return true;
           }
         }
@@ -147,12 +147,29 @@ public class JHTML implements JHTMLListener {
       }
     }
 
+    private String createProperty(String property, XMLElement tag, String defValue) {
+      String value = tag.getProperty(property);
+      if(value != null) {
+        return property + "=\"" + value + "\" ";
+      }
+      return defValue;
+    }
+
     public void addInput(String newTag) {
       XMLElement inputTag = new XMLElement();
 
       inputTag.parseString('<' + newTag + "/>");
       boolean isError = false;
       String inputType = inputTag.getProperty("type", "text").toLowerCase();
+      if(inputTag.getTagName().equals("button")) {
+        XMLElement tempTag = new XMLElement();
+        String name = createProperty("name", inputTag, "");
+        String value= createProperty("value", inputTag, "");
+        String type = createProperty("type", inputTag, "button");
+        tempTag.parseString("<input " + type + name + value + "/>");
+        inputType = tempTag.getProperty("type");
+        inputTag = tempTag;
+      }
 
       boolean showInputs = JConfig.queryConfiguration("debug.showInputs", "false").equals("true");
 
@@ -251,7 +268,7 @@ public class JHTML implements JHTMLListener {
           m_curForm = null;
         }
         if(m_curForm != null) {
-          if(newToken.getToken().regionMatches(true, 0, "input", 0, 5)) {
+          if(newToken.getToken().regionMatches(true, 0, "input", 0, 5) || newToken.getToken().regionMatches(true, 0, "button", 0, 6)) {
             m_curForm.addInput(newToken.getToken());
           }
         }
