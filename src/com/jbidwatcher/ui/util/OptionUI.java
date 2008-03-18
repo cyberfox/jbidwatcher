@@ -86,11 +86,7 @@ public class OptionUI {
   }
 
   public String[] promptString(Component parent, String prePrompt, String preTitle, String preFill, String postPrompt, String postFill) {
-    JOptionPane jopPrompt;
-    JDialog jdInput;
-    String endResult;
-    Object[] myComponents;
-    String[] results = new String[2];
+    final Object[] myComponents;
 
     if(postPrompt != null) {
       myComponents = new Object[4];
@@ -102,7 +98,7 @@ public class OptionUI {
     myComponents[0] = prePrompt;
     myComponents[1] = new JTextField();
 
-    jopPrompt = new JOptionPane(myComponents,  JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+    JOptionPane jopPrompt = new JOptionPane(myComponents, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
 
     addPasting((JTextField)myComponents[1], preFill);
 
@@ -110,24 +106,36 @@ public class OptionUI {
       addPasting((JTextField)myComponents[3], postFill);
     }
 
-    jdInput = jopPrompt.createDialog(parent, preTitle);
+    JDialog jdInput = jopPrompt.createDialog(parent, preTitle);
+    jdInput.addComponentListener(new ComponentAdapter() {
+      public void componentShown(ComponentEvent event) {
+        super.componentShown(event);
+        ((JTextField) myComponents[1]).requestFocus();
+      }
+    });
     jdInput.addWindowListener(new WindowAdapter() {
+        public void windowActivated(WindowEvent ev) {
+          super.windowActivated(ev);
+          ((JTextField) myComponents[1]).requestFocus();
+        }
         public void windowDeactivated(WindowEvent ev) {
+          super.windowDeactivated(ev);
           ev.getWindow().toFront();
         }
       });
     Rectangle rec = OptionUI.findCenterBounds(jdInput.getPreferredSize());
     jdInput.setLocation(rec.x, rec.y);
-    jdInput.setVisible(true);
 
     ((JTextField) myComponents[1]).requestFocus();
+    jdInput.setVisible(true);
 
     //    endResult = (String)jopPrompt.getInputValue();
-    endResult = ((JTextComponent) myComponents[1]).getText();
+    String endResult = ((JTextComponent) myComponents[1]).getText();
 
     boolean is_cancelled = handleDialogResult(jopPrompt, endResult);
     if(is_cancelled) return null;
 
+    String[] results = new String[2];
     results[0] = endResult;
     if(postPrompt != null) {
       results[1] = ((JTextComponent) myComponents[3]).getText();
