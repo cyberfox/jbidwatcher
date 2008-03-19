@@ -14,6 +14,7 @@ import org.jruby.Ruby;
 public class ScriptManager implements MessageQueue.Listener
 {
   private JFrame mFrame = null;
+  private static final String EXECUTE = "EXECUTE ";
 
   public ScriptManager() {
     MQFactory.getConcrete("scripting").registerListener(this);
@@ -73,16 +74,28 @@ public class ScriptManager implements MessageQueue.Listener
     return font;
   }
 
+  private void prepFrame() {
+    if (mFrame == null) {
+      mFrame = getNewScriptManager();
+    }
+  }
+
   public void messageAction(Object deQ)
   {
     String msg = (String) deQ;
-    if(mFrame == null) {
-      mFrame = getNewScriptManager();
-    }
     if(msg.equals("SHOW")) {
+      prepFrame();
       mFrame.setVisible(true);
     } else if(msg.equals("HIDE")) {
+      prepFrame();
       mFrame.setVisible(false);
+    } else if(msg.startsWith(EXECUTE)) {
+      int firstSpace = msg.indexOf(' ', EXECUTE.length());
+      if(firstSpace == -1) firstSpace = msg.length();
+      String method = msg.substring(EXECUTE.length(), firstSpace);
+      String body = "";
+      if(firstSpace != msg.length()) body = msg.substring(firstSpace + 1);
+      Scripting.rubyMethod(method, body);
     }
   }
 }
