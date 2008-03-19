@@ -523,8 +523,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     JConfig.registerListener(this);
 
-    String defaultServer = AuctionServerManager.getInstance().getDefaultServer().getName();
-    MQFactory.getConcrete(defaultServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$
+//    String defaultServer = AuctionServerManager.getInstance().getDefaultServer().getName();
+//    MQFactory.getConcrete(defaultServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$
 
     //  Register the handler for all 'drop' events.
     JBWDropHandler.start();
