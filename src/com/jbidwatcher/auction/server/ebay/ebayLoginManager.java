@@ -13,7 +13,6 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.io.FileWriter;
 import java.util.List;
 
 /**
@@ -44,31 +43,9 @@ public class ebayLoginManager implements LoginManager {
     mSignInCookie = null;
   }
 
-  /**
-   * @param fname - The filename to output to.
-   * @param sb    - The StringBuffer to dump out.
-   * @brief Debugging function to dump a string buffer out to a file.
-   * <p/>
-   * This is used for 'emergency' debugging efforts.
-   */
-  private static void dump2File(String fname, StringBuffer sb) {
-    FileWriter fw = null;
-    try {
-      fw = new FileWriter(fname);
-
-      fw.write(sb.toString());
-    } catch (IOException ioe) {
-      ErrorManagement.handleException("Threw exception in dump2File!", ioe);
-    } finally {
-      if (fw != null) try {
-        fw.close();
-      } catch (IOException ignored) { /* I don't care about exceptions on close. */ }
-    }
-  }
-
   private URLConnection checkFollowRedirector(URLConnection current, CookieJar cj, String lookFor) throws IOException, CaptchaException {
     StringBuffer signed_in = Http.receivePage(current);
-    if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-a1.html", signed_in);
+    ErrorManagement.dump2File("sign_in-a1.html", signed_in);
 
     //  Parse the redirector, and find the URL that points to the adult
     //  confirmation page.
@@ -127,15 +104,15 @@ public class ebayLoginManager implements LoginManager {
   private static boolean getAdultConfirmation(URLConnection uc_signin, CookieJar cj) throws IOException {
     boolean enqueued = false;
     StringBuffer confirm = Http.receivePage(uc_signin);
-    if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-a2.html", confirm);
+    ErrorManagement.dump2File("sign_in-a2.html", confirm);
     JHTML confirmPage = new JHTML(confirm);
 
     List<JHTML.Form> confirm_forms = confirmPage.getForms();
     for (JHTML.Form finalForm : confirm_forms) {
-      if (finalForm.hasInput("MfcISAPICommand")) {
+      if (finalForm.hasInput("MfcISAPICommand", "AdultSignIn")) {
         uc_signin = cj.getAllCookiesFromPage(finalForm.getCGI(), null, false);
         StringBuffer confirmed = Http.receivePage(uc_signin);
-        if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-a3.html", confirmed);
+        ErrorManagement.dump2File("sign_in-a3.html", confirmed);
         JHTML htdoc = new JHTML(confirmed);
         JHTML.Form curForm = htdoc.getFormWithInput("pass");
         if (curForm != null) {
@@ -146,11 +123,15 @@ public class ebayLoginManager implements LoginManager {
         if(htdoc.grep("(?ms).*Your information has been verified.*")!=null) {
           MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
         } else {
+          ErrorManagement.logFile("Neutral login result...", confirmed);
           MQFactory.getConcrete("login").enqueue("NEUTRAL");
         }
       }
     }
-    if(!enqueued) MQFactory.getConcrete("login").enqueue("NEUTRAL");
+    if(!enqueued) {
+      ErrorManagement.logFile("No confirm form found...", confirm);
+      MQFactory.getConcrete("login").enqueue("NEUTRAL");
+    }
     return true;
   }
 
@@ -192,7 +173,7 @@ public class ebayLoginManager implements LoginManager {
     URLConnection uc_signin = cj.getAllCookiesFromPage(startURL, null, false);
     try {
       StringBuffer signin = Http.receivePage(uc_signin);
-      if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-1.html", signin);
+      ErrorManagement.dump2File("sign_in-1.html", signin);
       JHTML htdoc = new JHTML(signin);
 
       JHTML.Form curForm = htdoc.getFormWithInput("pass");
@@ -217,7 +198,7 @@ public class ebayLoginManager implements LoginManager {
           }
         } else {
           StringBuffer confirm = Http.receivePage(uc_signin);
-          if (JConfig.queryConfiguration("debug.filedump", "false").equals("true")) dump2File("sign_in-2.html", confirm);
+          ErrorManagement.dump2File("sign_in-2.html", confirm);
           JHTML doc = new JHTML(confirm);
           if (checkSecurityConfirmation(doc)) {
             cj = null;
@@ -227,6 +208,7 @@ public class ebayLoginManager implements LoginManager {
             if(redirect_form != null && redirect_form.getInputValue("hidUrl").equals("http://my.ebay.com/ws/eBayISAPI.dll?MyeBay")) {
               MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
             } else {
+              ErrorManagement.logFile("Security checks out, but no My eBay form link on final page...", confirm);
               MQFactory.getConcrete("login").enqueue("NEUTRAL");
             }
             MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");

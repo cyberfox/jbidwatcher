@@ -133,11 +133,38 @@ public class ErrorManagement {
           mLogWriter.println("+------------end---------------");
           mLogWriter.flush();
         }
+        sLogBuffer.addLog("...");
+        logMessage("File contents logged with message: " + msgtop);
+        sLogBuffer.addLog("...");
       }
     }
   }
 
   public static StringBuffer getLog() {
     return sLogBuffer.getLog();
+  }
+
+  /**
+   * @param fname - The filename to output to.
+   * @param sb    - The StringBuffer to dump out.
+   * @brief Debugging function to dump a string buffer out to a file.
+   * <p/>
+   * This is used for 'emergency' debugging efforts.
+   */
+  public static void dump2File(String fname, StringBuffer sb) {
+    if (JConfig.queryConfiguration("debug.filedump", "false").equals("false")) return;
+
+    FileWriter fw = null;
+    try {
+      fw = new FileWriter(fname);
+
+      fw.write(sb.toString());
+    } catch (IOException ioe) {
+      handleException("Threw exception in dump2File!", ioe);
+    } finally {
+      if (fw != null) try {
+        fw.close();
+      } catch (IOException ignored) { /* I don't care about exceptions on close. */ }
+    }
   }
 }
