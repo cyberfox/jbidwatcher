@@ -40,7 +40,13 @@ public class UIBackbone implements MessageQueue.Listener {
   private Date mNow = new Date();
   private Calendar mCal = new GregorianCalendar();
   private MacFriendlyFrame mFrame;
-  private String userColor="";
+
+  private static final ImageIcon redStatus = new ImageIcon(JConfig.getResource("/icons/status_red.png"));
+  private static final ImageIcon redStatus16 = new ImageIcon(JConfig.getResource("/icons/status_red_16.png"));
+  private static final ImageIcon greenStatus = new ImageIcon(JConfig.getResource("/icons/status_green.png"));
+  private static final ImageIcon greenStatus16 = new ImageIcon(JConfig.getResource("/icons/status_green_16.png"));
+  private static final ImageIcon yellowStatus = new ImageIcon(JConfig.getResource("/icons/status_yellow.png"));
+  private static final ImageIcon yellowStatus16 = new ImageIcon(JConfig.getResource("/icons/status_yellow_16.png"));
 
   public UIBackbone() {
     TimerHandler clockTimer = new TimerHandler(new TimerHandler.WakeupProcess() {
@@ -147,20 +153,7 @@ public class UIBackbone implements MessageQueue.Listener {
       String headerMsg = msg.substring(HEADER_MSG.length());
       handleHeader(headerMsg);
     } else if (msg.startsWith("LOGINSTATUS ")) {
-      String status = msg.substring("LOGINSTATUS ".length());
-      if(status.equals("FAILED")) {
-        JBidToolBar.getInstance().setToolTipText("Login failed.");
-        userColor = "c00000";
-      } else if(status.equals("CAPTCHA")) {
-        JBidToolBar.getInstance().setToolTipText("Login failed due to CAPTCHA.");
-        userColor = "e00000";
-      } else if(status.equals("SUCCESSFUL")) {
-        JBidToolBar.getInstance().setToolTipText("Last login was successful.");
-        userColor = "";
-      } else {   //  Status == NEUTRAL
-        JBidToolBar.getInstance().setToolTipText("Last login did not fail, but no valid cookies were received.");
-        userColor = "ffff00";
-      }
+      handleLoginStatus(msg);
     } else if (msg.startsWith(LINK_MSG)) {
       String linkMsg = msg.substring(LINK_MSG.length());
       handleLinkStatus(linkMsg);
@@ -210,6 +203,23 @@ public class UIBackbone implements MessageQueue.Listener {
     } else {
       logActivity(msg);
       setStatus(msg);
+    }
+  }
+
+  private void handleLoginStatus(String msg) {
+    String status = msg.substring("LOGINSTATUS ".length());
+    if(status.equals("FAILED")) {
+      JBidToolBar.getInstance().setToolTipText("Login failed.");
+      JBidToolBar.getInstance().setTextIcon(redStatus, redStatus16);
+    } else if(status.equals("CAPTCHA")) {
+      JBidToolBar.getInstance().setToolTipText("Login failed due to CAPTCHA.");
+      JBidToolBar.getInstance().setTextIcon(redStatus, redStatus16);
+    } else if(status.equals("SUCCESSFUL")) {
+      JBidToolBar.getInstance().setToolTipText("Last login was successful.");
+      JBidToolBar.getInstance().setTextIcon(greenStatus, greenStatus16);
+    } else {   //  Status == NEUTRAL
+      JBidToolBar.getInstance().setToolTipText("Last login did not fail, but no valid cookies were received.");
+      JBidToolBar.getInstance().setTextIcon(yellowStatus, yellowStatus16);
     }
   }
 
@@ -394,11 +404,7 @@ public class UIBackbone implements MessageQueue.Listener {
     lastTime = System.currentTimeMillis();
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
     if (JConfig.queryConfiguration("display.toolbar", "true").equals("true")) {
-      if(userColor.length()==0) {
-        defaultServerTime = "<b>" + defaultServerTime.replace("@", "</b><br>");
-      } else {
-        defaultServerTime = "<b style=\"background-color: #" + userColor + "\">" + defaultServerTime.replace("@", "</b><br>");
-      }
+      defaultServerTime = "<b>" + defaultServerTime.replace("@", "</b><br>");
     }
 
     if (!_userValid) defaultServerTime = "Not logged in...";

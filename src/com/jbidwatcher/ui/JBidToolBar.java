@@ -28,6 +28,8 @@ public class JBidToolBar {
   private JBidMenuBar mBidMenu;
   private JTextField mSelectBox;
   private static JBidToolBar mInstance = null;
+  private Icon mCurrentStatus;
+  private Icon mCurrentStatus16;
 
   private String getSource(String icon) {
     String iconSize = JConfig.queryConfiguration("ui.iconSize", "32");
@@ -48,47 +50,50 @@ public class JBidToolBar {
    * @return - A JPanel containing the entire toolbar and header status bar.
    */
   public JPanel buildHeaderBar(JFrame inFrame, final JTabManager inAction) {
+    establishMenu(inFrame, inAction);
+
     mBidBarPanel = new JPanel(new BorderLayout());
-    mBidMenu = JBidMenuBar.getInstance(inAction, "JBidwatcher");
+    mBidBarPanel.setBorder(BorderFactory.createEtchedBorder());
 
     mHeaderStatus = new JLabel("", SwingConstants.RIGHT);
-    inFrame.setJMenuBar(mBidMenu);
-    mBidMenu.add(AuctionServerManager.getInstance().addAuctionServerMenus().getMenu());
-
-    mBidMenu.add(Box.createHorizontalGlue());
-
-    JToolBar _bidBar = new JToolBar();
-
-    mBidBarPanel.setBorder(BorderFactory.createEtchedBorder());
     mBidBarPanel.add(mHeaderStatus, BorderLayout.EAST);
 
-    JBidToolBar.addbutton(_bidBar, inAction, "Add", getSource("add_auction.png"), "Add auction");
-    JBidToolBar.addbutton(_bidBar, inAction, "Delete", getSource("delete.png"), "Delete Auction");
+    JToolBar bidBar = establishToolbar(inAction);
+    mBidBarPanel.add(bidBar, BorderLayout.WEST);
 
-    JBidToolBar.addbutton(_bidBar, inAction, "Search", getSource("find.png"), "Auction Search Manager");
+    mBidBarPanel.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
 
-    JBidToolBar.addbutton(_bidBar, inAction, "Information", getSource("information.png"), "Get information");
+    mBidBarPanel.setVisible(JConfig.queryConfiguration("display.toolbar", "true").equals("true"));
 
-    JBidToolBar.addbutton(_bidBar, inAction, "UpdateAll", getSource("updateall.png"), "Update All Auctions");
-    JBidToolBar.addbutton(_bidBar, inAction, "StopUpdating", getSource("stopupdating.png"), "Stop Updating Auctions");
+    return mBidBarPanel;
+  }
 
-    JBidToolBar.addbutton(_bidBar, inAction, "Configure", getSource("configuration.png"), "Configure");
-    JBidToolBar.addbutton(_bidBar, inAction, "Save", getSource("save.png"), "Save Auctions");
+  private JToolBar establishToolbar(final JTabManager inAction) {
+    JToolBar bidBar = new JToolBar();
 
-    //      addbutton(_bidBar, inAction, "GetMyEbay", "getmyebay.gif", "Get My eBay");
-
-    JBidToolBar.addbutton(_bidBar, inAction, "FAQ", getSource("help.png"), "Help");
-    JBidToolBar.addbutton(_bidBar, inAction, "About", getSource("about.png"), "About JBidWatcher");
-    JBidToolBar.addbutton(_bidBar, inAction, "Forum", getSource("forum.png"), "JBidwatcher Forums");
-    JBidToolBar.addbutton(_bidBar, inAction, "Report Bug", getSource("report_bug.png"), "Report Bug");
-    JBidToolBar.addbutton(_bidBar, inAction, "View Log", getSource("log_view.png"), "View Log");
-    JBidToolBar.addbutton(_bidBar, inAction, "Snipe", getSource("auction.png"), "Place snipe");
+    JBidToolBar.addbutton(bidBar, inAction, "Add", getSource("add_auction.png"), "Add auction");
+    JBidToolBar.addbutton(bidBar, inAction, "Search", getSource("find.png"), "Auction Search Manager");
+    bidBar.addSeparator();
+    JBidToolBar.addbutton(bidBar, inAction, "Snipe", getSource("auction.png"), "Place snipe");
+    JBidToolBar.addbutton(bidBar, inAction, "Information", getSource("information.png"), "Get information");
+    JBidToolBar.addbutton(bidBar, inAction, "Delete", getSource("delete.png"), "Delete Auction");
+    bidBar.addSeparator();
+    JBidToolBar.addbutton(bidBar, inAction, "UpdateAll", getSource("updateall.png"), "Update All Auctions");
+    JBidToolBar.addbutton(bidBar, inAction, "StopUpdating", getSource("stopupdating.png"), "Stop Updating Auctions");
+    bidBar.addSeparator();
+    JBidToolBar.addbutton(bidBar, inAction, "Configure", getSource("configuration.png"), "Configure");
+    if(JConfig.debugging) JBidToolBar.addbutton(bidBar, inAction, "View Log", getSource("log_view.png"), "View Log");
+    JBidToolBar.addbutton(bidBar, inAction, "FAQ", getSource("help.png"), "Help");
+    JBidToolBar.addbutton(bidBar, inAction, "About", getSource("about.png"), "About JBidWatcher");
+    bidBar.addSeparator();
+    JBidToolBar.addbutton(bidBar, inAction, "Forum", getSource("forum.png"), "JBidwatcher Forums");
+    if (JConfig.debugging) JBidToolBar.addbutton(bidBar, inAction, "Report Bug", getSource("report_bug.png"), "Report Bug");
 
     if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
-      _bidBar.setFloatable(false);
+      bidBar.setFloatable(false);
     }
 
-    _bidBar.setRollover(true);
+    bidBar.setRollover(true);
 
     // update (?)
     // bid (dollar in a circle?)
@@ -102,9 +107,16 @@ public class JBidToolBar {
     // Synchronize the time
     // Exit?
 
-    /**
+    JPanel searchBox = establishSearchBox(inAction);
+    bidBar.addSeparator();
+    bidBar.add(searchBox);
+    bidBar.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
+    return bidBar;
+  }
+
+  private JPanel establishSearchBox(final JTabManager inAction) { /**
      * Add selection/search bar.
-     */
+   */
     DocumentListener selectListener = new DocumentListener() {
         public void insertUpdate(DocumentEvent de) {
         }
@@ -122,14 +134,14 @@ public class JBidToolBar {
     mSelectBox.addActionListener(doSearch);
     JPanel jp = new JPanel(new GridBagLayout());
     jp.add(mSelectBox, new GridBagConstraints());
-    _bidBar.add(jp);
+    return jp;
+  }
 
-    mBidBarPanel.add(_bidBar, BorderLayout.WEST);
-    mBidBarPanel.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
-
-    mBidBarPanel.setVisible(JConfig.queryConfiguration("display.toolbar", "true").equals("true"));
-
-    return mBidBarPanel;
+  private void establishMenu(JFrame inFrame, JTabManager inAction) {
+    mBidMenu = JBidMenuBar.getInstance(inAction, "JBidwatcher");
+    mBidMenu.add(AuctionServerManager.getInstance().addAuctionServerMenus().getMenu());
+    mBidMenu.add(Box.createHorizontalGlue());
+    inFrame.setJMenuBar(mBidMenu);
   }
 
   /**
@@ -190,6 +202,20 @@ public class JBidToolBar {
     if(mHeaderStatus != null) mHeaderStatus.setText(msg);
   }
 
+  public void setTextIcon(Icon status, Icon status16) {
+    mCurrentStatus = status;
+    mCurrentStatus16 = status16;
+    if(mHeaderStatus != null) setStatusIcon();
+  }
+
+  public void setStatusIcon() {
+    if(mBidBarPanel.isVisible()) {
+      mHeaderStatus.setIcon(mCurrentStatus);
+    } else {
+      mHeaderStatus.setIcon(mCurrentStatus16);
+    }
+  }
+
   public void setToolTipText(String tooltip) {
     if (mHeaderStatus != null) mHeaderStatus.setToolTipText(tooltip);
   }
@@ -200,10 +226,11 @@ public class JBidToolBar {
 
   public void togglePanel() {
     mBidBarPanel.setVisible(!mBidBarPanel.isVisible());
+    if(mHeaderStatus != null) setStatusIcon();
     JConfig.setConfiguration("display.toolbar", mBidBarPanel.isVisible()?"true":"false");
     if (mBidBarPanel.isVisible()) {
       show(false);
-      mBidBarPanel.add(mHeaderStatus, BorderLayout.EAST);
+      mBidBarPanel.add(mHeaderStatus, BorderLayout.EAST, 0);
       show(true);
     } else {
       //  If it's a mac, the clock display can't move into the 'menu' component, because there isn't one!
