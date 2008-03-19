@@ -256,10 +256,10 @@ public class ebayLoginManager implements LoginManager {
   }
 
   private boolean checkSecurityConfirmation(JHTML doc) throws IOException, CaptchaException {
-    if(doc.grep("Security.Measure") != null ||
-       doc.grep("Enter verification code:") != null ||
-       doc.grep("Enter a verification code to continue") != null ||
-       doc.grep("please enter the verification code") != null) {
+    if(doc.grep(".*Security.Measure.*") != null ||
+       doc.grep(".*Enter verification code:.*") != null ||
+       doc.grep(".*Enter a verification code to continue.*") != null ||
+       doc.grep(".*[Pp]lease enter the verification code.*") != null) {
       ErrorManagement.logMessage("eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       notifySecurityIssue();
