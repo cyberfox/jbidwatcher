@@ -216,8 +216,27 @@ public class JBidToolBar {
     }
   }
 
+  private String mTooltip = "";
+  private String mExtra = "";
+
   public void setToolTipText(String tooltip) {
-    if (mHeaderStatus != null) mHeaderStatus.setToolTipText(tooltip);
+    mTooltip = tooltip;
+    updateTooltip();
+  }
+
+  private void updateTooltip() {
+    if(mHeaderStatus != null) {
+      if(mExtra != null && mExtra.length() != 0) {
+        mHeaderStatus.setToolTipText("<html><body>" + mTooltip + "<br>" + mExtra + "</body></html>");
+      } else {
+        mHeaderStatus.setToolTipText(mTooltip);
+      }
+    }
+  }
+
+  public void setToolTipExtra(String extra) {
+    mExtra = extra;
+    updateTooltip();
   }
 
   public void show(boolean visible) {

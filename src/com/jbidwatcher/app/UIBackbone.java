@@ -227,7 +227,7 @@ public class UIBackbone implements MessageQueue.Listener {
     MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");
     AuctionsManager.start();
     SearchManager.start();
-    JBidToolBar.getInstance().setToolTipText("");
+    JBidToolBar.getInstance().setToolTipExtra(null);
 
     _userValid = true;
   }
@@ -256,7 +256,7 @@ public class UIBackbone implements MessageQueue.Listener {
     if (rest.length() != 0) {
       //  Eliminate a space that's there for readibility.
       rest = rest.substring(1);
-      JBidToolBar.getInstance().setToolTipText(rest);
+      JBidToolBar.getInstance().setToolTipExtra(rest);
       logActivity(rest);
     } else {
       logActivity("Invalid login.");
@@ -326,13 +326,13 @@ public class UIBackbone implements MessageQueue.Listener {
     setLinkUp(linkStat.startsWith("UP"));
     String rest = linkStat.substring(linkStat.startsWith("UP") ? 2 : 4);
     if (rest.length() == 0) {
-      if (_userValid) JBidToolBar.getInstance().setToolTipText("");
+      if (_userValid) JBidToolBar.getInstance().setToolTipExtra(null);
     } else {
       //  Skip a 'space' at the start.
       rest = rest.substring(1);
       logActivity("Link issues:");
       logActivity(rest);
-      if (_userValid) JBidToolBar.getInstance().setToolTipText(rest);
+      if (_userValid) JBidToolBar.getInstance().setToolTipExtra(rest);
     }
   }
 
