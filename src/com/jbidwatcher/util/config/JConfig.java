@@ -18,17 +18,13 @@ package com.jbidwatcher.util.config;//  -*- Java -*-
 //  mrs: 22-July-1999 23:57 - First version.  Contains the  configuration
 //                            information, theoretically loaded once on startup.
 
-import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.config.Base64;
-import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.util.Constants;
-
 import java.io.*;
 import java.util.*;
 import java.util.List;
 import java.net.URL;
 
 public class JConfig {
+  private static String sVersion=null;
   //  Only one property instance.  This class is never 'new'ed,
   //  it's purely used to keep track of important config info.
   protected static Properties soleProperty = new Properties();
@@ -311,7 +307,7 @@ public class JConfig {
     while(what_keys.hasMoreElements()) {
       String key = what_keys.nextElement().toString();
       String lcKey = key.toLowerCase();
-      if(lcKey.indexOf(JHTML.Form.FORM_PASSWORD) != -1 && lcKey.indexOf("_b64") == -1) {
+      if(lcKey.indexOf("password") != -1 && lcKey.indexOf("_b64") == -1) {
         String val = _inProps.getProperty(key);
 
         _inProps.remove(key);
@@ -463,9 +459,13 @@ public class JConfig {
     return rval;
   }
 
+  public static void setVersion(String version) {
+    sVersion = version;
+  }
+
   public static void setDebugging(boolean doDebug) {
     //  You CANNOT turn off debugging in a pre-release now.
-    debugging = Constants.PROGRAM_VERS.matches(".*(pre|alpha|beta).*") || doDebug;
+    debugging = (sVersion != null && sVersion.matches(".*(pre|alpha|beta).*")) || doDebug;
   }
 
   public static void setDisplayConfiguration(String key, String value) {

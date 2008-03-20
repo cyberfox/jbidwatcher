@@ -339,6 +339,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
       System.exit(0);
     }
 
+    JConfig.setVersion(Constants.PROGRAM_VERS);
+
     System.setProperty("sun.net.client.defaultConnectTimeout", "5000");
     System.setProperty("sun.net.client.defaultReadTimeout", "15000");
 
