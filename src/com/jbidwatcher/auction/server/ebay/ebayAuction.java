@@ -453,7 +453,7 @@ class ebayAuction extends SpecificAuction {
    * @throws com.jbidwatcher.auction.server.ebay.ebayAuction.ParseException
    */
   private String checkTitle() throws ParseException {
-    String prelimTitle = mDocument.getFirstContent();
+    String prelimTitle = mDocument.getTitle();
     if( prelimTitle == null) {
       prelimTitle = Externalized.getString("ebayServer.unavailable");
     }

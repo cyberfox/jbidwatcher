@@ -293,6 +293,12 @@ public class JHTML implements JHTMLListener {
     return parser.contentList.get(0);
   }
 
+  public String getTitle() {
+    reset();
+    while(!"title".equalsIgnoreCase(getNextTag())) { }
+    return getNextContent();
+  }
+
   public String getFirstContent() {
     if(contentList.size() == 0) return null;
     return contentList.get(0);

@@ -126,7 +126,6 @@ public class ebayBidder implements Bidder {
         } else if(JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
           String result = (String)Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
           ErrorManagement.logDebug(result);
-//          return null;
         }
 
         htmlDocument = new JHTML(loadedPage);
@@ -138,7 +137,7 @@ public class ebayBidder implements Bidder {
 
         if(!checked_signon) {
           checked_signon = true;
-          String signOn = htmlDocument.getFirstContent();
+          String signOn = htmlDocument.getTitle();
           if (signOn != null) {
             ErrorManagement.logDebug("Checking sign in as bid key load failed!");
             if (StringTools.startsWithIgnoreCase(signOn, "sign in")) {
@@ -172,7 +171,7 @@ public class ebayBidder implements Bidder {
     }
 
     if(htmlDocument != null) {
-      String signOn = htmlDocument.getFirstContent();
+      String signOn = htmlDocument.getTitle();
       if(signOn != null && signOn.equalsIgnoreCase("Sign In")) throw new BadBidException("sign in", AuctionServerInterface.BID_ERROR_CANT_SIGN_IN);
       String errMsg = htmlDocument.grep(mBidResultRegex);
       if(errMsg != null) {
@@ -377,9 +376,5 @@ public class ebayBidder implements Bidder {
 
     ErrorManagement.logFile(safeBidInfo, loadedPage);
     return AuctionServerInterface.BID_ERROR_UNKNOWN;
-  }
-
-  private int check_recognize_result(AuctionEntry inEntry) {
-    return AuctionServer.BID_ERROR_UNKNOWN;
   }
 }
