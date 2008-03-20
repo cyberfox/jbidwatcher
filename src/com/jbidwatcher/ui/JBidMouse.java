@@ -1716,7 +1716,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
     else if(actionString.equals("View Log")) DoViewLog();
     else if(actionString.equals("View Activity")) DoViewActivity();
-    else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets/new");
+    else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
     else ErrorManagement.logDebug('[' + actionString + ']');
   }
 }
