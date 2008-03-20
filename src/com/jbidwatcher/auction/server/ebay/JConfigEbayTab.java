@@ -37,7 +37,7 @@ public class JConfigEbayTab extends JConfigTab
     public void actionPerformed(ActionEvent ae) {
       if (ae.getActionCommand().equals("Test Login")) {
         oldLoginListener = MQFactory.getConcrete("login").registerListener(this);
-        System.err.println("TESTING LOGIN (" + username.getText() + ", " + password.getText() + ")!");
+//        System.err.println("TESTING LOGIN (" + username.getText() + ", " + password.getText() + ")!");
         ebayLoginManager login = new ebayLoginManager("ebay", password.getText(), username.getText());
         cj = login.getNecessaryCookie(true);
       }

@@ -56,8 +56,8 @@ public class Database {
     /*
        The connection specifies create=true to cause
        the database to be created. To remove the database,
-       remove the directory derbyDB and its contents.
-       The directory derbyDB will be created under
+       remove the directory 'jbdb' and its contents.
+       The directory 'jbdb' will be created under
        the directory that the system property
        derby.system.home points to, or the current
        directory if derby.system.home is not set.

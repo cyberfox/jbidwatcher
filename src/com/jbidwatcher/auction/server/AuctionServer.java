@@ -322,7 +322,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
             }
           }
           case BAD_TITLE: {
-            //  ?
+            //  TODO -- ?
           }
         }
         if(result != ParseErrors.SUCCESS) error = "Bad Parse!";
