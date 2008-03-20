@@ -13,7 +13,7 @@
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidWatcher" />
-  <property name="VER" value="2.0alpha1" />
+  <property name="VER" value="2.0alpha2" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
@@ -261,6 +261,17 @@
 
   <target name="prerelease" depends="jar,tar,osx,exe" description="Build for a pre-release version.">
     <scp verbose="true" todir="cyberfox@jbidwatcher.com:www/htdocs/beta" keyfile="/home/mrs/.ssh/id_rsa" passphrase="">
+      <fileset dir="${main.dir}">
+	<include name="${BINARY}" />
+	<include name="${APPFILE}" />
+	<include name="${EXEFILE}" />
+	<include name="${TARFILE}" />
+      </fileset>
+    </scp>
+  </target>
+
+  <target name="alpha" depends="jar,tar,osx,exe" description="Build for an alpha version.">
+    <scp verbose="true" todir="cyberfox@jbidwatcher.com:www/htdocs/alpha" keyfile="/home/mrs/.ssh/id_rsa" passphrase="">
       <fileset dir="${main.dir}">
 	<include name="${BINARY}" />
 	<include name="${APPFILE}" />
