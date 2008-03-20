@@ -16,6 +16,8 @@ import com.jbidwatcher.ui.table.CSVExporter;
 import com.jbidwatcher.platform.Platform;
 
 import javax.swing.*;
+import javax.swing.plaf.UIResource;
+import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableCellRenderer;
@@ -428,6 +430,24 @@ public class AuctionsUIModel {
     }
   }
 
+  static class CustomTableCellRenderer implements TableCellRenderer, UIResource {
+      private final TableCellRenderer orig;
+      private final Border border =
+          BorderFactory.createEmptyBorder(5, 5, 5, 5);
+      public CustomTableCellRenderer(TableCellRenderer orig) {
+          this.orig = orig;
+      }
+      public Component getTableCellRendererComponent(JTable table,
+              Object value, boolean isSelected, boolean hasFocus,
+              int row, int column) {
+          JComponent component =
+              (JComponent) orig.getTableCellRendererComponent(table,
+                  value, isSelected, hasFocus, row, column);
+          component.setBorder(border);
+          return component;
+      }
+  }
+
   /**
    * @brief Constructs a JTable out of a prefix to search for in the
    * configuration, and a TableModel to apply to the table.
@@ -455,6 +475,7 @@ public class AuctionsUIModel {
     preparedTable.setIntercellSpacing(new Dimension(0, 0));
     preparedTable.setDoubleBuffered(true);
     preparedTable.setAutoCreateColumnsFromModel(false);
+    preparedTable.getTableHeader().setDefaultRenderer(new CustomTableCellRenderer(preparedTable.getTableHeader().getDefaultRenderer()));
 
     preparedTable.setModel(atm);
     String curColumnName = "";
