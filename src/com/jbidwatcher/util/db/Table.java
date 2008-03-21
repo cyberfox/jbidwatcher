@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.derby.iapi.sql.conn.LanguageConnectionFactory;
+
 /**
  * Wrap the auction information up in a database.
  */
@@ -404,5 +406,9 @@ public class Table
     Record rm = findFirst("SELECT COUNT(*) AS count FROM " + mTableName + " WHERE " + condition);
     String count = rm.get("count");
     return Integer.parseInt(count);
+  }
+
+  public Database getDB() {
+    return mDB;
   }
 }
