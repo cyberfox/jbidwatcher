@@ -26,13 +26,15 @@ public class Upgrader {
   public static void upgrade() throws SQLException, IllegalAccessException, InstantiationException, ClassNotFoundException {
     Database db = new Database(null);
     if(dbMake(db)) {
-      dbMigrate(db);
+      db.commit();
+      db.shutdown();
+      db = dbMigrate();
     }
     db.commit();
     db.shutdown();
   }
 
-  private static void dbMigrate(Database db) throws IllegalAccessException, SQLException, ClassNotFoundException, InstantiationException {
+  private static Database dbMigrate() throws IllegalAccessException, SQLException, ClassNotFoundException, InstantiationException {
     Table schemaInfo = new Table("SCHEMA_INFO");
     List<Record> info = schemaInfo.findAll();
     if(info != null) {
@@ -44,7 +46,7 @@ public class Upgrader {
         version++;
         NumberFormat nf = NumberFormat.getIntegerInstance();
         nf.setMinimumIntegerDigits(3);
-        Statement s = db.getStatement();
+        Statement s = schemaInfo.getDB().getStatement();
         while(runFile(s, "/db/" + nf.format(version) + ".sql")) {
           record.setInteger("version", version);
           schemaInfo.updateMap("SCHEMA_INFO", "version", Integer.toString(last_version), record.getBacking());
@@ -53,6 +55,7 @@ public class Upgrader {
         }
       }
     }
+    return schemaInfo.getDB();
   }
 
   private static boolean dbMake(Database db) {
