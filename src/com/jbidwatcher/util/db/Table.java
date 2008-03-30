@@ -1,6 +1,5 @@
 package com.jbidwatcher.util.db;
 
-import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.Record;
 
@@ -10,8 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.derby.iapi.sql.conn.LanguageConnectionFactory;
 
 /**
  * Wrap the auction information up in a database.

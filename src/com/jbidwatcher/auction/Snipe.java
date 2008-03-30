@@ -22,77 +22,69 @@ public class Snipe {
   public final static int FAIL=2;
   public static final int DONE = 3;
 
-  private CookieJar m_cj = null;
-  private AuctionEntry m_auction;
-  private JHTML.Form m_bidForm = null;
-  private LoginManager m_login;
-  private Bidder m_bidder;
+  private CookieJar mCJ = null;
+  private AuctionEntry mEntry;
+  private JHTML.Form mBidForm = null;
+  private LoginManager mLogin;
+  private Bidder mBidder;
 
   public Snipe(LoginManager login, Bidder bidder, AuctionEntry ae) {
-    m_login = login;
-    m_auction = ae;
-    m_bidder = bidder;
-  }
-
-  public String toString() {
-    return "Snipe{" +
-            "m_cj=" + m_cj +
-            ", m_auction=" + m_auction +
-            ", m_bidForm=" + m_bidForm +
-            '}';
+    mLogin = login;
+    mEntry = ae;
+    mBidder = bidder;
   }
 
   public int fire() {
-    if(m_auction.getSnipe().getValue() < 0.0) {
-      m_auction.setLastStatus("Snipe amount is negative.  Not sniping.");
+    if(mEntry.getSnipe().getValue() < 0.0) {
+      mEntry.setLastStatus("Snipe amount is negative.  Not sniping.");
       return FAIL;
     }
     //  Two stage firing.  First we fill the cookie jar.  The second time we submit the
     //  bid confirmation form.
-    if(m_cj == null) {
-      return presnipe();
+    if(mCJ == null) {
+      return preSnipe();
     } else {
-      return do_snipe();
+      return doSnipe();
     }
   }
 
-  private int do_snipe() {
+  private int doSnipe() {
     //  Just punt if we had failed to get the bidding form initially.
-    if(m_bidForm == null) return FAIL;
+    if(mBidForm == null) return FAIL;
     Auctions.startBlocking();
-    if(m_auction.isMultiSniped()) {
-      MultiSnipe ms = m_auction.getMultiSnipe();
+    if(mEntry.isMultiSniped()) {
+      MultiSnipe ms = mEntry.getMultiSnipe();
       //  Make sure there aren't any update-unfinished items.
-      if(ms.anyEarlier(m_auction)) {
-        m_auction.setLastStatus("An earlier snipe in this multisnipe group has not been updated.");
-        m_auction.setLastStatus("This snipe is NOT being fired, as it could end up winning two items.");
+      if(ms.anyEarlier(mEntry)) {
+        mEntry.setLastStatus("An earlier snipe in this multisnipe group has not been updated.");
+        mEntry.setLastStatus("This snipe is NOT being fired, as it could end up winning two items.");
         Auctions.endBlocking();
         return RESNIPE;
       }
     }
-    MQFactory.getConcrete("Swing").enqueue("Sniping on " + m_auction.getTitle());
-    m_auction.setLastStatus("Firing actual snipe.");
+    MQFactory.getConcrete("Swing").enqueue("Sniping on " + mEntry.getTitle());
+    mEntry.setLastStatus("Firing actual snipe.");
 
-    int rval = m_bidder.placeFinalBid(m_cj, m_bidForm, m_auction, m_auction.getSnipe(), m_auction.getSnipeQuantity());
-    String snipeResult = getSnipeResult(rval, m_auction.getTitle(), m_auction);
-    m_auction.setLastStatus(snipeResult);
+    int rval = mBidder.placeFinalBid(mCJ, mBidForm, mEntry, mEntry.getSnipe(), mEntry.getSnipeQuantity());
+    String snipeResult = getSnipeResult(rval, mEntry.getTitle(), mEntry);
+    mEntry.setLastStatus(snipeResult);
 
     MQFactory.getConcrete("Swing").enqueue("NOTIFY " + snipeResult);
     ErrorManagement.logDebug(snipeResult);
 
-    m_auction.snipeCompleted();
+    mEntry.snipeCompleted();
     Auctions.endBlocking();
     return DONE;
   }
 
-  private int presnipe() {
+  private int preSnipe() {
     Auctions.startBlocking();
-    m_auction.setLastStatus("Preparing snipe.");
+    mEntry.setLastStatus("Preparing snipe.");
     //  Log in
-    m_cj = m_login.getSignInCookie(null);
-    if (m_cj == null) {
+    mCJ = mLogin.getSignInCookie(null);
+    if (mCJ == null) {
       //  Alert somebody that we couldn't log in?
-      m_auction.setLastStatus("Pre-snipe login failed.  Snipe will be retried, but is unlikely to fire.");
+      mEntry.setLastStatus("Pre-snipe login failed.  Snipe will be retried, but is unlikely to fire.");
       MQFactory.getConcrete("Swing").enqueue("NOTIFY Pre-snipe login failed.");
       ErrorManagement.logDebug("Pre-snipe login failed.");
       Auctions.endBlocking();
@@ -103,10 +95,10 @@ public class Snipe {
 
     //  Get Bid Key/Form
     try {
-      m_bidForm = m_bidder.getBidForm(m_cj, m_auction, m_auction.getSnipe(), m_auction.getSnipeQuantity());
+      mBidForm = mBidder.getBidForm(mCJ, mEntry, mEntry.getSnipe(), mEntry.getSnipeQuantity());
     } catch (BadBidException bbe) {
-      String result = getSnipeResult(bbe.getResult(), m_auction.getTitle(), m_auction);
-      m_auction.setLastStatus(result);
+      String result = getSnipeResult(bbe.getResult(), mEntry.getTitle(), mEntry);
+      mEntry.setLastStatus(result);
       MQFactory.getConcrete("Swing").enqueue("NOTIFY " + result);
       ErrorManagement.logDebug(result);
       presnipeResult = FAIL;
@@ -179,6 +171,6 @@ public class Snipe {
   }
 
   public AuctionEntry getItem() {
-    return m_auction;
+    return mEntry;
   }
 }
