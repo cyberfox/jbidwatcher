@@ -135,11 +135,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   private boolean mSeller =false;
 
   /**
-   * What is the maximum amount the user bid on the last time they bid?
-   */
-  private Currency mBid = Currency.NoValue();
-
-  /**
    * How much is the snipe set for, if anything.  This is also used to
    * determine if a snipe is set at all for this auction.
    */
@@ -149,11 +144,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * How much was a cancelled snipe for?  (Recordkeeping)
    */
   private Currency mCancelSnipeBid = null;
-
-  /**
-   * How many items were bid on the last time the user bid?
-   */
-  private int mBidQuantity =1;
 
   /**
    * How many items are to be sniped on, when the snipe fires?
@@ -407,7 +397,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @return Whether the user has ever actually submitted a bid to the
    * server for this auction.
    */
-  public boolean isBidOn() { return(mBid != null && !mBid.isNull()); }
+  public boolean isBidOn() { return(getBid() != null && !getBid().isNull()); }
 
   /**
    * @brief Check if we are in the midst of updating this auction.
@@ -454,22 +444,19 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return The highest amount bid through this program.
    */
-  public Currency getBid()  { return mBid; }
+  public Currency getBid()  { return getMonetary("last_bid_amount"); }
 
   /**
    * @brief Set the highest amount actually submitted to the server as a bid.
+   * What is the maximum amount the user bid on the last time they bid?
    *
    * @param highBid - The new high bid value to set for this auction.
    */
   public void setBid(Currency highBid)  {
-    if(highBid == null) {
-      mBid = Currency.NoValue();
-    } else {
-      mBid = highBid;
-    }
+    setMonetary("last_bid_amount", highBid == null? Currency.NoValue() : highBid);
   }
 
-  public void setBidQuantity(int quant) { mBidQuantity = quant; }
+  public void setBidQuantity(int quant) { setInteger("last_bid_quantity", quant); }
 
   /**
    * @brief What number of items will be sniped for when the snipe is
@@ -482,10 +469,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   /**
    * @brief What was the most recent number of items actually
    * submitted to the server as part of a bid?
+   * How many items were bid on the last time the user bid?
    *
    * @return The count of items bid on the last time a user bid.
    */
-  public int getBidQuantity()   { return mBidQuantity; }
+  public int getBidQuantity()   { return getInteger("last_bid_quantity"); }
 
   private void setMultiSnipe(String identifier, String bgColor, Currency defaultSnipe, boolean subtractShipping) {
     MultiSnipe ms = MultiSnipe.findFirstBy("identifier", identifier);
@@ -675,12 +663,12 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(isBidOn() && isPrivate()) {
         Currency curBid = getCurBid();
         try {
-          if(curBid.less(mBid)) mHighBidder = true;
+          if(curBid.less(getBid())) mHighBidder = true;
         } catch(Currency.CurrencyTypeException cte) {
           /* Should never happen...?  */
           ErrorManagement.handleException("This should never happen (bad Currency at this point!).", cte);
         }
-        if(curBid.equals(mBid)) {
+        if(curBid.equals(getBid())) {
           mHighBidder = numBidders == 1;
           //  mHighBidder == false means that there are multiple bidders, and the price that
           //  two (this user, and one other) bid are exactly the same.  How
@@ -885,7 +873,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         Currency bidAmount = Currency.getCurrency(curElement.getProperty("CURRENCY"),
                                           curElement.getProperty("PRICE"));
         setBid(bidAmount);
-        mBidQuantity = Integer.parseInt(curElement.getProperty("QUANTITY"));
+        setBidQuantity(Integer.parseInt(curElement.getProperty("QUANTITY")));
         if(curElement.getProperty("WHEN", null) != null) {
           mBidAt = Long.parseLong(curElement.getProperty("WHEN"));
         }
@@ -951,9 +939,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(isBidOn()) {
       XMLElement xbid = new XMLElement("bid");
       xbid.setEmpty();
-      xbid.setProperty("quantity", Integer.toString(mBidQuantity));
-      xbid.setProperty("currency", mBid.fullCurrencyName());
-      xbid.setProperty("price", Double.toString(mBid.getValue()));
+      xbid.setProperty("quantity", Integer.toString(getInteger("last_bid_quantity")));
+      xbid.setProperty("currency", getBid().fullCurrencyName());
+      xbid.setProperty("price", Double.toString(getBid().getValue()));
       if(mBidAt != 0) {
         xbid.setProperty("when", Long.toString(mBidAt));
       }
@@ -1073,18 +1061,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     }
   }
 
-  /**
-   * @brief Figure out what Multisnipe is associated with a given 'id'.
-   *
-   * @param id - The unique ID's associated with all multisnipes.
-   *
-   * @return - A multisnipe (or null if none found) that is associated
-   * with the passed in Multisnipe ID.
-   */
-  private MultiSnipe whichMulti(long id) {
-    return allMultiSnipes.get(id);
-  }
-
   /////////////////////
   //  Sniping functions
 
@@ -1164,7 +1140,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   public void snipeCompleted() {
     setBid(getSnipe());
-    mBidQuantity = mSnipeQuantity;
+    setBidQuantity(mSnipeQuantity);
     mNeedsUpdate = true;
     setSnipe(Currency.NoValue());
     mSnipeQuantity = 0;
