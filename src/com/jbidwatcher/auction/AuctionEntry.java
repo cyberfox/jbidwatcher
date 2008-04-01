@@ -58,6 +58,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     setInvalid();
   }
 
+  public Currency bestValue() {
+    if (isSniped()) {
+      return mSnipe.getAmount();
+    }
+
+    return isBidOn() && !isComplete() ? getBid() : getCurBid();
+  }
+
   public static class AuctionComparator implements Comparator<AuctionEntry>
   {
     /**
@@ -134,21 +142,12 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   private boolean mSeller =false;
 
-  /**
-   * How much is the snipe set for, if anything.  This is also used to
-   * determine if a snipe is set at all for this auction.
-   */
-  private Currency mSnipe = Currency.NoValue();
+  private AuctionSnipe mSnipe = null;
 
   /**
    * How much was a cancelled snipe for?  (Recordkeeping)
    */
   private Currency mCancelSnipeBid = null;
-
-  /**
-   * How many items are to be sniped on, when the snipe fires?
-   */
-  private int mSnipeQuantity =1;
 
   /**
    * How many items are to be sniped on, but were cancelled?
@@ -357,11 +356,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     try {
       nextBid = getCurBid().add(minIncrement);
 
-      if(!getSnipe().less(nextBid)) {
+      if(!mSnipe.getAmount().less(nextBid)) {
         rval = true;
       }
     } catch(Currency.CurrencyTypeException cte) {
-      ErrorManagement.handleException("This should never happen (" + nextBid + ", " + getSnipe() + ")!", cte);
+      ErrorManagement.handleException("This should never happen (" + nextBid + ", " + mSnipe.getAmount() + ")!", cte);
     }
 
     return rval;
@@ -374,7 +373,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public boolean isSniped() {
     getMultiSnipe();
-    return getSnipe() != null && !getSnipe().isNull();
+    return mSnipe != null;
   }
 
   /**
@@ -457,14 +456,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public void setBidQuantity(int quant) { setInteger("last_bid_quantity", quant); }
-
-  /**
-   * @brief What number of items will be sniped for when the snipe is
-   * fired?
-   *
-   * @return The count of items to bid on in the snipe.
-   */
-  public int getSnipeQuantity() { return mSnipeQuantity; }
 
   /**
    * @brief What was the most recent number of items actually
@@ -951,9 +942,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(isSniped()) {
       XMLElement xsnipe = new XMLElement("snipe");
       xsnipe.setEmpty();
-      xsnipe.setProperty("quantity", Integer.toString(mSnipeQuantity));
-      xsnipe.setProperty("currency", getSnipe().fullCurrencyName());
-      xsnipe.setProperty("price", Double.toString(getSnipe().getValue()));
+      xsnipe.setProperty("quantity", Integer.toString(mSnipe.getQuantity()));
+      xsnipe.setProperty("currency", mSnipe.getAmount().fullCurrencyName());
+      xsnipe.setProperty("price", Double.toString(mSnipe.getAmount().getValue()));
       xsnipe.setProperty("secondsprior", Long.toString(mSnipeAt));
       xmlResult.addChild(xsnipe);
     }
@@ -1130,8 +1121,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(isSniped()) {
       setLastStatus("Cancelling snipe.");
       if(after_end) {
-        mCancelSnipeBid = getSnipe();
-        mCancelSnipeQuant = mSnipeQuantity;
+        mCancelSnipeBid = mSnipe.getAmount();
+        mCancelSnipeQuant = mSnipe.getQuantity();
       }
     }
 
@@ -1139,11 +1130,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public void snipeCompleted() {
-    setBid(getSnipe());
-    setBidQuantity(mSnipeQuantity);
+    setBid(mSnipe.getAmount());
+    setBidQuantity(mSnipe.getQuantity());
     mNeedsUpdate = true;
-    setSnipe(Currency.NoValue());
-    mSnipeQuantity = 0;
+    mSnipe.delete();
+    mSnipe = null;
   }
 
   /**
@@ -1215,8 +1206,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @param quantity The number of items they want to snipe for.
    */
   public void prepareSnipe(Currency snipe, int quantity) {
-    setSnipe(snipe);
-    mSnipeQuantity = quantity;
+    mSnipe = AuctionSnipe.create(snipe, quantity, 0);
 
     if(snipe == null || snipe.isNull()) {
       MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
@@ -1525,8 +1515,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public void setAuctionInfo(AuctionInfo inAI) {
     //  If the end date has changed, let's reschedule the snipes for the new end date...?
     if(mAuction != null && mAuction.getEndDate() != null && mAuction.getEndDate().equals(inAI.getEndDate())) {
-      Currency saveSnipeBid = getSnipe();
-      int saveSnipeQuantity = mSnipeQuantity;
+      Currency saveSnipeBid = mSnipe.getAmount();
+      int saveSnipeQuantity = mSnipe.getQuantity();
       prepareSnipe(null);
       prepareSnipe(saveSnipeBid, saveSnipeQuantity);
     }
@@ -1641,18 +1631,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public boolean isComplete() { return getBoolean("ended"); }
   public void setComplete(boolean complete) { setBoolean("ended", complete); }
 
-  /**
-   * @brief What is the amount that will be sniped when the snipe
-   * timer goes off?
-   *
-   * @return The amount that will be submitted as a bid when it is
-   * time to snipe.
-   */
-  public Currency getSnipe() { return mSnipe; }
-  protected void setSnipe(Currency snipe) {
-    mSnipe = snipe;
-  }
-
   /*************************/
   /* Database access stuff */
   /*************************/
@@ -1660,17 +1638,23 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public String saveDB() {
     if(mAuction == null) return null;
 
-    String auction_id = mAuction.saveDB();
-    if(auction_id != null) set("auction_id", auction_id);
+    String auctionId = mAuction.saveDB();
+    if(auctionId != null) set("auctionId", auctionId);
 
     if(mCategory != null) {
-      String category_id = mCategory.saveDB();
-      if(category_id != null) set("category_id", category_id);
+      String categoryId = mCategory.saveDB();
+      if(categoryId != null) set("categoryId", categoryId);
+    }
+
+    if(mSnipe != null) {
+      String snipeId = mSnipe.saveDB();
+      if(snipeId != null) set("snipe_id", snipeId);
     }
 
     if(mEntryEvents != null) {
       mEntryEvents.save();
     }
+
     String id = super.saveDB();
     set("id", id);
     return id;

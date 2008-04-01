@@ -396,18 +396,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
    * users high bid, or the users snipe bid.
    */
   Currency getBestBidValue(AuctionEntry checkEntry) {
-    Currency bestValue;
-
-    if(!checkEntry.isSniped()) {
-      if(checkEntry.isBidOn() && !checkEntry.isComplete()) {
-        bestValue = checkEntry.getBid();
-      } else {
-        bestValue = checkEntry.getCurBid();
-      }
-    } else {
-      bestValue = checkEntry.getSnipe();
-    }
-    return(bestValue);
+    return checkEntry.bestValue();
   }
 
   protected String sum(int rowList[]) {

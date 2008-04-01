@@ -185,18 +185,7 @@ public class AuctionsUIModel {
    * users high bid, or the users snipe bid.
    */
   private static Currency getBestBidValue(AuctionEntry checkEntry) {
-    Currency bestValue;
-
-    if (checkEntry.isSniped()) {
-      bestValue = checkEntry.getSnipe();
-    } else {
-      if(checkEntry.isBidOn() && !checkEntry.isComplete()) {
-        bestValue = checkEntry.getBid();
-      } else {
-        bestValue = checkEntry.getCurBid();
-      }
-    }
-    return(bestValue);
+    return checkEntry.bestValue();
   }
 
   private static Currency addUSD(Currency inCurr, AuctionEntry ae) {
