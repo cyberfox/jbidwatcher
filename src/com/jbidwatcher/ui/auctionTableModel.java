@@ -198,7 +198,7 @@ public class auctionTableModel extends BaseTransformation
           Currency bid = aEntry.isBidOn()?aEntry.getBid(): Currency.NoValue();
           return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), bid);
         case TableColumnController.SNIPE:
-          Currency snipe = aEntry.isSniped()?aEntry.getSnipe(): Currency.NoValue();
+          Currency snipe = aEntry.getSnipeAmount();
           return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), snipe);
         case TableColumnController.COMMENT:String s = aEntry.getComment(); return (s==null?"":s);
         case TableColumnController.END_DATE:return aEntry.getEndDate();

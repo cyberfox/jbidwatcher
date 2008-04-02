@@ -66,6 +66,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return isBidOn() && !isComplete() ? getBid() : getCurBid();
   }
 
+  public Currency getSnipeAmount() {
+    return isSniped() ? getSnipeAmount() : Currency.NoValue();
+  }
+
   public static class AuctionComparator implements Comparator<AuctionEntry>
   {
     /**
