@@ -232,7 +232,7 @@ public class auctionTableModel extends BaseTransformation
 
           Currency shippingUSD2 = Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getShippingWithInsurance());
           try {
-            return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getSnipe()).add(shippingUSD2);
+            return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getSnipeAmount()).add(shippingUSD2);
           } catch (Currency.CurrencyTypeException e) {
             ErrorManagement.handleException("Currency addition or conversion threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
             return Currency.NoValue();
@@ -254,7 +254,7 @@ public class auctionTableModel extends BaseTransformation
 
   private Currency getMaxOrSnipe(AuctionEntry aEntry) {
     if(aEntry.isSniped()) {
-      return aEntry.getSnipe();
+      return aEntry.getSnipeAmount();
     }
     if(aEntry.isBidOn()) {
       return aEntry.getBid();
@@ -295,15 +295,15 @@ public class auctionTableModel extends BaseTransformation
 
     if(aEntry.isMultiSniped()) {
       if(aEntry.isSnipeValid() || aEntry.isDutch()) {
-        return errorNote + "Multi: " + aEntry.getSnipe() + snipeCount;
+        return errorNote + "Multi: " + aEntry.getSnipeAmount() + snipeCount;
       } else {
-        return errorNote + "Multi: (" + aEntry.getSnipe() + snipeCount + ')';
+        return errorNote + "Multi: (" + aEntry.getSnipeAmount() + snipeCount + ')';
       }
     } else {
       if(aEntry.isSnipeValid() || aEntry.isDutch()) {
-        return errorNote + aEntry.getSnipe().toString() + snipeCount;
+        return errorNote + aEntry.getSnipeAmount().toString() + snipeCount;
       } else {
-        return errorNote + '(' + aEntry.getSnipe() + snipeCount + ')';
+        return errorNote + '(' + aEntry.getSnipeAmount() + snipeCount + ')';
       }
     }
   }
@@ -311,14 +311,14 @@ public class auctionTableModel extends BaseTransformation
   private String formatTotalSnipe(AuctionEntry aEntry, String errorNote) {
     if(!aEntry.isSniped()) return "--";
     Currency shipping = aEntry.getShippingWithInsurance();
-    if (shipping.getCurrencyType() == Currency.NONE || aEntry.getSnipe().getCurrencyType() == Currency.NONE) {
+    if (shipping.getCurrencyType() == Currency.NONE || aEntry.getSnipeAmount().getCurrencyType() == Currency.NONE) {
       return "--"; // shipping not set so cannot add up values
     }
 
     Currency totalSnipe;
 
     try {
-      totalSnipe = aEntry.getSnipe().add(shipping);
+      totalSnipe = aEntry.getSnipeAmount().add(shipping);
     } catch (Currency.CurrencyTypeException e) {
       /* Should never happen, since we've checked the currency already.  */
       ErrorManagement.handleException("Currency addition threw a bad currency exception, which should be very difficult to cause to happen.", e); //$NON-NLS-1$

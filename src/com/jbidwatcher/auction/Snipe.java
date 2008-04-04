@@ -35,7 +35,7 @@ public class Snipe {
   }
 
   public int fire() {
-    if(mEntry.getSnipe().getValue() < 0.0) {
+    if(mEntry.getSnipeAmount().getValue() < 0.0) {
       mEntry.setLastStatus("Snipe amount is negative.  Not sniping.");
       return FAIL;
     }
@@ -65,7 +65,7 @@ public class Snipe {
     MQFactory.getConcrete("Swing").enqueue("Sniping on " + mEntry.getTitle());
     mEntry.setLastStatus("Firing actual snipe.");
 
-    int rval = mBidder.placeFinalBid(mCJ, mBidForm, mEntry, mEntry.getSnipe(), mEntry.getSnipeQuantity());
+    int rval = mBidder.placeFinalBid(mCJ, mBidForm, mEntry, mEntry.getSnipeAmount(), mEntry.getSnipeQuantity());
     String snipeResult = getSnipeResult(rval, mEntry.getTitle(), mEntry);
     mEntry.setLastStatus(snipeResult);
 
@@ -95,7 +95,7 @@ public class Snipe {
 
     //  Get Bid Key/Form
     try {
-      mBidForm = mBidder.getBidForm(mCJ, mEntry, mEntry.getSnipe(), mEntry.getSnipeQuantity());
+      mBidForm = mBidder.getBidForm(mCJ, mEntry, mEntry.getSnipeAmount(), mEntry.getSnipeQuantity());
     } catch (BadBidException bbe) {
       String result = getSnipeResult(bbe.getResult(), mEntry.getTitle(), mEntry);
       mEntry.setLastStatus(result);

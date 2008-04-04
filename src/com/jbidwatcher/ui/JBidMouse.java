@@ -580,7 +580,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
 
     if(ae.isSniped()) {
-      prompt += newRow + "Sniped for" + newCol + ae.getSnipe() + endRow;
+      prompt += newRow + "Sniped for" + newCol + ae.getSnipeAmount() + endRow;
       if(ae.getSnipeQuantity() != 1) {
         prompt += newRow + "Quantity of" + newCol + ae.getSnipeQuantity() + endRow;
       }
@@ -970,7 +970,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     //  if(JConfig.queryConfiguration("message.sniped", null) == null) { ... }
     FilterManager.getInstance().redrawEntry(ae);
-    _oui.promptWithCheckbox(src, "Sniped for: " + ae.getSnipe(), "Snipe Alert", "message.sniped", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
+    _oui.promptWithCheckbox(src, "Sniped for: " + ae.getSnipeAmount(), "Snipe Alert", "message.sniped", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
   }
 
   private void DoShipping(Component src, AuctionEntry ae) {

@@ -67,7 +67,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public Currency getSnipeAmount() {
-    return isSniped() ? getSnipeAmount() : Currency.NoValue();
+    return isSniped() ? mSnipe.getAmount() : Currency.NoValue();
+  }
+
+  public int getSnipeQuantity() {
+    return isSniped() ? mSnipe.getQuantity() : 0;
   }
 
   public static class AuctionComparator implements Comparator<AuctionEntry>
