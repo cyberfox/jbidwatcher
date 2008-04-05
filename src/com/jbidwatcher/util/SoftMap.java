@@ -48,13 +48,17 @@ public abstract class SoftMap<K, V> extends AbstractMap<K, V> {
     return rval;
   }
 
+  private static boolean reload_values = false;
+
   public Collection<V> values() {
     HashSet<V> values = null;
     for(Map.Entry<K, SoftReference<V>> entry : cacheMap.entrySet()) {
       if(values == null) values = new HashSet<V>();
       V stepValue = entry.getValue().get();
-      if(stepValue == null) stepValue = reload(entry.getKey());
-      values.add(stepValue);
+      if(reload_values) {
+        if (stepValue == null) stepValue = reload(entry.getKey());
+      }
+      if(stepValue != null) values.add(stepValue);
     }
     return values;
   }
