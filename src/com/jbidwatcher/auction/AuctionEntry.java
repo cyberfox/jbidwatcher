@@ -357,6 +357,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * increment over the current high bid.  Returns false otherwise.
    */
   public boolean isSnipeValid() {
+    if(mSnipe == null) return false;
+
     Currency minIncrement = mServer.getMinimumBidIncrement(getCurBid(), getNumBidders());
     Currency nextBid = Currency.NoValue();
     boolean rval = false;
@@ -1523,10 +1525,12 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public void setAuctionInfo(AuctionInfo inAI) {
     //  If the end date has changed, let's reschedule the snipes for the new end date...?
     if(mAuction != null && mAuction.getEndDate() != null && mAuction.getEndDate().equals(inAI.getEndDate())) {
-      Currency saveSnipeBid = mSnipe.getAmount();
-      int saveSnipeQuantity = mSnipe.getQuantity();
-      prepareSnipe(null);
-      prepareSnipe(saveSnipeBid, saveSnipeQuantity);
+      if(mSnipe != null) {
+        Currency saveSnipeBid = mSnipe.getAmount();
+        int saveSnipeQuantity = mSnipe.getQuantity();
+        prepareSnipe(null);
+        prepareSnipe(saveSnipeBid, saveSnipeQuantity);
+      }
     }
     mAuction = inAI;
     String auction_id = mAuction.saveDB();
@@ -1647,11 +1651,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(mAuction == null) return null;
 
     String auctionId = mAuction.saveDB();
-    if(auctionId != null) set("auctionId", auctionId);
+    if(auctionId != null) set("auction_id", auctionId);
 
     if(mCategory != null) {
       String categoryId = mCategory.saveDB();
-      if(categoryId != null) set("categoryId", categoryId);
+      if(categoryId != null) set("category_id", categoryId);
     }
 
     if(mSnipe != null) {
