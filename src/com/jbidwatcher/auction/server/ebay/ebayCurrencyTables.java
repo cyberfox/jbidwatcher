@@ -82,12 +82,25 @@ public class ebayCurrencyTables {
                   { new Currency( "CHF4999.99"), new Currency("CHF10.00") },
                   { Currency.NoValue(), new Currency("CHF50.00") } };
 
+  private static Currency[][] ir_incrementTable = {
+          {new Currency("INR99.99"), new Currency("INR25.00")},
+          {new Currency("INR499.99"), new Currency("INR50.00")},
+          {new Currency("INR999.99"), new Currency("INR75.00")},
+          {new Currency("INR1999.99"), new Currency("INR100.00")},
+          {new Currency("INR3999.99"), new Currency("INR150.00")},
+          {new Currency("INR9999.99"), new Currency("INR200.00")},
+          {new Currency("INR24999.99"), new Currency("INR300.00")},
+          {new Currency("INR49999.99"), new Currency("INR500.00")},
+          {new Currency("INR99999.99"), new Currency("INR750.00")},
+          {Currency.NoValue(), new Currency("INR2000.00")}};
+
   private static Currency zeroDollars = new Currency("$0.00");
   private static Currency zeroPounds = new Currency("GBP 0.00");
   private static Currency zeroFrancs = new Currency("FR 0.00");
   private static Currency zeroSwissFrancs = new Currency("CHF0.00");
   private static Currency zeroEuros = new Currency("EUR 0.00");
   private static Currency zeroAustralian = new Currency("AUD0.00");
+  private static Currency zeroIndianRupee = new Currency("INR0.00");
   private static Currency zeroTaiwanese = new Currency("NTD0.00");
   private static Currency zeroCanadian = new Currency("CAD0.00");
 
@@ -133,6 +146,10 @@ public class ebayCurrencyTables {
       case Currency.AU_DOLLAR:
         rightTable = au_incrementTable;
         zeroIncrement = zeroAustralian;
+        break;
+      case Currency.IND_RUPEE:
+        rightTable = ir_incrementTable;
+        zeroIncrement = zeroIndianRupee;
         break;
     }
 
