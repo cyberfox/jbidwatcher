@@ -1248,6 +1248,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public int bid(Currency bid, int bidQuantity) {
     setBid(bid);
+    setBidQuantity(bidQuantity);
     mBidAt = System.currentTimeMillis();
 
     ErrorManagement.logDebug("Bidding " + bid + " on " + bidQuantity + " item[s] of (" + getIdentifier() + ")-" + getTitle());
@@ -1266,6 +1267,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     Currency bin = getBuyNow();
     if(bin != null && !bin.isNull()) {
       setBid(getBuyNow());
+      setBidQuantity(1);  //  TODO --  Is it possible to Buy more than 1 item?
       mBidAt = System.currentTimeMillis();
       ErrorManagement.logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
       return mServer.buy(this, quant);
