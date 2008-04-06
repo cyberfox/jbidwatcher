@@ -11,6 +11,7 @@ import com.jbidwatcher.ui.auctionTableModel;
 import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.Comparison;
+import com.jbidwatcher.util.UpdateBlocker;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.ErrorManagement;
 
@@ -30,7 +31,6 @@ public class Auctions implements TimerHandler.WakeupProcess {
   boolean _complete = false;
   private volatile TableSorter _tSort;
   private String _name;
-  private static volatile boolean isBlocked =false;
   private static final int LINE_LENGTH = 80;
 
   public Auctions(String inName) {
@@ -42,10 +42,6 @@ public class Auctions implements TimerHandler.WakeupProcess {
   public String getName() {
     return _name;
   }
-
-  public static void startBlocking() { isBlocked = true; }
-  public static void endBlocking() { isBlocked = false; }
-  public static boolean isBlocked() { return isBlocked; }
 
   //  A single accessor...
   public TableSorter getTableSorter() { return _tSort; }
@@ -276,7 +272,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    */
   public boolean check() {
     //  Don't allow updates to interfere with sniping.
-    return !(isBlocked || !doNextUpdate());
+    return !(UpdateBlocker.isBlocked() || !doNextUpdate());
   }
 
   public void updateTime() {

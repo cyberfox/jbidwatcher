@@ -6,18 +6,15 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
-import com.jbidwatcher.ui.util.JMouseAdapter;
+import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
 import com.jbidwatcher.platform.Platform;
 
 import javax.swing.*;
-import javax.swing.plaf.UIResource;
-import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableCellRenderer;
@@ -419,24 +416,6 @@ public class AuctionsUIModel {
     }
   }
 
-  static class CustomTableCellRenderer implements TableCellRenderer, UIResource {
-      private final TableCellRenderer orig;
-      private final Border border =
-          BorderFactory.createEmptyBorder(5, 5, 5, 5);
-      public CustomTableCellRenderer(TableCellRenderer orig) {
-          this.orig = orig;
-      }
-      public Component getTableCellRendererComponent(JTable table,
-              Object value, boolean isSelected, boolean hasFocus,
-              int row, int column) {
-          JComponent component =
-              (JComponent) orig.getTableCellRendererComponent(table,
-                  value, isSelected, hasFocus, row, column);
-          component.setBorder(border);
-          return component;
-      }
-  }
-
   /**
    * @brief Constructs a JTable out of a prefix to search for in the
    * configuration, and a TableModel to apply to the table.
@@ -464,25 +443,9 @@ public class AuctionsUIModel {
     preparedTable.setIntercellSpacing(new Dimension(0, 0));
     preparedTable.setDoubleBuffered(true);
     preparedTable.setAutoCreateColumnsFromModel(false);
-    preparedTable.getTableHeader().setDefaultRenderer(new CustomTableCellRenderer(preparedTable.getTableHeader().getDefaultRenderer()));
 
     preparedTable.setModel(atm);
     String curColumnName = "";
-
-    //  XMLElement dispXML = JConfig.getXMLDisplay();
-    //  ColumnProps cp = new ColumnProps();
-    //
-    //  for(Iterator it = dispXML.getChildren(); it.hasNext(); ) {
-    //    XMLElement step = (XMLElement)it.next();
-    //    if(step.getTagName().equals("columns") && step.getProperty("name").equals(prefix)) {
-    //      for(Iterator i2 = step.getChildren(); i2.hasNext(); ) {
-    //        cp.fromXML((XMLElement)i2.next();
-    //        preparedTable.addColumn(cp.getName().setPreferredWidth(cp.getWidth());
-    //        preparedTable.moveColumn(preparedTable.getColumnCount()-1, cp.getOrder());
-    //      }
-    //    }
-    //  }
-
 
     TreeMap<String, Integer> initialToSaved = new TreeMap<String, Integer>();
     //  This code would need to be somewhat revamped if we allowed
@@ -563,41 +526,6 @@ public class AuctionsUIModel {
     _print.doPrint();
   }
 
-  private class ColumnProps {
-    private String m_name;
-    private int m_viewOrder;
-    private int m_width;
-
-    ColumnProps(String name, int order, int width) {
-      m_name = name;
-      m_viewOrder = order;
-      m_width = width;
-    }
-
-    //  For 'fromXML()' usage.
-    ColumnProps() { m_name = null; m_viewOrder = 0; m_width = -1; }
-
-    public String getName() { return m_name; }
-    public int getOrder() { return m_viewOrder; }
-    public int getWidth() { return m_width; }
-
-    public XMLElement toXML() {
-      XMLElement me = new XMLElement("column");
-      me.setProperty("name", getName());
-      me.setProperty("order", Integer.toString(getOrder()));
-      me.setProperty("width", Integer.toString(getWidth()));
-      me.setEmpty();
-
-      return me;
-    }
-
-    public void fromXML(XMLElement me) {
-      m_name = me.getProperty("name");
-      m_viewOrder = Integer.parseInt(me.getProperty("order"));
-      m_width = Integer.parseInt(me.getProperty("width"));
-    }
-  }
-
   /**
    * @brief Convert current column widths into display properties to
    * be saved for a future session.
@@ -622,21 +550,6 @@ public class AuctionsUIModel {
 
   public void getColumnWidthsToProperties(Properties addToProps) {
     getColumnWidthsToProperties(addToProps, _dataModel.getName());
-  }
-
-  public XMLElement getColumnsToXML() {
-    XMLElement xmlColumns = new XMLElement("columns");
-    xmlColumns.setProperty("count", Integer.toString(_dataModel.getColumnCount()));
-    xmlColumns.setProperty("name", _dataModel.getName());
-
-    for(int i=0; i<_dataModel.getColumnCount(); i++) {
-      String cName = _dataModel.getColumnName(i);
-      TableColumn ct = _table.getColumn(cName);
-      ColumnProps cp = new ColumnProps(cName, i, ct.getWidth());
-      xmlColumns.addChild(cp.toXML());
-    }
-
-    return xmlColumns;
   }
 
   //  Handle tooltips, at least.  A very cool feature.

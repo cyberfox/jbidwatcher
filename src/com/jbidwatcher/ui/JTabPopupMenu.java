@@ -6,8 +6,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.ui.config.JConfigFrame;
-import com.jbidwatcher.ui.util.OptionUI;
-import com.jbidwatcher.ui.util.JBidFrame;
+import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.FilterManager;

@@ -2,7 +2,6 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.auction.server.*;
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
@@ -11,6 +10,7 @@ import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.Scripting;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.UpdateBlocker;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 
@@ -252,7 +252,7 @@ public class ebayBidder implements Bidder {
   }
 
   public int bid(AuctionEntry inEntry, Currency inBid, int inQuantity) {
-    Auctions.startBlocking();
+    UpdateBlocker.startBlocking();
     if(JConfig.queryConfiguration("sound.enable", "false").equals("true")) MQFactory.getConcrete("sfx").enqueue("/audio/bid.mp3");
 
     JHTML.Form bidForm;
@@ -260,18 +260,18 @@ public class ebayBidder implements Bidder {
     try {
       bidForm = getBidForm(mLogin.getNecessaryCookie(false), inEntry, inBid, inQuantity);
     } catch(BadBidException bbe) {
-      Auctions.endBlocking();
+      UpdateBlocker.endBlocking();
       return bbe.getResult();
     }
 
     if (bidForm != null) {
       int rval = placeFinalBid(mLogin.getNecessaryCookie(false), bidForm, inEntry, inBid, inQuantity);
-      Auctions.endBlocking();
+      UpdateBlocker.endBlocking();
       return rval;
     }
     ErrorManagement.logMessage("Bad/nonexistent key read in bid, or connection failure!");
 
-    Auctions.endBlocking();
+    UpdateBlocker.endBlocking();
     return AuctionServerInterface.BID_ERROR_UNKNOWN;
   }
 

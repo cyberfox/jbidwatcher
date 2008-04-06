@@ -7,6 +7,7 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.ui.util.JDropHandler;
 
 import java.io.*;
 import java.awt.*;

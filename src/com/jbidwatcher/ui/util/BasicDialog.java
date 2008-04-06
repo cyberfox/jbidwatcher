@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;
+package com.jbidwatcher.ui.util;
 
 import javax.swing.*;
 import java.awt.Frame;

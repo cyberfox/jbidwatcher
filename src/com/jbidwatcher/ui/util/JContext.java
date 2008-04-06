@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;
+package com.jbidwatcher.ui.util;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -6,7 +6,6 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.ui.util.JMouseAdapter;
 
 import javax.swing.*;
 import java.util.TreeMap;
@@ -60,11 +59,11 @@ public abstract class JContext extends JMouseAdapter {
     }
   }
 
-  protected JButton makeButton(String name) {
+  public JButton makeButton(String name) {
     return makeButton(name, name);
   }
 
-  protected JButton makeButton(String name, String cmd) {
+  public JButton makeButton(String name, String cmd) {
     JButton jb = new JButton(name);
     jb.setActionCommand(Constants.NO_CONTEXT + cmd);
     jb.addActionListener(this);
@@ -85,7 +84,7 @@ public abstract class JContext extends JMouseAdapter {
     return newItem;
   }
 
-  protected static JMenuItem makeGeneralMenuItem(String menuText, String actionCmd) {
+  public static JMenuItem makeGeneralMenuItem(String menuText, String actionCmd) {
     JMenuItem newItem = new JMenuItem();
     newItem.setText(menuText);
     newItem.setActionCommand(actionCmd);

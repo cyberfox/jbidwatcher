@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;
+package com.jbidwatcher.ui.util;
 
 /**
  * A text field for search/filter interfaces. The extra functionality includes

@@ -7,8 +7,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.ui.config.JConfigTab;
-import com.jbidwatcher.ui.util.SpringUtilities;
-import com.jbidwatcher.ui.util.JMouseAdapter;
+import com.jbidwatcher.ui.util.*;
 
 import javax.swing.*;
 import java.awt.*;

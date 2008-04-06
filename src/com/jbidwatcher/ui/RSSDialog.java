@@ -7,7 +7,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.ui.config.JConfigTab;
-import com.jbidwatcher.ui.util.SpringUtilities;
+import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.browser.BrowserLauncher;

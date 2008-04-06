@@ -758,7 +758,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *         load or parse the 'official time' page properly.
    */
   protected Date getOfficialTime() {
-    Auctions.startBlocking();
+    UpdateBlocker.startBlocking();
     long localDateBeforePage = System.currentTimeMillis();
     String timeRequest = Externalized.getString("ebayServer.timeURL");
 
@@ -774,7 +774,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       pageStep = htmlDocument.getNextContent();
     }
 
-    Auctions.endBlocking();
+    UpdateBlocker.endBlocking();
 
     //  If we couldn't get a number, clear the page request time.
     if (result == null || result.getDate() == null) {

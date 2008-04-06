@@ -14,6 +14,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.UpdateBlocker;
 import com.jbidwatcher.auction.server.*;
 
 public class Snipe {
@@ -51,14 +52,14 @@ public class Snipe {
   private int doSnipe() {
     //  Just punt if we had failed to get the bidding form initially.
     if(mBidForm == null) return FAIL;
-    Auctions.startBlocking();
+    UpdateBlocker.startBlocking();
     if(mEntry.isMultiSniped()) {
       MultiSnipe ms = mEntry.getMultiSnipe();
       //  Make sure there aren't any update-unfinished items.
       if(ms.anyEarlier(mEntry)) {
         mEntry.setLastStatus("An earlier snipe in this multisnipe group has not been updated.");
         mEntry.setLastStatus("This snipe is NOT being fired, as it could end up winning two items.");
-        Auctions.endBlocking();
+        UpdateBlocker.endBlocking();
         return RESNIPE;
       }
     }
@@ -73,12 +74,12 @@ public class Snipe {
     ErrorManagement.logDebug(snipeResult);
 
     mEntry.snipeCompleted();
-    Auctions.endBlocking();
+    UpdateBlocker.endBlocking();
     return DONE;
   }
 
   private int preSnipe() {
-    Auctions.startBlocking();
+    UpdateBlocker.startBlocking();
     mEntry.setLastStatus("Preparing snipe.");
     //  Log in
     mCJ = mLogin.getSignInCookie(null);
@@ -87,7 +88,7 @@ public class Snipe {
       mEntry.setLastStatus("Pre-snipe login failed.  Snipe will be retried, but is unlikely to fire.");
       MQFactory.getConcrete("Swing").enqueue("NOTIFY Pre-snipe login failed.");
       ErrorManagement.logDebug("Pre-snipe login failed.");
-      Auctions.endBlocking();
+      UpdateBlocker.endBlocking();
       return RESNIPE;
     }
 
@@ -103,7 +104,7 @@ public class Snipe {
       ErrorManagement.logDebug(result);
       presnipeResult = FAIL;
     }
-    Auctions.endBlocking();
+    UpdateBlocker.endBlocking();
 
     return presnipeResult;
   }

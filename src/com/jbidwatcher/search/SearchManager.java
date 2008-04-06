@@ -14,7 +14,6 @@ import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.auction.server.AuctionServerManager;
 
 import java.io.*;
 import java.util.List;
