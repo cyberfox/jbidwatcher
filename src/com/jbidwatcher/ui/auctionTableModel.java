@@ -9,7 +9,7 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.util.Comparison;
+import com.jbidwatcher.auction.AuctionList;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.IconFactory;
 import com.jbidwatcher.ui.table.ColumnState;
@@ -26,7 +26,7 @@ import java.util.*;
 public class auctionTableModel extends BaseTransformation
 {
   private static final String neverBid = "--";
-  private List<AuctionEntry> dispList;
+  private AuctionList dispList;
   private Date futureForever = new Date(Long.MAX_VALUE);
   private XMLElement cvt = new XMLElement();
 
@@ -41,14 +41,6 @@ public class auctionTableModel extends BaseTransformation
   public int insert(Object o) {
     dispList.add((AuctionEntry)o);
     return dispList.size()-1;
-  }
-
-  public Object find(Comparison c) {
-    for (Object aDispList : dispList) {
-      if (c.match(aDispList)) return aDispList;
-    }
-
-    return null;
   }
 
   public int getColumnNumber(String colName) {
@@ -483,8 +475,8 @@ public class auctionTableModel extends BaseTransformation
     }
   }
 
-  public auctionTableModel() {
-    dispList = new ArrayList<AuctionEntry>();
+  public auctionTableModel(AuctionList inList) {
+    dispList = inList; //  new ArrayList<AuctionEntry>()
   }
 
   public int compare(int row1, int row2, ColumnStateList columnStateList) {

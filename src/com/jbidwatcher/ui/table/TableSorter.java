@@ -38,10 +38,7 @@ package com.jbidwatcher.ui.table;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.Comparison;
-
 import java.util.*;
-
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
@@ -76,31 +73,22 @@ public class TableSorter extends Transformation implements TableModelListener {
   }
 
   public void sort() {
+    final TableSorter sorter = this;
+
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         Selection save = new Selection(_table, _sorted);
         _sorted.sort();
+        _table.tableChanged(new TableModelEvent(sorter));
         restoreSelection(save);
       }
     });
   }
 
   private void sortByList() {
-    final TableSorter sorter = this;
-//      if(_model.disallowSort(column)) return;
-
     _sorted.setSortList(columnStateList);
 
-    if(_table != null) {
-      sort();
-    }
-    if (_table != null) SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        Selection save = new Selection(_table, _sorted);
-        _table.tableChanged(new TableModelEvent(sorter));
-        restoreSelection(save);
-      }
-    });
+    if(_table != null) sort();
   }
 
   private void setDefaults(String inName, String defaultColumn) {
@@ -248,10 +236,6 @@ public class TableSorter extends Transformation implements TableModelListener {
         _table.tableChanged(new TableModelEvent(sorter, 0, _sorted.getRowCount(), getColumnNumber("Time left")));
       }
     });
-  }
-
-  public Object find(Comparison comparison) {
-    return _sorted.find(comparison);
   }
 
   private class SortHeaderRenderer extends JLabel implements TableCellRenderer {

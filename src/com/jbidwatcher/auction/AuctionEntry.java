@@ -474,7 +474,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return The count of items bid on the last time a user bid.
    */
-  public int getBidQuantity()   { return getInteger("last_bid_quantity"); }
+  public int getBidQuantity() {
+    if(isBidOn()) {
+      Integer i = getInteger("last_bid_quantity");
+      return i != null ? i : 1;
+    }
+    return 0;
+  }
 
   private void setMultiSnipe(String identifier, String bgColor, Currency defaultSnipe, boolean subtractShipping) {
     MultiSnipe ms = MultiSnipe.findFirstBy("identifier", identifier);
@@ -1165,7 +1171,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     }
     mLastUpdatedAt = System.currentTimeMillis();
     mUpdating =false;
-    MQFactory.getConcrete("redraw").enqueue(this);
     mAddedRecently = 0;
     try {
       checkHighBidder(true);
@@ -1202,6 +1207,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         mForceUpdate = true;
       }
     }
+    MQFactory.getConcrete("redraw").enqueue(this);
   }
 
   public void prepareSnipe(Currency snipe) { prepareSnipe(snipe, 1); }

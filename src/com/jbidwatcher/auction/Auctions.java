@@ -7,13 +7,13 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.ui.auctionTableModel;
-import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.UpdateBlocker;
-import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.ErrorManagement;
+
+import java.util.List;
+import java.util.LinkedList;
 
 /**
  *  This class shouldn't have a 'TableSorter', it should defer to some
@@ -29,35 +29,28 @@ import com.jbidwatcher.util.config.ErrorManagement;
 public class Auctions implements TimerHandler.WakeupProcess {
   boolean _selling = false;
   boolean _complete = false;
-  private volatile TableSorter _tSort;
+//  private volatile TableSorter _tSort;
+  private AuctionList mList;
   private String _name;
-  private static final int LINE_LENGTH = 80;
 
   public Auctions(String inName) {
     _name = inName;
-    _tSort = new TableSorter(inName, "Time left", new auctionTableModel());
+    mList = new AuctionList();
   }
+
+  public AuctionList getList() { return mList; }
 
   //  Used to get the displayable name for this Auctions collection
   public String getName() {
     return _name;
   }
 
-  //  A single accessor...
-  public TableSorter getTableSorter() { return _tSort; }
-
   public void setSelling() { _selling = true; }
   public boolean isSelling() { return _selling; }
   public void setComplete() { _complete = true; }
   public boolean isCompleted() { return _complete; }
 
-  //  Encapsulate the TableSorter calls that are needed
-  public int getColumnCount() { return(_tSort.getColumnCount()); }
-  public int getRowCount() { return(_tSort.getRowCount()); }
-  public String getColumnName(int i) { return _tSort.getColumnName(i); }
-  public int getColumnNumber(String colName) { return _tSort.getColumnNumber(colName); }
-
-  /** 
+  /**
    * Search for an AuctionEntry in our tables, given it's identifier.
    * 
    * @param whatIdentifier - The identifier to search for.
@@ -65,7 +58,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * @return - The AuctionEntry, if it's found, or null if none was found.
    */
   public AuctionEntry getEntry(final String whatIdentifier) {
-    Object o = _tSort.find(new Comparison() {
+    return mList.find(new Comparison() {
       public boolean match(Object o) {
         if (o instanceof AuctionEntry) {
           AuctionEntry ae = (AuctionEntry) o;
@@ -76,42 +69,15 @@ public class Auctions implements TimerHandler.WakeupProcess {
         return false;
       }
     });
-    return (AuctionEntry) o;
   }
 
-  public boolean update(AuctionEntry ae) {
-    return _tSort.update(ae);
-  }
-
-  public void refilterAll(boolean clearCurrent) {
-    for(int i=_tSort.getRowCount()-1; i>=0; i--) {
-      AuctionEntry ae = (AuctionEntry) _tSort.getValueAt(i, -1);
-      if (clearCurrent) {
-        delEntry(ae);
-      } else {
-        ae.setCategory(null);
-        FilterManager.getInstance().refilterAuction(ae);
-      }
-    }
+  public List<AuctionEntry> getAuctions() {
+    return new LinkedList<AuctionEntry>(mList.getList());
   }
 
   //  Actual manipulation of the auction list is entirely handled here.
 
-  /** 
-   * Delete an auction entry, using that auction entry to match against.
-   * This also tells the auction entry to unregister itself!
-   * 
-   * @param inEntry - The auction entry to delete.
-   */
-  public void delEntry(AuctionEntry inEntry) {
-    boolean removedAny = _tSort.delete(inEntry);
-
-    if(removedAny) {
-      AuctionServerManager.getInstance().deleteEntry(inEntry);
-    }
-  }
-
-  private static boolean manageDeleted(AuctionEntry ae) {
+  private static boolean wasDeleted(AuctionEntry ae) {
     if(AuctionsManager.getInstance().isDeleted(ae.getIdentifier())) {
       ErrorManagement.logDebug("Skipping previously deleted auction (" + ae.getIdentifier() + ").");
       return true;
@@ -121,26 +87,14 @@ public class Auctions implements TimerHandler.WakeupProcess {
 
   /**
    * Add an AuctionEntry that has already been created, denying
-   * duplicates, but allowing duplicates where both have useful
-   * information that is not the same.
+   * previously deleted items.
    * 
    * @param aeNew - The new auction entry to add to the tables.
    * 
-   * @return - true if the auction was added, false if not.
+   * @return - true if the auction is okay to be added, false if not.
    */
-  public boolean addEntry(AuctionEntry aeNew) {
-    if(aeNew == null) return true;
-    if(manageDeleted(aeNew)) return false;
-
-    boolean inserted = (_tSort.insert(aeNew) != -1);
-
-    if (inserted) {
-      AuctionServerManager.getInstance().addEntry(aeNew);
-      return true;
-    }
-    ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
-
-    return false;
+  public boolean allowAddEntry(AuctionEntry aeNew) {
+    return aeNew != null && !wasDeleted(aeNew);
   }
 
   /**
@@ -164,7 +118,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * @return - true if the auction is in the list, false otherwise.
    */
   public boolean verifyEntry(final AuctionEntry ae) {
-    Object result = _tSort.find(new Comparison() {
+    Object result = mList.find(new Comparison() {
       public boolean match(Object o) { //noinspection ObjectEquality
         return o == ae; }
     });
@@ -179,7 +133,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * pending snipe.
    */
   public boolean anySnipes() {
-    Object result = _tSort.find(new Comparison() {
+    Object result = mList.find(new Comparison() {
       public boolean match(Object o) {
 
         AuctionEntry ae = ((AuctionEntry) o);
@@ -199,7 +153,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * @return - A string containing the title alone, if no comment, or
    * in the format: "title (comment)" otherwise.
    */
-  private static String getTitleAndComment(AuctionEntry ae) {
+  public static String getTitleAndComment(AuctionEntry ae) {
     String curComment = ae.getComment();
     if(curComment == null) return ae.getTitle();
 
@@ -223,13 +177,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
     if(!ae.isComplete() || ae.isUpdateForced()) {
       MQFactory.getConcrete("Swing").enqueue("Updating " + titleWithComment);
       ae.update();
-      Auctions newAuction = FilterManager.getInstance().refilterAuction(ae);
-      if(newAuction == null) {
-        MQFactory.getConcrete("Swing").enqueue("Done updating " + titleWithComment);
-      } else {
-        MQFactory.getConcrete("Swing").enqueue(new StringBuffer(LINE_LENGTH).append("Moved to ").append(newAuction.getName()).append(' ').append(titleWithComment).toString());
-        return true;
-      }
+      MQFactory.getConcrete("Swing").enqueue("Done updating " + Auctions.getTitleAndComment(ae));
     }
     return false;
   }
@@ -244,14 +192,14 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * @return - True if any updating occured, false otherwise.
    */
   private boolean doNextUpdate() {
-    AuctionEntry result = (AuctionEntry) _tSort.find(new Comparison() {
+    AuctionEntry result = mList.find(new Comparison() {
       public boolean match(Object o) { return ((AuctionEntry) o).checkUpdate(); }
     });
     if (result != null) {
       boolean forcedUpdate = result.isUpdateForced();
 
       if(doUpdate(result) || forcedUpdate) {
-        _tSort.sort();
+        MQFactory.getConcrete("redraw").enqueue(this);
       }
     }
     return result != null;
@@ -273,9 +221,5 @@ public class Auctions implements TimerHandler.WakeupProcess {
   public boolean check() {
     //  Don't allow updates to interfere with sniping.
     return !(UpdateBlocker.isBlocked() || !doNextUpdate());
-  }
-
-  public void updateTime() {
-    _tSort.updateTime();
   }
 }

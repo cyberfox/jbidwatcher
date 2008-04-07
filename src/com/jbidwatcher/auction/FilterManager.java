@@ -75,13 +75,11 @@ public class FilterManager implements MessageQueue.Listener {
     }
 
     AuctionListHolder(String name) {
-      auctionList = new Auctions(name);
-      auctionUI = new AuctionsUIModel(auctionList);
+      this(name, false, false, true);
     }
 
     AuctionListHolder(String name, Color presetBackground) {
-      auctionList = new Auctions(name);
-      auctionUI = new AuctionsUIModel(auctionList);
+      this(name, false, false, true);
       auctionUI.setBackground(presetBackground);
     }
 
@@ -146,12 +144,24 @@ public class FilterManager implements MessageQueue.Listener {
       if(step.getList().getName().equals(oldTab)) {
         if(!step.isDeletable()) return false;
         _allLists.remove(i);
-        step.getList().refilterAll(deleteFirst);
+        removeAuctionsFromTab(deleteFirst, step);
         AuctionsUIModel.getTabManager().getTabs().remove(i);
         didRemove = true;
       }
     }
     return didRemove;
+  }
+
+  private void removeAuctionsFromTab(boolean deleteFirst, AuctionListHolder step) {
+    List<AuctionEntry> auctionList = step.getList().getAuctions();
+    for (AuctionEntry ae : auctionList) {
+      if (deleteFirst) {
+        step.getUI().delEntry(ae);
+      } else {
+        ae.setCategory(null);
+        refilterAuction(ae);
+      }
+    }
   }
 
   /**  This is a singleton class, it needs an accessor.
@@ -167,9 +177,18 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   public void messageAction(Object deQ) {
-    AuctionEntry ae = (AuctionEntry) deQ;
-
-    redrawEntry(ae);
+    if(deQ instanceof AuctionEntry) {
+      AuctionEntry ae = (AuctionEntry) deQ;
+      Auctions newAuction = refilterAuction(ae);
+      if (newAuction != null) {
+        MQFactory.getConcrete("Swing").enqueue("Moved to " + newAuction.getName() + " " + Auctions.getTitleAndComment(ae));
+        matchUI(newAuction).redrawAll();
+      } else {
+        redrawEntry(ae);
+      }
+    } else if(deQ instanceof Auctions) {
+      matchUI((Auctions)deQ).sort();
+    }
   }
 
   public void redrawEntry(AuctionEntry ae) {
@@ -196,12 +215,20 @@ public class FilterManager implements MessageQueue.Listener {
     if(whichAuctionCollection == null) whichAuctionCollection = whereIsAuction(ae);
 
     if(whichAuctionCollection != null) {
-      whichAuctionCollection.delEntry(ae);
+      matchUI(whichAuctionCollection).delEntry(ae);
     }
     _allOrderedAuctionEntries.remove(ae);
   }
 
- /**
+  private AuctionsUIModel matchUI(Auctions list) {
+    for (AuctionListHolder step : _allLists) {
+      if (step.getList() == list) return step.getUI();
+    }
+
+    return null;
+  }
+
+  /**
   * Adds an auction entry to the appropriate Auctions list, based on
   * the loaded filters.
   *
@@ -220,15 +247,18 @@ public class FilterManager implements MessageQueue.Listener {
     if(whichAuctionCollection != null) {
       //  If it's already sorted into a Auctions list, tell that list
       //  to handle it.
-      whichAuctionCollection.addEntry(ae);
+      if(whichAuctionCollection.allowAddEntry(ae)) {
+        matchUI(whichAuctionCollection).addEntry(ae);
+      }
     } else {
       Auctions newAuctionCollection = matchAuction(ae);
 
       //  If we have no auction collections, then this isn't relevant.
       if(newAuctionCollection != null) {
-        newAuctionCollection.addEntry(ae);
-
-        _allOrderedAuctionEntries.put(ae, newAuctionCollection);
+        if (newAuctionCollection.allowAddEntry(ae)) {
+          matchUI(newAuctionCollection).addEntry(ae);
+          _allOrderedAuctionEntries.put(ae, newAuctionCollection);
+        }
       }
     }
   }
@@ -397,8 +427,8 @@ public class FilterManager implements MessageQueue.Listener {
       return null;
     }
 
-    oldAuctions.delEntry(ae);
-    newAuctions.addEntry(ae);
+    matchUI(oldAuctions).delEntry(ae);
+    matchUI(newAuctions).addEntry(ae);
 
     _allOrderedAuctionEntries.put(ae,newAuctions);
     return newAuctions;
@@ -409,7 +439,7 @@ public class FilterManager implements MessageQueue.Listener {
       AuctionListHolder step = _allLists.get(i);
 
       // getSortProperties must be called first in order to restore original column names
-      step.getList().getTableSorter().getSortProperties(step.getList().getName(), outProps);
+      step.getUI().getTableSorter().getSortProperties(step.getList().getName(), outProps);
       step.getUI().getColumnWidthsToProperties(outProps);
 
       String tab = step.getList().getName();

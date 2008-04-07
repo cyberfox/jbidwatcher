@@ -9,14 +9,17 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
+import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
+import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.platform.Platform;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
@@ -47,6 +50,7 @@ public class AuctionsUIModel {
   private static final JContext tableAdapter = new JBidMouse();
   private static final JMouseAdapter frameAdapter = new JBidFrameMouse();
   private static final JTabManager allTabs = new JTabManager();
+  private TableSorter _tSort;
 
   /**
    * @brief Construct a new UI model for a provided auction list.
@@ -60,7 +64,9 @@ public class AuctionsUIModel {
 
     _targets = new DropTarget[2];
 
-    _table = prepTable(_dataModel.getName(), _dataModel.getTableSorter());
+    _tSort = new TableSorter(_dataModel.getName(), "Time left", new auctionTableModel(_dataModel.getList()));
+
+    _table = prepTable(_dataModel.getName(), _tSort);
     if(newAuctionList.isCompleted()) {
       if(_table.convertColumnIndexToView(TableColumnController.END_DATE) == -1) {
         _table.addColumn(new TableColumn(TableColumnController.END_DATE, DEFAULT_COLUMN_WIDTH, _myRenderer, null));
@@ -77,7 +83,7 @@ public class AuctionsUIModel {
       _table.setRowHeight(MICROTHUMBNAIL_ROW_HEIGHT);
     }
     _table.addMouseListener(tableAdapter);
-    _dataModel.getTableSorter().addMouseListenerToHeaderInTable(_table);
+    _tSort.addMouseListenerToHeaderInTable(_table);
     if(Platform.isMac() || JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
       _scroller = new JScrollPane(_table, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     } else {
@@ -124,7 +130,7 @@ public class AuctionsUIModel {
     JPanel jp2 = buildBottomPanel();
     jp.add(jp2, BorderLayout.SOUTH);
     //allTabs.add(_dataModel.getName(), _scroller, _dataModel.getTableSorter());
-    allTabs.add(_dataModel.getName(), jp, _dataModel.getTableSorter());
+    allTabs.add(_dataModel.getName(), jp, _tSort);
   }
 
   private JPanel buildBottomPanel() {
@@ -184,6 +190,9 @@ public class AuctionsUIModel {
   private static Currency getBestBidValue(AuctionEntry checkEntry) {
     return checkEntry.bestValue();
   }
+
+  //  A single accessor...
+  public TableSorter getTableSorter() { return _tSort; }
 
   private static Currency addUSD(Currency inCurr, AuctionEntry ae) {
     boolean newCurrency = (inCurr == null || inCurr.isNull());
@@ -359,14 +368,50 @@ public class AuctionsUIModel {
    * @return - Whether it was marked as changed.
    */
   public boolean redrawEntry(AuctionEntry ae) {
-    return _dataModel.update(ae);
+    return _tSort.update(ae);
+  }
+
+  /**
+   * Delete an auction entry, using that auction entry to match against.
+   * This also tells the auction entry to unregister itself!
+   *
+   * @param inEntry - The auction entry to delete.
+   */
+  public void delEntry(AuctionEntry inEntry) {
+    boolean removedAny = _tSort.delete(inEntry);
+
+    if (removedAny) {
+      AuctionServerManager.getInstance().deleteEntry(inEntry);
+    }
+  }
+
+  /**
+   * Add an AuctionEntry that has already been created, denying
+   * duplicates, but allowing duplicates where both have useful
+   * information that is not the same.
+   *
+   * @param aeNew - The new auction entry to add to the tables.
+   * @return - true if the auction was added, false if not.
+   */
+  public boolean addEntry(AuctionEntry aeNew) {
+    if (aeNew == null) return true;
+
+    boolean inserted = (_tSort.insert(aeNew) != -1);
+
+    if (inserted) {
+      AuctionServerManager.getInstance().addEntry(aeNew);
+      return true;
+    }
+    ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
+
+    return false;
   }
 
   /**
    * @brief Redraw the whole table, but just the 'time left' column.
    */
   public void redraw() {
-    _dataModel.updateTime();
+    _tSort.updateTime();
   }
 
   public boolean toggleField(String field) {
@@ -377,7 +422,7 @@ public class AuctionsUIModel {
       rval = true;
     } else {
       _table.removeColumn(_table.getColumn(field));
-      _dataModel.getTableSorter().removeColumn(field, _table);
+      _tSort.removeColumn(field, _table);
       rval = false;
     }
 
@@ -638,5 +683,13 @@ public class AuctionsUIModel {
         super.removeMouseListener(ml);
       }
     }
+  }
+
+  public void sort() {
+    _tSort.sort();
+  }
+
+  public void redrawAll() {
+    _tSort.tableChanged(new TableModelEvent(_tSort));
   }
 }

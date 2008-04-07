@@ -75,10 +75,6 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
     return l.get(index);
   }
 
-  public synchronized Object find(Comparison comparison) {
-    return m_tm.find(comparison);
-  }
-
   public synchronized int findRow(Object o) {
     for(int i=0; i<getRowCount(); i++) {
       if(getValueAt(i, -1) == o) return i;
