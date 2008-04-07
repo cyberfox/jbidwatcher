@@ -4,10 +4,7 @@ import com.jbidwatcher.util.HashBacked;
 import com.jbidwatcher.util.SoftMap;
 import com.jbidwatcher.util.Record;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Provides utility methods for database-backed objects.
@@ -51,6 +48,10 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   public String saveDB() {
+    Set<String> names = getDatabase().getColumns();
+    if(names.contains("CURRENCY")) {
+      //  TODO -- Do cool stuff here.
+    }
     if(!isDirty() && get("id") != null && get("id").length() != 0) return get("id");
     String id = getDatabase().insertOrUpdate(getBacking());
     commit();

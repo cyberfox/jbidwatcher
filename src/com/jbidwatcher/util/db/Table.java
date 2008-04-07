@@ -5,10 +5,7 @@ import com.jbidwatcher.util.Record;
 
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Wrap the auction information up in a database.
@@ -407,5 +404,9 @@ public class Table
 
   public Database getDB() {
     return mDB;
+  }
+
+  public HashSet<String> getColumns() {
+    return new HashSet<String>(mColumnMap.keySet());
   }
 }
