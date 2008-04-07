@@ -48,9 +48,8 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   public String saveDB() {
-    Set<String> names = getDatabase().getColumns();
-    if(names.contains("CURRENCY")) {
-      //  TODO -- Do cool stuff here.
+    if(getDatabase().hasColumn("currency")) {
+      setString("currency", getDefaultCurrency());
     }
     if(!isDirty() && get("id") != null && get("id").length() != 0) return get("id");
     String id = getDatabase().insertOrUpdate(getBacking());

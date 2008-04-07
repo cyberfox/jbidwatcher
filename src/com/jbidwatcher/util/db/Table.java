@@ -12,7 +12,11 @@ import java.util.*;
  */
 public class Table
 {
-  private class TypeColumn {
+  public boolean hasColumn(String colName) {
+    return mColumnMap.containsKey(colName);
+  }
+
+  private static class TypeColumn {
     private String mType;
     private Integer mIndex;
 
@@ -120,11 +124,10 @@ public class Table
       statement += " ORDER BY " + order;
     }
 
-    ResultSet rs;
     try {
       PreparedStatement ps = mDB.prepare(statement);
       setColumn(ps, 1, key, value);
-      rs = ps.executeQuery();
+      ResultSet rs = ps.executeQuery();
       return getAllResults(rs);
     } catch (SQLException e) {
       e.printStackTrace();
@@ -221,10 +224,9 @@ public class Table
 
   private Record getOldRow(String tableName, String columnKey, String value, boolean forUpdate) {
     Record oldRow = null;
-    String statement;
 
     try {
-      statement = "SELECT * FROM " + tableName;
+      String statement = "SELECT * FROM " + tableName;
       statement += " WHERE " + columnKey + " = ?";
       if (forUpdate) statement += " FOR UPDATE";
       PreparedStatement ps = mDB.prepare(statement);
@@ -270,7 +272,6 @@ public class Table
   }
 
   private String createPreparedInsert(String tableName, Record newRow) {
-    String sql = null;
     boolean anyKeys = false;
     StringBuffer insert = new StringBuffer("INSERT INTO " + tableName + " (");
     StringBuffer values = new StringBuffer();
@@ -284,6 +285,7 @@ public class Table
       values.append('?');
       anyKeys = true;
     }
+    String sql = null;
     if (anyKeys) {
       sql = insert + ") VALUES (" + values + ")";
     }
@@ -406,7 +408,7 @@ public class Table
     return mDB;
   }
 
-  public HashSet<String> getColumns() {
-    return new HashSet<String>(mColumnMap.keySet());
+  public Set<String> getColumns() {
+    return mColumnMap.keySet();
   }
 }

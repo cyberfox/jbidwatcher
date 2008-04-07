@@ -59,8 +59,12 @@ public class HashBacked extends XMLSerializeSimple {
       return rval;
   }
 
-  public void setDefaultCurrency(Currency sample) {
+  protected void setDefaultCurrency(Currency sample) {
     mDefaultCurrency = sample.fullCurrencyName();
+  }
+
+  protected String getDefaultCurrency() {
+    return mDefaultCurrency;
   }
 
   public Currency getMonetary(String key) {

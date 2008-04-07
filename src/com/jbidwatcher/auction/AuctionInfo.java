@@ -492,7 +492,7 @@ public class AuctionInfo extends ActiveRecord
   public ByteBuffer getSiteThumbnail() { return null; }
   public ByteBuffer getAlternateSiteThumbnail() { return null; }
 
-  private static Table sDB;
+  private static Table sDB = null;
   protected static String getTableName() { return "auctions"; }
   protected Table getDatabase() {
     if (sDB == null) {
@@ -502,12 +502,14 @@ public class AuctionInfo extends ActiveRecord
   }
 
   public String saveDB() {
+    //  Look for columns of type: {foo}_id
+    //  For each of those, introspect for 'm{Foo}'.
+    //  For each non-null of those, call 'saveDB' on it.
+    //  Store the result of that call as '{foo}_id'.
     if(mSeller != null) {
       String seller_id = mSeller.saveDB();
       if(seller_id != null) set("seller_id", seller_id);
     }
-
-    setString("currency", getCurBid().fullCurrencyName());
 
     return super.saveDB();
   }
