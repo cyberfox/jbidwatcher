@@ -47,6 +47,7 @@ public class ThumbnailManager implements MessageQueue.Listener {
     //  view item'.  Boring, and misleading.
     if(tmpThumb.getCRC() == 0xAEF9E727 ||
        tmpThumb.getCRC() == 0x3D7BF54E ||
+       tmpThumb.getCRC() == 0x076AE9FB ||
        tmpThumb.getCRC() == 0x0E1AE309 ||
        tmpThumb.getCRC() == Long.parseLong(JConfig.queryConfiguration("thumbnail.crc", "0"), 16) ||
        tmpThumb.getCRC() == 0x5DAB591F) {
