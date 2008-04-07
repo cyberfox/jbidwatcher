@@ -1,4 +1,4 @@
-package com.jbidwatcher.util;
+package com.jbidwatcher.util.script;
 
 import org.jruby.RubyInstanceConfig;
 import org.jruby.Ruby;
@@ -69,24 +69,20 @@ public class Scripting {
   }
 
   public static Object ruby(String command) {
-//    ErrorManagement.logDebug("Executing: " + command);
-
     if(sRuby != null) {
       OutputStream old = mOutput.setOutput(System.out);
       Object rval = sRuby.evalScriptlet(command);
       mOutput.setOutput(old);
       return rval;
     } else {
-      ErrorManagement.logDebug("Calling ruby script with '" + command + "' before scripting enabled!");
+//      ErrorManagement.logDebug("Calling ruby script with '" + command + "' before scripting enabled!");
       return null;
     }
   }
 
   public static Object rubyMethod(String method, Object... method_params) {
-//    ErrorManagement.logDebug("Executing: " + method + " with (" + StringTools.comma(method_params) + ")");
-
     if (sRuby == null) {
-      ErrorManagement.logDebug("Calling ruby method '" + method + "' before scripting enabled!");
+//      ErrorManagement.logDebug("Calling ruby method '" + method + "' before scripting enabled!");
       return null;
     }
 

@@ -7,7 +7,7 @@ import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.config.Externalized;
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.Scripting;
+import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.UpdateBlocker;
@@ -124,7 +124,7 @@ public class ebayBidder implements Bidder {
         if (loadedPage == null) {
           return null;
         } else if(JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-          String result = (String)Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
+          String result = (String) Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
           ErrorManagement.logDebug(result);
         }
 

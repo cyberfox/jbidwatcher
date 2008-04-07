@@ -13,7 +13,7 @@ package com.jbidwatcher.ui.table;
  *
  * Contains the basic list of columns for potential display, and their display-names.
  */
-import com.jbidwatcher.util.Scripting;
+import com.jbidwatcher.util.script.Scripting;
 
 import java.util.HashMap;
 import java.util.Map;

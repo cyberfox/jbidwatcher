@@ -328,7 +328,11 @@ public class JConfig {
 
         _inProps.remove(key);
         key = key.substring(0, b64_start) + key.substring(b64_start+4);
-        _inProps.setProperty(key, Base64.decodeToString(val));
+        try {
+          _inProps.setProperty(key, Base64.decodeToString(val));
+        } catch (Exception e) {
+          ErrorManagement.handleException("Couldn't decode the password!", e);
+        }
       }
     }
   }

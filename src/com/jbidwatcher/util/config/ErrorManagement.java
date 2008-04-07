@@ -5,7 +5,7 @@ package com.jbidwatcher.util.config;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.Scripting;
+import com.jbidwatcher.util.script.Scripting;
 
 import java.io.*;
 import java.util.Date;

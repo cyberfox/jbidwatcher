@@ -42,7 +42,11 @@ public abstract class HTTPProxyClient extends ProxyClient {
       if(inLine.startsWith(authTitle)) {
         String authString = inLine.substring(authTitle.length());
 
-        authorized = handleAuthorization(authString);
+        try {
+          authorized = handleAuthorization(authString);
+        } catch (Exception e) {
+          authorized = false;
+        }
       }
     }
   }

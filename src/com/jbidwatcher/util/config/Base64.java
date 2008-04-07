@@ -609,15 +609,10 @@ public class Base64
             else
             {
                 System.err.println( "Bad Base64 input character at " + i + ": " + source[i] + "(decimal)" );
-                try {
-                  throw new Exception("Bad Base64 input character at " + i + ": " + source[i] + "(decimal)");
-                } catch(Exception e) {
-                  ErrorManagement.handleException("Base64 Decode Problem", e);
-                }
-                return null;
-            }   // end else: 
+                throw new RuntimeException("Bad Base64 input character at " + i + ": " + source[i] + "(decimal)");
+            }   // end else:
         }   // each input character
-                                   
+
         byte[] out = new byte[ outBuffPosn ];
         System.arraycopy( outBuff, 0, out, 0, outBuffPosn ); 
         return out;
