@@ -69,6 +69,7 @@ public class HashBacked extends XMLSerializeSimple {
 
   public Currency getMonetary(String key) {
     String result = get(key);
+    if(result == null) return Currency.NoValue();
     try {
       double value = Double.parseDouble(result);
       return Currency.getCurrency(mDefaultCurrency, value);

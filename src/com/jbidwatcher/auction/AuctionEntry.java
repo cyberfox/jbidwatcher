@@ -1560,7 +1560,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @return - Shipping amount, overrides AuctionInfo shipping amount if present.
    */
   public Currency getShipping() {
-    if(getMonetary("shipping") != null) return getMonetary("shipping");
+    if(!getMonetary("shipping").isNull()) return getMonetary("shipping");
     return mAuction.getShipping();
   }
   public Currency getInsurance() { return mAuction.getInsurance(); }
@@ -1632,7 +1632,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public boolean isShippingOverridden() {
-    return getShipping() != null && !getShipping().isNull();
+    Currency ship = getMonetary("shipping");
+    return ship != null && !ship.isNull();
   }
 
   public String getURL() {
