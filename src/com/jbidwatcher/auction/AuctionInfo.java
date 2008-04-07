@@ -506,6 +506,9 @@ public class AuctionInfo extends ActiveRecord
       String seller_id = mSeller.saveDB();
       if(seller_id != null) set("seller_id", seller_id);
     }
+
+    setString("currency", getCurBid().fullCurrencyName());
+
     return super.saveDB();
   }
 

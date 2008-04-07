@@ -22,6 +22,7 @@ public class HashBacked extends XMLSerializeSimple {
   private Map<String, String> mTranslationTable;
   private String mDefaultCurrency;
   private boolean mDirty = false;
+  private static final Currency ONE_DOLLAR = Currency.getCurrency("$1.00");
 
   public HashBacked() {
     this(new Record());
@@ -30,7 +31,8 @@ public class HashBacked extends XMLSerializeSimple {
   public HashBacked(Record data) {
     mDateFormat.setTimeZone(TimeZone.getDefault());
     mBacking = data;
-    mDefaultCurrency = Currency.getCurrency("$1.00").fullCurrencyName();
+    if(get("currency") == null) mDefaultCurrency = ONE_DOLLAR.fullCurrencyName();
+    else mDefaultCurrency = get("currency");
   }
 
   public void setTranslationTable(Map<String, String> table) { if(mTranslationTable == null) mTranslationTable = table; }
@@ -218,7 +220,12 @@ public class HashBacked extends XMLSerializeSimple {
   }
 
   public Record getBacking() { return mBacking; }
-  protected void setBacking(Record r) { mBacking = r; clearDirty(); }
+  protected void setBacking(Record r) {
+    mBacking = r;
+    if(get("currency") == null) mDefaultCurrency = ONE_DOLLAR.fullCurrencyName();
+    else mDefaultCurrency = get("currency");    
+    clearDirty();
+  }
 
   protected void handleTag(int i, XMLElement curElement) {
     //To change body of implemented methods use File | Settings | File Templates.
