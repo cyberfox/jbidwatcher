@@ -47,6 +47,26 @@ public abstract class ActiveRecord extends HashBacked {
     getDatabase().commit();
   }
 
+  private void saveAssociations() {
+    Set<String> colNames=getDatabase().getColumns();
+    for(String name : colNames) {
+      if(name.matches("[a-z_+]_id")) {
+        String className = name.substring(0, name.length()-3);
+        String member = "m" + classify(className);
+        // TODO -- Inspect for 'member', instanceof ActiveRecord.
+        // TODO -- set("#{name}", member.saveDB())
+      }
+    }
+  }
+
+  private String classify(String className) {
+    return className;
+  }
+
+  //  Look for columns of type: {foo}_id
+  //  For each of those, introspect for 'm{Foo}'.
+  //  For each non-null of those, call 'saveDB' on it.
+  //  Store the result of that call as '{foo}_id'.
   public String saveDB() {
     if(getDatabase().hasColumn("currency")) {
       setString("currency", getDefaultCurrency());
