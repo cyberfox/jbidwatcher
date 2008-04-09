@@ -6,7 +6,7 @@
 # Documentation: William Webber <william@williamwebber.com>
 #
 #--
-# $Id: date.rb 5479 2008-01-03 21:39:44Z headius $
+# $Id: date.rb 5649 2008-01-17 22:22:41Z vvs $
 #++
 #
 # == Overview
@@ -275,8 +275,8 @@ class Date
 
     def <=> (other)
       case other
-      when Infinity; d <=> other.d
-      when Numeric; d
+      when Infinity; return d <=> other.d
+      when Numeric; return d
       else
 	begin
 	  l, r = other.coerce(self)

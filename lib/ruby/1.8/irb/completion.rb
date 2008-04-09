@@ -1,8 +1,8 @@
 #
 #   irb/completor.rb - 
 #   	$Release Version: 0.9$
-#   	$Revision: 2906 $
-#   	$Date: 2007-02-01 18:35:06 -0600 (Thu, 01 Feb 2007) $
+#   	$Revision: 6137 $
+#   	$Date: 2008-03-07 10:48:16 -0600 (Fri, 07 Mar 2008) $
 #   	by Keiju ISHITSUKA(keiju@ishitsuka.com)
 #       From Original Idea of shugo@ruby-lang.org
 #
@@ -12,7 +12,7 @@ require "readline"
 module IRB
   module InputCompletor
 
-    @RCS_ID='-$Id: completion.rb 2906 2007-02-02 00:35:06Z headius $-'
+    @RCS_ID='-$Id: completion.rb 6137 2008-03-07 16:48:16Z vvs $-'
 
     ReservedWords = [
       "BEGIN", "END",
@@ -139,10 +139,14 @@ module IRB
 	if (gv | lv | cv).include?(receiver)
 	  # foo.func and foo is local var.
 	  candidates = eval("#{receiver}.methods", bind)
+          # JRuby specific (JRUBY-2186)
+          candidates = [] unless candidates.is_a?(Array)
 	elsif /^[A-Z]/ =~ receiver and /\./ !~ receiver
 	  # Foo::Bar.func
 	  begin
 	    candidates = eval("#{receiver}.methods", bind)
+            # JRuby specific (JRUBY-2186)
+            candidates = [] unless candidates.is_a?(Array)
 	  rescue Exception
 	    candidates = []
 	  end
@@ -150,6 +154,9 @@ module IRB
 	  # func1.func2
 	  candidates = []
 	  ObjectSpace.each_object(Module){|m|
+            # JRuby specific (JRUBY-2186)
+            next unless m.respond_to?(:instance_methods)
+
 	    begin
 	      name = m.name
 	    rescue Exception
