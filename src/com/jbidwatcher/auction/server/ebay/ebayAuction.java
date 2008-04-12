@@ -504,7 +504,7 @@ class ebayAuction extends SpecificAuction {
         Pattern newTitlePat = Pattern.compile(Externalized.getString("ebayServer.titleMatch"));
         Matcher newTitleMatch = newTitlePat.matcher(prelimTitle);
         if (newTitleMatch.find()) {
-          setTitle(StringTools.decodeLatin(newTitleMatch.group(1)));
+          setTitle(StringTools.decode(newTitleMatch.group(1), mDocument.getCharset()));
           String endDate = newTitleMatch.group(4);
           if(getEnd() != null) setEnd(StringTools.figureDate(endDate, Externalized.getString("ebayServer.dateFormat")).getDate());
         }
@@ -525,9 +525,9 @@ class ebayAuction extends SpecificAuction {
 
         //  Always convert, at this point, from iso-8859-1 (iso latin-1) to UTF-8.
         if(htmlTitle) {
-          setTitle(StringTools.decodeLatin(buildTitle(mDocument)));
+          setTitle(StringTools.decode(buildTitle(mDocument), mDocument.getCharset()));
         } else {
-          setTitle(StringTools.decodeLatin(prelimTitle.substring(titleIndex+4).trim()));
+          setTitle(StringTools.decode(prelimTitle.substring(titleIndex+4).trim(), mDocument.getCharset()));
         }
       }
 

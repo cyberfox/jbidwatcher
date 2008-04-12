@@ -31,6 +31,7 @@ public class JDropListener implements DropTargetListener {
   private static final String[][] _str_flavors = {
     { "UTF8Html", "text/html; class=java.io.InputStream; charset=utf-8" },
     { "isoFlavor", "text/plain; class=java.io.InputStream; charset=iso8859-1" },
+    { "utfFlavor", "text/plain; class=java.io.InputStream; charset=utf-8" },
     { "ascFlavor", "text/plain; class=java.io.InputStream; charset=ascii" },
     { "pl2Flavor", "text/plain; class=java.io.InputStream" },
     { "thtmlFlavor", "text/html" },

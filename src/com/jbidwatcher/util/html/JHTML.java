@@ -25,6 +25,7 @@ public class JHTML implements JHTMLListener {
   private List<Form> m_formList;
   private Form m_curForm;
   private static boolean do_uber_debug=false;
+  private String mCharset;
 
   public JHTML(StringBuffer strBuf) {
     setup();
@@ -256,22 +257,39 @@ public class JHTML implements JHTMLListener {
       if(newToken.getTokenType() == htmlToken.HTML_TAG ||
         newToken.getTokenType() == htmlToken.HTML_ENDTAG ||
         newToken.getTokenType() == htmlToken.HTML_SINGLETAG) {
-        if(newToken.getToken().toLowerCase().startsWith("form")) {
-          if(m_curForm == null) {
-            m_curForm = new Form(newToken.getToken());
-          } else {
-            m_formList.add(m_curForm);
-            m_curForm = new Form(newToken.getToken());
-          }
-        } else if(newToken.getToken().toLowerCase().startsWith("/form")) {
-          if(m_curForm != null) m_formList.add(m_curForm);
-          m_curForm = null;
+        handleForms(newToken);
+        //  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+        if(newToken.getToken().toLowerCase().startsWith("meta")) {
+          checkDocumentType(newToken.getToken(), "ISO-8859-1");
+          checkDocumentType(newToken.getToken(), "UTF-8");
         }
-        if(m_curForm != null) {
-          if(newToken.getToken().regionMatches(true, 0, "input", 0, 5) || newToken.getToken().regionMatches(true, 0, "button", 0, 6)) {
-            m_curForm.addInput(newToken.getToken());
-          }
-        }
+      }
+    }
+  }
+
+  public String getCharset() {
+    return mCharset;
+  }
+
+  private void checkDocumentType(String meta, String type) {
+    if(meta.contains(type)) setCharset(type);
+  }
+
+  private void handleForms(htmlToken newToken) {
+    if(newToken.getToken().toLowerCase().startsWith("form")) {
+      if(m_curForm == null) {
+        m_curForm = new Form(newToken.getToken());
+      } else {
+        m_formList.add(m_curForm);
+        m_curForm = new Form(newToken.getToken());
+      }
+    } else if(newToken.getToken().toLowerCase().startsWith("/form")) {
+      if(m_curForm != null) m_formList.add(m_curForm);
+      m_curForm = null;
+    }
+    if(m_curForm != null) {
+      if(newToken.getToken().regionMatches(true, 0, "input", 0, 5) || newToken.getToken().regionMatches(true, 0, "button", 0, 6)) {
+        m_curForm.addInput(newToken.getToken());
       }
     }
   }
@@ -594,5 +612,9 @@ public class JHTML implements JHTMLListener {
     }
 
     return null;
+  }
+
+  public void setCharset(String charset) {
+    mCharset = charset;
   }
 }

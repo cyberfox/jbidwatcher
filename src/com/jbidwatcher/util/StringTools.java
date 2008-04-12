@@ -19,11 +19,16 @@ public class StringTools {
 
   public static String decodeLatin(String latinString) {
     //  Why?  Because it seems to Just Work on Windows.  Argh.
-    if (!JConfig.queryConfiguration("mac", "false").equals("true")) return latinString;
+    return decode(latinString, "ISO-8859-1");
+  }
+
+  public static String decode(String original, String charset) {
+//    if (!JConfig.queryConfiguration("mac", "false").equals("true")) return original;
+    if(charset == null) charset = "UTF-8";
     try {
-      return new String(latinString.getBytes(), "ISO-8859-1");
+      return new String(original.getBytes(), charset);
     } catch (UnsupportedEncodingException ignore) {
-      return latinString;
+      return original;
     }
   }
 
