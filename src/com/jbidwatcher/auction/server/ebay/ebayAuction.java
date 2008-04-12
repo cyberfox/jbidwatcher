@@ -691,7 +691,7 @@ class ebayAuction extends SpecificAuction {
     }
 
     if(sellerName == null) {
-      if(mDocument.grep(Externalized.getString("ebayServer.sellerAway")) != null) {
+      if(mDocument.grep(Externalized.getString("ebayServer.sellerAwayRegex")) != null) {
         if(ae != null) {
           ae.setLastStatus("Seller away - item unavailable.");
         }
