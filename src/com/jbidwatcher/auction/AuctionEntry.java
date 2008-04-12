@@ -977,17 +977,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       xmlResult.addChild(xmulti);
     }
 
-    if(isComplete()) {
-      XMLElement xcomplete = new XMLElement("complete");
-      xcomplete.setEmpty();
-      xmlResult.addChild(xcomplete);
-    }
-
-    if(isInvalid()) {
-      XMLElement xinvalid = new XMLElement("invalid");
-      xinvalid.setEmpty();
-      xmlResult.addChild(xinvalid);
-    }
+    if(isComplete()) addStatusXML(xmlResult, "complete");
+    if(isInvalid()) addStatusXML(xmlResult, "invalid");
+    if(isDeleted()) addStatusXML(xmlResult, "deleted");
 
     if(getComment() != null) {
       XMLElement xcomment = new XMLElement("comment");
@@ -1642,6 +1634,28 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   public StringBuffer getBody() throws FileNotFoundException {
     return mServer.getAuction(StringTools.getURLFromString(getURL()));
+  }
+
+  /**
+   * Is the auction deleted on the server?
+   *
+   * @return - true if the auction has been removed from the server, as opposed to deleted locally.
+   */
+  public boolean isDeleted() {
+    return getBoolean("deleted", false);
+  }
+
+  /**
+   * Mark the auction as having been deleted by the auction server.
+   *
+   * Generally items are removed by the auction server because the listing is
+   * too old, violates some terms of service, the seller has been suspended,
+   * or the seller removed the listing themselves.
+   */
+  public void setDeleted() {
+    setBoolean("deleted", true);
+    clearInvalid();
+    setComplete(true);
   }
 
   /**

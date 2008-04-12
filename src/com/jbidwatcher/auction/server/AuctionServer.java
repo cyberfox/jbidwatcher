@@ -39,7 +39,9 @@ public abstract class AuctionServer implements AuctionServerInterface {
     NOT_ADULT,
     BAD_TITLE,
     SELLER_AWAY,
-    ERROR
+    ERROR,
+    CAPTCHA,
+    DELETED
   }
   private static long sLastUpdated = 0;
 
@@ -236,10 +238,10 @@ public abstract class AuctionServer implements AuctionServerInterface {
       AuctionServerManager.getInstance().addEntry(inEntry);
       MQFactory.getConcrete("Swing").enqueue("LINK UP");
     } else {
-      if(!inEntry.getLastStatus().equals("Seller away - item unavailable.")) {
+      if(!inEntry.isDeleted() && !inEntry.getLastStatus().equals("Seller away - item unavailable.")) {
         inEntry.setLastStatus("Failed to load from server!");
+        inEntry.setInvalid();
       }
-      inEntry.setInvalid();
     }
 
     return (curAuction);
@@ -257,14 +259,14 @@ public abstract class AuctionServer implements AuctionServerInterface {
    * @return - An object containing the information extracted from the auction.
    */
   private AuctionInfo loadAuction(URL auctionURL, String item_id, AuctionEntry ae) {
-    StringBuffer sb = retrieveAuctionAlternatives(auctionURL, item_id);
+    StringBuffer sb = retrieveAuctionAlternatives(auctionURL, item_id, ae);
     SpecificAuction curAuction = null;
 
     if(sb != null) {
       try {
         curAuction = doParse(sb, ae, item_id);
       } catch (ReloadItemException e) {
-        sb = retrieveAuctionAlternatives(auctionURL, item_id);
+        sb = retrieveAuctionAlternatives(auctionURL, item_id, ae);
         try {
           curAuction = doParse(sb, ae, item_id);
         } catch (ReloadItemException e1) {
@@ -273,13 +275,11 @@ public abstract class AuctionServer implements AuctionServerInterface {
       }
     }
 
-    if(curAuction == null) {
-      noteRetrieveError(ae);
-    }
+    if (curAuction == null && (ae == null || !ae.isDeleted())) noteRetrieveError(ae);
     return curAuction;
   }
 
-  private StringBuffer retrieveAuctionAlternatives(URL auctionURL, String item_id) {
+  private StringBuffer retrieveAuctionAlternatives(URL auctionURL, String item_id, AuctionEntry ae) {
     StringBuffer sb = getAuction(item_id);
 
     if (sb == null) {
@@ -290,6 +290,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
         //  server, so we shouldn't be trying any of the rest.  The
         //  Error should have been logged at the lower level, so just
         //  punt.  It's not a communications error, either.
+        markAuctionDeleted(ae);
       } catch (Exception catchall) {
         if (JConfig.debugging()) {
           ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
@@ -312,6 +313,11 @@ public abstract class AuctionServer implements AuctionServerInterface {
       ParseErrors result = curAuction.parseAuction(ae);
       if (result != ParseErrors.SUCCESS) {
         switch(result) {
+          case CAPTCHA: {
+            ErrorManagement.logDebug("Failed to load (likely adult) item, captcha intervened.");
+            if(ae != null) ae.setLastStatus("Couldn't access auction on server; captcha blocked.");
+            break;
+          }
           case NOT_ADULT: {
             boolean isAdult = JConfig.queryConfiguration(getName() + ".adult", "false").equals("true");
             if (isAdult) {
@@ -320,22 +326,38 @@ public abstract class AuctionServer implements AuctionServerInterface {
             } else {
               ErrorManagement.logDebug("Failed to load adult item, user possibly not marked for Mature Items access.  Check your eBay configuration.");
             }
+            break;
+          }
+          case DELETED: {
+            error = markAuctionDeleted(ae);
+            break;
           }
           case BAD_TITLE: {
-            //  TODO -- ?
+            error = "There was a problem parsing the title.";
+            break;
           }
         }
-        if(result != ParseErrors.SUCCESS) error = "Bad Parse!";
+        if(result != ParseErrors.SUCCESS && error == null) error = "Bad Parse!";
       }
       if (result == ParseErrors.SUCCESS) curAuction.save();
     } else error = "Bad pre-parse!";
 
     if(error != null) {
       ErrorManagement.logMessage(error);
-      checkLogError(ae);
+      if(ae == null || !ae.isDeleted()) checkLogError(ae);
       curAuction = null;
     }
     return curAuction;
+  }
+
+  private String markAuctionDeleted(AuctionEntry ae) {
+    String error = "Auction appears to have been removed from the site.";
+    if(ae != null) {
+      ae.setDeleted();
+      error = "Auction " + ae.getIdentifier() + " appears to have been removed from the site.";
+      ae.setLastStatus(error);
+    }
+    return error;
   }
 
   private void noteRetrieveError(AuctionEntry ae) {

@@ -329,42 +329,50 @@ class ebayAuction extends SpecificAuction {
 
   private void loadOptionalInformation(JHTML doc) {
     try {
-      String score = getResult(doc, Externalized.getString("ebayServer.feedbackRegex"), 1);
-      if(score != null && StringTools.isNumberOnly(score)) {
-        mSeller.setFeedback(Integer.parseInt(score));
-      }
-
-      String percentage = getResult(doc, Externalized.getString("ebayServer.feedbackPercentageRegex"), 1);
-      if(percentage != null) mSeller.setPositivePercentage(percentage);
+      loadFeedback(doc);
 
       String location = doc.getNextContentAfterRegex(Externalized.getString("ebayServer.itemLocationRegex"));
       if(location != null) {
         setItemLocation(location);
       }
 
-      String pbp = getResult(doc, Externalized.getString("ebayServer.paypalMatcherRegex"), 0);
-      if(pbp != null) {
-        setPaypal(true);
-      } else {
-        String preferred = doc.getNextContentAfterRegex("PayPal.?");
-        if(preferred != null) {
-          if(preferred.indexOf("preferred") != -1) setPaypal(true);
-          if(preferred.indexOf("accepted") != -1) setPaypal(true);
-        }
-        String methods = doc.getNextContentAfterRegex("Payment methods:?");
-        //  If it's not the first payment method...
-        //  It might be the second.
-        int i=0;
-        while (i<3 && !hasPaypal()) {
-          if (methods != null && methods.equalsIgnoreCase("paypal")) setPaypal(true);
-          else methods = doc.getNextContent();
-          i++;
-        }
-      }
+      loadPaypal(doc);
     } catch(Throwable t) {
       //  I don't actually CARE about any of this data, or any errors that occur on loading it, so don't mess things up on errors.
       ErrorManagement.logDebug(t.getMessage());
     }
+  }
+
+  private void loadPaypal(JHTML doc) {
+    String pbp = getResult(doc, Externalized.getString("ebayServer.paypalMatcherRegex"), 0);
+    if(pbp != null) {
+      setPaypal(true);
+    } else {
+      String preferred = doc.getNextContentAfterRegex("PayPal.?");
+      if(preferred != null) {
+        if(preferred.indexOf("preferred") != -1) setPaypal(true);
+        if(preferred.indexOf("accepted") != -1) setPaypal(true);
+      }
+      String methods = doc.getNextContentAfterRegex("Payment methods:?");
+      //  If it's not the first payment method...
+      //  It might be the second.
+      int i=0;
+      while (i<3 && !hasPaypal()) {
+        if (methods != null && methods.equalsIgnoreCase("paypal")) setPaypal(true);
+        else methods = doc.getNextContent();
+        i++;
+      }
+    }
+  }
+
+  private void loadFeedback(JHTML doc) {
+    String score = getResult(doc, Externalized.getString("ebayServer.feedbackRegex"), 1);
+    if(score != null && StringTools.isNumberOnly(score)) {
+      mSeller.setFeedback(Integer.parseInt(score));
+    }
+
+    String percentage = getResult(doc, Externalized.getString("ebayServer.feedbackPercentageRegex"), 1);
+    if(percentage != null) mSeller.setPositivePercentage(percentage);
   }
 
   /**
@@ -450,15 +458,23 @@ class ebayAuction extends SpecificAuction {
    * Sets _title, and possibly _end.
    *
    * @return - The preliminary extraction of the title, in its entirety, for later parsing.  null if a failure occurred.
-   * @throws com.jbidwatcher.auction.server.ebay.ebayAuction.ParseException
+   * @throws com.jbidwatcher.auction.server.ebay.ebayAuction.ParseException - An exception that describes what's wrong with the title.
    */
   private String checkTitle() throws ParseException {
     String prelimTitle = mDocument.getTitle();
     if( prelimTitle == null) {
       prelimTitle = Externalized.getString("ebayServer.unavailable");
     }
-    if(prelimTitle.equals(Externalized.getString("ebayServer.adultPageTitle")) || prelimTitle.indexOf("Terms of Use: ") != -1) {
+    if(prelimTitle.equals(Externalized.getString("ebayServer.adultPageTitle")) || prelimTitle.indexOf("Terms of Use") != -1) {
       throw new ParseException(AuctionServer.ParseErrors.NOT_ADULT);
+    }
+
+    if(prelimTitle.equals("Invalid Item")) {
+      throw new ParseException(AuctionServer.ParseErrors.DELETED);
+    }
+
+    if(prelimTitle.equals("Security Measure")) {
+      throw new ParseException(AuctionServer.ParseErrors.CAPTCHA);
     }
 
     //  Is this a valid eBay item page?

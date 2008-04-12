@@ -154,9 +154,9 @@ public class auctionTableModel extends BaseTransformation
     if(ae.isInvalid()) {
       ret_icon = IconFactory.getCombination(ret_icon, invalidIcon);
     }
-//    if(ae.isDeleted()) {
-//      ret_icon = IconFactory.getCombination(ret_icon, deletedIcon);
-//    }
+    if(ae.isDeleted()) {
+      ret_icon = IconFactory.getCombination(ret_icon, deletedIcon);
+    }
     if(ae.hasPaypal()) {
       ret_icon = IconFactory.getCombination(ret_icon, paypalIcon);
     }
