@@ -1544,7 +1544,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
         tabMenu.setEnabled(false);
       } else {
         tabs.remove("selling");
-        tabMenu.setEnabled(true);
         tabMenu.add(new JPopupMenu.Separator());
         for (String tab : tabs) {
           tabMenu.add(makeMenuItem(tab)).addActionListener(tabActions);
