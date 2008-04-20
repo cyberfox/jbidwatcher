@@ -281,7 +281,7 @@ public class auctionTableModel extends BaseTransformation
 
   private String formatSnipe(AuctionEntry aEntry, String errorNote) {
     String snipeCount = "";
-    if (aEntry.getSnipeQuantity() != 1) {
+    if (aEntry.getSnipeQuantity() > 1) {
       snipeCount = " x " + aEntry.getSnipeQuantity();
     }
 
@@ -318,7 +318,7 @@ public class auctionTableModel extends BaseTransformation
     }
 
     String snipeCount = "";
-    if (aEntry.getSnipeQuantity() != 1) {
+    if (aEntry.getSnipeQuantity() > 1) {
       snipeCount = " x " + aEntry.getSnipeQuantity();
     }
 
