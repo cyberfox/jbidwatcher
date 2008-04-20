@@ -1214,11 +1214,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @param quantity The number of items they want to snipe for.
    */
   public void prepareSnipe(Currency snipe, int quantity) {
-    mSnipe = AuctionSnipe.create(snipe, quantity, 0);
-
     if(snipe == null || snipe.isNull()) {
+      mSnipe = null;
       MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
     } else {
+      mSnipe = AuctionSnipe.create(snipe, quantity, 0);
       MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
     }
     MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");

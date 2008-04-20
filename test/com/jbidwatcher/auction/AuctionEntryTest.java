@@ -49,7 +49,7 @@ public class AuctionEntryTest extends TestCase {
   }
 
   public void testGetSnipeBid() throws Exception {
-    assertEquals(mAE.getSnipe(), Currency.NoValue());
+    assertEquals(mAE.getSnipeAmount(), Currency.NoValue());
   }
 
   public void testGetSnipeQuantity() throws Exception {
