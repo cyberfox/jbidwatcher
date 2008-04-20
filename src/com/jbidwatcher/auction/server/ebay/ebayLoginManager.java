@@ -122,6 +122,10 @@ public class ebayLoginManager implements LoginManager {
         enqueued = true;
         if(htdoc.grep("(?ms).*Your information has been verified.*")!=null) {
           MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
+        } else if(htdoc.grep("(?ms).*not to allow access to the Mature Audiences category outside the US.*") != null) {
+          MQFactory.getConcrete("login").enqueue("NEUTRAL Turn off 'Registered Adult', it's not valid for non-US users.");
+          JConfig.setConfiguration("ebay.adult", "false");
+          JConfig.setConfiguration("ebay.international", "true");
         } else {
           ErrorManagement.logFile("Neutral login result...", confirmed);
           MQFactory.getConcrete("login").enqueue("NEUTRAL");
