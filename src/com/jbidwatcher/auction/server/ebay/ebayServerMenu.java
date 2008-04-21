@@ -19,8 +19,8 @@ class ebayServerMenu extends ServerMenu {
     addMenuItem("Search eBay", 'F');
     addMenuItem("Get My eBay Items", 'M');
     addMenuItem("Get Selling Items", 'S');
-    addMenuItem("Refresh eBay session", "Update login cookie", 'U');
-    if(JConfig.debugging) addMenuItem("[Dump eBay activity queue]", 'Q');
+    addMenuItem("Refresh eBay Session", "Update login cookie", 'U');
+    if(JConfig.debugging) addMenuItem("Dump eBay Activity Queue", 'Q');
   }
 
   public void actionPerformed(ActionEvent ae) {

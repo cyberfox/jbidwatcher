@@ -101,11 +101,11 @@ public class JBidMenuBar extends JMenuBar {
   protected void establishFileMenu(JMenu inMenu) {
     makeMenuItem(
         inMenu,
-        "Save auctions", "Save",
+        "Save Auctions", "Save",
         KeyEvent.VK_S,
         KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
-    makeMenuItem(inMenu, "Dump cache", "Dump", KeyEvent.VK_D,
+    makeMenuItem(inMenu, "Dump Cache", "Dump", KeyEvent.VK_D,
         KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
     if(Platform.isMac()) {
@@ -124,7 +124,7 @@ public class JBidMenuBar extends JMenuBar {
 
     makeMenuItem(inMenu, "Scripting Manager", "Scripting", 'M');
     makeMenuItem(inMenu, "Check For Updates", KeyEvent.VK_U);
-    makeMenuItem(inMenu, "Clear deleted tracking", "Clear Deleted", KeyEvent.VK_D, KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+    makeMenuItem(inMenu, "Clear Deleted Tracking", "Clear Deleted", KeyEvent.VK_D, KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     if(!Platform.isMac()) inMenu.add(new JSeparator());
     makeMenuItem(
         inMenu,
@@ -141,9 +141,7 @@ public class JBidMenuBar extends JMenuBar {
   }
 
   protected void establishEditMenu(JMenu inMenu) {
-    makeMenuItem(inMenu, "Paste Auction", "Paste", KeyEvent.VK_P,
-                 KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-    JMenu copyMenu = new JMenu("Copy...");
+    JMenu copyMenu = new JMenu("Copy");
     copyMenu.add(JContext.makeGeneralMenuItem("Information", "Copy")).addActionListener(_actionDirector);
     copyMenu.add(JContext.makeGeneralMenuItem("URL", "CopyURL")).addActionListener(_actionDirector);
     copyMenu.add(JContext.makeGeneralMenuItem("Auction Id", "CopyID")).addActionListener(_actionDirector);
@@ -151,6 +149,8 @@ public class JBidMenuBar extends JMenuBar {
     //makeMenuItem(inMenu, "Copy Auction URL", "CopyURL", KeyEvent.VK_C,
     //             KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     //makeMenuItem(inMenu, "Copy Auction ID", "CopyID", 'I');
+    makeMenuItem(inMenu, "Paste Auction", "Paste", KeyEvent.VK_P,
+                 KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     inMenu.add(new JSeparator());
     makeMenuItem(inMenu, "Find", "Search", KeyEvent.VK_F,
                  KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -162,13 +162,15 @@ public class JBidMenuBar extends JMenuBar {
   protected void establishServerMenu(JMenu inMenu) {
     String doTimeSync = JConfig.queryConfiguration("timesync.enabled", "true");
     
-    if(doTimeSync.equals("true"))
-      makeMenuItem(inMenu, "Synchronize time", "Resync", 'R');
-    makeMenuItem(inMenu, "Update auctions", "UpdateAll", 'U');
+    makeMenuItem(inMenu, "Update Auctions", "UpdateAll", 'U');
     makeMenuItem(inMenu, "Stop Activity", "StopUpdating", KeyEvent.VK_S,
                  KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-   if(doTimeSync.equals("true"))
+
+    if(doTimeSync.equals("true")) {
+      inMenu.add(new JSeparator());
       makeMenuItem(inMenu, "Time Information", "Show Time Info", 'T');
+      makeMenuItem(inMenu, "Synchronize Time", "Resync", 'R');
+    }
   }
 
   protected void establishWindowMenu(JMenu inMenu) {
@@ -204,7 +206,7 @@ public class JBidMenuBar extends JMenuBar {
     inMenu.add(new JSeparator());
     makeMenuItem(inMenu, "Snipe", 'S', KeyStroke.getKeyStroke(KeyEvent.VK_E, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     makeMenuItem(inMenu, "Multiple Snipe", 'i');
-    makeMenuItem(inMenu, "Cancel snipe", 'C');
+    makeMenuItem(inMenu, "Cancel Snipe", 'C');
     inMenu.add(new JSeparator());
     makeMenuItem(inMenu, "Bid", 'B');
     makeMenuItem(inMenu, "Buy", 'y');
@@ -212,18 +214,18 @@ public class JBidMenuBar extends JMenuBar {
     makeMenuItem(inMenu, "Update", 'U');
     makeMenuItem(inMenu, "Show Information", "Information", 'I');
 //    makeMenuItem(inMenu, "Show Last Error Page", "ShowError", 'l');
-    makeMenuItem(inMenu, "Show in browser", "Browse", 'b', KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+    makeMenuItem(inMenu, "Show In Browser", "Browse", 'b', KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 //    makeMenuItem(inMenu, "Show status", "Status", 't');
     inMenu.add(new JSeparator());
-    makeMenuItem(inMenu, "Make comment", "Comment", 'M');
+    makeMenuItem(inMenu, "Make Comment", "Comment", 'M');
     makeMenuItem(inMenu, "View Comment", 'V');
   }
 
   protected void establishHelpMenu(JMenu inMenu) {
-    makeMenuItem(inMenu, "Explain the colors and icons", 'E');
+    makeMenuItem(inMenu, "Explain Colors And Icons", 'E');
     makeMenuItem(inMenu, "FAQ", 'F', KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
     inMenu.add(new JSeparator());
-    makeMenuItem(inMenu, "About", 'A');
+    makeMenuItem(inMenu, "About JBidwatcher", 'A');
   }
 
   private static HashMap<String, JBidMenuBar> _frameMenus = new HashMap<String, JBidMenuBar>(10);
