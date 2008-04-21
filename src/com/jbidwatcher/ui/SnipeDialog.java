@@ -8,6 +8,7 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.*;
+import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.*;
 import java.awt.*;
@@ -76,6 +77,7 @@ public class SnipeDialog extends BasicDialog {
     quantityField.setText("1");
 
     subtractShipping = new JCheckBox();
+    subtractShipping.setSelected(JConfig.queryConfiguration("snipe.subtract_shipping", "false").equals("true"));
     subtractShipping.setText("Auto-subtract shipping and insurance (p/p)");
 
     JPanel promptPane = new JPanel(new SpringLayout());
