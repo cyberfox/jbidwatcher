@@ -28,7 +28,7 @@ package com.jbidwatcher.util.xml;
 
 
 //  Removed from the NanoXML package, so it can be easily integrated
-//  w/ JBidWatcher. -- mrs: 07-August-2000 21:24
+//  w/ JBidwatcher. -- mrs: 07-August-2000 21:24
 
 /**
  * An XMLParseException is thrown when an error occures while parsing an XML

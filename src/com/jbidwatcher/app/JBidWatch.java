@@ -426,7 +426,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
       program.repaint();
     } catch(Exception e) {
-      ErrorManagement.handleException("JBidWatcher: " + e, e);
+      ErrorManagement.handleException("JBidwatcher: " + e, e);
     }
   }
 

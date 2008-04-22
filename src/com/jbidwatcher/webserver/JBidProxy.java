@@ -295,11 +295,11 @@ public class JBidProxy extends HTTPProxyClient {
     StringBuffer sbOut;
 
     if(getCached) {
-      sbOut = new StringBuffer("<HTML><BODY><B>This is <a href=\"http://www.jbidwatcher.com\">JBidWatcher</a>'s cached copy.</B><br>");
+      sbOut = new StringBuffer("<HTML><BODY><B>This is <a href=\"http://www.jbidwatcher.com\">JBidwatcher</a>'s cached copy.</B><br>");
       sbOut.append("Click here for the <a href=\"").append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier())).append("\">current page</a>.<hr>");
       sbOut.append(ae.getContent());
     } else {
-      sbOut = new StringBuffer("<HTML><BODY><B>JBidWatcher View</B><br>");
+      sbOut = new StringBuffer("<HTML><BODY><B>JBidwatcher View</B><br>");
       sbOut.append("Click here for the <a href=\"").append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier())).append("\">current page</a>.<br>");
 
       if(_item_list != null &&

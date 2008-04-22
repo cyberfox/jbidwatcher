@@ -85,7 +85,7 @@ public class JBidToolBar {
     JBidToolBar.addbutton(bidBar, inAction, "Configure", getSource("configuration.png"), "Configure");
     if(JConfig.debugging) JBidToolBar.addbutton(bidBar, inAction, "View Log", getSource("log_view.png"), "View Log");
     JBidToolBar.addbutton(bidBar, inAction, "FAQ", getSource("help.png"), "Help");
-    JBidToolBar.addbutton(bidBar, inAction, "About", getSource("about.png"), "About JBidWatcher");
+    JBidToolBar.addbutton(bidBar, inAction, "About", getSource("about.png"), "About JBidwatcher");
     bidBar.addSeparator();
     JBidToolBar.addbutton(bidBar, inAction, "Forum", getSource("forum.png"), "JBidwatcher Forums");
     if (JConfig.debugging) JBidToolBar.addbutton(bidBar, inAction, "Report Bug", getSource("report_bug.png"), "Report Bug");

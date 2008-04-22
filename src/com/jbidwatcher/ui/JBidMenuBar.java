@@ -8,6 +8,7 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.util.JContext;
+import com.jbidwatcher.util.Constants;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -225,7 +226,7 @@ public class JBidMenuBar extends JMenuBar {
     makeMenuItem(inMenu, "Explain Colors And Icons", 'E');
     makeMenuItem(inMenu, "FAQ", 'F', KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
     inMenu.add(new JSeparator());
-    makeMenuItem(inMenu, "About JBidwatcher", 'A');
+    makeMenuItem(inMenu, "About " + Constants.PROGRAM_NAME, 'A');
   }
 
   private static HashMap<String, JBidMenuBar> _frameMenus = new HashMap<String, JBidMenuBar>(10);

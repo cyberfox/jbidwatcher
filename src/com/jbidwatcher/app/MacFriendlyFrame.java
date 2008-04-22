@@ -97,7 +97,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
   }
 
   public void handleAbout() {
-    MQFactory.getConcrete("user").enqueue("About");
+    MQFactory.getConcrete("user").enqueue("About " + Constants.PROGRAM_NAME);
   }
 
   public void handlePrefs() {

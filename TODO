@@ -24,7 +24,7 @@ file, using the same XML class as used to load the auctions.  This
 file needs to have the display info, locations of other files, some
 auction-site specific information, debugging status, etc.  This will
 obsolete the JConfig class, and make all datafiles stored by
-JBidWatcher XML.
+JBidwatcher XML.
 
 Uncreated Configuration Panes
 	Internal Web Server
@@ -33,8 +33,8 @@ Uncreated Configuration Panes
 		Require jbidwatcher/[password] or any valid userid/password pair?
 		(Neither is NOT an option!)
 	Security
-		Primary JBidWatcher password
-			--  encrypts passwords on disk, also used for login to the JBidWatcher
+		Primary JBidwatcher password
+			--  encrypts passwords on disk, also used for login to the JBidwatcher
 				program if the internal HTTP server is running.
 	File paths
 		Save file pathspec.

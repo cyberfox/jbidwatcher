@@ -12,7 +12,7 @@ public class Constants {
 /** Program identifaction constants, so we change the version and such
  * in just one place.
  */
-  public static final String PROGRAM_NAME = "JBidWatcher";
+  public static final String PROGRAM_NAME = "JBidwatcher";
   public static final String PROGRAM_VERS = "2.0beta1";
 /** The clock format to use everywhere, when referring to remote times.
  */

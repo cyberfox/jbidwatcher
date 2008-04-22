@@ -12,7 +12,7 @@
   <property name="lib.dir" value="lib" />
   <property name="JAVADIR" value="src" />
 
-  <property name="app.name"   value="JBidWatcher" />
+  <property name="app.name"   value="JBidwatcher" />
   <property name="VER" value="2.0beta1" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />

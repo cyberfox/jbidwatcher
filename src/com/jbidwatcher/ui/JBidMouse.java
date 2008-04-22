@@ -101,7 +101,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       }
     } else if(commandStr.equals(SEARCH)) {
       DoSearch();
-    } else if(commandStr.equals("About")) {
+    } else if(commandStr.equals("About " + Constants.PROGRAM_NAME)) {
       DoAbout();
     } else if(commandStr.equals("FAQ")) {
       DoFAQ();
@@ -1440,7 +1440,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
                                   "I'm very sorry, but help has not been implemented yet.\n" +
                                   "If you'd like to assist in getting help up, you could\n" +
                                   "write me an email at cyberfox@users.sourceforge.net\n" +
-                                  "describing how you use a particular part of JBidWatcher,\n" +
+                                  "describing how you use a particular part of JBidwatcher,\n" +
                                   "and I'll try to collect those into contextual help options.",
                                   "Sorry, no help!", JOptionPane.INFORMATION_MESSAGE);
   }
@@ -1688,7 +1688,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Snipe")) DoSnipe(c_src, whichAuction);
     else if(actionString.equals("Multiple Snipe")) DoMultiSnipe(c_src);
 
-    else if(actionString.equals("About")) DoAbout();
+    else if(actionString.equals("About " + Constants.PROGRAM_NAME)) DoAbout();
     else if(actionString.equals("FAQ")) DoFAQ();
 
     else if(actionString.equals("Cancel snipe")) CancelSnipe(c_src, whichAuction);

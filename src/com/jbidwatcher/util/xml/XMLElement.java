@@ -27,7 +27,7 @@ package com.jbidwatcher.util.xml;
  */
 
 /*  Un-'packaged' from the NanoXML package, so it can be easily
- *  integrated w/ JBidWatcher. -- mrs: 07-August-2000 21:24
+ *  integrated w/ JBidwatcher. -- mrs: 07-August-2000 21:24
  *  Then HEAVILY modified, to support writing XML as well as reading it.
  *  Plus reformatted, for readability and to fit with the rest of the
  *  project that it's being integrated into.

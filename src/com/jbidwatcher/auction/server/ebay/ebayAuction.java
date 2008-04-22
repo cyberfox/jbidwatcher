@@ -82,12 +82,12 @@ class ebayAuction extends SpecificAuction {
 
   boolean checkValidTitle(String auctionTitle) {
     if(auctionTitle.startsWith(Externalized.getString("ebayServer.liveAuctionsTitle"))) {
-      ErrorManagement.logMessage("JBidWatcher cannot handle live auctions!");
+      ErrorManagement.logMessage("JBidwatcher cannot handle live auctions!");
       return false;
     }
 
     if(auctionTitle.startsWith(Externalized.getString("ebayServer.greatCollectionsTitle"))) {
-      ErrorManagement.logMessage("JBidWatcher cannot handle Great Collections items yet.");
+      ErrorManagement.logMessage("JBidwatcher cannot handle Great Collections items yet.");
       return false;
     }
 
