@@ -1539,12 +1539,16 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     if(tabMenu != null) {
       tabMenu.removeAll();
+
+      JTabbedPane tabbedPane = AuctionsUIModel.getTabManager().getTabs();
+      String currentTitle = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
       List<String> tabs = FilterManager.getInstance().allCategories();
       if(tabs == null) {
         tabMenu.setEnabled(false);
       } else {
         tabs.remove("selling");
-        tabMenu.add(new JPopupMenu.Separator());
+        tabs.remove(currentTitle);
+        tabMenu.setEnabled(true);
         for (String tab : tabs) {
           tabMenu.add(makeMenuItem(tab)).addActionListener(tabActions);
         }
