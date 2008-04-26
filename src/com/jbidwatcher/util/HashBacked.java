@@ -39,7 +39,7 @@ public class HashBacked extends XMLSerializeSimple {
 
   protected boolean isDirty() { return mDirty; }
   protected void clearDirty() { mDirty = false; }
-  private void setDirty() { mDirty = true; }
+  protected void setDirty() { mDirty = true; }
 
   public Currency getMonetary(String key, int currencyType) {
     String result = get(key);

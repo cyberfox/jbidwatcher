@@ -60,18 +60,27 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   public Currency bestValue() {
     if (isSniped()) {
-      return mSnipe.getAmount();
+      return getSnipe().getAmount();
     }
 
     return isBidOn() && !isComplete() ? getBid() : getCurBid();
   }
 
   public Currency getSnipeAmount() {
-    return isSniped() ? mSnipe.getAmount() : Currency.NoValue();
+    return isSniped() ? getSnipe().getAmount() : Currency.NoValue();
   }
 
   public int getSnipeQuantity() {
-    return isSniped() ? mSnipe.getQuantity() : 0;
+    return isSniped() ? getSnipe().getQuantity() : 0;
+  }
+
+  private AuctionSnipe getSnipe() {
+    if(mSnipe == null) {
+      if(get("snipe_id") != null) {
+        mSnipe = AuctionSnipe.find(get("snipe_id"));
+      }
+    }
+    return mSnipe;
   }
 
   public static class AuctionComparator implements Comparator<AuctionEntry>
@@ -357,7 +366,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * increment over the current high bid.  Returns false otherwise.
    */
   public boolean isSnipeValid() {
-    if(mSnipe == null) return false;
+    if(getSnipe() == null) return false;
 
     Currency minIncrement = mServer.getMinimumBidIncrement(getCurBid(), getNumBidders());
     Currency nextBid = Currency.NoValue();
@@ -366,11 +375,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     try {
       nextBid = getCurBid().add(minIncrement);
 
-      if(!mSnipe.getAmount().less(nextBid)) {
+      if(!getSnipe().getAmount().less(nextBid)) {
         rval = true;
       }
     } catch(Currency.CurrencyTypeException cte) {
-      ErrorManagement.handleException("This should never happen (" + nextBid + ", " + mSnipe.getAmount() + ")!", cte);
+      ErrorManagement.handleException("This should never happen (" + nextBid + ", " + getSnipe().getAmount() + ")!", cte);
     }
 
     return rval;
@@ -383,7 +392,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public boolean isSniped() {
     getMultiSnipe();
-    return mSnipe != null;
+    return getSnipe() != null;
   }
 
   /**
@@ -958,9 +967,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(isSniped()) {
       XMLElement xsnipe = new XMLElement("snipe");
       xsnipe.setEmpty();
-      xsnipe.setProperty("quantity", Integer.toString(mSnipe.getQuantity()));
-      xsnipe.setProperty("currency", mSnipe.getAmount().fullCurrencyName());
-      xsnipe.setProperty("price", Double.toString(mSnipe.getAmount().getValue()));
+      xsnipe.setProperty("quantity", Integer.toString(getSnipe().getQuantity()));
+      xsnipe.setProperty("currency", getSnipe().getAmount().fullCurrencyName());
+      xsnipe.setProperty("price", Double.toString(getSnipe().getAmount().getValue()));
       xsnipe.setProperty("secondsprior", Long.toString(mSnipeAt));
       xmlResult.addChild(xsnipe);
     }
@@ -1129,8 +1138,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(isSniped()) {
       setLastStatus("Cancelling snipe.");
       if(after_end) {
-        mCancelSnipeBid = mSnipe.getAmount();
-        mCancelSnipeQuant = mSnipe.getQuantity();
+        mCancelSnipeBid = getSnipe().getAmount();
+        mCancelSnipeQuant = getSnipe().getQuantity();
       }
     }
 
@@ -1138,11 +1147,12 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public void snipeCompleted() {
-    setBid(mSnipe.getAmount());
-    setBidQuantity(mSnipe.getQuantity());
+    setBid(getSnipe().getAmount());
+    setBidQuantity(getSnipe().getQuantity());
     mNeedsUpdate = true;
-    mSnipe.delete();
+    getSnipe().delete();
     mSnipe = null;
+    setDirty();
   }
 
   /**
@@ -1221,6 +1231,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       mSnipe = AuctionSnipe.create(snipe, quantity, 0);
       MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
     }
+    setDirty();
     MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");
   }
 
@@ -1525,9 +1536,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public void setAuctionInfo(AuctionInfo inAI) {
     //  If the end date has changed, let's reschedule the snipes for the new end date...?
     if(mAuction != null && mAuction.getEndDate() != null && mAuction.getEndDate().equals(inAI.getEndDate())) {
-      if(mSnipe != null) {
-        Currency saveSnipeBid = mSnipe.getAmount();
-        int saveSnipeQuantity = mSnipe.getQuantity();
+      if(getSnipe() != null) {
+        Currency saveSnipeBid = getSnipe().getAmount();
+        int saveSnipeQuantity = getSnipe().getQuantity();
         prepareSnipe(null);
         prepareSnipe(saveSnipeBid, saveSnipeQuantity);
       }
@@ -1681,8 +1692,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(categoryId != null) set("category_id", categoryId);
     }
 
-    if(mSnipe != null) {
-      String snipeId = mSnipe.saveDB();
+    if(getSnipe() != null) {
+      String snipeId = getSnipe().saveDB();
       if(snipeId != null) set("snipe_id", snipeId);
     }
 
