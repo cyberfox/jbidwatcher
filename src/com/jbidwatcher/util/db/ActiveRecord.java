@@ -5,6 +5,8 @@ import com.jbidwatcher.util.SoftMap;
 import com.jbidwatcher.util.Record;
 
 import java.util.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 
 /**
  * Provides utility methods for database-backed objects.
@@ -50,17 +52,19 @@ public abstract class ActiveRecord extends HashBacked {
   private void saveAssociations() {
     Set<String> colNames=getDatabase().getColumns();
     for(String name : colNames) {
-      if(name.matches("[a-z_+]_id")) {
+      if(name.endsWith("_id")) {
         String className = name.substring(0, name.length()-3);
         String member = "m" + classify(className);
+
         // TODO -- Inspect for 'member', instanceof ActiveRecord.
         // TODO -- set("#{name}", member.saveDB())
       }
     }
   }
 
+  //  Upcase first letter, and each letter after an '_', and remove all '_'...
   private String classify(String className) {
-    return className;
+    return String.valueOf(className.charAt(0)).toUpperCase() + className.substring(1);
   }
 
   //  Look for columns of type: {foo}_id
