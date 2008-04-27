@@ -1693,6 +1693,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Multiple Snipe")) DoMultiSnipe(c_src);
 
     else if(actionString.equals("About " + Constants.PROGRAM_NAME)) DoAbout();
+    else if(actionString.equals("About")) DoAbout();
     else if(actionString.equals("FAQ")) DoFAQ();
 
     else if(actionString.equals("Cancel Snipe")) CancelSnipe(c_src, whichAuction);
