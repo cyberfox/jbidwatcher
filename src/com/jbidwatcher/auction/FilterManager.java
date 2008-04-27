@@ -459,8 +459,10 @@ public class FilterManager implements MessageQueue.Listener {
       return null;
     }
 
-    matchUI(oldAuctions).delEntry(ae);
-    matchUI(newAuctions).addEntry(ae);
+    AuctionsUIModel oldUI = matchUI(oldAuctions);
+    AuctionsUIModel newUI = matchUI(newAuctions);
+    if(oldUI != null) oldUI.delEntry(ae);
+    if(newUI != null) newUI.addEntry(ae);
 
     _allOrderedAuctionEntries.put(ae,newAuctions);
     return newAuctions;
