@@ -196,7 +196,8 @@ public abstract class ActiveRecord extends HashBacked {
     synchronized(sCache) {
       for (Class klass : sCache.keySet()) {
         Map<String, ActiveRecord> klassCache = sCache.get(klass);
-        for (ActiveRecord record : klassCache.values()) {
+        Collection<ActiveRecord> values = klassCache.values();
+        if(values != null) for (ActiveRecord record : values) {
           if (record != null && record.isDirty()) {
             record.saveDB();
           }
