@@ -15,19 +15,18 @@ import java.awt.*;
 public class JSplashScreen extends Window implements MessageQueue.Listener {
   JProgressBar statusBar;
 
-  // JNews's constructor
-  public JSplashScreen(ImageIcon CoolPicture) {
+  public JSplashScreen(ImageIcon coolPicture) {
     super(new Frame());
 
     MQFactory.getConcrete("splash").registerListener(this);
     // Create a JPanel so we can use a BevelBorder
-    JPanel PanelForBorder=new JPanel(new BorderLayout());
-    PanelForBorder.setLayout(new BorderLayout());
-    PanelForBorder.add(new JLabel(CoolPicture), BorderLayout.CENTER);
-    PanelForBorder.add(statusBar=new JProgressBar(0, 100), BorderLayout.SOUTH);
-    PanelForBorder.setBorder(new BevelBorder(BevelBorder.RAISED));
+    JPanel panelForBorder=new JPanel(new BorderLayout());
+    panelForBorder.setLayout(new BorderLayout());
+    panelForBorder.add(new JLabel(coolPicture), BorderLayout.CENTER);
+    panelForBorder.add(statusBar = new JProgressBar(0, 100), BorderLayout.SOUTH);
+    panelForBorder.setBorder(new BevelBorder(BevelBorder.RAISED));
 
-    add(PanelForBorder);    
+    add(panelForBorder);
     pack();
 
     // Plonk it on center of screen
@@ -74,6 +73,16 @@ public class JSplashScreen extends Window implements MessageQueue.Listener {
     return 0;
   }
 
+  public void message(String msg) {
+    if (msg.equals("OFF")) {
+      statusBar.setStringPainted(false);
+      statusBar.setString("");
+    } else {
+      statusBar.setStringPainted(true);
+      statusBar.setString(msg);
+    }
+  }
+
   public void messageAction(Object deQ) {
     String msg = (String) deQ;
     if(msg.startsWith("SET ")) {
@@ -84,6 +93,8 @@ public class JSplashScreen extends Window implements MessageQueue.Listener {
       setWidth(width);
     } else if(msg.equals("CLOSE")) {
       close();
+    } else if(msg.equals("MESSAGE")) {
+      message(msg.substring(8));
     }
   }
 }
