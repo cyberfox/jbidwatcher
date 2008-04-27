@@ -168,7 +168,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     String cfgLoad = JConfig.queryConfiguration("temp.cfg.load", "JBidWatch.cfg");
     String cfgFilename = cfgLoad.equals("JBidWatch.cfg") ? JConfig.getCanonicalFile(cfgLoad, "jbidwatcher", false) : cfgLoad;
 
-    AuctionsManager.getInstance().saveAuctions();
+    //  TODO -- Need to save searches in the database too...  Right now they're still hanging around in XML form.
     SearchManager.getInstance().saveSearches();
     AuctionStats as = AuctionServerManager.getInstance().getStats();
     JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
