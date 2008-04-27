@@ -107,6 +107,28 @@ class JBidwatcherUtilities
   def initialize
     @columns = {}    
   end
+
+  def load_scripts
+    script_dir = JConfig.getCanonicalFile "scripts","jbidwatcher",false
+    if File.exist?(script_dir) && File.directory?(script_dir)
+      sd = Dir.new script_dir
+      scripts = sd.reject do |filename|
+        script_file = File.join(script_dir, filename)
+        File.directory?(script_file) || File.extname(script_file) != '.rb'
+      end
+
+      scripts.each do |script_file|
+        require File.join(script_dir, script_file)
+      end
+    else
+      unless File.exist? script_dir
+        Dir.mkdir script_dir
+      end
+    end
+  end
+
+  def after_startup
+  end
 end
 
 $auction_server_manager = AuctionServerManager.getInstance
@@ -115,3 +137,5 @@ $filter_manager = FilterManager.getInstance
 $table_controller = TableColumnController.getInstance
 
 JBidwatcher = JBidwatcherUtilities.new
+
+JBidwatcher.load_scripts
