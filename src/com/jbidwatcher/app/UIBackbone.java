@@ -208,17 +208,17 @@ public class UIBackbone implements MessageQueue.Listener {
 
   private void handleLoginStatus(String msg) {
     String status = msg.substring("LOGINSTATUS ".length());
-    if(status.equals("FAILED")) {
+    if(status.startsWith("FAILED")) {
       JBidToolBar.getInstance().setToolTipText("Login failed.");
       JBidToolBar.getInstance().setTextIcon(redStatus, redStatus16);
-    } else if(status.equals("CAPTCHA")) {
+    } else if(status.startsWith("CAPTCHA")) {
       JBidToolBar.getInstance().setToolTipText("Login failed due to CAPTCHA.");
       JBidToolBar.getInstance().setTextIcon(redStatus, redStatus16);
-    } else if(status.equals("SUCCESSFUL")) {
+    } else if(status.startsWith("SUCCESSFUL")) {
       JBidToolBar.getInstance().setToolTipText("Last login was successful.");
       JBidToolBar.getInstance().setTextIcon(greenStatus, greenStatus16);
     } else {   //  Status == NEUTRAL
-      JBidToolBar.getInstance().setToolTipText("Last login did not fail, but no valid cookies were received.");
+      JBidToolBar.getInstance().setToolTipText("Last login did not clearly fail, but no valid cookies were received.");
       JBidToolBar.getInstance().setTextIcon(yellowStatus, yellowStatus16);
     }
   }

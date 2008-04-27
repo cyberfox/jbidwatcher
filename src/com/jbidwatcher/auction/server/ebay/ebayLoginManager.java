@@ -25,6 +25,7 @@ import java.util.List;
  */
 public class ebayLoginManager implements LoginManager {
   private volatile CookieJar mSignInCookie = null;
+  private boolean mNotifySwing = true;
   private String mBadPassword = null;
   private String mBadUsername = null;
   private String mPassword;
@@ -35,6 +36,11 @@ public class ebayLoginManager implements LoginManager {
     mPassword = password;
     mUserId = userId;
     mSiteName = site;
+  }
+
+  public ebayLoginManager(String site, String password, String userId, boolean notifyFailures) {
+    this(site, password, userId);
+    mNotifySwing = notifyFailures;
   }
 
   public void resetCookie() {
@@ -116,11 +122,13 @@ public class ebayLoginManager implements LoginManager {
         JHTML htdoc = new JHTML(confirmed);
         JHTML.Form curForm = htdoc.getFormWithInput("pass");
         if (curForm != null) {
-          MQFactory.getConcrete("login").enqueue("FAILED");
+          MQFactory.getConcrete("login").enqueue("FAILED Couldn't find a password form on the sign in page.");
           return false;
         }
         enqueued = true;
-        if(htdoc.grep("(?ms).*Your information has been verified.*")!=null) {
+        if(htdoc.grep("(?ms).*Your user ID or password is incorrect.*") != null) {
+          MQFactory.getConcrete("login").enqueue("FAILED Incorrect login information.");
+        } else if(htdoc.grep("(?ms).*Your information has been verified.*")!=null) {
           MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
         } else if(htdoc.grep("(?ms).*not to allow access to the Mature Audiences category outside the US.*") != null) {
           MQFactory.getConcrete("login").enqueue("NEUTRAL Turn off 'Registered Adult', it's not valid for non-US users.");
@@ -134,7 +142,7 @@ public class ebayLoginManager implements LoginManager {
     }
     if(!enqueued) {
       ErrorManagement.logFile("No confirm form found...", confirm);
-      MQFactory.getConcrete("login").enqueue("NEUTRAL");
+      MQFactory.getConcrete("login").enqueue("NEUTRAL No confirm form found.");
     }
     return true;
   }
@@ -188,7 +196,7 @@ public class ebayLoginManager implements LoginManager {
         uc_signin = cj.getAllCookiesFromPage(curForm.getCGI(), null, false);
         if (isAdult) {
           if (getAdultRedirector(uc_signin, cj)) {
-            MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
+            if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
           } else {
             //  Disable adult mode and try again.
             ErrorManagement.logMessage("Disabling 'adult' mode and retrying.");
@@ -206,7 +214,7 @@ public class ebayLoginManager implements LoginManager {
           JHTML doc = new JHTML(confirm);
           if (checkSecurityConfirmation(doc)) {
             cj = null;
-            MQFactory.getConcrete("login").enqueue("FAILED");
+            MQFactory.getConcrete("login").enqueue("FAILED Sign in information is not valid.");
           } else {
             JHTML.Form redirect_form = doc.getFormWithInput("hidUrl");
             if(redirect_form != null && redirect_form.getInputValue("hidUrl").equals("http://my.ebay.com/ws/eBayISAPI.dll?MyeBay")) {
@@ -215,20 +223,20 @@ public class ebayLoginManager implements LoginManager {
               ErrorManagement.logFile("Security checks out, but no My eBay form link on final page...", confirm);
               MQFactory.getConcrete("login").enqueue("NEUTRAL");
             }
-            MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
+            if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
           }
         }
       }
     } catch (IOException e) {
       //  We don't know how far we might have gotten...  The cookies
       //  may be valid, even!  We can't assume it, though.
-      MQFactory.getConcrete("login").enqueue("FAILED");
-      MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN " + e.getMessage());
+      MQFactory.getConcrete("login").enqueue("FAILED " + e.getMessage());
+      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN " + e.getMessage());
       ErrorManagement.handleException("Couldn't sign in!", e);
       cj = null;
     } catch(CaptchaException ce) {
       MQFactory.getConcrete("login").enqueue("CAPTCHA");
-      MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's increased security monitoring has been triggered, JBidwatcher cannot log in for a while.");
+      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's increased security monitoring has been triggered, JBidwatcher cannot log in for a while.");
       notifySecurityIssue();
       ErrorManagement.handleException("Couldn't sign in, captcha interference!", ce);
       cj = null;
@@ -265,16 +273,17 @@ public class ebayLoginManager implements LoginManager {
        doc.grep(".*Enter a verification code to continue.*") != null ||
        doc.grep(".*[Pp]lease enter the verification code.*") != null) {
       ErrorManagement.logMessage("eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
-      MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
+      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       notifySecurityIssue();
       mBadPassword = getPassword();
       mBadUsername = getUserId();
       throw new CaptchaException("Failed eBay security check/captcha; verification code required.");
     }
 
-    if (doc.grep("Your sign in information is not valid.") != null) {
-      ErrorManagement.logMessage("Your sign in information is not valid.");
-      MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN Your sign in information is not correct.  Fix it in the eBay tab in the Configuration Manager.");
+    if (doc.grep("Your sign in information is not valid.") != null ||
+        doc.grep("(?ms).*Your user ID or password is incorrect.*") != null) {
+      ErrorManagement.logMessage("Your sign in information is not correct.");
+      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN Your sign in information is not correct.  Fix it in the eBay tab in the Configuration Manager.");
       notifyBadSignin();
       mBadPassword = getPassword();
       mBadUsername = getUserId();
