@@ -1225,6 +1225,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public void prepareSnipe(Currency snipe, int quantity) {
     if(snipe == null || snipe.isNull()) {
+      if(mSnipe != null) {
+        mSnipe.delete();
+        set("snipe_id", null);
+      }
       mSnipe = null;
       MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
     } else {
@@ -1233,6 +1237,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     }
     setDirty();
     MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");
+  }
+
+  /**
+   * @brief Refresh the snipe, so it picks up a potentially changed end time.
+   */
+  private void refreshSnipe() {
+    MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
+    MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
   }
 
   /** @brief Actually bid on a single item for a given price.
@@ -1531,21 +1543,23 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * information for it's core data (like seller's name, current high
    * bid, etc.).
    *
-   * @param inAI - The AuctionInfo object to make the new core data.
+   * @param inAI - The AuctionInfo object to make the new core data.  Must not be null.
    */
   public void setAuctionInfo(AuctionInfo inAI) {
     //  If the end date has changed, let's reschedule the snipes for the new end date...?
-    if(mAuction != null && mAuction.getEndDate() != null && mAuction.getEndDate().equals(inAI.getEndDate())) {
-      if(getSnipe() != null) {
-        Currency saveSnipeBid = getSnipe().getAmount();
-        int saveSnipeQuantity = getSnipe().getQuantity();
-        prepareSnipe(null);
-        prepareSnipe(saveSnipeBid, saveSnipeQuantity);
-      }
+    if (mAuction != null &&
+        mAuction.getEndDate() != null &&
+        mAuction.getEndDate().equals(inAI.getEndDate()) &&
+        getSnipe() != null) {
+      refreshSnipe();
     }
+    AuctionInfo oldAuction = mAuction;
     mAuction = inAI;
-    String auction_id = mAuction.saveDB();
-    if(auction_id != null) set("auction_id", auction_id);
+    String new_auction_id = mAuction.saveDB();
+    if(new_auction_id != null) {
+      set("auction_id", new_auction_id);
+      if (oldAuction != null) oldAuction.delete();
+    }
 
     checkHighBidder(false);
     checkSeller();
@@ -1721,6 +1735,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   public boolean delete() {
     mAuction.delete();
+    if(getSnipe() != null) {
+      getSnipe().delete();
+    }
     return super.delete();
   }
 }
