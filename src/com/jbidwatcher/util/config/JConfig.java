@@ -442,7 +442,7 @@ public class JConfig {
       // Plonk it on center of screen
       if(height == 0 || width == 0) {
         height = screenheight / 2;
-        width = screenwidth / 2;
+        width = (screenwidth < 1010) ? screenwidth / 2 : 1010;
       }
       screenx = (screenwidth - width) / 2;
       screeny = (screenheight - height) / 2;
