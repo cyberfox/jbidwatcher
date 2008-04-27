@@ -93,9 +93,9 @@ public class AuctionsUIModel {
     //  This is a button to manage the custom columns for the current tab.
     if(JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
       final JButton bangButton = new JButton("*");
-      final JMenu bangMenu = allTabs.getCustomColumnMenu();
       bangButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
+          JMenu bangMenu = allTabs.getCustomColumnMenu();
           bangMenu.getPopupMenu().show(bangButton, 0, 0);
         }
       });
