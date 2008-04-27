@@ -138,6 +138,7 @@ class ebayAuction extends SpecificAuction {
     do {
       approxAmount = html.getNextContent();
       approxAmount = StringTools.stripHigh(approxAmount, "");
+      approxAmount = approxAmount.replaceAll("\\s+", " ");
       matchAtIndex = approxAmount.indexOf(usdPattern);
       if (matchAtIndex != -1) {
         approxAmount = approxAmount.substring(matchAtIndex); //$NON-NLS-1$
