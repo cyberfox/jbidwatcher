@@ -270,6 +270,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
      * will never be added to the items list.
      */
     if (mLoaded) {
+      setDefaultCurrency(mAuction.getCurBid());
       checkHighBidder(true);
       checkSeller();
       checkEnded();
@@ -1546,6 +1547,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @param inAI - The AuctionInfo object to make the new core data.  Must not be null.
    */
   public void setAuctionInfo(AuctionInfo inAI) {
+    if(mAuction == null) {
+      setDefaultCurrency(inAI.getDefaultCurrency());
+    }
+
     //  If the end date has changed, let's reschedule the snipes for the new end date...?
     if (mAuction != null &&
         mAuction.getEndDate() != null &&

@@ -73,7 +73,7 @@ public abstract class ActiveRecord extends HashBacked {
   //  Store the result of that call as '{foo}_id'.
   public String saveDB() {
     if(getDatabase().hasColumn("currency")) {
-      setString("currency", getDefaultCurrency());
+      setString("currency", getDefaultCurrency().fullCurrencyName());
     }
     if(!isDirty() && get("id") != null && get("id").length() != 0) return get("id");
     String id = getDatabase().insertOrUpdate(getBacking());

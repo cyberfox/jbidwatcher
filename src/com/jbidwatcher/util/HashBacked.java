@@ -63,8 +63,8 @@ public class HashBacked extends XMLSerializeSimple {
     mDefaultCurrency = sample.fullCurrencyName();
   }
 
-  protected String getDefaultCurrency() {
-    return mDefaultCurrency;
+  public Currency getDefaultCurrency() {
+    return Currency.getCurrency(mDefaultCurrency, 1.0);
   }
 
   public Currency getMonetary(String key) {
@@ -232,15 +232,7 @@ public class HashBacked extends XMLSerializeSimple {
     clearDirty();
   }
 
-  protected void handleTag(int i, XMLElement curElement) {
-    //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  protected String[] getTags() {
-    return new String[0];  //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  public XMLElement toXML() {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
-  }
+  protected void handleTag(int i, XMLElement curElement) { }
+  protected String[] getTags() { return new String[0]; }
+  public XMLElement toXML() { return null; }
 }
