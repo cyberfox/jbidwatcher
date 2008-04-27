@@ -38,7 +38,7 @@ public class JTabPopupMenu extends JContext {
 
     customize.getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
       public void popupMenuWillBecomeVisible(PopupMenuEvent e) { prepCustomColumnMenu(null); }
-      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { customize.getPopupMenu().setInvoker(customize); }
       public void popupMenuCanceled(PopupMenuEvent e) { }
     });
 
