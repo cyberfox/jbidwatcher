@@ -504,7 +504,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
    * @noinspection CallToThreadStartDuringObjectConstruction
    */
   private JBidWatch(JSplashScreen inSplash) {
+    inSplash.message("Initializing Database");
     DBManager.start();
+    inSplash.message("Initializing Monitors");
     ActivityMonitor.start();
     UIBackbone backbone = new UIBackbone();
     MQFactory.getConcrete("login").registerListener(new MessageQueue.Listener() {
@@ -513,14 +515,18 @@ public final class JBidWatch implements JConfig.ConfigListener {
       }
     });
     ThumbnailManager.start();
+    inSplash.message("Initializing Scripting");
+    Scripting.initialize();
+    inSplash.message("Initializing Database");
     FilterManager.getInstance().loadFilters();
+    inSplash.message("Loading Auctions");
     AuctionsManager.getInstance().loadAuctions();
     //  This needs to be after the auction manager, so that all the
     //  auction servers that are loaded by loading auctions will be
     //  available to add searches if they need to.
+    inSplash.message("Loading Searches");
     SearchManager.getInstance().loadSearches();
 
-    Scripting.initialize();
     AuctionServerManager.getInstance().getDefaultServerTime();
 
     JConfig.registerListener(this);
@@ -532,6 +538,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     JBWDropHandler.start();
     Browser.start();
 
+    inSplash.message("Building Interface");
     jtmAuctions = AuctionsUIModel.getTabManager();
     JBidFrame.setDefaultMenuBar(JBidMenuBar.getInstance(jtmAuctions, "Search Editor"));
 
@@ -540,6 +547,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
     mainFrame.setSize(JConfig.width, JConfig.height);
     backbone.setMainFrame(mainFrame);
 
+    inSplash.message("Starting scripts");
+    Scripting.ruby("JBidwatcher.after_startup");
     inSplash.close();
     //noinspection UnusedAssignment
     inSplash = null;
