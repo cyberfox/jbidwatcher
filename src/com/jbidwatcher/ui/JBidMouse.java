@@ -1514,10 +1514,10 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     tabMenu = new JMenu("Send To");
     menu.add(tabMenu);
-    JMenu comment = new JMenu("Comments");
-    comment.add(makeMenuItem("Write", "Comment")).addActionListener(this);
-    comment.add(makeMenuItem("Read", "View Comment")).addActionListener(this);
-    comment.add(makeMenuItem("Delete", "Delete Comment")).addActionListener(this);
+    JMenu comment = new JMenu("Comment");
+    comment.add(makeMenuItem("Add", "Add Comment")).addActionListener(this);
+    comment.add(makeMenuItem("View", "View Comment")).addActionListener(this);
+    comment.add(makeMenuItem("Remove", "Remove Comment")).addActionListener(this);
     menu.add(comment);
     JMenu advanced = new JMenu("Advanced");
     advanced.add(makeMenuItem("Show Last Error", "ShowError")).addActionListener(this);
@@ -1582,10 +1582,15 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     //  Ignored if it wasn't renamed, but otherwise always restore to 'known state'.
     rename("Multisnipe", "Snipe");
-    rename("Edit", "Write");
+    rename("Edit", "Add");               // Comment
 
     if(ae != null) {
-      if(ae.getComment() != null) rename("Write", "Edit");
+      if(ae.getComment() == null) {
+        disable("View");
+        disable("Remove");
+      } else {
+        rename("Add", "Edit");
+      }
       if(!ae.isSniped()) disable("Cancel Snipe");
       if(!ae.isComplete()) {
         disable("Complete");
@@ -1615,8 +1620,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       disable("Buy");
       disable("Show Last Error");
       disable("Set Shipping");
-      disable("Make Comment");
-      disable("View Comment");
+      disable("Add");
+      disable("View");
+      disable("Remove");
 
       boolean anySniped = false;
       boolean anyFixed = false;
@@ -1697,9 +1703,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("FAQ")) DoFAQ();
 
     else if(actionString.equals("Cancel Snipe")) CancelSnipe(c_src, whichAuction);
-    else if(actionString.equals("Comment")) DoComment(c_src, whichAuction);
+    else if(actionString.equals("Add Comment")) DoComment(c_src, whichAuction);
     else if(actionString.equals("View Comment")) ShowComment(c_src, whichAuction);
-    else if(actionString.equals("Delete Comment")) DeleteComment(whichAuction);
+    else if(actionString.equals("Remove Comment")) DeleteComment(whichAuction);
     else if(actionString.equals("Copy")) DoCopy(c_src, whichAuction);
     else if(actionString.equals("Set Background Color")) DoSetBackgroundColor(c_src);
     else if(actionString.equals("Toolbar")) DoHideShowToolbar();

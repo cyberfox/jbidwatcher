@@ -218,8 +218,11 @@ public class JBidMenuBar extends JMenuBar {
     makeMenuItem(inMenu, "Show In Browser", "Browse", 'b', KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 //    makeMenuItem(inMenu, "Show status", "Status", 't');
     inMenu.add(new JSeparator());
-    makeMenuItem(inMenu, "Make Comment", "Comment", 'M');
-    makeMenuItem(inMenu, "View Comment", 'V');
+    JMenu commentMenu = new JMenu("Comment");
+    commentMenu.add(JContext.makeGeneralMenuItem("Add", "Add Comment")).addActionListener(_actionDirector);
+    commentMenu.add(JContext.makeGeneralMenuItem("View", "View Comment")).addActionListener(_actionDirector);
+    commentMenu.add(JContext.makeGeneralMenuItem("Remove", "Remove Comment")).addActionListener(_actionDirector);
+    inMenu.add(commentMenu);
   }
 
   protected void establishHelpMenu(JMenu inMenu) {
