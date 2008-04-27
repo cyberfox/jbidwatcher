@@ -342,23 +342,22 @@ public class JConfig {
   }
 
   public static void saveConfiguration() {
+    saveConfiguration(_configFileName);
+  }
+
+  public static void saveConfiguration(String outFile) {
+    _configFileName = outFile;
     passwordFixup(soleProperty);
     killAll("temp.");
 
-    if(_configFileName != null) {
+    if (_configFileName != null) {
       saveArbitrary(_configFileName, soleProperty);
       ErrorManagement.logDebug("Saving to: " + _configFileName);
     } else {
       saveArbitrary("JBidWatch.cfg", soleProperty);
       ErrorManagement.logDebug("Just saving to: JBidWatch.cfg!");
     }
-    passwordUnfixup_b64(soleProperty);
-  }
 
-  public static void saveConfiguration(String outFile) {
-    _configFileName = outFile;
-    passwordFixup(soleProperty);
-    saveArbitrary(outFile, soleProperty);
     passwordUnfixup_b64(soleProperty);
   }
 
