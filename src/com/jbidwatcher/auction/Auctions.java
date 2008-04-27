@@ -72,11 +72,13 @@ public class Auctions implements TimerHandler.WakeupProcess {
   }
 
   public List<AuctionEntry> getAuctions() {
-    return new LinkedList<AuctionEntry>(mList.getList());
+    List<AuctionEntry> gotList = mList.getList();
+    synchronized (gotList) {
+      return new LinkedList<AuctionEntry>(gotList);
+    }
   }
 
   //  Actual manipulation of the auction list is entirely handled here.
-
   private static boolean wasDeleted(AuctionEntry ae) {
     if(AuctionsManager.getInstance().isDeleted(ae.getIdentifier())) {
       ErrorManagement.logDebug("Skipping previously deleted auction (" + ae.getIdentifier() + ").");

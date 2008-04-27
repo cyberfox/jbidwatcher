@@ -4,6 +4,7 @@ import com.jbidwatcher.util.Comparison;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by IntelliJ IDEA.
@@ -13,18 +14,19 @@ import java.util.ArrayList;
 * To change this template use File | Settings | File Templates.
 */
 public class AuctionList {
-  private List<AuctionEntry> mList = new ArrayList<AuctionEntry>();
+  private final List<AuctionEntry> mList = Collections.synchronizedList(new ArrayList<AuctionEntry>());
 
-  public int size() { return mList.size(); }
-  public AuctionEntry get(int i) { return mList.get(i); }
-  public AuctionEntry remove(int i) { return mList.remove(i); }
-  public boolean add(AuctionEntry e) { return mList.add(e); }
+  public int size() { synchronized(mList) { return mList.size(); } }
+  public AuctionEntry get(int i) { synchronized (mList) { return mList.get(i); } }
+  public AuctionEntry remove(int i) { synchronized (mList) { return mList.remove(i); } }
+  public boolean add(AuctionEntry e) { synchronized (mList) { return mList.add(e); } }
 
   public AuctionEntry find(Comparison c) {
-    for (AuctionEntry entry : mList) {
-      if (c.match(entry)) return entry;
+    synchronized (mList) {
+      for (AuctionEntry entry : mList) {
+        if (c.match(entry)) return entry;
+      }
     }
-
     return null;
   }
 
