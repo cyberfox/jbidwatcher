@@ -1519,7 +1519,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     comment.add(makeMenuItem("Read", "View Comment")).addActionListener(this);
     comment.add(makeMenuItem("Delete", "Delete Comment")).addActionListener(this);
     menu.add(comment);
-    JMenu advanced = new JMenu("Advanced...");
+    JMenu advanced = new JMenu("Advanced");
     advanced.add(makeMenuItem("Show Last Error", "ShowError")).addActionListener(this);
     advanced.add(makeMenuItem("Mark As Not Ended", "NotEnded")).addActionListener(this);
     menu.add(advanced);
