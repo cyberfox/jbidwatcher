@@ -520,7 +520,10 @@ public final class JBidWatch implements JConfig.ConfigListener {
     inSplash.message("Initializing Database");
     FilterManager.getInstance().loadFilters();
     inSplash.message("Loading Auctions");
-    AuctionsManager.getInstance().loadAuctions();
+    if (AuctionsManager.getInstance().loadAuctionsFromDatabase() == 0) {
+      AuctionsManager.getInstance().loadAuctions();
+    }
+
     //  This needs to be after the auction manager, so that all the
     //  auction servers that are loaded by loading auctions will be
     //  available to add searches if they need to.

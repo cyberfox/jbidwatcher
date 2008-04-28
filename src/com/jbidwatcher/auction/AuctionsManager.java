@@ -20,9 +20,11 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.DeletedManager;
+import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionStats;
+import com.jbidwatcher.auction.server.AuctionServer;
 
 import java.io.*;
 import java.util.*;
@@ -255,6 +257,29 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager,
       ErrorManagement.logDebug("JBW: This is not an error, unless you're constantly getting it.");
     }
     mDoSplash = false;
+  }
+
+  public int loadAuctionsFromDatabase() {
+    int count = ActiveRecord.precache(AuctionInfo.class);
+    if (count == 0) return count;
+
+    MQFactory.getConcrete("splash").enqueue("WIDTH " + count);
+    MQFactory.getConcrete("splash").enqueue("SET 0");
+
+    AuctionServer newServer = AuctionServerManager.getInstance().getServerByName("ebay");
+    AuctionServerManager.setEntryManager(this);
+    AuctionServerManager.getInstance().loadAuctionsFromDB(newServer);
+    AuctionStats as = AuctionServerManager.getInstance().getStats();
+
+    //  TODO -- Do something more valuable than just notify, when the auction counts are off.
+    int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
+    if (as != null) {
+      if (as.getCount() != count || (savedCount != -1 && as.getCount() != savedCount)) {
+        MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions.");
+      }
+    }
+
+    return count;
   }
 
   private void loadXMLFromFile(String loadFile, XMLElement xmlFile) throws IOException {

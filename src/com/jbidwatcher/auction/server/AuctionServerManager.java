@@ -106,23 +106,24 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
           }
         }
 
-        if(newServer != null) {
-          int count = ActiveRecord.precache(AuctionInfo.class);
-          if (count == 0) {
-            getServerAuctionEntries(newServer, perServer);
-          } else {
-            loadAuctionsFromDB(newServer);
-          }
+        if (newServer != null) {
+          getServerAuctionEntries(newServer, perServer);
         }
       }
     }
   }
 
-  private void loadAuctionsFromDB(AuctionServer newServer) {
+  public void loadAuctionsFromDB(AuctionServer newServer) {
+    MQFactory.getConcrete("splash").enqueue("SET 0");
     ActiveRecord.precache(Seller.class);
+    MQFactory.getConcrete("splash").enqueue("SET 25");
     ActiveRecord.precache(Seller.class, "seller");
+    MQFactory.getConcrete("splash").enqueue("SET 50");
     ActiveRecord.precache(Category.class);
+    MQFactory.getConcrete("splash").enqueue("SET 75");
     ActiveRecord.precache(AuctionEntry.class, "auction_id");
+    MQFactory.getConcrete("splash").enqueue("SET 0");
+    int count = 0;
 
     Map<String, ActiveRecord> entries = ActiveRecord.getCache(AuctionEntry.class);
     for(String auction_id : entries.keySet()) {
@@ -133,6 +134,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       if(ai != null) {
         ae.setAuctionInfo(ai);
         sEntryManager.addEntry(ae);
+        MQFactory.getConcrete("splash").enqueue("SET " + count++);
       } else {
         System.err.println("CAN'T BRING IN AUCTION #: " + ae.get("auction_id"));
       }
