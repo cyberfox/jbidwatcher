@@ -124,6 +124,7 @@
       <fileset dir="${main.dir}" includes="icons/**/*.gif" />
       <fileset dir="${main.dir}" includes="icons/**/*.png" />
       <fileset dir="${main.dir}" includes="audio/*.mp3" />
+      <fileset dir="${main.dir}" includes="db/*.sql" />
       <fileset dir="${main.dir}" includes="help/*.jpg" />
       <fileset dir="${main.dir}" includes="help/*.jbh" />
       <fileset dir="${main.dir}" includes="platform/tray.dll" />
@@ -163,6 +164,7 @@
       <tarfileset prefix="${TARSRC}/icons" dir="${main.dir}/icons" includes="**/*.gif" />
       <tarfileset prefix="${TARSRC}/icons" dir="${main.dir}/icons" includes="**/*.png" />
       <tarfileset prefix="${TARSRC}/audio" dir="${main.dir}/audio" includes="*.mp3" />
+      <tarfileset prefix="${TARSRC}/db" dir="${main.dir}/db" includes="*.sql" />
       <tarfileset prefix="${TARSRC}/platform" dir="${main.dir}/platform" />
       <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jbh" />
