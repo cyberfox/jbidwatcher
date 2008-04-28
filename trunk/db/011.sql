@@ -1,0 +1,5 @@
+ALTER TABLE multisnipes ADD COLUMN currency VARCHAR(10)
+
+ALTER TABLE snipes ADD COLUMN currency VARCHAR(10)
+
+ALTER TABLE entries ADD COLUMN currency VARCHAR(10)

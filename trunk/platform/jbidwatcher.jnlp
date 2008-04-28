@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- JNLP File for JBidwatcher Application -->
+<jnlp
+  spec="1.0+"
+  codebase="http://www.jbidwatcher.com"
+  href="jbidwatcher.jnlp">
+  <information>
+    <title>JBidwatcher Auction Tool</title>
+    <vendor>CyberFOX Software</vendor>
+    <homepage href="/"/>
+    <description>JBidwatcher auction monitoring &amp; bidding tool</description>
+    <description kind="short">JBidwatcher is a comprehensive auction site (eBay, Yahoo, etc.) management program implemented in Java. Its features include monitoring of auctions, bidding, sniping (automated bidding in the last moments of an auction), remote Web-based management, XML-formatted save files, drag and drop support, a unique 'multisniping' concept, and many other useful features.</description>
+    <icon href="jbidwatch64.jpg"/>
+    <offline-allowed/>
+  </information>
+  <security>
+      <all-permissions/>
+  </security>
+  <resources>
+    <j2se version="1.2+"/>
+    <jar href="http://prdownloads.sourceforge.net/jbidwatcher/JBidWatch-0.8pre4.jar"/>
+  </resources>
+  <application-desc main-class="JBidWatch"/>
+</jnlp>
