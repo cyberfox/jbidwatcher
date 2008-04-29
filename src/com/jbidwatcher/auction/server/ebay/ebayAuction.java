@@ -334,7 +334,7 @@ class ebayAuction extends SpecificAuction {
 
       String location = doc.getNextContentAfterRegex(Externalized.getString("ebayServer.itemLocationRegex"));
       if(location != null) {
-        setItemLocation(location);
+        setItemLocation(StringTools.decode(location, doc.getCharset()));
       }
 
       loadPaypal(doc);
