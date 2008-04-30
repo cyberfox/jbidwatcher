@@ -14,4 +14,5 @@ public interface SearchManagerInterface {
   public int getSearchCount();
 
   public Searcher addSearch(String type, String name, String search, String server, int period, long identifier);
+  public Searcher getSearchByName(String searchName);
 }

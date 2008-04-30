@@ -51,7 +51,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   /** @noinspection FieldAccessedSynchronizedAndUnsynchronized*/
   private eBayTimeQueueManager _etqm;
-  private Searcher mMyeBay = null;
   private Searcher mSellerSearch = null;
   private ebaySearches mSearcher;
   private ebayLoginManager mLogin;
@@ -586,16 +585,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @param searchManager - The search manager to add these searches to.
    */
   public void addSearches(SearchManagerInterface searchManager) {
-    String doSync = JConfig.queryConfiguration(getName() + ".synchronize", "false");
-
-    if(!doSync.equals("ignore")) {
-      if(doSync.equalsIgnoreCase("true")) {
-        setMyEbay(searchManager.addSearch("My Items", "My eBay", "", "ebay", 1, 1)); //$NON-NLS-4$
-      } else {
-        setMyEbay(searchManager.addSearch("My Items", "My eBay", "", "ebay", -1, 1)); //$NON-NLS-4$
-      }
-      JConfig.setConfiguration(getName() + ".synchronize", "ignore");
-    }
+    Searcher s = searchManager.getSearchByName("My eBay");
+    if(s != null) searchManager.addSearch("My Items", "My eBay", "", "ebay", -1, 1);
   }
 
   /**
@@ -739,14 +730,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   public boolean validate(String username, String password) {
     return mLogin.validate(username, password);
-  }
-
-  public Searcher getMyEbay() {
-    return mMyeBay;
-  }
-
-  public void setMyEbay(Searcher myeBay) {
-    mMyeBay = myeBay;
   }
 
   /**
