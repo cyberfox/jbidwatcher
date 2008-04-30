@@ -24,7 +24,6 @@ public class Scripting {
   private static Object sRuby = null;
   private static FauxOutputStream mOutput = new FauxOutputStream();
   private static Object sJBidwatcher = null;
-  private static boolean mEnabled = false;
 
   private Scripting() { }
 
@@ -32,37 +31,28 @@ public class Scripting {
   public static void setOutput(OutputStream stream) { mOutput.setOutput(stream); }
 
   public static void initialize() {
-    try {
-      final PipedInputStream pipeIn = new PipedInputStream();
-      final RubyInstanceConfig config = new RubyInstanceConfig()
+    final PipedInputStream pipeIn = new PipedInputStream();
+    final RubyInstanceConfig config = new RubyInstanceConfig()
+    {
       {
-        {
-          setInput(pipeIn);
-          setOutput(new PrintStream(mOutput));
-          setError(new PrintStream(mOutput));
-          setObjectSpaceEnabled(false);
-        }
-      };
-      final Ruby runtime = Ruby.newInstance(config);
+        setInput(pipeIn);
+        setOutput(new PrintStream(mOutput));
+        setError(new PrintStream(mOutput));
+        setObjectSpaceEnabled(false);
+      }
+    };
+    final Ruby runtime = Ruby.newInstance(config);
 
-      String[] args = new String[0];
-      IRubyObject argumentArray = runtime.newArrayNoCopy(JavaUtil.convertJavaArrayToRuby(runtime, args));
-      runtime.defineGlobalConstant("ARGV", argumentArray);
-      runtime.getGlobalVariables().defineReadonly("$*", new ValueAccessor(argumentArray));
-      runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))));
-      runtime.getLoadService().init(new ArrayList());
+    String[] args = new String[0];
+    IRubyObject argumentArray = runtime.newArrayNoCopy(JavaUtil.convertJavaArrayToRuby(runtime, args));
+    runtime.defineGlobalConstant("ARGV", argumentArray);
+    runtime.getGlobalVariables().defineReadonly("$*", new ValueAccessor(argumentArray));
+    runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))));
+    runtime.getLoadService().init(new ArrayList());
 
-      runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'jbidwatcher/utilities';");
+    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'jbidwatcher/utilities';");
 
-      sRuby = runtime;
-      mEnabled = true;
-    } catch(Throwable t) {
-      mEnabled = false;
-    }
-  }
-
-  public static boolean enabled() {
-    return mEnabled;
+    sRuby = runtime;
   }
 
   private static class FauxOutputStream extends OutputStream {

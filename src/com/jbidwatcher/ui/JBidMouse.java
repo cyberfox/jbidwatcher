@@ -163,7 +163,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoScripting() {
-    if(Scripting.enabled()) {
+    if(JConfig.scriptingEnabled()) {
       if (mScriptFrame == null) mScriptFrame = new ScriptManager();
       MQFactory.getConcrete("scripting").enqueue("SHOW");
     } else {

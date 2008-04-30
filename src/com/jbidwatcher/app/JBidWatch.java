@@ -207,11 +207,12 @@ public final class JBidWatch implements JConfig.ConfigListener {
     } else if (arg.startsWith("--test-ruby")) {
       try {
         Scripting.initialize();
-        if(Scripting.enabled()) {
-          Scripting.ruby("require 'jbidwatcher/utilities'");
-          Scripting.rubyMethod("play_around", "Zarf");
-        }
-      } catch (Exception e) { e.printStackTrace(); }
+        JConfig.enableScripting();
+        Scripting.ruby("require 'jbidwatcher/utilities'");
+        Scripting.rubyMethod("play_around", "Zarf");
+      } catch (Throwable t) {
+        JConfig.disableScripting();
+      }
       return true;
     } else if (arg.startsWith("--usb")) {
       JConfig.setHome(System.getProperty("user.dir"));
@@ -518,7 +519,12 @@ public final class JBidWatch implements JConfig.ConfigListener {
     });
     ThumbnailManager.start();
     inSplash.message("Initializing Scripting");
-    Scripting.initialize();
+    try {
+      Scripting.initialize();
+      JConfig.enableScripting();
+    } catch (Exception e) {
+      JConfig.disableScripting();
+    }
     inSplash.message("Initializing Database");
     FilterManager.getInstance().loadFilters();
     inSplash.message("Loading Auctions");
@@ -552,8 +558,10 @@ public final class JBidWatch implements JConfig.ConfigListener {
     mainFrame.setSize(JConfig.width, JConfig.height);
     backbone.setMainFrame(mainFrame);
 
-    inSplash.message("Starting scripts");
-    if(Scripting.enabled()) Scripting.ruby("JBidwatcher.after_startup");
+    if(JConfig.scriptingEnabled()) {
+      inSplash.message("Starting scripts");
+      Scripting.ruby("JBidwatcher.after_startup");
+    }
     inSplash.close();
     //noinspection UnusedAssignment
     inSplash = null;

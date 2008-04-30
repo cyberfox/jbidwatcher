@@ -123,7 +123,7 @@ public class ebayBidder implements Bidder {
         //  We failed to load.  Punt.
         if (loadedPage == null) {
           return null;
-        } else if(Scripting.enabled() && JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
+        } else if(JConfig.scriptingEnabled() && JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
           String result = (String) Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
           ErrorManagement.logDebug(result);
         }
@@ -190,7 +190,7 @@ public class ebayBidder implements Bidder {
       }
     }
 
-    if(Scripting.enabled() &&
+    if(JConfig.scriptingEnabled() &&
             JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true") &&
             JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
       String recognize = (String)Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);

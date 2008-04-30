@@ -56,6 +56,7 @@ public class JConfig {
   //  Were there any configuration changes since the last updateComplete()?
   private static boolean _anyUpdates = false;
   private static String sHomeDirectory;
+  private static boolean mScripting = false;
 
   //  A core loader which loads from an InputStream.  Used so that we can
   //  load config files from a resource in a JAR file.
@@ -71,6 +72,18 @@ public class JConfig {
     }
 
     handleConfigLoading();
+  }
+
+  public static void enableScripting() {
+    mScripting = true;
+  }
+
+  public static void disableScripting() {
+    mScripting = false;
+  }
+
+  public static boolean scriptingEnabled() {
+    return mScripting;
   }
 
   public interface ConfigListener {
