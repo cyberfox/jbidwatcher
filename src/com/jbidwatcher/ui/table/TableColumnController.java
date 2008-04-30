@@ -106,6 +106,7 @@ public class TableColumnController {
   }
 
   public String customColumn(int j, Object auctionEntry) {
-    return (String)Scripting.rubyMethod("custom_column", getColumnName(j), auctionEntry);
+    if(Scripting.enabled()) return (String)Scripting.rubyMethod("custom_column", getColumnName(j), auctionEntry);
+    return "";
   }
 }

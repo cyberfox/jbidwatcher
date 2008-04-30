@@ -32,6 +32,7 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -162,8 +163,12 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoScripting() {
-    if(mScriptFrame == null) mScriptFrame = new ScriptManager();
-    MQFactory.getConcrete("scripting").enqueue("SHOW");
+    if(Scripting.enabled()) {
+      if (mScriptFrame == null) mScriptFrame = new ScriptManager();
+      MQFactory.getConcrete("scripting").enqueue("SHOW");
+    } else {
+      //  Warn the user that scripting is not enabled.
+    }
   }
 
   private void DoShowLastError(Component src, AuctionEntry passedAE) {

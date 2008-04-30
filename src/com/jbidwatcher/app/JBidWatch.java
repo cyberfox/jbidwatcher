@@ -207,8 +207,10 @@ public final class JBidWatch implements JConfig.ConfigListener {
     } else if (arg.startsWith("--test-ruby")) {
       try {
         Scripting.initialize();
-        Scripting.ruby("require 'jbidwatcher/utilities'");
-        Scripting.rubyMethod("play_around", "Zarf");
+        if(Scripting.enabled()) {
+          Scripting.ruby("require 'jbidwatcher/utilities'");
+          Scripting.rubyMethod("play_around", "Zarf");
+        }
       } catch (Exception e) { e.printStackTrace(); }
       return true;
     } else if (arg.startsWith("--usb")) {
@@ -551,7 +553,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     backbone.setMainFrame(mainFrame);
 
     inSplash.message("Starting scripts");
-    Scripting.ruby("JBidwatcher.after_startup");
+    if(Scripting.enabled()) Scripting.ruby("JBidwatcher.after_startup");
     inSplash.close();
     //noinspection UnusedAssignment
     inSplash = null;

@@ -103,7 +103,8 @@ public class ErrorManagement {
     sLogBuffer.addLog(logMsg);
     sLogBuffer.addLog(e.getMessage());
     String trace = e.getMessage() + "\n" + sLogBuffer.addStackTrace(e);
-    if(JConfig.queryConfiguration("logging.remote", "false").equals("true")) {
+    if (Scripting.enabled() &&
+            JConfig.queryConfiguration("logging.remote", "false").equals("true")) {
       String result = (String) Scripting.rubyMethod("report_exception", logMsg + "\n" + e.toString() + "\n" + trace);
       ErrorManagement.logDebug(result);
     }
