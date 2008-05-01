@@ -522,7 +522,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     try {
       Scripting.initialize();
       JConfig.enableScripting();
-    } catch (Exception e) {
+    } catch (Throwable e) {
       JConfig.disableScripting();
     }
     inSplash.message("Initializing Database");

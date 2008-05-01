@@ -13,14 +13,17 @@
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidwatcher" />
-  <property name="VER" value="2.0beta2" />
+  <property name="VER" value="2.0beta3" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
+  <property name="BINARYSCRIPTING" value="${app.name}-${VER}-script.jar" />
   <property name="OPT_BIN" value="${app.name}-${VER}_o.jar" />
   <property name="UNOPT_BIN" value="${app.name}-${VER}_u.jar" />
   <property name="TARFILE" value="${TARSRC}.tar.gz" />
+  <property name="APPSCRIPTING" value="${app.name}-${VER}-script.app.tar.gz" />
   <property name="APPFILE" value="${app.name}-${VER}.app.tar.gz" />
+  <property name="EXESCRIPTING" value="${app.name}-${VER}-script.exe" />
   <property name="EXEFILE" value="${app.name}-${VER}.exe" />
   <property name="MANIFEST" value="META-INF/MANIFEST.MF" />
 
@@ -43,14 +46,9 @@
     <pathelement path="${build.dir}" />
     <pathelement path="${src.dir}" />
     <pathelement path="${lib.dir}/apple.jar" />
+    <pathelement path="${lib.dir}/derby.jar" />
     <pathelement path="${lib.dir}/jdesktop.jar" />
     <pathelement path="${lib.dir}/mp3codec.jar" />
-    <pathelement path="${lib.dir}/derby.jar" />
-    <pathelement path="${lib.dir}/asm-2.2.3.jar" />
-    <pathelement path="${lib.dir}/asm-commons-2.2.3.jar" />
-    <pathelement path="${lib.dir}/backport-util-concurrent.jar" />
-    <pathelement path="${lib.dir}/bsf.jar" />
-    <pathelement path="${lib.dir}/jline-0.9.91.jar" />
     <pathelement path="${lib.dir}/jruby.jar" />
   </path>
 
@@ -65,7 +63,7 @@
     <mkdir dir="${user.home}/.jbidwatcher" />
     <mkdir dir="${build.dir}" />
     <copy file="display.cfg" todir="${user.home}/.jbidwatcher" />
-      <javac srcdir="${src.dir}" destdir="${build.dir}" >
+      <javac srcdir="${src.dir}" destdir="${build.dir}" debug="on" >
           <classpath refid="project.class.path" />
           <include name="**/*.java" />
       </javac>
@@ -111,41 +109,6 @@
     </style>
   </target>
 
-  <target name="real-jar" depends="compile">
-    <echo level="info" message="Building executable .jar file." />
-    <jar jarfile="${INTERMEDIATE}" manifest="${MANIFEST}" index="true">
-      <fileset dir="${main.dir}" includes="*.jpg" />
-      <fileset dir="${main.dir}" includes="*.sql" />
-      <fileset dir="${main.dir}" includes="*.ser" />
-      <fileset dir="${main.dir}" includes="*.xsl" />
-      <fileset dir="${user.home}/.jbidwatcher" includes="display.cfg" />
-      <fileset dir="${build.dir}" includes="**/*.class" />
-      <!-- <fileset dir="${lib.dir}" includes="**/*.class" /> -->
-      <fileset dir="${main.dir}" includes="icons/**/*.gif" />
-      <fileset dir="${main.dir}" includes="icons/**/*.png" />
-      <fileset dir="${main.dir}" includes="audio/*.mp3" />
-      <fileset dir="${main.dir}" includes="db/*.sql" />
-      <fileset dir="${main.dir}" includes="help/*.jpg" />
-      <fileset dir="${main.dir}" includes="help/*.jbh" />
-      <fileset dir="${main.dir}" includes="platform/tray.dll" />
-      <fileset dir="${main.dir}" includes="jbidwatcher.properties" />
-    </jar>
-  </target>
-
-  <target name="jar" depends="real-jar">
-    <echo level="info" message="Building the top-level .jar file." />
-    <mkdir dir="/tmp/building/main" />
-    <copy file="${INTERMEDIATE}" tofile="/tmp/building/main/main.jar" />
-    <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
-      <fileset dir="${main.dir}/onejar" includes="com/**" />
-      <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
-      <fileset dir="/tmp/building" includes="main/main.jar" />
-      <fileset dir="${main.dir}" includes="lib/*.jar" />
-      <fileset dir="${main.dir}" includes="lib/ruby/**" />
-    </jar>
-    <delete file="/tmp/building/main/main.jar" />
-  </target>
-
   <target name="tar" description="Building source .tar file.">
     <tar destfile="${TARFILE}" compression="gzip">
       <tarfileset prefix="${TARSRC}" dir="${src.dir}" includes="*.java" />
@@ -172,10 +135,73 @@
     </tar>
   </target>
 
+  <target name="jar-real" depends="compile">
+    <echo level="info" message="Building executable .jar file." />
+    <jar jarfile="${INTERMEDIATE}" manifest="${MANIFEST}" index="true">
+      <fileset dir="${main.dir}" includes="*.jpg" />
+      <fileset dir="${main.dir}" includes="*.sql" />
+      <fileset dir="${main.dir}" includes="*.ser" />
+      <fileset dir="${main.dir}" includes="*.xsl" />
+      <fileset dir="${user.home}/.jbidwatcher" includes="display.cfg" />
+      <fileset dir="${build.dir}" includes="**/*.class" />
+      <!-- <fileset dir="${lib.dir}" includes="**/*.class" /> -->
+      <fileset dir="${main.dir}" includes="icons/**/*.gif" />
+      <fileset dir="${main.dir}" includes="icons/**/*.png" />
+      <fileset dir="${main.dir}" includes="audio/*.mp3" />
+      <fileset dir="${main.dir}" includes="db/*.sql" />
+      <fileset dir="${main.dir}" includes="help/*.jpg" />
+      <fileset dir="${main.dir}" includes="help/*.jbh" />
+      <fileset dir="${main.dir}" includes="platform/tray.dll" />
+      <fileset dir="${main.dir}" includes="jbidwatcher.properties" />
+    </jar>
+  </target>
+
+  <target name="jar" depends="jar-real">
+    <echo level="info" message="Building the top-level .jar file." />
+    <mkdir dir="/tmp/building/main" />
+    <copy file="${INTERMEDIATE}" tofile="/tmp/building/main/main.jar" />
+    <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
+      <fileset dir="${main.dir}/onejar" includes="com/**" />
+      <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
+      <fileset dir="/tmp/building" includes="main/main.jar" />
+      <fileset dir="${main.dir}" includes="lib/apple.jar" />
+      <fileset dir="${main.dir}" includes="lib/derby.jar" />
+      <fileset dir="${main.dir}" includes="lib/jdesktop.jar" />
+      <fileset dir="${main.dir}" includes="lib/mp3codec.jar" />
+    </jar>
+    <delete file="/tmp/building/main/main.jar" />
+  </target>
+
+  <target name="scripting-jar" depends="jar-real">
+    <echo level="info" message="Building the top-level .jar file." />
+    <mkdir dir="/tmp/building/main" />
+    <copy file="${INTERMEDIATE}" tofile="/tmp/building/main/main.jar" />
+    <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
+      <fileset dir="${main.dir}/onejar" includes="com/**" />
+      <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
+      <fileset dir="/tmp/building" includes="main/main.jar" />
+      <fileset dir="${main.dir}" includes="lib/*.jar" />
+      <fileset dir="${main.dir}" includes="lib/ruby/**" />
+    </jar>
+    <delete file="/tmp/building/main/main.jar" />
+  </target>
+
   <property name="dist-mac" value="osx" />
   <property name="packaging" value="platform" />
 
+  <target name="scripting" depends="scripting-jar">
+    <antcall target="exe-real" />
+    <antcall target="osx-real" />
+    <move file="${EXEFILE}" tofile="${EXESCRIPTING}" />
+    <move file="${APPFILE}" tofile="${APPSCRIPTING}" />
+    <move file="${BINARY}" tofile="${BINARYSCRIPTING}" />
+  </target>
+
   <target name="exe" depends="jar">
+    <antcall target="exe-real" />
+  </target>
+
+  <target name="exe-real">
     <copy file="${BINARY}" todir="/tmp"/>
     <copy file="${packaging}/jbidwatcher.ico" todir="/tmp"/>
     <copy file="${packaging}/jbidwatcher-launch.xml" todir="/tmp">
@@ -196,6 +222,10 @@
   </target>
 
   <target name="osx" depends="jar">
+    <antcall target="osx-real" />
+  </target>
+
+  <target name="osx-real">
     <copy file="${packaging}/MRJApp.properties" todir="/tmp">
       <filterchain>
         <replacetokens begintoken="`" endtoken="`">
@@ -236,6 +266,8 @@
     <delete file="${TARFILE}" />
     <delete file="${APPFILE}" />
     <delete file="${EXEFILE}" />
+    <delete file="${APPSCRIPTING}" />
+    <delete file="${EXESCRIPTING}" />
     <delete includeEmptyDirs="true" dir="osx"/>
     <delete>
       <fileset dir="${build.dir}" includes="**/*.class" />
@@ -250,34 +282,32 @@
     <move file="${OPT_BIN}" tofile="${BINARY}" />
   </target>
 
-  <target name="release" depends="tar,jar,osx,exe" description="Build for a full release.">
-    <scp verbose="true" todir="cyberfox@jbidwatcher.com:www/htdocs/rdl" keyfile="/home/mrs/.ssh/id_rsa" passphrase="">
-      <fileset dir="${main.dir}">
-	<include name="${BINARY}" />
-	<include name="${APPFILE}" />
-	<include name="${EXEFILE}" />
-	<include name="${TARFILE}" />
-      </fileset>
-    </scp>
+  <target name="apps" depends="tar,scripting,osx,exe" />
+
+  <target name="release" depends="apps" description="Build for a full release.">
+    <property name="server.path" value="cyberfox@jbidwatcher.com:www/htdocs/rdl" />
+    <antcall target="upload" />
   </target>
 
-  <target name="prerelease" depends="jar,tar,osx,exe" description="Build for a pre-release version.">
-    <scp verbose="true" todir="cyberfox@jbidwatcher.com:www/htdocs/beta" keyfile="/home/mrs/.ssh/id_rsa" passphrase="">
-      <fileset dir="${main.dir}">
-	<include name="${BINARY}" />
-	<include name="${APPFILE}" />
-	<include name="${EXEFILE}" />
-	<include name="${TARFILE}" />
-      </fileset>
-    </scp>
+  <target name="beta" depends="apps" description="Build for a pre-release version.">
+    <property name="server.path" value="cyberfox@jbidwatcher.com:www/htdocs/beta" />
+    <antcall target="upload" />
   </target>
 
-  <target name="alpha" depends="jar,tar,osx,exe" description="Build for an alpha version.">
-    <scp verbose="true" todir="cyberfox@jbidwatcher.com:www/htdocs/alpha" keyfile="/home/mrs/.ssh/id_rsa" passphrase="">
+  <target name="alpha" depends="apps" description="Build for an alpha or beta version.">
+    <property name="server.path" value="cyberfox@jbidwatcher.com:www/htdocs/alpha" />
+    <antcall target="upload" />
+  </target>
+
+  <target name="upload" description="Upload the code to a given destination">
+    <scp verbose="true" todir="${server.path}" keyfile="/home/mrs/.ssh/id_rsa" passphrase="">
       <fileset dir="${main.dir}">
 	<include name="${BINARY}" />
 	<include name="${APPFILE}" />
 	<include name="${EXEFILE}" />
+	<include name="${BINARYSCRIPTING}" />
+	<include name="${APPSCRIPTING}" />
+	<include name="${EXESCRIPTING}" />
 	<include name="${TARFILE}" />
       </fileset>
     </scp>

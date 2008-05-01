@@ -30,7 +30,10 @@ public class Scripting {
   public static Ruby getRuntime() { return (Ruby)sRuby; }
   public static void setOutput(OutputStream stream) { mOutput.setOutput(stream); }
 
-  public static void initialize() {
+  public static void initialize() throws ClassNotFoundException {
+    //  Test for JRuby's presence
+    Class.forName("org.jruby.RubyInstanceConfig", true, Thread.currentThread().getContextClassLoader());
+
     final PipedInputStream pipeIn = new PipedInputStream();
     final RubyInstanceConfig config = new RubyInstanceConfig()
     {
