@@ -1569,6 +1569,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     checkHighBidder(false);
     checkSeller();
     checkEnded();
+    saveDB();
   }
 
   /* Accessor functions that are passed through directly down
