@@ -71,7 +71,7 @@ public class Database {
     }
     ErrorManagement.logDebug("Connected to " + (mNew?"and created ":"") + "database jbdb (JBidwatcher DataBase)");
 
-    mConn.setAutoCommit(false);
+    mConn.setAutoCommit(true);
   }
 
   public Statement getStatement() {
