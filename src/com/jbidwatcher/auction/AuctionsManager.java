@@ -260,7 +260,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager,
   }
 
   public int loadAuctionsFromDatabase() {
-    int count = ActiveRecord.precache(AuctionInfo.class);
+    int count = AuctionInfo.precache();
     if (count == 0) return count;
 
     MQFactory.getConcrete("splash").enqueue("WIDTH " + count);

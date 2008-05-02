@@ -190,6 +190,23 @@ public abstract class ActiveRecord extends HashBacked {
     return results == null ? 0 : results.size();
   }
 
+  public static int precacheBySQL(Class klass, String sql) {
+    List<Record> results = null;
+    try {
+      ActiveRecord o = (ActiveRecord) klass.newInstance();
+      results = getTable(o).findAll(sql);
+
+      for (Record record : results) {
+        ActiveRecord row = (ActiveRecord) klass.newInstance();
+        row.setBacking(record);
+        cache(klass, "id", row.get("id"), row);
+      }
+    } catch (Exception e) {
+      //  Ignore, as this is just for pre-caching...
+    }
+    return results == null ? 0 : results.size();
+  }
+
   public static void saveCached() {
     if(sCache == null) return;
 

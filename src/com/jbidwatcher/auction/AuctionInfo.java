@@ -517,4 +517,8 @@ public class AuctionInfo extends ActiveRecord
   public static AuctionInfo findFirstBy(String key, String value) {
     return (AuctionInfo) ActiveRecord.findFirstBy(AuctionInfo.class, key, value);
   }
+
+  public static int precache() {
+    return precacheBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE id IN (SELECT auction_id FROM entries)");
+  }
 }
