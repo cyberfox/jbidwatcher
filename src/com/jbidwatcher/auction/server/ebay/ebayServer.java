@@ -586,7 +586,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   public void addSearches(SearchManagerInterface searchManager) {
     Searcher s = searchManager.getSearchByName("My eBay");
-    if(s != null) searchManager.addSearch("My Items", "My eBay", "", "ebay", -1, 1);
+    if(s == null) searchManager.addSearch("My Items", "My eBay", "", "ebay", -1, 1);
   }
 
   /**
