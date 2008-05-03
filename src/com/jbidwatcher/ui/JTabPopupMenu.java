@@ -144,6 +144,8 @@ public class JTabPopupMenu extends JContext {
       tabToProperties.put(tabName, properties);
     }
 
+    properties.updateValues();
+
     Container content = propFrame.getContentPane();
     content.removeAll();
     content.setLayout(new BorderLayout());
