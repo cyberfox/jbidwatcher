@@ -3,7 +3,7 @@
   <headerType>gui</headerType>
   <jar>/tmp/`binary`</jar>
   <outfile>`executable`</outfile>
-  <errTitle>JBidwatcher launch error</errTitle>
+  <errTitle>`appname` launch error</errTitle>
   <cmdLine></cmdLine>
   <chdir></chdir>
   <priority>normal</priority>

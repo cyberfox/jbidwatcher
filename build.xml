@@ -23,6 +23,9 @@
   <property name="TARFILE" value="${TARSRC}.tar.gz" />
   <property name="APPSCRIPTING" value="${app.name}-${VER}-script.app.tar.gz" />
   <property name="APPFILE" value="${app.name}-${VER}.app.tar.gz" />
+  <property name="osx.app.name" value="${app.name}-${VER}.app" />
+  <property name="osx.app.path" value="/tmp/building/${osx.app.name}" />
+  <property name="DMGFILE" value="${app.name}-${VER}.dmg" />
   <property name="EXESCRIPTING" value="${app.name}-${VER}-script.exe" />
   <property name="EXEFILE" value="${app.name}-${VER}.exe" />
   <property name="MANIFEST" value="META-INF/MANIFEST.MF" />
@@ -169,7 +172,7 @@
       <fileset dir="${main.dir}" includes="lib/jdesktop.jar" />
       <fileset dir="${main.dir}" includes="lib/mp3codec.jar" />
     </jar>
-    <delete file="/tmp/building/main/main.jar" />
+    <delete dir="/tmp/building/main" />
   </target>
 
   <target name="scripting-jar" depends="jar-real">
@@ -183,7 +186,7 @@
       <fileset dir="${main.dir}" includes="lib/*.jar" />
       <fileset dir="${main.dir}" includes="lib/ruby/**" />
     </jar>
-    <delete file="/tmp/building/main/main.jar" />
+    <delete dir="/tmp/building/main" />
   </target>
 
   <property name="dist-mac" value="osx" />
@@ -209,6 +212,7 @@
         <replacetokens begintoken="`" endtoken="`">
           <token key="binary" value="${BINARY}"/>
           <token key="executable" value="${EXEFILE}"/>
+	  <token key="appname" value="${app.name}" />
         </replacetokens>
       </filterchain>
     </copy>
@@ -225,42 +229,71 @@
     <antcall target="osx-real" />
   </target>
 
-  <target name="osx-real">
-    <copy file="${packaging}/MRJApp.properties" todir="/tmp">
+  <!---  IN DEVELOPMENT  -->
+  <target name="dmg" depends="osx-app">
+    <exec executable="mkisofs">
+      <arg line='-V JBidwatcher -r -apple -o ${DMGFILE} "${osx.app.path}/.."'/>
+    </exec>
+  </target>
+
+  <target name="osx-app" depends="jar">
+    <delete dir="${osx.app.path}" />
+    <mkdir dir="${osx.app.path}" />
+    <mkdir dir="${osx.app.path}/Contents" />
+    <mkdir dir="${osx.app.path}/Contents/MacOS" />
+    <mkdir dir="${osx.app.path}/Contents/Resources" />
+    <mkdir dir="${osx.app.path}/Contents/Resources/Java" />
+
+    <copy file="${packaging}/Info.plist" todir="${osx.app.path}/Contents">
       <filterchain>
         <replacetokens begintoken="`" endtoken="`">
-          <token key="binary" value="${BINARY}"/>
-          <token key="executable" value="${EXEFILE}"/>
+          <token key="binary" value="${INTERMEDIATE}" />
+	  <token key="version" value="${VER}" />
+	  <token key="appname" value="${app.name}" />
         </replacetokens>
       </filterchain>
     </copy>
+
+    <copy file="${packaging}/JavaApplicationStub" todir="${osx.app.path}/Contents/MacOS" />
+    <chmod file="${osx.app.path}/Contents/MacOS/JavaApplicationStub" perm="755" />
+    <copy file="${packaging}/Info.plist" todir="${osx.app.path}/Contents" />
+    <copy file="${packaging}/PkgInfo" todir="${osx.app.path}/Contents" />
+    <copy file="${packaging}/jbidicon.icns" todir="${osx.app.path}/Contents/Resources" />
+    <copy file="${packaging}/quaqua.jar" todir="${osx.app.path}/Contents/Resources/Java" />
+    <copy file="${packaging}/libquaqua.jnilib" todir="${osx.app.path}/Contents/Resources/Java" />
+    <chmod file="${osx.app.path}/Contents/Resources/Java/libquaqua.jnilib" perm="755" />
+    <copy file="${dest.dir}/${INTERMEDIATE}" todir="${osx.app.path}/Contents/Resources/Java" />
+    <!--- Testing the possibility of putting all the libraries in the resources directory -->
+    <copy todir="${osx.app.path}/Contents/Resources/Java">
+      <fileset dir="${lib.dir}" includes="apple.jar" />
+      <fileset dir="${lib.dir}" includes="derby.jar" />
+      <fileset dir="${lib.dir}" includes="jdesktop.jar" />
+      <fileset dir="${lib.dir}" includes="mp3codec.jar" />
+    </copy>
+  </target>
+
+  <target name="osx-real" depends="osx-app">
     <tar destfile="${APPFILE}" compression="gzip">
-      <tarfileset dir="${packaging}" prefix="${app.name}.app/Contents/MacOS" mode="755">
-        <include name="JavaApplicationStub" />
+      <tarfileset dir="${osx.app.path}" prefix="${app.name}.app" mode="755">
+	<include name="Contents/MacOS/JavaApplicationStub" />
+	<include name="Contents/Resources/Java/libquaqua.jnilib" />
       </tarfileset>
-      <tarfileset dir="${packaging}" prefix="${app.name}.app/Contents">
-        <include name="Info.plist" />
-      </tarfileset>
-      <tarfileset dir="${packaging}" prefix="${app.name}.app/Contents/Resources">
-        <include name="jbidicon.icns" />
-      </tarfileset>
-      <tarfileset dir="/tmp" prefix="${app.name}.app/Contents/Resources">
-        <include name="MRJApp.properties" />
-      </tarfileset>
-      <tarfileset dir="${dest.dir}" prefix="${app.name}.app/Contents/Resources/Java">
-        <include name="${BINARY}" />
-      </tarfileset>
-      <tarfileset dir="${packaging}" prefix="${app.name}.app/Contents/Resources/Java">
-      	<include name="quaqua.jar" />
-	<include name="libquaqua.jnilib" />
+      <tarfileset dir="${osx.app.path}" prefix="${app.name}.app">
+	<include name="**" />
+	<exclude name="Contents" />
+	<exclude name="Contents/MacOS" />
+	<exclude name="Contents/Resources" />
+	<exclude name="Contents/Resources/Java" />
+	<exclude name="Contents/MacOS/JavaApplicationStub" />
+	<exclude name="Contents/Resources/Java/libquaqua.jnilib" />
       </tarfileset>
     </tar>
-    <delete file="/tmp/MRJApp.properties" />
   </target>
 
   <target name="clean" description="Clean all build products.">
     <echo level="info" message="Clean all build products." />
     <delete file="${BINARY}" />
+    <delete file="${BINARYSCRIPTING}" />
     <delete file="${INTERMEDIATE}" />
     <delete file="${UNOPT_BIN}" />
     <delete file="${TARFILE}" />
@@ -268,10 +301,17 @@
     <delete file="${EXEFILE}" />
     <delete file="${APPSCRIPTING}" />
     <delete file="${EXESCRIPTING}" />
+    <delete file="${DMGFILE}" />
     <delete includeEmptyDirs="true" dir="osx"/>
     <delete>
       <fileset dir="${build.dir}" includes="**/*.class" />
     </delete>
+    <delete dir="${osx.app.path}" />
+    <!--  Delete intermediate files in case they still are around -->
+    <delete file="/tmp/building/main/main.jar" />
+    <delete file="/tmp/jbidwatcher-launch.xml"/>
+    <delete file="/tmp/${BINARY}"/>
+    <delete file="/tmp/jbidwatcher.ico"/>
   </target>
 
   <target name="opt" depends="jar" description="Build an optimized version of the .jar file.">
