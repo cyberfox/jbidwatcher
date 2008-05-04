@@ -189,12 +189,11 @@
     <delete dir="/tmp/building/main" />
   </target>
 
-  <property name="dist-mac" value="osx" />
   <property name="packaging" value="platform" />
 
   <target name="scripting" depends="scripting-jar">
     <antcall target="exe-real" />
-    <antcall target="osx-real" />
+    <antcall target="osx-app" />
     <move file="${EXEFILE}" tofile="${EXESCRIPTING}" />
     <move file="${APPFILE}" tofile="${APPSCRIPTING}" />
     <move file="${BINARY}" tofile="${BINARYSCRIPTING}" />
@@ -226,17 +225,23 @@
   </target>
 
   <target name="osx" depends="jar">
-    <antcall target="osx-real" />
+    <antcall target="osx-app" />
   </target>
 
   <!---  IN DEVELOPMENT  -->
-  <target name="dmg" depends="osx-app">
+  <target name="dmg" depends="osx-distribution">
     <exec executable="mkisofs">
       <arg line='-V JBidwatcher -r -apple -o ${DMGFILE} "${osx.app.path}/.."'/>
     </exec>
   </target>
 
-  <target name="osx-app" depends="jar">
+  <target name="osx-development" depends="osx-distribution">
+    <copy todir="${dest.dir}/${osx.app.name}">
+      <fileset dir="${osx.app.path}" includes="**" />
+    </copy>
+  </target>
+
+  <target name="osx-distribution" depends="jar">
     <delete dir="${osx.app.path}" />
     <mkdir dir="${osx.app.path}" />
     <mkdir dir="${osx.app.path}/Contents" />
@@ -272,7 +277,7 @@
     </copy>
   </target>
 
-  <target name="osx-real" depends="osx-app">
+  <target name="osx-app" depends="osx-distribution">
     <tar destfile="${APPFILE}" compression="gzip">
       <tarfileset dir="${osx.app.path}" prefix="${app.name}.app" mode="755">
 	<include name="Contents/MacOS/JavaApplicationStub" />
@@ -312,14 +317,7 @@
     <delete file="/tmp/jbidwatcher-launch.xml"/>
     <delete file="/tmp/${BINARY}"/>
     <delete file="/tmp/jbidwatcher.ico"/>
-  </target>
-
-  <target name="opt" depends="jar" description="Build an optimized version of the .jar file.">
-    <java fork="true" jar="${jopt.jar}">
-      <arg value="${BINARY}" />
-    </java>
-    <move file="${BINARY}" tofile="${UNOPT_BIN}" />
-    <move file="${OPT_BIN}" tofile="${BINARY}" />
+    <delete dir="${dest.dir}/${osx.app.name}" />
   </target>
 
   <target name="apps" depends="tar,scripting,osx,exe" />
