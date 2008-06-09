@@ -32,7 +32,6 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -126,7 +125,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       if(am.isDeleted(id)) {
         am.undelete(id);
         aeNew = addAuction(auctionSource);
-        //          MQFactory.getConcrete("Swing").enqueue("ERROR " + "Cannot add auction " + auctionSource + ", it was previously deleted.");
       }
       if(aeNew == null) {
         if(am.verifyEntry(id)) {
@@ -139,11 +137,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   protected boolean confirmDeletion(Component src, String prompt) {
-    int endResult;
-
-    endResult = JOptionPane.showOptionDialog(src, prompt,
-                                             "Confirm", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
-                                             null, null, null);
+    int endResult = JOptionPane.showOptionDialog(src, prompt,
+        "Confirm", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
+        null, null, null);
 
     return !(endResult == JOptionPane.CANCEL_OPTION ||
             endResult == JOptionPane.CLOSED_OPTION);
@@ -173,9 +169,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DoShowLastError(Component src, AuctionEntry passedAE) {
     AuctionEntry ae = passedAE;
-    StringBuffer wholeStatus;
     int[] rowList = getPossibleRows();
-    Dimension statusBox;
 
     if(ae == null && rowList.length == 0 || rowList.length > 1) {
       JOptionPane.showMessageDialog(src, "You must select a single auction to view the error page for.",
@@ -185,8 +179,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     if(ae == null) ae = (AuctionEntry) getIndexedEntry(rowList[0]);
 
-    wholeStatus = ae.getErrorPage();
-    statusBox = new Dimension(756, 444);
+    StringBuffer wholeStatus = ae.getErrorPage();
+    Dimension statusBox = new Dimension(756, 444);
 
     _oui.showTextDisplay(new JHTMLOutput("Error Page", wholeStatus).getStringBuffer(), statusBox, "Error Page...");
   }
@@ -204,10 +198,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     _in_deleting = true;
 
-    Vector<AuctionEntry> deleteIds = new Vector<AuctionEntry>();
+    ArrayList<AuctionEntry> deleteIds = new ArrayList<AuctionEntry>();
     StringBuffer wholeDelete = new StringBuffer();
     int[] rowList = getPossibleRows();
-    Dimension statusBox;
 
     if(ae == null && rowList.length == 0) {
       _in_deleting = false;
@@ -215,6 +208,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       return;
     }
 
+    Dimension statusBox;
     if(rowList.length != 0 && rowList.length != 1) {
       wholeDelete.append("<table border=0 spacing=0 width=\"100%\">");
       wholeDelete.append("<tr><td><u><b>Item Number</b></u></td><td><u><b>Title</b></u></td></tr>");
@@ -312,13 +306,11 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private String getClipboardString() {
     Clipboard sysClip = Toolkit.getDefaultToolkit().getSystemClipboard();
     Transferable t = sysClip.getContents(null);
-    StringBuffer stBuff;
-    String clipString;
 
     ErrorManagement.logDebug("Clipboard: " + sysClip.getName() + ", valid flavors: " + Arrays.toString(t.getTransferDataFlavors()));
 
-    stBuff = _jdl.getTransferData(t);
-
+    StringBuffer stBuff = _jdl.getTransferData(t);
+    String clipString;
     if(stBuff == null) {
       try {
         clipString = (String)t.getTransferData(DataFlavor.stringFlavor);
@@ -408,33 +400,31 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     boolean approx = false, i18n = true;
     Currency accum = null;
     Currency realAccum = null;
-    Currency stepVal;
-    int i;
 
-    for(i=0; i<rowList.length; i++) {
+    for (int aRowList : rowList) {
       try {
-        AuctionEntry ae2 = (AuctionEntry) getIndexedEntry(rowList[i]);
-        if(accum == null) {
+        AuctionEntry ae2 = (AuctionEntry) getIndexedEntry(aRowList);
+        if (accum == null) {
           accum = ae2.getUSCurBid();
           realAccum = getBestBidValue(ae2);
         } else {
-          stepVal = ae2.getUSCurBid();
+          Currency stepVal = ae2.getUSCurBid();
           accum = accum.add(stepVal);
 
           //  If we're still trying to do the internationalization
           //  thing, then try to keep track of the 'real' total.
-          if(i18n) {
+          if (i18n) {
             try {
               realAccum = realAccum.add(getBestBidValue(ae2));
-            } catch(Currency.CurrencyTypeException cte) {
+            } catch (Currency.CurrencyTypeException cte) {
               //  We can't handle multiple non-USD currency types, so
               //  we stop trying to do the internationalization thing.
               i18n = false;
             }
           }
         }
-        if(ae2.getCurBid().getCurrencyType() != Currency.US_DOLLAR) approx=true;
-      } catch(Exception e) {
+        if (ae2.getCurBid().getCurrencyType() != Currency.US_DOLLAR) approx = true;
+      } catch (Exception e) {
         ErrorManagement.handleException("Sum currency exception!", e);
         return "<unknown>";
       }
@@ -471,7 +461,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     //  Build a temporary table, because the items will vanish out of
     //  the table when we start refiltering them, and that will mess
     //  everything up.
-    Vector<AuctionEntry> tempTable = new Vector<AuctionEntry>(rowList.length);
+    ArrayList<AuctionEntry> tempTable = new ArrayList<AuctionEntry>(rowList.length);
     for (int aRowList : rowList) {
       AuctionEntry moveEntry = (AuctionEntry) getIndexedEntry(aRowList);
       tempTable.add(moveEntry);
@@ -485,10 +475,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoAdd(Component src) {
-    String endResult;
     String prompt = "Enter the auction number to add";
 
-    endResult = promptString(src, prompt, "Adding");
+    String endResult = promptString(src, prompt, "Adding");
 
     //  They closed the window or cancelled.
     if (endResult == null) return;
@@ -541,7 +530,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   public static String buildInfoHTML(AuctionEntry ae, boolean finalize, boolean forRSS) {
-    boolean addedThumbnail = false;
     String prompt = "";
     if(finalize) {
       prompt = "<html><body>";
@@ -552,6 +540,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       prompt += "<b>" + ae.getTitle() + "</b> (" + ae.getIdentifier() + ")<br>";
     }
     prompt += "<table>";
+    boolean addedThumbnail = false;
     if(ae.getThumbnail() != null) {
       if (forRSS) {
         try {
@@ -637,8 +626,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoShowTime(Component src, AuctionEntry ae) {
-    JOptionPane jop;
-    JDialog jdTime;
     AuctionServer as = AuctionServerManager.getInstance().getDefaultServer();
     if(ae != null) as = ae.getServer();
 
@@ -648,8 +635,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     prompt += "<tr><td><b>eBay time delta:</td><td>" + as.getServerTimeDelta() + "</td></tr>";
     prompt += "</table></body></html>";
 
-    jop = new JOptionPane(prompt, JOptionPane.INFORMATION_MESSAGE);
-    jdTime = jop.createDialog(src, "Auction Server Time Information");
+    JOptionPane jop = new JOptionPane(prompt, JOptionPane.INFORMATION_MESSAGE);
+    JDialog jdTime = jop.createDialog(src, "Auction Server Time Information");
     jdTime.addWindowListener(new WindowAdapter() {
         public void windowDeactivated(WindowEvent ev) {
           ev.getWindow().toFront();
@@ -659,9 +646,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoInformation(Component src, AuctionEntry ae) {
-    int[] rowList;
-
-    rowList = getPossibleRows();
+    int[] rowList = getPossibleRows();
 
     int len = rowList.length;
     if(ae == null && len == 0) {
@@ -680,7 +665,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       prompt.append(buildInfoHTML(stepAE, false)).append("<hr>");
     }
     Dimension statusBox = new Dimension(480, Math.min(372, rowList.length * 30 + 200));
-    Vector<String> buttons = new Vector<String>(2);
+    ArrayList<String> buttons = new ArrayList<String>(2);
     buttons.add("Continue");
     MyActionListener al = new MyActionListener() {
         public void actionPerformed(ActionEvent listen_ae) {
@@ -712,17 +697,15 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
    */
   private boolean checkIfDangerousMultiSnipe(Component src, int[] rowList, MultiSnipe ms) {
     boolean foundDangerousSnipe=false;
-    AuctionEntry ae1, ae2;
-    int i, j;
 
-    for(i=0; i<rowList.length && !foundDangerousSnipe; i++) {
-      ae1 = (AuctionEntry)getIndexedEntry(rowList[i]);
+    for(int i = 0; i<rowList.length && !foundDangerousSnipe; i++) {
+      AuctionEntry ae1 = (AuctionEntry) getIndexedEntry(rowList[i]);
       if(ms != null) {
         if(!ms.isSafeToAdd(ae1)) foundDangerousSnipe = true;
       }
 
-      for(j=i+1; j<rowList.length && !foundDangerousSnipe; j++) {
-        ae2 = (AuctionEntry)getIndexedEntry(rowList[j]);
+      for(int j = i + 1; j<rowList.length && !foundDangerousSnipe; j++) {
+        AuctionEntry ae2 = (AuctionEntry) getIndexedEntry(rowList[j]);
         if(!MultiSnipe.isSafeMultiSnipe(ae1, ae2)) {
           foundDangerousSnipe = true;
         }
@@ -734,11 +717,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DoMultiSnipe(Component src) {
     int[] rowList = getPossibleRows();
-    String prompt;
     Currency baseAllBid = Currency.NoValue();
-    MultiSnipe aeMS=null;
-    Color groupColor;
-    int i;
 
     //  You must select multiple auctions to make this work.
     if(rowList.length == 0) {
@@ -748,10 +727,11 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     //  Go through the list of auctions to make sure they're all the
     //  same currency, and other similar requirements.
+    MultiSnipe aeMS = null;
+    int i;
     for(i=0; i<rowList.length; i++) {
       AuctionEntry tempAE = (AuctionEntry) getIndexedEntry(rowList[i]);
       Currency curBid = tempAE.getCurBid();
-      Currency minBid;
 
       if(tempAE.getServer().isDefaultUser()) {
         JOptionPane.showMessageDialog(src, "One or more of your auctions to multisnipe is on a server that you have not\n" +
@@ -779,6 +759,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
         return;
       }
 
+      Currency minBid;
       try {
         minBid = curBid.add(tempAE.getServer().getMinimumBidIncrement(curBid, tempAE.getNumBidders()));
       } catch(Currency.CurrencyTypeException cte) {
@@ -829,7 +810,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     if(aeMS == null) {
       //  Build the snipe value prompt
-      prompt = "<html><body><table>";
+      String prompt = "<html><body><table>";
       prompt += "<tr><td>Highest current bid:</td><td>" + baseAllBid + "</td></tr>";
       prompt += "<tr><td>Number of auctions selected:</td><td>" + rowList.length + "</td></tr>";
       prompt += "</table>";
@@ -846,7 +827,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       sd.setLocation(rec.x, rec.y);
       sd.setVisible(true);
 
-      if(sd.isCancelled() || sd.getAmount().equals("")) {
+      if(sd.isCancelled() || sd.getAmount().length() == 0) {
         JOptionPane.showMessageDialog(src, "Establishing multi-auction snipe canceled.", "Multisnipe canceled", JOptionPane.PLAIN_MESSAGE);
         return;
       }
@@ -856,7 +837,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
       //  Have the user select a text background color to identify this
       //  group of related snipes.
-      groupColor = JColorChooser.showDialog(src, "Select a background color for this multi-snipe group", null);
+      Color groupColor = JColorChooser.showDialog(src, "Select a background color for this multi-snipe group", null);
       if(groupColor == null) {
         JOptionPane.showMessageDialog(src, "Establishing multi-auction snipe canceled.", "Multisnipe canceled", JOptionPane.PLAIN_MESSAGE);
         return;
@@ -876,8 +857,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private String genBidSnipeHTML(AuctionEntry ae, Currency minBid) {
-	String prompt;
-    prompt = "<html><body><table>";
+    String prompt = "<html><body><table>";
     prompt += "<tr><td>Title:</td><td>" + ae.getTitle() + "</td></tr>";
     prompt += "<tr><td>Current bid:</td><td>" + ae.getCurBid() + "</td></tr>";
     if(ae.getShipping() != null && !ae.getShipping().isNull()) {
@@ -897,8 +877,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DoSnipe(Component src, AuctionEntry passedAE) {
     AuctionEntry ae = passedAE;
-    Currency minimumNextBid;
-    String prompt;
     int[] rowList = getPossibleRows();
 
     if(rowList.length > 1) {
@@ -927,12 +905,13 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       return;
     }
 
+    Currency minimumNextBid;
     try {
       minimumNextBid = ae.getCurBid().add(ae.getServer().getMinimumBidIncrement(ae.getCurBid(), ae.getNumBidders()));
     } catch(Currency.CurrencyTypeException cte) {
       minimumNextBid = null;
     }
-    prompt = genBidSnipeHTML(ae, minimumNextBid);
+    String prompt = genBidSnipeHTML(ae, minimumNextBid);
     prompt += "</body></html>";
 
     SnipeDialog sd = new SnipeDialog();
@@ -948,7 +927,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     sd.setLocation(rec.x, rec.y);
     sd.setVisible(true);
 
-    if(sd.isCancelled() || sd.getAmount().equals("")) return;
+    if(sd.isCancelled() || sd.getAmount().length() == 0) return;
 
     String snipeAmount = sd.getAmount();
     String snipeQuant = sd.getQuantity();
@@ -1048,21 +1027,18 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoBid(Component src, AuctionEntry ae) {
-    Currency minimumNextBid;
-    Currency bidAmount;
-    String endResult[];
-    String prompt;
-
     if(anyBiddingErrors(src, ae)) return;
 
+    Currency minimumNextBid;
     try {
       minimumNextBid = ae.getCurBid().add(ae.getServer().getMinimumBidIncrement(ae.getCurBid(), ae.getNumBidders()));
     } catch(Currency.CurrencyTypeException cte) {
       minimumNextBid = null;
     }
-    prompt = genBidSnipeHTML(ae, minimumNextBid);
+    String prompt = genBidSnipeHTML(ae, minimumNextBid);
     prompt += "How much do you wish to bid?</body></html>";
 
+    String[] endResult;
     if(minimumNextBid != null) {
       if(ae.isDutch()) {
         endResult = promptString(src, prompt, "Bidding", Float.toString((float)minimumNextBid.getValue()), "Quantity", "1");
@@ -1086,6 +1062,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     if(endResult[1] == null || endResult[1].length() == 0) endResult[1] = "1";
 
+    Currency bidAmount;
     try {
       if(endResult[0] != null) endResult[0] = endResult[0].replace(',','.');
       bidAmount = Currency.getCurrency(ae.getCurBid().fullCurrencyName(), endResult[0]);
@@ -1137,17 +1114,14 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoComment(Component src, AuctionEntry inAuction) {
-    String endResult;
-    String curComment;
-
     if(inAuction == null) {
       ErrorManagement.logMessage("Auction selected to comment on is null, unexpected error!");
       return;
     }
 
-    curComment = inAuction.getComment();
+    String curComment = inAuction.getComment();
     if(curComment == null) curComment = "";
-    endResult = promptString(src, "Enter a comment for: " + inAuction.getTitle(), "Commenting", curComment);
+    String endResult = promptString(src, "Enter a comment for: " + inAuction.getTitle(), "Commenting", curComment);
     if(endResult == null) return;
 
     inAuction.setComment(endResult);
@@ -1196,24 +1170,26 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
   }
 
-  private void DoUpdate(AuctionEntry inAuction) {
+  private void DoUpdate(Component src, AuctionEntry inAuction) {
     int[] rowList = getPossibleRows();
 
     if(rowList.length != 0) {
-      int i;
-
-      for(i=0; i<rowList.length; i++) {
-        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
+      for (int aRowList : rowList) {
+        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(aRowList);
 
         tempEntry.setNeedsUpdate();
-        if(tempEntry.isComplete() || tempEntry.isPaused()) {
+        if (tempEntry.isComplete() || tempEntry.isPaused()) {
           tempEntry.forceUpdate();
         }
       }
     } else {
-      inAuction.setNeedsUpdate();
-      if(inAuction.isPaused()) {
-        inAuction.forceUpdate();
+      if(inAuction == null) {
+        JOptionPane.showMessageDialog(src, "No auction selected to update.", "No auction to update", JOptionPane.INFORMATION_MESSAGE);
+      } else {
+        inAuction.setNeedsUpdate();
+        if(inAuction.isPaused()) {
+          inAuction.forceUpdate();
+        }
       }
     }
   }
@@ -1222,10 +1198,8 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     int[] rowList = getPossibleRows();
 
     if (rowList.length != 0) {
-      int i;
-
-      for (i = 0; i < rowList.length; i++) {
-        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
+      for (int aRowList : rowList) {
+        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(aRowList);
 
         tempEntry.setComplete(false);
         tempEntry.setNeedsUpdate();
@@ -1306,10 +1280,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private void DoLoad(String fname) {
     String canonicalFName = fname;
     if(canonicalFName == null) {
-      String oldFname;
 
       canonicalFName = JConfig.queryConfiguration("savefile", "auctions.xml");
-      oldFname = canonicalFName;
+      String oldFname = canonicalFName;
 
       canonicalFName = JConfig.getCanonicalFile(canonicalFName, "jbidwatcher", true);
 
@@ -1386,10 +1359,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
    */
   private void DoCopySomething(Component src, AuctionEntry passedAE, int action, String fail_msg, String seperator) {
     AuctionEntry ae = passedAE;
-    StringBuffer sb;
-    int[] rowList;
-
-    rowList = getPossibleRows();
+    int[] rowList = getPossibleRows();
 
     if(ae == null && rowList.length == 0) {
       JOptionPane.showMessageDialog(src, fail_msg, "Error copying", JOptionPane.PLAIN_MESSAGE);
@@ -1397,13 +1367,10 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
 
     if(rowList.length != 0 && rowList.length != 1) {
-      AuctionEntry tempEntry;
-      int i;
+      StringBuffer sb = new StringBuffer();
 
-      sb = new StringBuffer();
-
-      for(i=0; i<rowList.length; i++) {
-        tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
+      for(int i = 0; i<rowList.length; i++) {
+        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
 
         if(i != 0) sb.append(seperator);
 
@@ -1691,7 +1658,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("Resync")) DoResetServerTime();
 
     else if(actionString.equals("Information")) DoInformation(c_src, whichAuction);
-    else if(actionString.equals("Update")) DoUpdate(whichAuction);
+    else if(actionString.equals("Update")) DoUpdate(c_src, whichAuction);
     else if(actionString.equals("Browse")) DoShowInBrowser(c_src, whichAuction);
 //    else if(actionString.equals("Status")) DoShowStatus(c_src, whichAuction);
     else if(actionString.equals("Show Time Info")) DoShowTime(c_src, whichAuction);
