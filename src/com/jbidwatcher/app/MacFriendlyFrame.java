@@ -86,6 +86,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
   }
 
   public void handleQuit() {
+    ActiveRecord.saveCached();
     if (!(JConfig.queryConfiguration("prompt.snipe_quit", "false").equals("true")) &&
         (AuctionsManager.getInstance().anySnipes())) {
       MQFactory.getConcrete("Swing").enqueue(UIBackbone.QUIT_MSG);
