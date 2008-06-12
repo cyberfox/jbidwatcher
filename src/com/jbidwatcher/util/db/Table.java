@@ -92,6 +92,22 @@ public class Table
     return true;
   }
 
+  public boolean deleteBy(String condition) {
+    return execute("DELETE FROM " + mTableName + " WHERE " + condition);
+  }
+
+  public boolean execute(String statement) {
+    try {
+      PreparedStatement ps = mDB.prepare(statement);
+      ps.execute();
+      mDB.commit();
+    } catch (SQLException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      return false;
+    }
+    return true;
+  }
+
   public Record findFirst(String query) {
     try {
       ResultSet rs = mS.executeQuery(query);

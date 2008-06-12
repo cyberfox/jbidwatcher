@@ -137,6 +137,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         MQFactory.getConcrete("splash").enqueue("SET " + count++);
       } else {
         System.err.println("CAN'T BRING IN AUCTION #: " + ae.get("auction_id"));
+        ae.delete();
       }
     }
   }

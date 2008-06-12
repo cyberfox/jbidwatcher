@@ -4,6 +4,8 @@ import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.Currency;
 
+import java.util.List;
+
 /**
  * User: mrs
  * Date: Mar 31, 2008
@@ -79,5 +81,16 @@ public class AuctionSnipe extends ActiveRecord
 
   public static AuctionSnipe findFirstBy(String key, String value) {
     return (AuctionSnipe) ActiveRecord.findFirstBy(AuctionSnipe.class, key, value);
+  }
+
+  public static boolean deleteAll(List<AuctionSnipe> toDelete) {
+    if(toDelete.isEmpty()) return true;
+    String snipes = makeCommaList(toDelete);
+
+    return toDelete.get(0).getDatabase().deleteBy("id IN (" + snipes + ")");
+  }
+
+  public void delete() {
+    super.delete(AuctionSnipe.class);
   }
 }

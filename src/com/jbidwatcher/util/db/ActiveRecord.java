@@ -67,7 +67,7 @@ public abstract class ActiveRecord extends HashBacked {
     return String.valueOf(className.charAt(0)).toUpperCase() + className.substring(1);
   }
 
-  //  Look for columns of type: {foo}_id
+  //  TODO -- Look for columns of type: {foo}_id
   //  For each of those, introspect for 'm{Foo}'.
   //  For each non-null of those, call 'saveDB' on it.
   //  Store the result of that call as '{foo}_id'.
@@ -79,11 +79,13 @@ public abstract class ActiveRecord extends HashBacked {
     String id = getDatabase().insertOrUpdate(getBacking());
     commit();
     if(id != null && id.length() != 0) set("id", id); else id = get("id");
+    clearDirty();
     return id;
   }
 
-  public boolean delete() {
+  public boolean delete(Class klass) {
     String id = get("id");
+    uncache(klass, "id", id);
     return id != null && getDatabase().delete(Integer.parseInt(id));
   }
 
@@ -159,6 +161,11 @@ public abstract class ActiveRecord extends HashBacked {
     return klassCache;
   }
 
+  private void uncache(Class klass, String key, String value) {
+    String combined = key + ':' + value;
+    getCache(klass).remove(combined);
+  }
+
   private static ActiveRecord cached(Class klass, String key, String value) {
     String combined = key + ':' + value;
     return getCache(klass).get(combined);
@@ -229,4 +236,18 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   public Integer getId() { return getInteger("id"); }
+
+  protected static String makeCommaList(List<? extends ActiveRecord> records) {
+    StringBuffer ids = new StringBuffer("");
+
+    boolean first = true;
+    for(ActiveRecord id : records) {
+      if(!first) {
+        ids.append(", ");
+      }
+      ids.append(id.getId());
+      first = false;
+    }
+    return ids.toString();
+  }
 }

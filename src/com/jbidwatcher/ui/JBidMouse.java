@@ -274,8 +274,12 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
             if(actionString.equals("Yes")) {
               //  Delete all those items...
               for (AuctionEntry m_entry : m_entries) {
-                AuctionsManager.getInstance().delEntry(m_entry);
+                m_entry.cancelSnipe(false);
+                FilterManager.getInstance().deleteAuction(m_entry);
+                new DeletedEntry(m_entry.getIdentifier()).saveDB();
               }
+              //  Just pass the list of ids down to a low-level 'delete multiple' method.
+              AuctionEntry.deleteAll(m_entries);
               if(m_dontprompt) {
                 JConfig.setConfiguration("prompt.hide_delete_confirm", "true");
               }

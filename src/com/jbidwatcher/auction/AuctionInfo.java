@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 public class AuctionInfo extends ActiveRecord
 {
@@ -520,5 +521,16 @@ public class AuctionInfo extends ActiveRecord
 
   public static int precache() {
     return precacheBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE id IN (SELECT auction_id FROM entries)");
+  }
+
+  public static boolean deleteAll(List<AuctionInfo> toDelete) {
+    if(toDelete.isEmpty()) return true;
+    String auctions = makeCommaList(toDelete);
+
+    return toDelete.get(0).getDatabase().deleteBy("id IN (" + auctions + ")");
+  }
+
+  public void delete() {
+    super.delete(AuctionInfo.class);
   }
 }

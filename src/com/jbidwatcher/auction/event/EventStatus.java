@@ -81,7 +81,7 @@ public class EventStatus extends ActiveRecord {
   }
 
   public static List<EventStatus> findAllByEntry(String entry_id) {
-    List<ActiveRecord> records = ActiveRecord.findAllBy(EventStatus.class, "entry_id", entry_id, "logged_at ASC");
+    List<ActiveRecord> records = ActiveRecord.findAllBy(EventStatus.class, "entry_id", entry_id, "created_at ASC");
 
     if(records != null) {
       List<EventStatus> results = new ArrayList<EventStatus>(records.size());
@@ -95,14 +95,22 @@ public class EventStatus extends ActiveRecord {
   }
 
   public String getMessage() { return getString("message"); }
-  public Date getLoggedAt() { return getDate("logged_at"); }
+  public Date getLoggedAt() { return getDate("created_at"); }
   public int getRepeatCount() { return getInteger("repeat_count"); }
   public String getTitle() { return getString("title"); }
   public String getEntryId() { return getString("entry_id"); }
 
   public void setMessage(String message) { setString("message", message); }
-  public void setLoggedAt(Date loggedAt) { setDate("logged_at", loggedAt); }
+  public void setLoggedAt(Date loggedAt) { setDate("created_at", loggedAt); }
   public void setRepeatCount(int repeatCount) { setInteger("repeat_count", repeatCount); }
   public void setTitle(String title) { setString("title", title); }
   public void setEntryId(String entryId) { setString("entry_id", entryId); }
+
+  public boolean deleteForEntry(int id) {
+    return deleteAllEntries(Integer.toString(id));
+  }
+
+  public boolean deleteAllEntries(String entries) {
+    return getDatabase().deleteBy("entry_id IN (" + entries + ")");
+  }
 }

@@ -11,6 +11,7 @@ import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.event.EventLogger;
+import com.jbidwatcher.auction.event.EventStatus;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.AuctionQObject;
@@ -21,10 +22,7 @@ import com.jbidwatcher.util.xml.XMLElement;
 
 import java.io.FileNotFoundException;
 import java.text.MessageFormat;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * @brief Contains all the methods to examine, control, and command a
@@ -1412,7 +1410,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     long rightNow = System.currentTimeMillis();
     long officialDelta = mServer.getServerTimeDelta();
     long pageReqTime = mServer.getPageRequestTime();
-    boolean use_detailed = JConfig.queryConfiguration("timeleft.detailed", "false").equals("true");
 
     if(!isComplete()) {
       long dateDiff;
@@ -1433,37 +1430,42 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         long minutes = dateDiff / (Constants.ONE_MINUTE);
         dateDiff -= minutes * (Constants.ONE_MINUTE);
         long seconds = dateDiff / Constants.ONE_SECOND;
-        String mf;
 
-        String cfg;
-        if(days == 0) {
-          if(hours == 0) {
-            mf = use_detailed?mf_min_sec_detailed:mf_min_sec;
-            cfg = JConfig.queryConfiguration("timeleft.minutes");
-            if(cfg != null) mf = convertToMsgFormat(cfg);
-          } else {
-            mf = use_detailed?mf_hrs_min_detailed:mf_hrs_min;
-            cfg = JConfig.queryConfiguration("timeleft.hours");
-            if (cfg != null) mf = convertToMsgFormat(cfg);
-          }
-        } else {
-          mf = use_detailed?mf_day_hrs_detailed:mf_day_hrs;
-          cfg = JConfig.queryConfiguration("timeleft.days");
-          if (cfg != null) mf = convertToMsgFormat(cfg);
-        }
-        String dpad="", hpad="", mpad="", spad="";
-        if(days < 10) dpad = " ";
-        if(hours < 10) hpad = " ";
-        if(minutes < 10) mpad = " ";
-        if(seconds < 10) spad = " ";
+        String mf = getTimeFormatter(days, hours);
 
-        Object[] timeArgs = { days, hours, minutes, seconds,
-                              dpad, hpad,  mpad,    spad };
+        Object[] timeArgs = { days,           hours,      minutes,     seconds,
+                              pad(days), pad(hours), pad(minutes), pad(seconds) };
 
         return(MessageFormat.format(mf, timeArgs));
       }
     }
     return endedAuction;
+  }
+
+  private String getTimeFormatter(long days, long hours) {
+    String mf;
+    boolean use_detailed = JConfig.queryConfiguration("timeleft.detailed", "false").equals("true");
+    String cfg;
+    if(days == 0) {
+      if(hours == 0) {
+        mf = use_detailed?mf_min_sec_detailed:mf_min_sec;
+        cfg = JConfig.queryConfiguration("timeleft.minutes");
+        if(cfg != null) mf = convertToMsgFormat(cfg);
+      } else {
+        mf = use_detailed?mf_hrs_min_detailed:mf_hrs_min;
+        cfg = JConfig.queryConfiguration("timeleft.hours");
+        if (cfg != null) mf = convertToMsgFormat(cfg);
+      }
+    } else {
+      mf = use_detailed?mf_day_hrs_detailed:mf_day_hrs;
+      cfg = JConfig.queryConfiguration("timeleft.days");
+      if (cfg != null) mf = convertToMsgFormat(cfg);
+    }
+    return mf;
+  }
+
+  private String pad(long x) {
+    return (x < 10) ? " " : "";
   }
 
   public boolean isUpdateForced() { return mForceUpdate; }
@@ -1538,6 +1540,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   ////////////////////////////////////////
   //  Passthrough functions to AuctionInfo
+
+  protected AuctionInfo getAuction() { return mAuction; }
 
   /**
    * @brief Force this auction to use a particular set of auction
@@ -1739,11 +1743,33 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return (AuctionEntry) ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
   }
 
+  public static boolean deleteAll(List<AuctionEntry> toDelete) {
+    if(toDelete.isEmpty()) return true;
+
+    String entries = makeCommaList(toDelete);
+    List<AuctionInfo> auctions = new ArrayList<AuctionInfo>();
+    List<MultiSnipe> multisnipes = new ArrayList<MultiSnipe>();
+    List<AuctionSnipe> snipes = new ArrayList<AuctionSnipe>();
+
+    for(AuctionEntry entry : toDelete) {
+      auctions.add(entry.getAuction());
+      if(entry.isSniped()) snipes.add(entry.getSnipe());
+    }
+
+    boolean success = new EventStatus().deleteAllEntries(entries);
+    if(!snipes.isEmpty()) success &= AuctionSnipe.deleteAll(snipes);
+    if(!multisnipes.isEmpty()) success &= MultiSnipe.deleteAll(multisnipes);
+    success &= AuctionInfo.deleteAll(auctions);
+    success &= toDelete.get(0).getDatabase().deleteBy("id IN (" + entries + ")");
+
+    return success;
+  }
+
   public boolean delete() {
-    mAuction.delete();
+    if(mAuction != null) mAuction.delete();
     if(getSnipe() != null) {
       getSnipe().delete();
     }
-    return super.delete();
+    return super.delete(AuctionEntry.class);
   }
 }

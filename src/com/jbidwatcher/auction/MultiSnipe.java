@@ -190,4 +190,11 @@ public class MultiSnipe extends ActiveRecord {
   public static MultiSnipe find(Integer id) {
     return (MultiSnipe) ActiveRecord.findFirstBy(MultiSnipe.class, "id", Integer.toString(id));
   }
+
+  public static boolean deleteAll(List<MultiSnipe> toDelete) {
+    if(toDelete.isEmpty()) return true;
+    String multisnipes = makeCommaList(toDelete);
+
+    return toDelete.get(0).getDatabase().deleteBy("id IN (" + multisnipes + ")");
+  }
 }
