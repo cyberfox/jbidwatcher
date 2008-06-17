@@ -5,7 +5,7 @@ package com.jbidwatcher.util.config;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.script.Scripting;
+import com.jbidwatcher.util.queue.MQFactory;
 
 import java.io.*;
 import java.util.Date;
@@ -105,8 +105,7 @@ public class ErrorManagement {
     String trace = e.getMessage() + "\n" + sLogBuffer.addStackTrace(e);
     if (JConfig.scriptingEnabled() &&
             JConfig.queryConfiguration("logging.remote", "false").equals("true")) {
-      String result = (String) Scripting.rubyMethod("report_exception", logMsg + "\n" + e.toString() + "\n" + trace);
-      ErrorManagement.logDebug(result);
+      MQFactory.getConcrete("my").enqueue(logMsg + "\n" + e.toString() + "\n" + trace);
     }
 
     if(doLogging.equals("true")) {

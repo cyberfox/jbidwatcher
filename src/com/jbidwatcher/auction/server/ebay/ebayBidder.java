@@ -124,9 +124,9 @@ public class ebayBidder implements Bidder {
         //  We failed to load.  Punt.
         if (loadedPage == null) {
           return null;
-        } else if(JConfig.scriptingEnabled() && JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-          String result = MyJBidwatcher.recognizeBidpage(inEntry, loadedPage);
-          String result = (String) Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
+        } else if(JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
+          String result = MyJBidwatcher.getInstance().recognizeBidpage(inEntry, loadedPage);
+//          String result = (String) Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
           ErrorManagement.logDebug(result);
         }
 
