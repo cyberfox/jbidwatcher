@@ -4,6 +4,7 @@ import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.ErrorHandler;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
 
@@ -22,7 +23,7 @@ import java.util.Map;
  *
  * A set of methods to communicate with the 'my.jbidwatcher.com' site.
  */
-public class MyJBidwatcher implements MessageQueue.Listener {
+public class MyJBidwatcher {
   private class Parameters extends HashMap<Object, Object>{ }
   private static MyJBidwatcher sInstance;
 
@@ -36,7 +37,7 @@ public class MyJBidwatcher implements MessageQueue.Listener {
     return postTo(url, p);
   }
 
-  private static String postTo(String url, Parameters params) {
+  private String postTo(String url, Parameters params) {
     StringBuffer postData = null;
     try {
       postData = createCGIData(params);
@@ -51,7 +52,7 @@ public class MyJBidwatcher implements MessageQueue.Listener {
     }
   }
 
-  private static StringBuffer createCGIData(Parameters data) throws UnsupportedEncodingException {
+  private StringBuffer createCGIData(Parameters data) throws UnsupportedEncodingException {
     StringBuffer postData = new StringBuffer();
     boolean first = true;
     for(Map.Entry<Object, Object> param : data.entrySet()) {
@@ -87,10 +88,15 @@ public class MyJBidwatcher implements MessageQueue.Listener {
 
   //  The only thing that gets submitted to the queue is exceptions...?
   private MyJBidwatcher() {
-    MQFactory.getConcrete("my").registerListener(this);
-  }
+    ErrorManagement.addHandler(new ErrorHandler() {
+      public void addLog(String s) { /* ignored */}
 
-  public void messageAction(Object deQ) {
-    ErrorManagement.logDebug(reportException(deQ.toString()));
+      public void exception(String log, String message, String trace) {
+        if(JConfig.queryConfiguration("my.jbidwatcher.id") != null &&
+           JConfig.queryConfiguration("logging.remote", "false").equals("true")) {
+          reportException(log + "\n" + message + "\n" + trace);
+        }
+      }
+    });
   }
 }

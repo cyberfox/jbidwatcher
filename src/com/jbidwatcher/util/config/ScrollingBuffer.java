@@ -10,31 +10,12 @@ import java.io.PrintWriter;
  *
  * Provide a fixed-size, scrolling StringBuffer for logging.
  */
-public class ScrollingBuffer {
+public class ScrollingBuffer implements ErrorHandler {
   private final StringBuffer sLogBuffer;
-  private LoggerWriter mWriter = new LoggerWriter();
   private int mMaxSize;
 
-  public class LoggerWriter extends PrintWriter {
-    private StringBuffer mSnapshot = null;
-    public LoggerWriter() {
-      super(System.out);
-    }
-
-    public void println(String x) {
-      if(mSnapshot != null) {
-        mSnapshot.append(x);
-        mSnapshot.append('\n');
-      }
-      addLog(x);
-    }
-    public void setSnapshot(StringBuffer sb) {
-      mSnapshot = sb;
-    }
-  }
-
-  public ScrollingBuffer(int max_buffer_size) {
-    mMaxSize = max_buffer_size;
+  public ScrollingBuffer(int maxBufferSize) {
+    mMaxSize = maxBufferSize;
     sLogBuffer = new StringBuffer(mMaxSize);
   }
 
@@ -54,12 +35,9 @@ public class ScrollingBuffer {
     }
   }
 
-  public String addStackTrace(Throwable e) {
-    StringBuffer sb = new StringBuffer();
-    mWriter.setSnapshot(sb);
-    e.printStackTrace(mWriter);
-    mWriter.setSnapshot(null);
-
-    return sb.toString();
+  public void exception(String log, String message, String trace) {
+    addLog(log);
+    addLog(message);
+    addLog(trace);
   }
 }

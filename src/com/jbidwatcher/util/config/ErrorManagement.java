@@ -5,17 +5,20 @@ package com.jbidwatcher.util.config;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.queue.MQFactory;
-
 import java.io.*;
 import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
 
 @SuppressWarnings({"UseOfSystemOutOrSystemErr", "UtilityClass"})
 public class ErrorManagement {
-  public static int MAX_BUFFER_SIZE = 50000;
   private static PrintWriter mLogWriter = null;
-  private static ScrollingBuffer sLogBuffer = new ScrollingBuffer(MAX_BUFFER_SIZE);
+  private static List<ErrorHandler> sHandlers = new ArrayList<ErrorHandler>();
   private ErrorManagement() { }
+
+  public static void addHandler(ErrorHandler eh) {
+    sHandlers.add(eh);
+  }
 
   private static void init() {
     String sep = System.getProperty("file.separator");
@@ -56,7 +59,9 @@ public class ErrorManagement {
     System.err.println(log_time + ": " + msg);
 
     String logMsg = log_time + ": " + msg;
-    sLogBuffer.addLog(logMsg);
+    for(ErrorHandler handler : sHandlers) {
+      handler.addLog(logMsg);
+    }
 
     String doLogging = JConfig.queryConfiguration("logging", "true");
     if(doLogging.equals("true")) {
@@ -77,6 +82,36 @@ public class ErrorManagement {
 
   public static void handleDebugException(String sError, Throwable e) {
     if(JConfig.debugging) handleException(sError, e);
+  }
+
+  public static class LoggerWriter extends PrintWriter {
+    private StringBuffer mSnapshot = null;
+
+    public LoggerWriter() {
+      super(System.out);
+    }
+
+    public void println(String x) {
+      if (mSnapshot != null) {
+        mSnapshot.append(x);
+        mSnapshot.append('\n');
+      }
+    }
+
+    public void setSnapshot(StringBuffer sb) {
+      mSnapshot = sb;
+    }
+  }
+
+  private static LoggerWriter sWriter = new LoggerWriter();
+
+  public static String getStackTrace(Throwable e) {
+    StringBuffer sb = new StringBuffer();
+    sWriter.setSnapshot(sb);
+    e.printStackTrace(sWriter);
+    sWriter.setSnapshot(null);
+
+    return sb.toString();
   }
 
   public static void handleException(String sError, Throwable e) {
@@ -100,12 +135,9 @@ public class ErrorManagement {
       logMsg = log_time + ": " + sError;
     }
 
-    sLogBuffer.addLog(logMsg);
-    sLogBuffer.addLog(e.getMessage());
-    String trace = e.getMessage() + "\n" + sLogBuffer.addStackTrace(e);
-    if (JConfig.scriptingEnabled() &&
-            JConfig.queryConfiguration("logging.remote", "false").equals("true")) {
-      MQFactory.getConcrete("my").enqueue(logMsg + "\n" + e.toString() + "\n" + trace);
+    String trace = getStackTrace(e);
+    for (ErrorHandler handler : sHandlers) {
+      handler.exception(logMsg, e.getMessage(), trace);
     }
 
     if(doLogging.equals("true")) {
@@ -135,15 +167,15 @@ public class ErrorManagement {
           mLogWriter.println("+------------end---------------");
           mLogWriter.flush();
         }
-        sLogBuffer.addLog("...");
+        for(ErrorHandler handler : sHandlers) {
+          handler.addLog("...");
+        }
         logMessage("File contents logged with message: " + msgtop);
-        sLogBuffer.addLog("...");
+        for (ErrorHandler handler : sHandlers) {
+          handler.addLog("...");
+        }
       }
     }
-  }
-
-  public static StringBuffer getLog() {
-    return sLogBuffer.getLog();
   }
 
   /**

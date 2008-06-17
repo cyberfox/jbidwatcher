@@ -1132,28 +1132,25 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private static final StringBuffer EMPTY_LOG = new StringBuffer("The log is empty.");
-  private void DoViewLog() {
+  private void showLog(StringBuffer logText, String frameName) {
     Dimension logBoxSize = new Dimension(625, 500);
 
-    StringBuffer logText = ErrorManagement.getLog();
     if(logText == null || logText.length() == 0) {
       logText = EMPTY_LOG;
     }
 
-    JFrame logFrame = _oui.showTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " Log", false);
+    JFrame logFrame = _oui.showTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " " + frameName, false);
     logFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
   }
 
+  private void DoViewLog() {
+    StringBuffer logText = ErrorMonitor.getInstance().getLog();
+    showLog(logText, "Log");
+  }
+
   private void DoViewActivity() {
-    Dimension logBoxSize = new Dimension(625, 500);
-
     StringBuffer logText = ActivityMonitor.getInstance().getLog();
-    if (logText == null || logText.length() == 0) {
-      logText = EMPTY_LOG;
-    }
-
-    JFrame logFrame = _oui.showTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " Activity Log", false);
-    logFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    showLog(logText, "Activity Log");
   }
 
   private static JFrame faqFrame = null;
