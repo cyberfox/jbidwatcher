@@ -5,8 +5,6 @@ import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorHandler;
-import com.jbidwatcher.util.queue.MessageQueue;
-import com.jbidwatcher.util.queue.MQFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

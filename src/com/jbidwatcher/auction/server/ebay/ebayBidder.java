@@ -5,7 +5,7 @@ import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.util.config.Externalized;
+import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.util.StringTools;

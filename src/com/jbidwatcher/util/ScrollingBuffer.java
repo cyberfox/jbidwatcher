@@ -1,6 +1,6 @@
-package com.jbidwatcher.util.config;
+package com.jbidwatcher.util;
 
-import java.io.PrintWriter;
+import com.jbidwatcher.util.config.ErrorHandler;
 
 /**
  * Created by IntelliJ IDEA.

@@ -2,8 +2,7 @@ package com.jbidwatcher.util;
 
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.config.ScrollingBuffer;
-import com.jbidwatcher.util.config.ErrorHandler;
+import com.jbidwatcher.util.ScrollingBuffer;
 
 import java.util.Date;
 

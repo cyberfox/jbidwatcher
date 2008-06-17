@@ -5,7 +5,7 @@ import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.auction.ThumbnailManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.util.config.Externalized;
+import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.html.JHTML;

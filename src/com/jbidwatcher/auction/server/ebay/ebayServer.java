@@ -12,7 +12,7 @@ package com.jbidwatcher.auction.server.ebay;
 //  mostly doable.
 
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.util.config.Externalized;
+import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.ServerMenu;

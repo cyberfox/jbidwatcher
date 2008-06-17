@@ -8,7 +8,7 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.config.Externalized;
+import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -131,8 +131,8 @@ public class ebaySearches {
 
   /**
    * @param userId - The user to load their selling items for.
-   * @param curUser
-   *@param label  - What 'group' to label items retrieved this way as. @brief Do a Seller Search to see all the items a given user is selling.
+   * @param curUser- The current user's eBay id, to compare against the to-be-searched id, and treated as 'interactive' if equal.
+   * @param label  - What 'group' to label items retrieved this way as. @brief Do a Seller Search to see all the items a given user is selling.
    * <p/>
    * This obsoletes our previous use of 'My eBay' to get the selling
    * information.

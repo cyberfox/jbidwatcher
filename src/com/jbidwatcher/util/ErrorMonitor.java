@@ -1,6 +1,6 @@
 package com.jbidwatcher.util;
 
-import com.jbidwatcher.util.config.ScrollingBuffer;
+import com.jbidwatcher.util.ScrollingBuffer;
 import com.jbidwatcher.util.config.ErrorManagement;
 
 /**

@@ -6,7 +6,7 @@ package com.jbidwatcher.webserver;
  */
 
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.util.config.Externalized;
+import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.config.Base64;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.JHTMLOutput;

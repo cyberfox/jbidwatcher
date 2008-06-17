@@ -2,7 +2,7 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.html.CleanupHandler;
-import com.jbidwatcher.util.config.Externalized;
+import com.jbidwatcher.util.Externalized;
 
 /**
  * Created by IntelliJ IDEA.
