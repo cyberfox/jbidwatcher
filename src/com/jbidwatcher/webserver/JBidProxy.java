@@ -15,7 +15,6 @@ import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.ui.JBidMouse;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.auction.AuctionTransformer;
 import com.jbidwatcher.auction.AuctionsManager;
@@ -288,8 +287,7 @@ public class JBidProxy extends HTTPProxyClient {
     AuctionEntry ae = AuctionsManager.getInstance().getEntry(relativeDocument);
 
     if(ae == null) {
-      return(new JHTMLOutput("Error!", "Error: No such auction in list!" +
-                                       messageFinisher).getStringBuffer());
+      return(new JHTMLOutput("Error!", "Error: No such auction in list!" + messageFinisher).getStringBuffer());
     }
 
     StringBuffer sbOut;
@@ -299,49 +297,56 @@ public class JBidProxy extends HTTPProxyClient {
       sbOut.append("Click here for the <a href=\"").append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier())).append("\">current page</a>.<hr>");
       sbOut.append(ae.getContent());
     } else {
-      sbOut = new StringBuffer("<HTML><BODY><B>JBidwatcher View</B><br>");
-      sbOut.append("Click here for the <a href=\"").append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier())).append("\">current page</a>.<br>");
+      sbOut = getAuctionHTMLFromServer(ae);
+    }
 
-      if(_item_list != null &&
-         _item_list.size() > 1) {
-        relativeDocument = ae.getIdentifier();
+    return sbOut;
+  }
 
-        int cur_item = _item_list.indexOf(relativeDocument);
+  private StringBuffer getAuctionHTMLFromServer(AuctionEntry ae) {
+    StringBuffer sbOut;
+    String relativeDocument;
+    sbOut = new StringBuffer("<HTML><BODY><B>JBidwatcher View</B><br>");
+    sbOut.append("Click here for the <a href=\"").append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier())).append("\">current page</a>.<br>");
 
-        if(cur_item != -1) {
-          if(cur_item != 0) {
-            sbOut.append(getHTMLForEntry("Prev", _item_list.get(cur_item-1)));
-            sbOut.append("&nbsp;");
-          }
-          for(int i=0; i<_item_list.size(); i++) {
-            String showString;
-            if(i==0) showString = "First";
-            else if(i == (_item_list.size()-1)) showString = "Last";
-            else showString = Integer.toString(i+1);
+    if(_item_list != null &&
+       _item_list.size() > 1) {
+      relativeDocument = ae.getIdentifier();
 
-            if (i == cur_item) {
-              sbOut.append('(').append(showString).append(')');
-            } else {
-              sbOut.append(getHTMLForEntry(showString, _item_list.get(i)));
-            }
-            sbOut.append("&nbsp;");
-          }
-          if(cur_item != (_item_list.size()-1)) {
-            sbOut.append(getHTMLForEntry("Next", _item_list.get(cur_item+1)));
-          }
+      int cur_item = _item_list.indexOf(relativeDocument);
+
+      if(cur_item != -1) {
+        if(cur_item != 0) {
+          sbOut.append(getHTMLForEntry("Prev", _item_list.get(cur_item-1)));
+          sbOut.append("&nbsp;");
         }
-      }
+        for(int i=0; i<_item_list.size(); i++) {
+          String showString;
+          if(i==0) showString = "First";
+          else if(i == (_item_list.size()-1)) showString = "Last";
+          else showString = Integer.toString(i+1);
 
-      sbOut.append("<hr><br>");
-      AuctionServer aucServ = ae.getServer();
-      try {
-        //  TODO -- This is nauseating.  Fix it.
-        sbOut.append(checkError(aucServ.getAuction(StringTools.getURLFromString(aucServ.getBrowsableURLFromItem(ae.getIdentifier())))));
-      } catch (FileNotFoundException ignored) {
-        sbOut.append("<b><i>Item no longer appears on the server.</i></b><br>\n");
+          if (i == cur_item) {
+            sbOut.append('(').append(showString).append(')');
+          } else {
+            sbOut.append(getHTMLForEntry(showString, _item_list.get(i)));
+          }
+          sbOut.append("&nbsp;");
+        }
+        if(cur_item != (_item_list.size()-1)) {
+          sbOut.append(getHTMLForEntry("Next", _item_list.get(cur_item+1)));
+        }
       }
     }
 
+    sbOut.append("<hr><br>");
+    AuctionServer aucServ = ae.getServer();
+    try {
+      //  TODO -- This is nauseating.  Fix it.
+      sbOut.append(checkError(aucServ.getAuction(StringTools.getURLFromString(aucServ.getBrowsableURLFromItem(ae.getIdentifier())))));
+    } catch (FileNotFoundException ignored) {
+      sbOut.append("<b><i>Item no longer appears on the server.</i></b><br>\n");
+    }
     return sbOut;
   }
 
@@ -411,7 +416,7 @@ public class JBidProxy extends HTTPProxyClient {
       sb.append("</pubDate>");
 
       sb.append("<description><![CDATA[");
-      sb.append(JBidMouse.buildInfoHTML(ae, false, true));
+      sb.append(ae.buildInfoHTML(false, true));
       sb.append("]]></description>\n</item>\n");
     }
 

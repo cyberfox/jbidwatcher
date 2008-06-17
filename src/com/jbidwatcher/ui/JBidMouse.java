@@ -14,8 +14,6 @@ import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.ErrorManagement;
@@ -525,110 +523,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
   }
 
-  private static final String newRow = "<tr><td>";
-  private static final String newCol = "</td><td>";
-  private static final String endRow = "</td></tr>";
-
-  public static String buildInfoHTML(AuctionEntry ae, boolean finalize) {
-    return buildInfoHTML(ae, finalize, false);
-  }
-
-  public static String buildInfoHTML(AuctionEntry ae, boolean finalize, boolean forRSS) {
-    String prompt = "";
-    if(finalize) {
-      prompt = "<html><body>";
-    }
-    if(forRSS) {
-      prompt += "<b>" + StringTools.stripHigh(ae.getTitle()) + "</b> (" + ae.getIdentifier() + ")<br>";
-    } else {
-      prompt += "<b>" + ae.getTitle() + "</b> (" + ae.getIdentifier() + ")<br>";
-    }
-    prompt += "<table>";
-    boolean addedThumbnail = false;
-    if(ae.getThumbnail() != null) {
-      if (forRSS) {
-        try {
-          InetAddress thisIp = InetAddress.getLocalHost();
-          prompt += newRow + "<img src=\"http://" + thisIp.getHostAddress() + ":" + JConfig.queryConfiguration("server.port", "9099") + "/" + ae.getIdentifier() + ".jpg\">" + newCol + "<table>";
-          addedThumbnail = true;
-        } catch (UnknownHostException e) {
-          //  Couldn't find THIS host?!?  Perhaps that means we're not online?
-          ErrorManagement.logMessage("Unknown host trying to look up the local host.  Is the network off?");
-        }
-      } else {
-        prompt += newRow + "<img src=\"" + ae.getThumbnail() + "\">" + newCol + "<table>";
-        addedThumbnail = true;
-      }
-    }
-    if(!ae.isFixed()) {
-      prompt += newRow + "Currently" + newCol + ae.getCurBid() + " (" + ae.getNumBidders() + " Bids)" + endRow;
-      prompt += newRow + "High bidder" + newCol + ae.getHighBidder() + endRow;
-    } else {
-      prompt += newRow + "Price" + newCol + ae.getCurBid() + endRow;
-    }
-    if(ae.isDutch()) {
-      prompt += newRow + "Quantity" + newCol + ae.getQuantity() + endRow;
-    }
-
-    if(ae.isBidOn()) {
-      prompt += newRow + "Your max bid" + newCol + ae.getBid() + endRow;
-      if(ae.getBidQuantity() != 1) {
-        prompt += newRow + "Quantity of" + newCol + ae.getBidQuantity() + endRow;
-      }
-    }
-
-    if(ae.isSniped()) {
-      prompt += newRow + "Sniped for" + newCol + ae.getSnipeAmount() + endRow;
-      if(ae.getSnipeQuantity() != 1) {
-        prompt += newRow + "Quantity of" + newCol + ae.getSnipeQuantity() + endRow;
-      }
-      prompt += newRow + "Sniping at " + (ae.getSnipeTime() / 1000) + " seconds before the end." + endRow;
-    }
-
-    if(ae.getShipping() != null && !ae.getShipping().isNull()) {
-      prompt += newRow + "Shipping" + newCol + ae.getShipping() + endRow;
-    }
-    if(!ae.getInsurance().isNull()) {
-      prompt += newRow + "Insurance (" + (ae.getInsuranceOptional()?"optional":"required") + ")" + newCol + ae.getInsurance() + endRow;
-    }
-    prompt += newRow + "Seller" + newCol + ae.getSeller() + endRow;
-    if(ae.isComplete()) {
-      prompt += newRow + "Listing ended at " + newCol + ae.getEndDate() + endRow;
-    } else {
-      prompt += newRow + "Listing ends at" + newCol + ae.getEndDate() + endRow;
-    }
-    if(addedThumbnail) {
-      prompt += "</table>" + endRow;
-    }
-    prompt += "</table>";
-
-    if(!ae.isFixed() && !ae.getBuyNow().isNull()) {
-      if(ae.isComplete()) {
-        prompt += "<b>You could have used Buy It Now for " + ae.getBuyNow() + "</b><br>";
-      } else {
-        prompt += "<b>Or you could buy it now, for " + ae.getBuyNow() + ".</b><br>";
-        prompt += "Note: <i>To 'Buy Now' through this program,<br>      select 'Buy from the context menu.</i><br>";
-      }
-    }
-
-    if(ae.isComplete()) {
-      prompt += "<i>Listing has ended.</i><br>";
-    }
-
-    if(ae.getComment() != null) {
-      prompt += "<br><u>Comment</u><br>";
-
-      prompt += "<b>" + ae.getComment() + "</b><br>";
-    }
-
-    prompt += "<b><u>Events</u></b><blockquote>" + ae.getLastStatus(true) + "</blockquote>";
-
-    if(finalize) {
-      prompt += "</html>";
-    }
-  	return(prompt);
-  }
-
   private void DoShowTime(Component src, AuctionEntry ae) {
     AuctionServer as = AuctionServerManager.getInstance().getDefaultServer();
     if(ae != null) as = ae.getServer();
@@ -666,7 +560,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     StringBuffer prompt = new StringBuffer();
     for (int aRowList : rowList) {
       AuctionEntry stepAE = (AuctionEntry) getIndexedEntry(aRowList);
-      prompt.append(buildInfoHTML(stepAE, false)).append("<hr>");
+      prompt.append(stepAE.buildInfoHTML(false)).append("<hr>");
     }
     Dimension statusBox = new Dimension(480, Math.min(372, rowList.length * 30 + 200));
     ArrayList<String> buttons = new ArrayList<String>(2);
@@ -968,7 +862,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       return;
     }
 
-    String prompt = "<html><body>" + buildInfoHTML(ae, false);
+    String prompt = "<html><body>" + ae.buildInfoHTML(false);
     prompt += "<br><b>How much is shipping?</b></body></html>";
     String endResult[] = promptString(src, prompt, "Shipping", null, null, null);
 

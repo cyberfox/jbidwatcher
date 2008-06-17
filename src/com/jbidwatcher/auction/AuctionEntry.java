@@ -23,6 +23,8 @@ import com.jbidwatcher.util.xml.XMLElement;
 import java.io.FileNotFoundException;
 import java.text.MessageFormat;
 import java.util.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * @brief Contains all the methods to examine, control, and command a
@@ -47,6 +49,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public static final int SUCC_HIGHBID=0, SUCC_OUTBID=1, FAIL_ENDED=2;
   public static final int FAIL_CONNECT=3, FAIL_PARSE=4, FAIL_BADMULTI=5;
   private Category mCategory;
+  public static final String newRow = "<tr><td>";
+  public static final String newCol = "</td><td>";
+  public static final String endRow = "</td></tr>";
 
   /**
    * @brief Set a status message, and mark that the connection is currently invalid.
@@ -1771,5 +1776,104 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       getSnipe().delete();
     }
     return super.delete(AuctionEntry.class);
+  }
+
+  public String buildInfoHTML(boolean finalize) {
+    return buildInfoHTML(finalize, false);
+  }
+
+  public String buildInfoHTML(boolean finalize, boolean forRSS) {
+    String prompt = "";
+    if(finalize) prompt = "<html><body>";
+
+    if(forRSS) {
+      prompt += "<b>" + StringTools.stripHigh(getTitle()) + "</b> (" + getIdentifier() + ")<br>";
+    } else {
+      prompt += "<b>" + getTitle() + "</b> (" + getIdentifier() + ")<br>";
+    }
+    prompt += "<table>";
+    boolean addedThumbnail = false;
+    if(getThumbnail() != null) {
+      if (forRSS) {
+        try {
+          InetAddress thisIp = InetAddress.getLocalHost();
+          prompt += newRow + "<img src=\"http://" + thisIp.getHostAddress() + ":" + JConfig.queryConfiguration("server.port", "9099") + "/" + getIdentifier() + ".jpg\">" + newCol + "<table>";
+          addedThumbnail = true;
+        } catch (UnknownHostException e) {
+          //  Couldn't find THIS host?!?  Perhaps that means we're not online?
+          ErrorManagement.logMessage("Unknown host trying to look up the local host.  Is the network off?");
+        }
+      } else {
+        prompt += newRow + "<img src=\"" + getThumbnail() + "\">" + newCol + "<table>";
+        addedThumbnail = true;
+      }
+    }
+    if(!isFixed()) {
+      prompt += newRow + "Currently" + newCol + getCurBid() + " (" + getNumBidders() + " Bids)" + endRow;
+      prompt += newRow + "High bidder" + newCol + getHighBidder() + endRow;
+    } else {
+      prompt += newRow + "Price" + newCol + getCurBid() + endRow;
+    }
+    if(isDutch()) {
+      prompt += newRow + "Quantity" + newCol + getQuantity() + endRow;
+    }
+
+    if(isBidOn()) {
+      prompt += newRow + "Your max bid" + newCol + getBid() + endRow;
+      if(getBidQuantity() != 1) {
+        prompt += newRow + "Quantity of" + newCol + getBidQuantity() + endRow;
+      }
+    }
+
+    if(isSniped()) {
+      prompt += newRow + "Sniped for" + newCol + getSnipeAmount() + endRow;
+      if(getSnipeQuantity() != 1) {
+        prompt += newRow + "Quantity of" + newCol + getSnipeQuantity() + endRow;
+      }
+      prompt += newRow + "Sniping at " + (getSnipeTime() / 1000) + " seconds before the end." + endRow;
+    }
+
+    if(getShipping() != null && !getShipping().isNull()) {
+      prompt += newRow + "Shipping" + newCol + getShipping() + endRow;
+    }
+    if(!getInsurance().isNull()) {
+      prompt += newRow + "Insurance (" + (getInsuranceOptional()?"optional":"required") + ")" + newCol + getInsurance() + endRow;
+    }
+    prompt += newRow + "Seller" + newCol + getSeller() + endRow;
+    if(isComplete()) {
+      prompt += newRow + "Listing ended at " + newCol + getEndDate() + endRow;
+    } else {
+      prompt += newRow + "Listing ends at" + newCol + getEndDate() + endRow;
+    }
+    if(addedThumbnail) {
+      prompt += "</table>" + endRow;
+    }
+    prompt += "</table>";
+
+    if(!isFixed() && !getBuyNow().isNull()) {
+      if(isComplete()) {
+        prompt += "<b>You could have used Buy It Now for " + getBuyNow() + "</b><br>";
+      } else {
+        prompt += "<b>Or you could buy it now, for " + getBuyNow() + ".</b><br>";
+        prompt += "Note: <i>To 'Buy Now' through this program,<br>      select 'Buy from the context menu.</i><br>";
+      }
+    }
+
+    if(isComplete()) {
+      prompt += "<i>Listing has ended.</i><br>";
+    }
+
+    if(getComment() != null) {
+      prompt += "<br><u>Comment</u><br>";
+
+      prompt += "<b>" + getComment() + "</b><br>";
+    }
+
+    prompt += "<b><u>Events</u></b><blockquote>" + getLastStatus(true) + "</blockquote>";
+
+    if(finalize) {
+      prompt += "</html>";
+    }
+  	return(prompt);
   }
 }
