@@ -13,6 +13,7 @@ import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.UpdateBlocker;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.app.MyJBidwatcher;
 
 import java.net.URLConnection;
 import java.io.IOException;
@@ -124,6 +125,7 @@ public class ebayBidder implements Bidder {
         if (loadedPage == null) {
           return null;
         } else if(JConfig.scriptingEnabled() && JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
+          String result = MyJBidwatcher.recognizeBidpage(inEntry, loadedPage);
           String result = (String) Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
           ErrorManagement.logDebug(result);
         }
