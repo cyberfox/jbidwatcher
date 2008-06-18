@@ -867,7 +867,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   private EventLogger getEvents() {
-    if(mEntryEvents == null) mEntryEvents = new EventLogger(getIdentifier(), getTitle());
+    if(mEntryEvents == null) mEntryEvents = new EventLogger(get("id"), getTitle());
     return mEntryEvents;
   }
 
