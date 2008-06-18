@@ -149,6 +149,7 @@ public class ebayLoginManager implements LoginManager {
 
   public synchronized CookieJar getSignInCookie(CookieJar old_cj) {
     if (getPassword().equals(mBadPassword) && getUserId().equals(mBadUsername)) {
+      ErrorManagement.logDebug("Not getting the sign in cookie; username/password combo hasn't changed.");
       return old_cj;
     }
 
@@ -179,9 +180,9 @@ public class ebayLoginManager implements LoginManager {
     boolean isAdult = JConfig.queryConfiguration(mSiteName + ".adult", "false").equals("true");
     CookieJar cj = (oldCookie == null) ? new CookieJar() : oldCookie;
     String startURL = Externalized.getString("ebayServer.signInPage");
-    if (isAdult) {
-      startURL = Externalized.getString("ebayServer.adultPageLogin");
-    }
+
+    if (isAdult) startURL = Externalized.getString("ebayServer.adultPageLogin");
+
     URLConnection uc_signin = cj.getAllCookiesFromPage(startURL, null, false);
     try {
       StringBuffer signin = Http.receivePage(uc_signin);
@@ -198,20 +199,13 @@ public class ebayLoginManager implements LoginManager {
           if (getAdultRedirector(uc_signin, cj)) {
             if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
           } else {
-            //  Disable adult mode and try again.
-            ErrorManagement.logMessage("Disabling 'adult' mode and retrying.");
-            JConfig.setConfiguration(mSiteName + ".adult", "false");
-            cj = getSignInCookie(cj, username, password);
-            //  Re-enable adult mode if logging in via non-adult mode still failed...
-            if(cj == null) {
-              JConfig.setConfiguration(mSiteName + ".adult", "true");
-            }
-            return cj;
+            return retryLoginWithoutAdult(cj, username, password);
           }
         } else {
           StringBuffer confirm = Http.receivePage(uc_signin);
           ErrorManagement.dump2File("sign_in-2.html", confirm);
           JHTML doc = new JHTML(confirm);
+          //  Check for CAPTCHA and bad passwords...
           if (checkSecurityConfirmation(doc)) {
             cj = null;
             MQFactory.getConcrete("login").enqueue("FAILED Sign in information is not valid.");
@@ -242,6 +236,17 @@ public class ebayLoginManager implements LoginManager {
       cj = null;
     }
 
+    return cj;
+  }
+
+  private CookieJar retryLoginWithoutAdult(CookieJar cj, String username, String password) {//  Disable adult mode and try again.
+    ErrorManagement.logMessage("Disabling 'adult' mode and retrying.");
+    JConfig.setConfiguration(mSiteName + ".adult", "false");
+    cj = getSignInCookie(cj, username, password);
+    //  Re-enable adult mode if logging in via non-adult mode still failed...
+    if(cj == null) {
+      JConfig.setConfiguration(mSiteName + ".adult", "true");
+    }
     return cj;
   }
 

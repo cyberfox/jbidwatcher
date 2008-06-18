@@ -10,9 +10,11 @@ import com.jbidwatcher.util.config.Base64;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.ByteBuffer;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.Parameters;
 
 import java.net.*;
 import java.io.*;
+import java.util.Map;
 
 public class Http {
   private static void setConnectionProxyInfo(URLConnection huc) {
@@ -85,7 +87,6 @@ public class Http {
       System.err.println("CGI Data is null!");
     }
   }
-
 
   public static URLConnection makeRequest(URL source, String cookie) throws java.io.IOException {
     URLConnection uc;
@@ -264,5 +265,41 @@ public class Http {
       huc = null;
     }
     return(huc);
+  }
+
+  public static String postTo(String url, Parameters params) {
+    StringBuffer postData = null;
+    try {
+      postData = createCGIData(params);
+      URLConnection uc = postFormPage(url, postData.toString(), null, null, false);
+      StringBuffer sb = receivePage(uc);
+      return sb == null ? null : sb.toString();
+    } catch (IOException e) {
+      int length = 0;
+      if (postData != null) length = postData.length();
+      ErrorManagement.logDebug("Couldn't send params (length: " + length + ") to " + url);
+      return null;
+    }
+  }
+
+  private static StringBuffer createCGIData(Parameters data) throws UnsupportedEncodingException {
+    StringBuffer postData = new StringBuffer();
+    boolean first = true;
+    for (Map.Entry<Object, Object> param : data.entrySet()) {
+      Object key = param.getKey();
+      Object value = param.getValue();
+
+      if (value != null) {
+        if (!first)
+          postData.append('&');
+        else
+          first = false;
+
+        postData.append(key.toString());
+        postData.append('=');
+        postData.append(URLEncoder.encode(value.toString(), "UTF-8"));
+      }
+    }
+    return postData;
   }
 }

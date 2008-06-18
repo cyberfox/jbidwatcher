@@ -7,13 +7,12 @@ import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.UpdateBlocker;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.app.MyJBidwatcher;
+import com.jbidwatcher.my.MyJBidwatcher;
 
 import java.net.URLConnection;
 import java.io.IOException;
@@ -91,111 +90,53 @@ public class ebayBidder implements Bidder {
     mResultHash.put("sign in", AuctionServer.BID_ERROR_CANT_SIGN_IN);
   }
 
+  /**
+   * Get the bidding form (with bid key) from the basic bid page.
+   *
+   * @param cj - The cookies for the current session.
+   * @param inEntry - The auction being bid on.
+   * @param inCurr - The amount to bid.
+   * @param inQuant - The quantity to bid on (if it's a dutch auction, 1 otherwise).
+   *
+   * @return - A Form object containing all the input fields from the bid-confirmation page's form.
+   *
+   * @throws BadBidException - If there's some kind of an error on the bid confirmation page.
+   */
   public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr, int inQuant) throws BadBidException {
     String bidRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
-    String bidInfo;
-    if(inEntry.isDutch()) {
-      bidInfo = Externalized.getString("ebayServer.bidCmd") + "&co_partnerid=" + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() +
-                "&fb=2" + Externalized.getString("ebayServer.quantCGI") + inQuant +
-                Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();
-    } else {
-      bidInfo = Externalized.getString("ebayServer.bidCmd") + "&co_partnerid=" + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() + "&fb=2" +
-                Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();
-    }
-    StringBuffer loadedPage = null;
-    JHTML htmlDocument = null;
+    String bidInfo = getBidInfoURL(inEntry, inCurr, inQuant);
+    BidFormReturn rval = null;
 
     try {
       String pageName = bidRequest + '?' + bidInfo;
-      boolean checked_signon = false;
-      boolean checked_reminder = false;
-      boolean done = false;
-      boolean post = false;
-      while (!done) {
-        done = true;
 
-        if(JConfig.debugging) inEntry.setLastStatus("Loading bid request...");
-        URLConnection huc = cj.getAllCookiesFromPage(pageName, null, post);
-        post = false;
-        //  We failed to load, entirely.  Punt.
-        if (huc == null) return null;
+      if (JConfig.debugging) inEntry.setLastStatus("Loading bid request...");
+      rval = getBidFormInternal(pageName, inEntry, cj);
 
-        loadedPage = Http.receivePage(huc);
-        //  We failed to load.  Punt.
-        if (loadedPage == null) {
-          return null;
-        } else if(JConfig.debugging() && JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-          String result = MyJBidwatcher.getInstance().recognizeBidpage(inEntry, loadedPage);
-//          String result = (String) Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
-          ErrorManagement.logDebug(result);
-        }
-
-        htmlDocument = new JHTML(loadedPage);
-        JHTML.Form bidForm = htmlDocument.getFormWithInput("key");
-        if(bidForm != null) {
-          if(JConfig.debugging) inEntry.setLastStatus("Done loading bid request, got form...");
-          return bidForm;
-        }
-
-        if(!checked_signon) {
-          checked_signon = true;
-          String signOn = htmlDocument.getTitle();
-          if (signOn != null) {
-            ErrorManagement.logDebug("Checking sign in as bid key load failed!");
-            if (StringTools.startsWithIgnoreCase(signOn, "sign in")) {
-              //  This means we somehow failed to keep the login in place.  Bad news, in the middle of a snipe.
-              ErrorManagement.logDebug("Being prompted again for sign in, retrying.");
-              if(JConfig.debugging) inEntry.setLastStatus("Not done loading bid request, got re-login request...");
-              mLogin.resetCookie();
-              mLogin.getNecessaryCookie(true);
-              if(JConfig.debugging) inEntry.setLastStatus("Done re-logging in, retrying load bid request.");
-              done = false;
-            }
-          }
-        }
-
-        if(!checked_reminder) {
-          if(htmlDocument.grep(Externalized.getString("ebayServer.warningPage")) != null) {
-            checked_reminder = true;
-            JHTML.Form continueForm = htmlDocument.getFormWithInput("firedFilterId");
-            if(continueForm != null) {
-              inEntry.setLastStatus("Trying to 'continue' for the actual bid.");
-              pageName = continueForm.getCGI();
-              pageName = pageName.replaceFirst("%[A-F][A-F0-9]%A0", "%A0");
-              done = false;
-              post = false;
-            }
-          }
-        }
+      if ( !rval.isSuccess() && (cj = checkSignin(inEntry, rval.getDocument())) != null) {
+        rval = getBidFormInternal(pageName, inEntry, cj);
       }
+
+      if( !rval.isSuccess() && (pageName = checkForWarning(inEntry, rval.getDocument())) != null) {
+        rval = getBidFormInternal(pageName, inEntry, cj);
+      }
+
+      if (rval.isSuccess()) return rval.getForm();
     } catch (IOException e) {
       ErrorManagement.handleException("Failure to get the bid key!  BID FAILURE!", e);
     }
 
-    if(htmlDocument != null) {
-      String signOn = htmlDocument.getTitle();
-      if(signOn != null && signOn.equalsIgnoreCase("Sign In")) throw new BadBidException("sign in", AuctionServerInterface.BID_ERROR_CANT_SIGN_IN);
-      String errMsg = htmlDocument.grep(mBidResultRegex);
-      if(errMsg != null) {
-        Matcher bidMatch = mFindBidResult.matcher(errMsg);
-        bidMatch.find();
-        String matched_error = bidMatch.group().toLowerCase();
-        throw new BadBidException(matched_error, getMatchedResult(matched_error));
-      } else {
-        String amount = htmlDocument.getNextContentAfterRegex("Enter");
-        if (amount != null) {
-          String orMore = htmlDocument.getNextContent();
-          if (orMore != null && orMore.indexOf("or more") != -1) {
-            throw new BadBidException("Enter " + amount + orMore, ebayServer.BID_ERROR_TOO_LOW);
-          }
-        }
-      }
+    //  If we never got a valid return value (e.g. an exception was thrown early), punt.
+    if(rval == null) return null;
+
+    if(rval.getDocument() != null) {
+      checkSignOn(rval.getDocument());
+      checkBidErrors(rval.getDocument());
     }
 
-    if(JConfig.scriptingEnabled() &&
-            JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true") &&
-            JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-      String recognize = (String)Scripting.rubyMethod("recognize_bidpage", inEntry, loadedPage);
+    if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true") &&
+       JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
+      String recognize = MyJBidwatcher.getInstance().recognizeBidpage(inEntry.getIdentifier(), rval.getBuffer());
       Integer remote_result = null;
       try {
         remote_result = Integer.parseInt(recognize);
@@ -210,11 +151,110 @@ public class ebayBidder implements Bidder {
     }
 
     if(JConfig.debugging) inEntry.setLastStatus("Failed to bid. 'Show Last Error' from context menu to see the failure page from the bid attempt.");
-    inEntry.setErrorPage(loadedPage);
+    inEntry.setErrorPage(rval.getBuffer());
 
     //  We don't recognize this error.  Damn.  Log it and freak.
-    ErrorManagement.logFile(bidInfo, loadedPage);
+    ErrorManagement.logFile(bidInfo, rval.getBuffer());
     return null;
+  }
+
+  private String checkForWarning(AuctionEntry inEntry, JHTML htmlDocument) throws UnsupportedEncodingException {
+    String pageName = null;
+    if (htmlDocument.grep(Externalized.getString("ebayServer.warningPage")) != null) {
+      JHTML.Form continueForm = htmlDocument.getFormWithInput("firedFilterId");
+      if (continueForm != null) {
+        inEntry.setLastStatus("Trying to 'continue' for the actual bid.");
+        pageName = continueForm.getCGI();
+        pageName = pageName.replaceFirst("%[A-F][A-F0-9]%A0", "%A0");
+      }
+    }
+    return pageName;
+  }
+
+  private String getBidInfoURL(AuctionEntry inEntry, Currency inCurr, int inQuant) {
+    String bidInfo = Externalized.getString("ebayServer.bidCmd") + "&co_partnerid=" + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() + "&fb=2";
+    if(inEntry.isDutch()) {
+      bidInfo += Externalized.getString("ebayServer.quantCGI") + inQuant;
+    }
+    bidInfo += Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();
+    return bidInfo;
+  }
+
+  private CookieJar checkSignin(AuctionEntry inEntry, JHTML htmlDocument) {
+    String signOn = htmlDocument.getTitle();
+    if (signOn != null) {
+      ErrorManagement.logDebug("Checking sign in as bid key load failed!");
+      if (StringTools.startsWithIgnoreCase(signOn, "sign in")) {
+        //  This means we somehow failed to keep the login in place.  Bad news, in the middle of a snipe.
+        ErrorManagement.logDebug("Being prompted again for sign in, retrying.");
+        if(JConfig.debugging) inEntry.setLastStatus("Not done loading bid request, got re-login request...");
+        CookieJar cj = mLogin.getSignInCookie(null);
+        if(JConfig.debugging) inEntry.setLastStatus("Done re-logging in, retrying load bid request.");
+        return cj;
+      }
+    }
+    return null;
+  }
+
+  private class BidFormReturn {
+    private boolean mSuccess;
+    private JHTML.Form mForm;
+    private JHTML mDocument;
+    private StringBuffer mBuffer;
+
+    public boolean isSuccess() { return mSuccess; }
+    public JHTML.Form getForm() { return mForm; }
+    public JHTML getDocument() { return mDocument; }
+    public StringBuffer getBuffer() { return mBuffer; }
+
+    private BidFormReturn(boolean success, JHTML.Form form, JHTML document, StringBuffer buffer) {
+      mSuccess = success;
+      mForm = form;
+      mDocument = document;
+      mBuffer = buffer;
+    }
+  }
+
+  private BidFormReturn getBidFormInternal(String pageName, AuctionEntry inEntry, CookieJar cj) throws IOException {
+    URLConnection huc = cj.getAllCookiesFromPage(pageName, null, false);
+    StringBuffer loadedPage;
+
+    //  If we failed to load, punt.  Treat it as success, but with a null form result.
+    if (huc == null || (loadedPage = Http.receivePage(huc)) == null) {
+      return new BidFormReturn(true, null, null, null);
+    }
+
+    JHTML htmlDocument = new JHTML(loadedPage);
+    JHTML.Form bidForm = htmlDocument.getFormWithInput("key");
+
+    if (bidForm != null) {
+      if (JConfig.debugging) inEntry.setLastStatus("Done loading bid request, got form...");
+      return new BidFormReturn(true, bidForm, htmlDocument, loadedPage);
+    }
+    return new BidFormReturn(false, null, htmlDocument, loadedPage);
+  }
+
+  private void checkBidErrors(JHTML htmlDocument) throws BadBidException {
+    String errMsg = htmlDocument.grep(mBidResultRegex);
+    if(errMsg != null) {
+      Matcher bidMatch = mFindBidResult.matcher(errMsg);
+      bidMatch.find();
+      String matched_error = bidMatch.group().toLowerCase();
+      throw new BadBidException(matched_error, getMatchedResult(matched_error));
+    } else {
+      String amount = htmlDocument.getNextContentAfterRegex("Enter");
+      if (amount != null) {
+        String orMore = htmlDocument.getNextContent();
+        if (orMore != null && orMore.indexOf("or more") != -1) {
+          throw new BadBidException("Enter " + amount + orMore, ebayServer.BID_ERROR_TOO_LOW);
+        }
+      }
+    }
+  }
+
+  private void checkSignOn(JHTML htmlDocument) throws BadBidException {
+    String signOn = htmlDocument.getTitle();
+    if(signOn != null && signOn.equalsIgnoreCase("Sign In")) throw new BadBidException("sign in", AuctionServerInterface.BID_ERROR_CANT_SIGN_IN);
   }
 
   private Integer getMatchedResult(String matched_text) {
