@@ -15,6 +15,7 @@ import com.jbidwatcher.util.Parameters;
 import java.net.*;
 import java.io.*;
 import java.util.Map;
+import java.awt.datatransfer.DataFlavor;
 
 public class Http {
   private static void setConnectionProxyInfo(URLConnection huc) {
@@ -186,7 +187,11 @@ public class Http {
     buff = receiveData(uc);
 
     if(buff == null) return null;
-
+    String charset = uc.getContentType();
+    if(charset.matches(".*charset=([^;]*).*")) {
+      charset = charset.replaceFirst(".*charset=([^;]*).*", "$1");
+      return new StringBuffer(new String(buff.getData(), 0, buff.getLength(), charset));
+    }
     return new StringBuffer(new String(buff.getData(), 0, buff.getLength()));
   }
 

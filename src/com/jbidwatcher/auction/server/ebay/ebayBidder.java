@@ -242,7 +242,7 @@ public class ebayBidder implements Bidder {
       String matched_error = bidMatch.group().toLowerCase();
       throw new BadBidException(matched_error, getMatchedResult(matched_error));
     } else {
-      String amount = htmlDocument.getNextContentAfterRegex("Enter");
+      String amount = htmlDocument.getNextContentAfterRegex("\\s*Enter\\s*");
       if (amount != null) {
         String orMore = htmlDocument.getNextContent();
         if (orMore != null && orMore.indexOf("or more") != -1) {
