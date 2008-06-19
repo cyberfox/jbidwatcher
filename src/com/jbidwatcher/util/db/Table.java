@@ -203,7 +203,7 @@ public class Table
   public String updateMap(String tableName, String columnKey, String value, Record newRow) {
     Record oldRow = null;
     if(value != null) {
-      oldRow = getOldRow(tableName, columnKey, value, true);
+      oldRow = getRow(tableName, columnKey, value, true);
     }
     if(value == null || oldRow == null) {
       return storeMap(newRow);
@@ -235,10 +235,10 @@ public class Table
   }
 
   public Record findByColumn(String columnKey, String value, boolean forUpdate) {
-    return getOldRow(mTableName, columnKey, value, forUpdate);
+    return getRow(mTableName, columnKey, value, forUpdate);
   }
 
-  private Record getOldRow(String tableName, String columnKey, String value, boolean forUpdate) {
+  private Record getRow(String tableName, String columnKey, String value, boolean forUpdate) {
     Record oldRow = null;
 
     try {
