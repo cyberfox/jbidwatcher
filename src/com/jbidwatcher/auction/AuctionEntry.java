@@ -1575,10 +1575,16 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     }
     AuctionInfo oldAuction = mAuction;
     mAuction = inAI;
-    String new_auction_id = mAuction.saveDB();
-    if(new_auction_id != null) {
-      set("auction_id", new_auction_id);
-      if (oldAuction != null) oldAuction.delete();
+    String newAuctionId = mAuction.saveDB();
+    if(newAuctionId != null) {
+      set("auction_id", newAuctionId);
+      //  If we had an old auction, and it's not the same as the new one,
+      //  and the IDs are different, delete the old one.
+      if (oldAuction != null &&
+          oldAuction != mAuction &&
+          !mAuction.getId().equals(oldAuction.getId())) {
+        oldAuction.delete();
+      }
     }
 
     checkHighBidder(false);
