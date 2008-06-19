@@ -9,60 +9,61 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
-import com.jbidwatcher.ui.FilterManager;
 
 /**
  * Created by IntelliJ IDEA.
  * User: Morgan Schweers
  * Date: Aug 18, 2005
  * Time: 12:26:21 AM
- * To change this template use File | Settings | File Templates.
+ *
+ * Provide an abstract framework for both bids and buying to use, mostly to
+ * reduce duplication of the bid/buy result text.
  */
 public abstract class AuctionActionImpl implements AuctionAction {
-  protected String m_id;
-  protected AuctionEntry m_auct;
-  protected Currency m_amount;
-  protected int m_quant;
-  int m_result = -1;
+  protected String mId;
+  protected AuctionEntry mEntry;
+  protected Currency mAmount;
+  protected int mQuantity;
+  int mResult = -1;
 
   protected AuctionActionImpl(String id, Currency amount, int quantity) {
-    m_id = id;
-    m_auct = null;
-    m_amount = amount;
-    m_quant = quantity;
+    mId = id;
+    mEntry = null;
+    mAmount = amount;
+    mQuantity = quantity;
   }
 
   protected AuctionActionImpl(AuctionEntry ae, Currency amount, int quantity) {
-    m_auct = ae;
-    m_id = ae.getIdentifier();
-    m_amount = amount;
-    m_quant = quantity;
+    mEntry = ae;
+    mId = ae.getIdentifier();
+    mAmount = amount;
+    mQuantity = quantity;
   }
 
   public String activate() {
-    if(m_auct == null) {
-      m_auct = FilterManager.getInstance().whereIsAuction(m_id).getEntry(m_id);
-      if(m_auct == null) {
-        m_result = AuctionServer.BID_ERROR_AUCTION_GONE;
-        return getBidResult(m_amount, m_result);
+    if(mEntry == null) {
+      mEntry = AuctionEntry.findByIdentifier(mId);
+      if(mEntry == null) {
+        mResult = AuctionServer.BID_ERROR_AUCTION_GONE;
+        return getBidResult(mAmount, mResult);
       }
     }
-    m_result = execute(m_auct, m_amount, m_quant);
-    String bidResultString = getBidResult(m_amount, m_result);
-    m_auct.setLastStatus(bidResultString);
-    m_auct.update();
+    mResult = execute(mEntry, mAmount, mQuantity);
+    String bidResultString = getBidResult(mAmount, mResult);
+    mEntry.setLastStatus(bidResultString);
+    mEntry.update();
     return bidResultString;
   }
 
   protected abstract int execute(AuctionEntry ae, Currency curr, int quant);
 
-  public int getResult() { return m_result; }
-  public Currency getAmount() { return m_amount; }
-  public int getQuantity() { return m_quant; }
+  public int getResult() { return mResult; }
+  public Currency getAmount() { return mAmount; }
+  public int getQuantity() { return mQuantity; }
   public boolean isSuccessful() {
-    return (m_result == AuctionServerInterface.BID_WINNING ||
-            m_result == AuctionServerInterface.BID_DUTCH_CONFIRMED ||
-            m_result == AuctionServerInterface.BID_SELFWIN);
+    return (mResult == AuctionServerInterface.BID_WINNING ||
+            mResult == AuctionServerInterface.BID_DUTCH_CONFIRMED ||
+            mResult == AuctionServerInterface.BID_SELFWIN);
   }
 
   public String getBidResult(Currency bidAmount, int bidResult) {
