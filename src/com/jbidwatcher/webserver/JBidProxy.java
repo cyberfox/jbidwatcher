@@ -6,7 +6,6 @@ package com.jbidwatcher.webserver;
  */
 
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.config.Base64;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.JHTMLOutput;
@@ -28,6 +27,7 @@ import java.util.*;
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.nio.charset.Charset;
 
 public class JBidProxy extends HTTPProxyClient {
   private static final String snipeCommand = "snipe?id=";
@@ -107,7 +107,7 @@ public class JBidProxy extends HTTPProxyClient {
     if(relativeDocument.equals("synchronize") || relativeDocument.startsWith(syndicate)) {
       outBuf.append("Content-Type: text/xml\n");
     } else {
-      outBuf.append("Content-Type: text/html; charset=").append(Externalized.getString("ebayServer.charset")).append('\n');
+      outBuf.append("Content-Type: text/html; charset=").append(Charset.defaultCharset()).append('\n');
     }
     AuctionServer aucServ;
 
