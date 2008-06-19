@@ -520,7 +520,7 @@ public class AuctionInfo extends ActiveRecord
   }
 
   public static int precache() {
-    return precacheBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE id IN (SELECT auction_id FROM entries)");
+    return precacheBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE id IN (SELECT auction_id FROM entries)", "id", "identifier");
   }
 
   public static boolean deleteAll(List<AuctionInfo> toDelete) {
@@ -531,6 +531,7 @@ public class AuctionInfo extends ActiveRecord
   }
 
   public void delete() {
+    super.uncache(AuctionInfo.class, "identifier", get("identifier"));
     super.delete(AuctionInfo.class);
   }
 }

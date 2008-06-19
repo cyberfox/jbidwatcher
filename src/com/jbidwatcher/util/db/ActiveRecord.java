@@ -161,7 +161,7 @@ public abstract class ActiveRecord extends HashBacked {
     return klassCache;
   }
 
-  private void uncache(Class klass, String key, String value) {
+  protected void uncache(Class klass, String key, String value) {
     String combined = key + ':' + value;
     getCache(klass).remove(combined);
   }
@@ -197,7 +197,7 @@ public abstract class ActiveRecord extends HashBacked {
     return results == null ? 0 : results.size();
   }
 
-  public static int precacheBySQL(Class klass, String sql) {
+  public static int precacheBySQL(Class klass, String sql, String... columns) {
     List<Record> results = null;
     try {
       ActiveRecord o = (ActiveRecord) klass.newInstance();
@@ -206,7 +206,13 @@ public abstract class ActiveRecord extends HashBacked {
       for (Record record : results) {
         ActiveRecord row = (ActiveRecord) klass.newInstance();
         row.setBacking(record);
-        cache(klass, "id", row.get("id"), row);
+        if(columns == null) {
+          cache(klass, "id", row.get("id"), row);
+        } else {
+          for (String col : columns) {
+            cache(klass, col, row.get(col), row);
+          }
+        }
       }
     } catch (Exception e) {
       //  Ignore, as this is just for pre-caching...
