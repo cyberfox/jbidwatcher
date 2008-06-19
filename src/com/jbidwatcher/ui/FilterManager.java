@@ -1,4 +1,4 @@
-package com.jbidwatcher.auction;
+package com.jbidwatcher.ui;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -8,8 +8,9 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.ui.AuctionsUIModel;
 import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.Auctions;
 
 import java.util.*;
 import java.awt.Color;

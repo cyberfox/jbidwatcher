@@ -6,8 +6,6 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.auction.AuctionsManager;
-import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.xml.XMLSerialize;
 
 import javax.xml.transform.stream.StreamSource;
@@ -37,8 +35,8 @@ public class AuctionTransformer implements ErrorListener, URIResolver {
   public String foo() { return "Foo!"; }
 
   public static String getTimeLeft(String auctionId) {
-    AuctionEntry ae = AuctionsManager.getInstance().getEntry(auctionId);
-    return ae.getTimeLeft();
+    AuctionEntry ae = AuctionEntry.findByIdentifier(auctionId);
+    return (ae == null)?"(unknown)" : ae.getTimeLeft();
   }
 
   private static SimpleDateFormat dateFmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");

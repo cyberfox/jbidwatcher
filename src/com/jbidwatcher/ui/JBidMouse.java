@@ -31,7 +31,6 @@ import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.*;
-import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 
@@ -120,7 +119,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       AuctionsManager am = AuctionsManager.getInstance();
       String id = AuctionsManager.stripId(auctionSource);
       //  For user-interactive adds, always override the deleted state.
-      if(am.isDeleted(id)) {
+      if(DeletedEntry.exists(id)) {
         am.undelete(id);
         aeNew = addAuction(auctionSource);
       }

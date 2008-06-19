@@ -8,7 +8,6 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.table.TableColumnController;
-import com.jbidwatcher.auction.FilterManager;
 
 import javax.swing.*;
 import java.awt.*;

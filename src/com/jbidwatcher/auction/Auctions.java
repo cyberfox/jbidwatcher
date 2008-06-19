@@ -10,7 +10,6 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.UpdateBlocker;
-import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -78,15 +77,6 @@ public class Auctions implements TimerHandler.WakeupProcess {
     }
   }
 
-  //  Actual manipulation of the auction list is entirely handled here.
-  private static boolean wasDeleted(AuctionEntry ae) {
-    if(AuctionsManager.getInstance().isDeleted(ae.getIdentifier())) {
-      ErrorManagement.logDebug("Skipping previously deleted auction (" + ae.getIdentifier() + ").");
-      return true;
-    }
-    return false;
-  }
-
   /**
    * Add an AuctionEntry that has already been created, denying
    * previously deleted items.
@@ -96,7 +86,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * @return - true if the auction is okay to be added, false if not.
    */
   public boolean allowAddEntry(AuctionEntry aeNew) {
-    return aeNew != null && !wasDeleted(aeNew);
+    return aeNew != null && !DeletedEntry.exists(aeNew.getIdentifier());
   }
 
   /**

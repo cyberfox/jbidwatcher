@@ -323,7 +323,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   private void checkEnded() {
     if(!isComplete()) {
       Date serverTime = new Date(System.currentTimeMillis() +
-                                 mServer.getServerTimeDelta());
+                                 getServer().getServerTimeDelta());
 
       //  If we're past the end time, update once, and never again.
       if(serverTime.after(getEndDate())) {
@@ -340,7 +340,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return The server that this auction entry is associated with.
    */
-  public AuctionServer getServer() { return(mServer); }
+  public AuctionServer getServer() {
+    if(mServer == null) {
+      mServer = AuctionServerManager.getInstance().getServerForIdentifier(getIdentifier());
+    }
+    return(mServer);
+  }
+
   /**
    * @brief Set the auction server for this entry.
    *
@@ -372,7 +378,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public boolean isSnipeValid() {
     if(getSnipe() == null) return false;
 
-    Currency minIncrement = mServer.getMinimumBidIncrement(getCurBid(), getNumBidders());
+    Currency minIncrement = getServer().getMinimumBidIncrement(getCurBid(), getNumBidders());
     Currency nextBid = Currency.NoValue();
     boolean rval = false;
 
@@ -678,7 +684,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(numBidders > 0) {
       //  TODO -- This is silly.  Why should the AuctionEntry know about doing a network check?
       if(isOutbid() && doNetworkCheck) {
-        mServer.updateHighBid(this);
+        getServer().updateHighBid(this);
       }
       if(isBidOn() && isPrivate()) {
         Currency curBid = getCurBid();
@@ -699,7 +705,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         }
       } else {
         if(!isDutch()) {
-          mHighBidder = mServer.sameUser(getHighBidder());
+          mHighBidder = getServer().sameUser(getHighBidder());
         }
       }
     }
@@ -710,14 +716,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * auction.
    */
   private void checkDutchHighBidder() {
-    mHighBidder = mServer.isHighDutch(this);
+    mHighBidder = getServer().isHighDutch(this);
   }
 
   /**
    * @brief Set the flags if the current user is the seller in this auction.
    */
   private void checkSeller() {
-    mSeller = mServer.sameUser(getSeller());
+    mSeller = getServer().sameUser(getSeller());
   }
 
   ////////////////////////////
@@ -748,7 +754,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
     if(!mNeedsUpdate) {
       if(!mUpdating && !isComplete()) {
-        long serverTime = curTime + mServer.getServerTimeDelta();
+        long serverTime = curTime + getServer().getServerTimeDelta();
 
         //  If we're past the end time, update once, and never again.
         if(serverTime > getEndDate().getTime()) {
@@ -1032,7 +1038,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public void fromXML(XMLElement inXML) {
     String inID = inXML.getProperty("ID", null);
     if(inID != null) {
-      mAuction = mServer.getNewSpecificAuction();
+      mAuction = getServer().getNewSpecificAuction();
       mAuction.setIdentifier(inID);
 
       super.fromXML(inXML);
@@ -1086,7 +1092,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
     if(isSniped()) {
       long endDate = mAuction.getEndDate().getTime();
-      long curDate = mServer.getAdjustedTime();
+      long curDate = getServer().getAdjustedTime();
 
       //  If the auction hasn't ended already...
       if(endDate > curDate) {
@@ -1171,7 +1177,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     // We REALLY don't want to leave an auction in the 'updating'
     // state.  It does bad things.
     try {
-      mServer.reloadAuction(this);
+      getServer().reloadAuction(this);
     } catch(Exception e) {
       ErrorManagement.handleException("Unexpected exception during auction reload/update.", e);
     }
@@ -1204,7 +1210,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       }
     } else {
       Date serverTime = new Date(System.currentTimeMillis() +
-                                 mServer.getServerTimeDelta());
+                                 getServer().getServerTimeDelta());
 
       //  If we're past the end time, update once, and never again.
       if (serverTime.after(getEndDate())) {
@@ -1234,10 +1240,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         set("snipe_id", null);
       }
       mSnipe = null;
-      MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
+      MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
     } else {
       mSnipe = AuctionSnipe.create(snipe, quantity, 0);
-      MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
+      MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
     }
     setDirty();
     MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");
@@ -1247,8 +1253,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @brief Refresh the snipe, so it picks up a potentially changed end time.
    */
   private void refreshSnipe() {
-    MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
-    MQFactory.getConcrete(mServer.getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
+    MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
+    MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
   }
 
   /** @brief Actually bid on a single item for a given price.
@@ -1278,7 +1284,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
     ErrorManagement.logDebug("Bidding " + bid + " on " + bidQuantity + " item[s] of (" + getIdentifier() + ")-" + getTitle());
 
-    return(mServer.bid(this, bid, bidQuantity));
+    return(getServer().bid(this, bid, bidQuantity));
   }
 
   /**
@@ -1295,7 +1301,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       setBidQuantity(1);  //  TODO --  Is it possible to Buy more than 1 item?
       mBidAt = System.currentTimeMillis();
       ErrorManagement.logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
-      return mServer.buy(this, quant);
+      return getServer().buy(this, quant);
     }
     return AuctionServer.BID_ERROR_NOT_BIN;
   }
@@ -1413,8 +1419,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public String getTimeLeft() {
     long rightNow = System.currentTimeMillis();
-    long officialDelta = mServer.getServerTimeDelta();
-    long pageReqTime = mServer.getPageRequestTime();
+    long officialDelta = getServer().getServerTimeDelta();
+    long pageReqTime = getServer().getPageRequestTime();
 
     if(!isComplete()) {
       long dateDiff;
@@ -1669,11 +1675,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public String getURL() {
-    return mServer.getStringURLFromItem(mAuction.getIdentifier());
+    return getServer().getStringURLFromItem(mAuction.getIdentifier());
   }
 
   public StringBuffer getBody() throws FileNotFoundException {
-    return mServer.getAuction(StringTools.getURLFromString(getURL()));
+    return getServer().getAuction(StringTools.getURLFromString(getURL()));
   }
 
   /**
@@ -1746,6 +1752,20 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   public static AuctionEntry findFirstBy(String key, String value) {
     return (AuctionEntry) ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
+  }
+
+  public static AuctionEntry findByIdentifier(String identifier) {
+    AuctionInfo ai = AuctionInfo.findFirstBy("identifier", identifier);
+    AuctionEntry ae = null;
+
+    if(ai != null) {
+      ae = AuctionEntry.findFirstBy("auction_id", ai.getString("id"));
+      ae.setAuctionInfo(ai);
+    } else {
+      ErrorManagement.logDebug("Can't load auction info with identifier: " + identifier);
+    }
+
+    return ae;
   }
 
   public static boolean deleteAll(List<AuctionEntry> toDelete) {

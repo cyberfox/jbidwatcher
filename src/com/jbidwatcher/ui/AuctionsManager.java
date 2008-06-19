@@ -1,4 +1,4 @@
-package com.jbidwatcher.auction;
+package com.jbidwatcher.ui;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -19,21 +19,19 @@ import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.util.DeletedManager;
-import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.auction.*;
 
 import java.io.*;
 import java.util.*;
 import java.text.SimpleDateFormat;
 
 /** @noinspection Singleton*/
-public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager, JConfig.ConfigListener {
+public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager, JConfig.ConfigListener {
   private static AuctionsManager mInstance = null;
-  private DeletedManager mDeleted = null;
   private int mAuctionCount = 0;
   private FilterManager mFilter;
 
@@ -53,7 +51,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager,
     //  This should be loaded from the configuration settings.
     mCheckpointFrequency = 10 * Constants.ONE_MINUTE;
     mLastCheckpointed = System.currentTimeMillis();
-    mDeleted = new DeletedManager();
 
     mFilter = FilterManager.getInstance();
   }
@@ -179,27 +176,11 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager,
    */
   public void delEntry(AuctionEntry ae) {
     String id = ae.getIdentifier();
-    mDeleted.delete(id);
+    new DeletedEntry(id).saveDB();
     ae.cancelSnipe(false);
     FilterManager.getInstance().deleteAuction(ae);
     //  TODO -- Actually delete the auction from the database.
     ae.delete();
-  }
-
-  /**
-   * @brief Get (Retrieve) from ANY auction list an auction matching a
-   * given ID.
-   * 
-   * @param id - The auction ID to search for, and return an AuctionEntry for.
-   * 
-   * @return An AuctionEntry corresponding to an ID that we found in
-   * our list of auctions.
-   */
-  public AuctionEntry getEntry(String id) {
-    Auctions located = mFilter.whereIsAuction(id);
-    if(located == null) return null;
-
-    return located.getEntry(id);
   }
 
   /**
@@ -321,13 +302,12 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager,
         MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions.");
       }
     }
-    mDeleted.fromXML(xmlFile.getChild("deleted"));
   }
 
   public AuctionEntry newAuctionEntry(String id) {
     String strippedId = stripId(id);
 
-    if(!mDeleted.isDeleted(strippedId) && !verifyEntry(strippedId)) {
+    if(!DeletedEntry.exists(strippedId) && !verifyEntry(strippedId)) {
       return AuctionEntry.buildEntry(id);
     }
 
@@ -345,11 +325,11 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager,
   }
 
   public void undelete(String id) {
-    mDeleted.undelete(id);
+    DeletedEntry.remove(id);
   }
 
   public boolean isDeleted(String id) {
-    return mDeleted.isDeleted(id);
+    return DeletedEntry.exists(id);
   }
 
   //  This is silly!  TODO mrs -- Fix this, so it can be reclaimed?  WeakReference?
@@ -367,7 +347,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager,
    */
   public boolean saveAuctions() {
     XMLElement auctionsData = AuctionServerManager.getInstance().toXML();
-    XMLElement deletedData = mDeleted.toXML();
     String oldSave = JConfig.queryConfiguration("savefile", "auctions.xml");
     String saveFilename = JConfig.getCanonicalFile(JConfig.queryConfiguration("savefile", "auctions.xml"), "jbidwatcher", false);
     String newSave=saveFilename;
@@ -388,7 +367,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager,
       if(newSaveFile.exists()) newSaveFile.delete();
     }
 
-    buildSaveBuffer(auctionsData, deletedData);
+    buildSaveBuffer(auctionsData, null);
     boolean saveDone = true;
 
     //  Dump the save file out!
@@ -413,7 +392,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess,EntryManager,
   }
 
   public int clearDeleted() {
-    int rval = mDeleted.clearDeleted();
+    int rval = DeletedEntry.clear();
 
     saveAuctions();
     System.gc();

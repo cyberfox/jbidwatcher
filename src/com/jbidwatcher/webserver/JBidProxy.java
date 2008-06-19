@@ -12,12 +12,13 @@ import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTMLDialog;
 import com.jbidwatcher.util.http.CookieJar;
+import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.auction.AuctionTransformer;
-import com.jbidwatcher.auction.AuctionsManager;
+import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.AuctionEntry;
@@ -40,6 +41,7 @@ public class JBidProxy extends HTTPProxyClient {
   private static final String messageFinisher = "<br>Return to <a href=\"" + Constants.PROGRAM_NAME + "\">auction list</a>.";
 
   private static List<String> _item_list = null;
+  private static StringBuffer sIcon;
 
   public JBidProxy(Socket talkSock) {
     super(talkSock);
@@ -75,12 +77,27 @@ public class JBidProxy extends HTTPProxyClient {
     return aucServ.validate(user, pass);
   }
 
-  protected StringBuffer buildHeaders(String whatDocument, byte[][] buf) {
+  protected StringBuffer buildHeaders(String whatDocument, byte[][] buf) throws FileNotFoundException {
     String relativeDocument = whatDocument;
     StringBuffer outBuf = new StringBuffer(256);
 
     if(relativeDocument.charAt(0) == '/') {
       relativeDocument = relativeDocument.substring(1);
+    }
+
+    if(relativeDocument.equals("favicon.ico")) {
+      try {
+        URL resource = JConfig.getResource("/icons/favicon.ico");
+        if(sIcon == null) sIcon = new StringBuffer(Http.receivePage(resource.openConnection()));
+
+        outBuf.append("Content-Type: image/x-icon\n");
+        outBuf.append("Content-Length: ").append(sIcon.length()).append('\n').append('\n');
+        outBuf.append(sIcon);
+
+        return outBuf;
+      } catch (IOException ignored) {
+        throw new FileNotFoundException("favicon.ico");
+      }
     }
 
     if(relativeDocument.endsWith(".jpg")) {
@@ -94,7 +111,7 @@ public class JBidProxy extends HTTPProxyClient {
     }
     AuctionServer aucServ;
 
-    AuctionEntry ae = AuctionsManager.getInstance().getEntry(relativeDocument);
+    AuctionEntry ae = AuctionEntry.findByIdentifier(relativeDocument);
     if(ae != null) {
       aucServ = ae.getServer();
     } else {
@@ -125,7 +142,7 @@ public class JBidProxy extends HTTPProxyClient {
   }
 
   private StringBuffer setupSnipePage(String auctionId) {
-    AuctionEntry ae = AuctionsManager.getInstance().getEntry(auctionId);
+    AuctionEntry ae = AuctionEntry.findByIdentifier(auctionId);
 
     if(ae==null) return(null);
     Currency minBid;
@@ -187,7 +204,7 @@ public class JBidProxy extends HTTPProxyClient {
     String auctionId = extractField(snipeCGIText, findIDString);
     String snipeAmount = extractField(snipeCGIText, findAmountString);
 
-    AuctionEntry ae = AuctionsManager.getInstance().getEntry(auctionId);
+    AuctionEntry ae = AuctionEntry.findByIdentifier(auctionId);
     Currency snipeValue = Currency.getCurrency(ae.getCurBid().fullCurrencyName(), snipeAmount);
 
     ErrorManagement.logDebug("Remote-controlled snipe activated against auction " + auctionId + " for " + snipeValue);
@@ -202,7 +219,7 @@ public class JBidProxy extends HTTPProxyClient {
 
   private StringBuffer cancelSnipe(String cancelCGI) {
     String auctionId = extractField(cancelCGI, findIDString);
-    AuctionEntry ae = AuctionsManager.getInstance().getEntry(auctionId);
+    AuctionEntry ae = AuctionEntry.findByIdentifier(auctionId);
 
     if(ae != null) {
       ae.cancelSnipe(false);
@@ -230,7 +247,7 @@ public class JBidProxy extends HTTPProxyClient {
       relativeDocument = relativeDocument.substring(1);
     }
 
-    if(relativeDocument.endsWith(".jpg")) return null;
+    if(relativeDocument.equals("favicon.ico") || relativeDocument.endsWith(".jpg")) return null;
 
     if(relativeDocument.startsWith(syndicate)) {
       if(relativeDocument.indexOf(".xml") == -1) {
@@ -284,7 +301,7 @@ public class JBidProxy extends HTTPProxyClient {
       return wholeData;
     }
 
-    AuctionEntry ae = AuctionsManager.getInstance().getEntry(relativeDocument);
+    AuctionEntry ae = AuctionEntry.findByIdentifier(relativeDocument);
 
     if(ae == null) {
       return(new JHTMLOutput("Error!", "Error: No such auction in list!" + messageFinisher).getStringBuffer());
@@ -451,7 +468,7 @@ public class JBidProxy extends HTTPProxyClient {
   }
 
   private String getHTMLForEntry(String linktext, String item_id) {
-    AuctionEntry aePrev = AuctionsManager.getInstance().getEntry(item_id);
+    AuctionEntry aePrev = AuctionEntry.findByIdentifier(item_id);
 
     if(aePrev.isInvalid()) {
       return "<a href=\"./cached_" + item_id + "\">" + linktext + "</a>";

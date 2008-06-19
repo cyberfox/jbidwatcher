@@ -11,7 +11,6 @@ import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.browser.BrowserLauncher;
-import com.jbidwatcher.auction.FilterManager;
 
 import javax.swing.*;
 import java.awt.event.*;

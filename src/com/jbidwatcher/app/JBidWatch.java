@@ -6,7 +6,7 @@ package com.jbidwatcher.app;
  */
 
 import com.jbidwatcher.auction.*;
-import com.jbidwatcher.auction.FilterManager;
+import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
@@ -20,6 +20,7 @@ import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.platform.Tray;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.*;
+import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.ui.util.JBidFrame;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.RuntimeInfo;

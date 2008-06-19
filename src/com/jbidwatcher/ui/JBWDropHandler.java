@@ -12,7 +12,6 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.AuctionsManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 
 public class JBWDropHandler implements MessageQueue.Listener {

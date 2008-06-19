@@ -10,7 +10,6 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.util.*;
-import com.jbidwatcher.auction.FilterManager;
 
 import javax.swing.*;
 import java.awt.*;

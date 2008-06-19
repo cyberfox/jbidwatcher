@@ -4,15 +4,11 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.auction.AuctionsManager;
-import com.jbidwatcher.auction.FilterManager;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.OptionUI;
-import com.jbidwatcher.ui.JTabManager;
-import com.jbidwatcher.ui.JBidToolBar;
-import com.jbidwatcher.ui.UISnapshot;
+import com.jbidwatcher.ui.*;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.search.SearchManager;
 

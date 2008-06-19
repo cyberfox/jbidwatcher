@@ -8,6 +8,7 @@ package com.jbidwatcher.webserver;
 import com.jbidwatcher.util.Constants;
 
 import java.net.*;
+import java.io.FileNotFoundException;
 
 public abstract class HTTPProxyClient extends ProxyClient {
   private final static String AccessDenied =
@@ -57,7 +58,7 @@ public abstract class HTTPProxyClient extends ProxyClient {
     return inLine == null || (inLine.length() == 0);
   }
 
-  protected abstract StringBuffer buildHeaders(String whatDocument, byte[][] buf);
+  protected abstract StringBuffer buildHeaders(String whatDocument, byte[][] buf) throws FileNotFoundException;
 
   protected String getServerName() {
     return _serverName;
@@ -84,40 +85,50 @@ public abstract class HTTPProxyClient extends ProxyClient {
   protected String anyResponse(byte[][] buf) {
     StringBuffer totalResponse = new StringBuffer(15000);
 
-    if(authorized) {
-      StringBuffer headerAddons = buildHeaders(requestedFile, buf);
-      StringBuffer builtDocument = buildHTML(requestedFile);
+    try {
+      if (authorized) {
+        StringBuffer headerAddons = buildHeaders(requestedFile, buf);
+        StringBuffer builtDocument = buildHTML(requestedFile);
 
-      totalResponse.append("HTTP/1.1 200 OK\n");
-      totalResponse.append("Server: ");
-      totalResponse.append(getServerName());
-      totalResponse.append('\n');
-      if(headerAddons != null) {
-        totalResponse.append(headerAddons);
+        totalResponse.append("HTTP/1.1 200 OK\n");
+        totalResponse.append("Server: ");
+        totalResponse.append(getServerName());
+        totalResponse.append('\n');
+        if (headerAddons != null) {
+          totalResponse.append(headerAddons);
+        } else {
+          totalResponse.append("Content-Type: text/html; charset=UTF-8\n");
+        }
+        if (builtDocument != null) {
+          totalResponse.append('\n');
+          totalResponse.append(builtDocument);
+          totalResponse.append('\n');
+        }
+
+        authorized = false;
       } else {
+        totalResponse.append("HTTP/1.1 401 Authorization Required\n");
+        totalResponse.append("Server: ");
+        totalResponse.append(getServerName());
+        totalResponse.append('\n');
+        totalResponse.append("WWW-Authenticate: Basic realm=\"");
+        totalResponse.append(Constants.PROGRAM_NAME);
+        totalResponse.append('\"').append('\n');
         totalResponse.append("Content-Type: text/html; charset=UTF-8\n");
-      }
-      totalResponse.append('\n');
-      if(builtDocument != null) {
-        totalResponse.append(builtDocument);
+        totalResponse.append('\n');
+        totalResponse.append(AccessDenied);
         totalResponse.append('\n');
       }
-
-      authorized = false;
-    } else {
-      totalResponse.append("HTTP/1.1 401 Authorization Required\n");
+    } catch(FileNotFoundException fnfe) {
+      totalResponse.append("HTTP/1.1 404 File Not Found");
       totalResponse.append("Server: ");
       totalResponse.append(getServerName());
       totalResponse.append('\n');
-      totalResponse.append("WWW-Authenticate: Basic realm=\"");
-      totalResponse.append(Constants.PROGRAM_NAME);
-      totalResponse.append('\"').append('\n');
       totalResponse.append("Content-Type: text/html; charset=UTF-8\n");
       totalResponse.append('\n');
-      totalResponse.append(AccessDenied);
+      totalResponse.append(fnfe.getMessage());
       totalResponse.append('\n');
     }
-
-    return(totalResponse.toString());
+    return (totalResponse.toString());
   }
 }
