@@ -96,7 +96,7 @@ public class RSSDialog extends BasicDialog {
     };
 
     endedButton.addActionListener(al);
-    JButton feedButton = JBidToolBar.makeButton("icons/feed.gif", "Launch feed:// URL", "Feed-" + actionString, al, true);
+    JButton feedButton = ButtonMaker.makeButton("icons/feed.gif", "Launch feed:// URL", "Feed-" + actionString, al, true);
     tmpPanel.add(JConfigTab.makeLine(feedButton, new JLabel(" ")), BorderLayout.EAST);
     return tmpPanel;
   }

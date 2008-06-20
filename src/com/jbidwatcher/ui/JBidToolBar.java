@@ -4,6 +4,7 @@ import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.SearchField;
+import com.jbidwatcher.ui.util.ButtonMaker;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 
 import javax.swing.*;
@@ -12,7 +13,6 @@ import javax.swing.event.DocumentEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.*;
-import java.net.URL;
 
 /**
  * Created by IntelliJ IDEA.
@@ -72,23 +72,23 @@ public class JBidToolBar {
   private JToolBar establishToolbar(final JTabManager inAction) {
     JToolBar bidBar = new JToolBar();
 
-    JBidToolBar.addbutton(bidBar, inAction, "Add", getSource("add_auction.png"), "Add auction");
-    JBidToolBar.addbutton(bidBar, inAction, "Search", getSource("find.png"), "Auction Search Manager");
+    ButtonMaker.addbutton(bidBar, inAction, "Add", getSource("add_auction.png"), "Add auction");
+    ButtonMaker.addbutton(bidBar, inAction, "Search", getSource("find.png"), "Auction Search Manager");
     bidBar.addSeparator();
-    JBidToolBar.addbutton(bidBar, inAction, "Snipe", getSource("auction.png"), "Place snipe");
-    JBidToolBar.addbutton(bidBar, inAction, "Information", getSource("information.png"), "Get information");
-    JBidToolBar.addbutton(bidBar, inAction, "Delete", getSource("delete.png"), "Delete auction");
+    ButtonMaker.addbutton(bidBar, inAction, "Snipe", getSource("auction.png"), "Place snipe");
+    ButtonMaker.addbutton(bidBar, inAction, "Information", getSource("information.png"), "Get information");
+    ButtonMaker.addbutton(bidBar, inAction, "Delete", getSource("delete.png"), "Delete auction");
     bidBar.addSeparator();
-    JBidToolBar.addbutton(bidBar, inAction, "UpdateAll", getSource("updateall.png"), "Update all auctions");
-    JBidToolBar.addbutton(bidBar, inAction, "StopUpdating", getSource("stopupdating.png"), "Stop updating auctions");
+    ButtonMaker.addbutton(bidBar, inAction, "UpdateAll", getSource("updateall.png"), "Update all auctions");
+    ButtonMaker.addbutton(bidBar, inAction, "StopUpdating", getSource("stopupdating.png"), "Stop updating auctions");
     bidBar.addSeparator();
-    JBidToolBar.addbutton(bidBar, inAction, "Configure", getSource("configuration.png"), "Configure");
-    if(JConfig.debugging) JBidToolBar.addbutton(bidBar, inAction, "View Log", getSource("log_view.png"), "View log");
-    JBidToolBar.addbutton(bidBar, inAction, "FAQ", getSource("help.png"), "Help");
-    JBidToolBar.addbutton(bidBar, inAction, "About", getSource("about.png"), "About JBidwatcher");
+    ButtonMaker.addbutton(bidBar, inAction, "Configure", getSource("configuration.png"), "Configure");
+    if(JConfig.debugging) ButtonMaker.addbutton(bidBar, inAction, "View Log", getSource("log_view.png"), "View log");
+    ButtonMaker.addbutton(bidBar, inAction, "FAQ", getSource("help.png"), "Help");
+    ButtonMaker.addbutton(bidBar, inAction, "About", getSource("about.png"), "About JBidwatcher");
     bidBar.addSeparator();
-    JBidToolBar.addbutton(bidBar, inAction, "Forum", getSource("forum.png"), "JBidwatcher forums");
-    if (JConfig.debugging) JBidToolBar.addbutton(bidBar, inAction, "Report Bug", getSource("report_bug.png"), "Report bug");
+    ButtonMaker.addbutton(bidBar, inAction, "Forum", getSource("forum.png"), "JBidwatcher forums");
+    if (JConfig.debugging) ButtonMaker.addbutton(bidBar, inAction, "Report Bug", getSource("report_bug.png"), "Report bug");
 
     if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
       bidBar.setFloatable(false);
@@ -143,48 +143,6 @@ public class JBidToolBar {
     mBidMenu.add(AuctionServerManager.getInstance().addAuctionServerMenus().getMenu());
     mBidMenu.add(Box.createHorizontalGlue());
     inFrame.setJMenuBar(mBidMenu);
-  }
-
-  /**
-   * @brief Add a toolbar button to the display, with a particular action, name, image, and tooltip.
-   *
-   * @param jtb - The toolbar to add to.
-   * @param inAction - The ActionListener who will listen for actions on this button.
-   * @param buttonName - The action name that will be sent to the action listener when the button is pressed.
-   * @param buttonImage - The image to use for the button.
-   * @param buttonTip - The tooltip to pop up for the button.
-   */
-  public static void addbutton(JToolBar jtb, ActionListener inAction, String buttonName, String buttonImage, String buttonTip) {
-    final JButton newButton = makeButton(buttonImage, buttonTip, buttonName, inAction, false);
-
-    if(Platform.isMac()) {
-      newButton.setBorder(null);
-      newButton.setBorderPainted(false);
-      newButton.setContentAreaFilled(false);
-      newButton.setRolloverEnabled(true);
-      newButton.putClientProperty("Quaqua.Button.style", "toolBarRollover");
-    }
-
-    jtb.add(newButton);
-  }
-
-  public static JButton makeButton(String buttonImage, String buttonTip, String buttonName, ActionListener inAction, boolean shrink) {
-    JButton newButton = new JButton();
-    URL iconRes = JConfig.getResource(buttonImage);
-    ImageIcon newImage = new ImageIcon(iconRes);
-
-    newButton.setIcon(newImage);
-    if(shrink) {
-      Dimension size = new Dimension(newImage.getIconWidth(), newImage.getIconHeight());
-      newButton.setSize(size);
-      newButton.setMaximumSize(size);
-      newButton.setMinimumSize(size);
-      newButton.setPreferredSize(size);
-    }
-    newButton.setToolTipText(buttonTip);
-    newButton.setActionCommand("BT-" + buttonName);
-    newButton.addActionListener(inAction);
-    return newButton;
   }
 
   private JBidToolBar() {
