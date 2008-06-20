@@ -9,6 +9,7 @@ import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.ui.table.Selector;
 import com.jbidwatcher.ui.table.TableSorter;
+import com.jbidwatcher.ui.util.JMouseAdapter;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -17,7 +18,7 @@ import java.awt.event.ActionEvent;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class JTabManager extends JBidMouse {
+public class JTabManager extends JMouseAdapter {
   private JTabbedPane mAuctionTypes;
   private Map<String, TableSorter> mNameTableMap = new TreeMap<String, TableSorter>();
   private JTabPopupMenu mPopupMenu;
@@ -162,7 +163,7 @@ public class JTabManager extends JBidMouse {
       }
     }
 
-    DoAction(ae.getSource(), actionString, whichAuction);
+    MQFactory.getConcrete("user").enqueue(new ActionTriple(ae.getSource(), actionString, whichAuction));
   }
 
   public void sortDefault() {

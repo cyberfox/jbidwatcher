@@ -13,6 +13,7 @@ import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
 import com.jbidwatcher.ui.table.TableSorter;
+import com.jbidwatcher.ui.table.AuctionTable;
 import com.jbidwatcher.platform.Platform;
 
 import javax.swing.*;
@@ -24,10 +25,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.util.*;
 import java.util.List;
 
@@ -41,14 +38,12 @@ public class AuctionsUIModel {
   private JPrintable _print;
   private CSVExporter _export;
   private JLabel _prices;
+  private JPanel mPanel;
 
   private static final int DEFAULT_COLUMN_WIDTH=75;
   private static final int DEFAULT_ROW_HEIGHT=16;
   private static final int MICROTHUMBNAIL_ROW_HEIGHT = 70;
   private static final myTableCellRenderer _myRenderer = new myTableCellRenderer();
-  private static final JContext tableAdapter = new JBidMouse();
-  private static final JMouseAdapter frameAdapter = new JBidFrameMouse();
-  private static final JTabManager allTabs = new JTabManager();
   private TableSorter _tSort;
 
   /**
@@ -57,15 +52,18 @@ public class AuctionsUIModel {
    * @param newAuctionList - The auction list to use as a 'backing
    * store' for displaying lists of auctions.
    *
+   * @param tableContextMenu - The context menu to present for this table.
+   * @param frameContextMenu - The context menu to present for whitespace outside the table.
+   * @param cornerButton - The button to sit above the scrollbar.
    */
-  public AuctionsUIModel(Auctions newAuctionList) {
+  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, JContext frameContextMenu, JButton cornerButton) {
     _dataModel = newAuctionList;
 
     _targets = new DropTarget[2];
 
     _tSort = new TableSorter(_dataModel.getName(), "Time left", new auctionTableModel(_dataModel.getList()));
 
-    _table = prepTable(_dataModel.getName(), _tSort);
+    _table = new AuctionTable(_dataModel.getName(), _tSort);
     if(newAuctionList.isCompleted()) {
       if(_table.convertColumnIndexToView(TableColumnController.END_DATE) == -1) {
         _table.addColumn(new TableColumn(TableColumnController.END_DATE, DEFAULT_COLUMN_WIDTH, _myRenderer, null));
@@ -81,7 +79,7 @@ public class AuctionsUIModel {
     if (_table.convertColumnIndexToView(TableColumnController.THUMBNAIL) != -1) {
       _table.setRowHeight(MICROTHUMBNAIL_ROW_HEIGHT);
     }
-    _table.addMouseListener(tableAdapter);
+    _table.addMouseListener(tableContextMenu);
     _tSort.addMouseListenerToHeaderInTable(_table);
     if(Platform.isMac() || JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
       _scroller = new JScrollPane(_table, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -91,20 +89,12 @@ public class AuctionsUIModel {
 
     //  This is a button to manage the custom columns for the current tab.
     if(JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
-      final JButton bangButton = new JButton("*");
-      bangButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          JMenu bangMenu = allTabs.getCustomColumnMenu();
-          bangMenu.getPopupMenu().show(bangButton, 0, 0);
-        }
-      });
-
-      _scroller.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, bangButton);
+      _scroller.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, cornerButton);
     }
 
     _bgColor = UIManager.getColor("window");
     _scroller.getViewport().setBackground(_bgColor);
-    _scroller.getViewport().addMouseListener(frameAdapter);
+    _scroller.getViewport().addMouseListener(frameContextMenu);
 
     JDropListener _dropEar;
     if(newAuctionList.isCompleted()) {
@@ -123,37 +113,23 @@ public class AuctionsUIModel {
     _table.setDefaultRenderer(String.class, _myRenderer);
     _table.setDefaultRenderer(Icon.class, _myRenderer);
 
-    JPanel jp = new JPanel();
-    jp.setLayout(new BorderLayout());
-    jp.add(_scroller, BorderLayout.CENTER);
-    JPanel jp2 = buildBottomPanel();
-    jp.add(jp2, BorderLayout.SOUTH);
-    //allTabs.add(_dataModel.getName(), _scroller, _dataModel.getTableSorter());
-    allTabs.add(_dataModel.getName(), jp, _tSort);
+    mPanel = new JPanel();
+    mPanel.setLayout(new BorderLayout());
+    mPanel.add(_scroller, BorderLayout.CENTER);
+    JPanel jp2 = buildBottomPanel(tableContextMenu);
+    mPanel.add(jp2, BorderLayout.SOUTH);
   }
 
-  private JPanel buildBottomPanel() {
+  public JPanel getPanel() {
+    return mPanel;
+  }
+
+  private JPanel buildBottomPanel(JContext tableContextMenu) {
     JPanel jp2 = new JPanel();
     jp2.setLayout(new BorderLayout());
     _prices = new JLabel(" ");
     jp2.add(_prices, BorderLayout.EAST);
-    if(JConfig.queryConfiguration("display.bottombuttons", "false").equals("true")) {
-      Box buttonBox = Box.createHorizontalBox();
-
-      final JButton _snipe = tableAdapter.makeButton("Snipe");
-      final JButton _buy = tableAdapter.makeButton("Buy");
-      final JButton _bid = tableAdapter.makeButton("Bid");
-      buttonBox.add(_snipe);
-      buttonBox.add(_buy);
-      buttonBox.add(_bid);
-
-      jp2.add(buttonBox, BorderLayout.WEST);
-      _snipe.setText("  Snipe   ");
-      _bid.setEnabled(true);
-      _buy.setEnabled(true);
-    } else {
-      jp2.add(ButtonMaker.makeButton("icons/xml.png", "Show RSS feed information", "RSS", allTabs, true), BorderLayout.WEST);
-    }
+    jp2.add(ButtonMaker.makeButton("icons/xml.png", "Show RSS feed information", "RSS", tableContextMenu, true), BorderLayout.WEST);
     _table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent event) {
         int[] rowList = _table.getSelectedRows();
@@ -328,17 +304,6 @@ public class AuctionsUIModel {
   }
 
   /**
-   * @brief Retrieve the tab manager which controls ALL the tabs that
-   * are displaying UI models.
-   *
-   * This shouldn't be in this class.
-   *
-   * @return A JTabManager which handles all the tabs into which are
-   * rendered UI models.
-   */
-  public static JTabManager getTabManager() { return allTabs; }
-
-  /**
    * @brief Sets the background color for this tab to the passed in color.
    *
    * @param bgColor - The color to set the background to.
@@ -454,84 +419,6 @@ public class AuctionsUIModel {
     }
   }
 
-  /**
-   * @brief Constructs a JTable out of a prefix to search for in the
-   * configuration, and a TableModel to apply to the table.
-   *
-   * The TableModel has the list of column names, and when you add
-   * "prefix." to the front of them, it makes a configuration entry
-   * which says the size of that column.
-   *
-   * @param prefix - A string that gets prepended to the column name
-   *                 in order to produce a display property showing
-   *                 the preferred width of that column.
-   * @param atm - A TableModel that will be used for rendering the table.
-   *
-   * @return A new JTable, properly spaced and filled out according to
-   *         the configuration preferences.
-   */
-  private JTable prepTable(String prefix, TableModel atm) {
-    //  Assertions.  prefix and atm cannot be null.
-    if(prefix == null) throw new NullPointerException("prepTable(prefix == null)");
-    if(atm == null) throw new NullPointerException("prepTable(, atm==null)");
-
-    JTable preparedTable = new AuctionTable();
-
-    preparedTable.setShowGrid(false);
-    preparedTable.setIntercellSpacing(new Dimension(0, 0));
-    preparedTable.setDoubleBuffered(true);
-    preparedTable.setAutoCreateColumnsFromModel(false);
-
-    preparedTable.setModel(atm);
-    String curColumnName = "";
-
-    TreeMap<String, Integer> initialToSaved = new TreeMap<String, Integer>();
-    //  This code would need to be somewhat revamped if we allowed
-    //  arbitrary, or user-selected column names.
-    try {
-      for(int i = 0; i<atm.getColumnCount(); i++) {
-        curColumnName = atm.getColumnName(i);
-        //noinspection StringContatenationInLoop
-        String colWidth = JConfig.queryDisplayProperty(prefix + '.' + curColumnName);
-        if(colWidth == null) {
-          colWidth = JConfig.queryDisplayProperty(curColumnName);
-        }
-        if(colWidth != null) {
-          TableColumn tc = new TableColumn(i);
-          tc.setHeaderValue(curColumnName);
-          tc.setIdentifier(curColumnName);
-          preparedTable.addColumn(tc);
-          int dotIndex = colWidth.indexOf('.');
-          if(dotIndex != -1) {
-            String colIndex = colWidth.substring(0, dotIndex);
-            colWidth = colWidth.substring(dotIndex+1);
-            initialToSaved.put(curColumnName, Integer.parseInt(colIndex));
-          }
-          preparedTable.getColumn(curColumnName).setPreferredWidth(Integer.parseInt(colWidth));
-        }
-      }
-    } catch(Exception e) {
-      //  If we encountered any errors in earlier columns, don't try
-      //  to set later columns.
-      ErrorManagement.handleException("In display configuration for table " + prefix +", column \"" + curColumnName + "\" has an invalid property.", e);
-      ErrorManagement.logDebug("No longer loading column widths from configuration.");
-    }
-
-    if(!initialToSaved.isEmpty()) {
-      for (String colName : initialToSaved.keySet()) {
-        int colFrom = preparedTable.getColumnModel().getColumnIndex(colName);
-        int colTo = initialToSaved.get(colName);
-        try {
-          preparedTable.moveColumn(colFrom, colTo);
-        } catch (IllegalArgumentException iae) {
-          //  Ignore it, and move on.
-        }
-      }
-    }
-
-    return(preparedTable);
-  }
-
   public static String buildHTMLComment(AuctionEntry ae) {
     if(ae == null) return null;
 
@@ -588,94 +475,6 @@ public class AuctionsUIModel {
 
   public void getColumnWidthsToProperties(Properties addToProps) {
     getColumnWidthsToProperties(addToProps, _dataModel.getName());
-  }
-
-  //  Handle tooltips, at least.  A very cool feature.
-  //
-  private class AuctionTable extends JTable {
-    {
-      createDefaultRenderers();
-    }
-
-    public String getToolTipText(MouseEvent event) {
-      int rowPoint = rowAtPoint(new Point(event.getX(), event.getY()));
-      String result = null;
-
-      if(rowPoint != -1) {
-        AuctionEntry ae = (AuctionEntry) getValueAt(rowPoint, -1);
-
-        result = buildHTMLComment(ae);
-      }
-
-      return result == null ? super.getToolTipText(event) : result;
-    }
-
-    class MouseListenerSelectProxy implements MouseListener {
-      private MouseListener m_peer;
-
-      MouseListenerSelectProxy(MouseListener ml) { m_peer = ml; }
-
-      public MouseListener getPeer() { return m_peer; }
-
-      /**
-       * Invoked when the mouse button has been clicked (pressed
-       * and released) on a component.
-       */
-      public void mouseClicked(MouseEvent e) { if (!e.isPopupTrigger()) m_peer.mouseClicked(e); }
-
-      /**
-       * Invoked when the mouse enters a component.
-       */
-      public void mouseEntered(MouseEvent e) { m_peer.mouseEntered(e); }
-
-      /**
-       * Invoked when the mouse exits a component.
-       */
-      public void mouseExited(MouseEvent e) { m_peer.mouseExited(e); }
-
-      /**
-       * Invoked when a mouse button has been pressed on a component.
-       */
-      public void mousePressed(MouseEvent e) { if (!e.isPopupTrigger()) m_peer.mousePressed(e); }
-
-      /**
-       * Invoked when a mouse button has been released on a component.
-       */
-      public void mouseReleased(MouseEvent e) { if (!e.isPopupTrigger()) m_peer.mouseReleased(e); }
-    }
-
-    private final static String METAL_MOUSE_LISTENER = "javax.swing.plaf.basic.BasicTableUI$MouseInputHandler";
-    private final static String AQUA_MOUSE_LISTENER = "apple.laf.AquaTableUI$MouseInputHandler";
-
-    /** @noinspection InstanceVariableMayNotBeInitialized*/
-    // DO NOT INITIALIZE proxyMouseListener!!!!!
-    // It is used in addMouseListener BEFORE the constuctor is run
-    // (called from the base class constructor). If it is set here
-    // or in the constructor, it will clobber the value set by the
-    // call from the base class constructor.
-    private MouseListenerSelectProxy proxyMouseListener;
-
-    public synchronized void addMouseListener(MouseListener ml) {
-      String mlClass = ml.getClass().getName();
-      if ((proxyMouseListener == null) &&
-          (mlClass.equals(METAL_MOUSE_LISTENER) ||
-           mlClass.equals(AQUA_MOUSE_LISTENER))) {
-        proxyMouseListener = new MouseListenerSelectProxy(ml);
-        super.addMouseListener(proxyMouseListener);
-      } else {
-        super.addMouseListener(ml);
-      }
-    }
-
-    public synchronized void removeMouseListener(MouseListener ml) {
-      //noinspection ObjectEquality
-      if ((proxyMouseListener != null) && (ml == proxyMouseListener.getPeer())) {
-        super.removeMouseListener(proxyMouseListener);
-        proxyMouseListener = null;
-      } else {
-        super.removeMouseListener(ml);
-      }
-    }
   }
 
   public void sort() {

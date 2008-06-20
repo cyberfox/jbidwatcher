@@ -327,11 +327,11 @@ public class JBidMenuBar extends JMenuBar {
   }
 
   private void establishTabMenu(JMenu tabMenu) {
-    final JTabPopupMenu pop = new JTabPopupMenu(AuctionsUIModel.getTabManager().getTabs(), tabMenu.getPopupMenu());
+    final JTabPopupMenu pop = new JTabPopupMenu(FilterManager.getTabManager().getTabs(), tabMenu.getPopupMenu());
 
     tabMenu.getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
       public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-        pop.preparePopup(AuctionsUIModel.getTabManager().getTabs().getSelectedIndex());
+        pop.preparePopup(FilterManager.getTabManager().getTabs().getSelectedIndex());
       }
 
       public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }

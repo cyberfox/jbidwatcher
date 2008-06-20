@@ -8,6 +8,7 @@ package com.jbidwatcher.ui;//  -*- Java -*-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.datatransfer.*;
+import java.awt.datatransfer.Clipboard;
 import java.io.*;
 import javax.swing.*;
 import java.util.*;
@@ -19,7 +20,7 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.config.JConfigTab;
-import com.jbidwatcher.ui.util.OptionUI;
+import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.db.ActiveRecordCache;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
@@ -80,6 +81,16 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   public void messageAction(Object deQ) {
+    if(deQ instanceof String) {
+      handleStringMessage(deQ);
+    }
+    if(deQ instanceof ActionTriple) {
+      ActionTriple action = (ActionTriple)deQ;
+      DoAction(action.getSource(), action.getCommand(), action.getAuction());
+    }
+  }
+
+  private void handleStringMessage(Object deQ) {
     String commandStr = (String) deQ;
 
     if(commandStr.startsWith(ADD_AUCTION)) {
@@ -324,13 +335,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
 
     return clipString;
-  }
-
-  public static void setClipboardString(String saveString) {
-    Clipboard sysClip = Toolkit.getDefaultToolkit().getSystemClipboard();
-    StringSelection t = new StringSelection(saveString);
-
-    sysClip.setContents(t, t);
   }
 
   private static Pattern digitSearch = Pattern.compile("[0-9]+");
@@ -1295,12 +1299,12 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
         sb.append(getActionValue(action, tempEntry));
       }
 
-      setClipboardString(sb.toString());
+      com.jbidwatcher.ui.util.Clipboard.setClipboardString(sb.toString());
     } else {
       //  Shortcut to not have to create and destroy a Stringbuffer
       if(rowList.length == 1) ae = (AuctionEntry) getIndexedEntry(rowList[0]);
 
-      setClipboardString(getActionValue(action, ae));
+      com.jbidwatcher.ui.util.Clipboard.setClipboardString(getActionValue(action, ae));
     }
   }
 
@@ -1430,7 +1434,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     if(tabMenu != null) {
       tabMenu.removeAll();
 
-      JTabbedPane tabbedPane = AuctionsUIModel.getTabManager().getTabs();
+      JTabbedPane tabbedPane = FilterManager.getTabManager().getTabs();
       String currentTitle = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
       List<String> tabs = FilterManager.getInstance().allCategories();
       if(tabs == null) {

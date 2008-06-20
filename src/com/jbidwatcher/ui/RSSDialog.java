@@ -74,7 +74,7 @@ public class RSSDialog extends BasicDialog {
 
   public void fireCopy(String feedName) {
     String url = "http://" + getHost() + ":" + JConfig.queryConfiguration("server.port", "9099") + "/syndicate/" + feedName + ".xml";
-    JBidMouse.setClipboardString(url);
+    Clipboard.setClipboardString(url);
     onOK();
   }
 

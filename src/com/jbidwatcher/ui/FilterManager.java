@@ -12,27 +12,43 @@ import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
 
+import javax.swing.*;
 import java.util.*;
 import java.awt.Color;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class FilterManager implements MessageQueue.Listener {
-  private static FilterManager _instance = null;
+  private static FilterManager sInstance = null;
+  private static final JTabManager allTabs = new JTabManager();
 
   private AuctionListHolder _main = null;
-  private final List<AuctionListHolder> _allLists;
-  private Map<AuctionEntry, Auctions> _allOrderedAuctionEntries;
+  private final List<AuctionListHolder> mAllLists;
+  private Map<AuctionEntry, Auctions> mAllOrderedAuctionEntries;
+  private JBidContext mTableContextMenu, mFrameContextMenu;
+  private JButton mCornerButton;
 
   private FilterManager() {
     //  Sorted by the 'natural order' of AuctionEntries.
-    _allOrderedAuctionEntries = new TreeMap<AuctionEntry, Auctions>();
+    mAllOrderedAuctionEntries = new TreeMap<AuctionEntry, Auctions>();
 
-    _allLists = Collections.synchronizedList(new ArrayList<AuctionListHolder>(3));
+    mAllLists = Collections.synchronizedList(new ArrayList<AuctionListHolder>(3));
+
+    mTableContextMenu = new JBidMouse();
+    mFrameContextMenu = new JBidFrameMouse();
+    mCornerButton = new JButton("*");
+    mCornerButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        JMenu bangMenu = allTabs.getCustomColumnMenu();
+        bangMenu.getPopupMenu().show(mCornerButton, 0, 0);
+      }
+    });
   }
 
   public boolean toggleField(String tabName, String field) {
-    synchronized(_allLists) {
-      for (int i = _allLists.size() - 1; i >= 0; i--) {
-        AuctionListHolder step = _allLists.get(i);
+    synchronized(mAllLists) {
+      for (int i = mAllLists.size() - 1; i >= 0; i--) {
+        AuctionListHolder step = mAllLists.get(i);
         if (step.getList().getName().equals(tabName)) {
           boolean visible = step.getUI().toggleField(field);
           if (!visible) JConfig.killDisplay(tabName + '.' + field);
@@ -44,9 +60,9 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   public List<String> getColumns(String tabName) {
-    synchronized (_allLists) {
-      for (int i = _allLists.size() - 1; i >= 0; i--) {
-        AuctionListHolder step = _allLists.get(i);
+    synchronized (mAllLists) {
+      for (int i = mAllLists.size() - 1; i >= 0; i--) {
+        AuctionListHolder step = mAllLists.get(i);
         if (step.getList().getName().equals(tabName)) {
           return step.getUI().getColumns();
         }
@@ -56,9 +72,9 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   public boolean exportTab(String tabName, String fname) {
-    synchronized (_allLists) {
-      for(int i=_allLists.size()-1; i>=0; i--) {
-        AuctionListHolder step = _allLists.get(i);
+    synchronized (mAllLists) {
+      for(int i= mAllLists.size()-1; i>=0; i--) {
+        AuctionListHolder step = mAllLists.get(i);
         if (step.getList().getName().equals(tabName)) {
           return step.getUI().export(fname);
         }
@@ -68,8 +84,8 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   private class AuctionListHolder {
-    private Auctions auctionList;
-    private AuctionsUIModel auctionUI;
+    private Auctions mAuctionList;
+    private AuctionsUIModel mAuctionUI;
     private boolean mDeletable = true;
 
     public boolean isDeletable() {
@@ -86,30 +102,31 @@ public class FilterManager implements MessageQueue.Listener {
 
     AuctionListHolder(String name, Color presetBackground) {
       this(name, false, false, true);
-      auctionUI.setBackground(presetBackground);
+      mAuctionUI.setBackground(presetBackground);
     }
 
     AuctionListHolder(String name, boolean _completed, boolean _selling, boolean deletable) {
-      auctionList = new Auctions(name);
-      if(_completed) auctionList.setComplete();
-      if(_selling) auctionList.setSelling();
-      auctionUI = new AuctionsUIModel(auctionList);
+      mAuctionList = new Auctions(name);
+      if(_completed) mAuctionList.setComplete();
+      if(_selling) mAuctionList.setSelling();
+      mAuctionUI = new AuctionsUIModel(mAuctionList, mTableContextMenu, mFrameContextMenu, mCornerButton);
       mDeletable = deletable;
+      allTabs.add(name, mAuctionUI.getPanel(), mAuctionUI.getTableSorter());
     }
 
-    public Auctions getList() { return auctionList; }
-    public AuctionsUIModel getUI() { return auctionUI; }
+    public Auctions getList() { return mAuctionList; }
+    public AuctionsUIModel getUI() { return mAuctionUI; }
   }
 
   public void loadFilters() {
     //  BUGBUG -- Hardcoded for now, make dynamic later (post 0.8 release).
     _main = new AuctionListHolder("current");
     _main.setDeletable(false);
-    synchronized (_allLists) {
-      _allLists.add(_main);
+    synchronized (mAllLists) {
+      mAllLists.add(_main);
 
-      _allLists.add(new AuctionListHolder("complete", true, false, false));
-      _allLists.add(new AuctionListHolder("selling", false, true, false));
+      mAllLists.add(new AuctionListHolder("complete", true, false, false));
+      mAllLists.add(new AuctionListHolder("selling", false, true, false));
 
       String tabName;
       int i = 1;
@@ -117,7 +134,7 @@ public class FilterManager implements MessageQueue.Listener {
       do {
         tabName = JConfig.queryDisplayProperty("tabs.name." + i++);
         if (tabName != null) {
-          _allLists.add(new AuctionListHolder(tabName));
+          mAllLists.add(new AuctionListHolder(tabName));
         }
       } while (tabName != null);
     }
@@ -129,16 +146,16 @@ public class FilterManager implements MessageQueue.Listener {
     _main.getUI().getColumnWidthsToProperties(dispProps, newTab);
     JConfig.addAllToDisplay(dispProps);
     AuctionListHolder newList = new AuctionListHolder(newTab, mainBackground);
-    synchronized (_allLists) {
-      _allLists.add(newList);
+    synchronized (mAllLists) {
+      mAllLists.add(newList);
     }
     return newList;
   }
 
   public boolean printTab(String tabName) {
-    synchronized (_allLists) {
-      for(int i=_allLists.size()-1; i>=0; i--) {
-        AuctionListHolder step = _allLists.get(i);
+    synchronized (mAllLists) {
+      for(int i= mAllLists.size()-1; i>=0; i--) {
+        AuctionListHolder step = mAllLists.get(i);
         if (step.getList().getName().equals(tabName)) {
           step.getUI().print();
           return true;
@@ -151,14 +168,14 @@ public class FilterManager implements MessageQueue.Listener {
   public boolean deleteTab(String oldTab, boolean deleteFirst) {
     boolean didRemove = false;
 
-    synchronized (_allLists) {
-      for(int i=_allLists.size()-1; i>=0; i--) {
-        AuctionListHolder step = _allLists.get(i);
+    synchronized (mAllLists) {
+      for(int i= mAllLists.size()-1; i>=0; i--) {
+        AuctionListHolder step = mAllLists.get(i);
         if (step.getList().getName().equals(oldTab)) {
           if (!step.isDeletable()) return false;
-          _allLists.remove(i);
+          mAllLists.remove(i);
           removeAuctionsFromTab(deleteFirst, step);
-          AuctionsUIModel.getTabManager().getTabs().remove(i);
+          getTabManager().getTabs().remove(i);
           didRemove = true;
         }
       }
@@ -183,11 +200,11 @@ public class FilterManager implements MessageQueue.Listener {
    * @return - The singleton instance of this class.
    */
   public synchronized static FilterManager getInstance() {
-    if(_instance == null) {
-      _instance = new FilterManager();
-      MQFactory.getConcrete("redraw").registerListener(_instance);
+    if(sInstance == null) {
+      sInstance = new FilterManager();
+      MQFactory.getConcrete("redraw").registerListener(sInstance);
     }
-    return _instance;
+    return sInstance;
   }
 
   public void messageAction(Object deQ) {
@@ -206,16 +223,16 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   public void redrawEntry(AuctionEntry ae) {
-    synchronized (_allLists) {
-      for (AuctionListHolder step : _allLists) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
         if (step.getUI().redrawEntry(ae)) return;
       }
     }
   }
 
   public void check() {
-    synchronized (_allLists) {
-      for (AuctionListHolder step : _allLists) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
         if (!step.getList().isCompleted()) {
           step.getUI().redraw();
         }
@@ -228,19 +245,19 @@ public class FilterManager implements MessageQueue.Listener {
    * @param ae - The auction to delete.
    */
   public void deleteAuction(AuctionEntry ae) {
-    Auctions whichAuctionCollection = _allOrderedAuctionEntries.get(ae);
+    Auctions whichAuctionCollection = mAllOrderedAuctionEntries.get(ae);
 
     if(whichAuctionCollection == null) whichAuctionCollection = whereIsAuction(ae);
 
     if(whichAuctionCollection != null) {
       matchUI(whichAuctionCollection).delEntry(ae);
     }
-    _allOrderedAuctionEntries.remove(ae);
+    mAllOrderedAuctionEntries.remove(ae);
   }
 
   private AuctionsUIModel matchUI(Auctions list) {
-    synchronized (_allLists) {
-      for (AuctionListHolder step : _allLists) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
         if (step.getList() == list) return step.getUI();
       }
     }
@@ -254,12 +271,12 @@ public class FilterManager implements MessageQueue.Listener {
   * @param ae - The auction to add.
   */
   public void addAuction(AuctionEntry ae) {
-    Auctions whichAuctionCollection = _allOrderedAuctionEntries.get(ae);
+    Auctions whichAuctionCollection = mAllOrderedAuctionEntries.get(ae);
 
     if(whichAuctionCollection == null) {
       whichAuctionCollection = whereIsAuction(ae);
       if(whichAuctionCollection != null) {
-        _allOrderedAuctionEntries.put(ae, whichAuctionCollection);
+        mAllOrderedAuctionEntries.put(ae, whichAuctionCollection);
       }
     }
 
@@ -276,19 +293,19 @@ public class FilterManager implements MessageQueue.Listener {
       if(newAuctionCollection != null) {
         if (newAuctionCollection.allowAddEntry(ae)) {
           matchUI(newAuctionCollection).addEntry(ae);
-          _allOrderedAuctionEntries.put(ae, newAuctionCollection);
+          mAllOrderedAuctionEntries.put(ae, newAuctionCollection);
         }
       }
     }
   }
 
   public Iterator<AuctionEntry> getAuctionIterator() {
-    return _allOrderedAuctionEntries.keySet().iterator();
+    return mAllOrderedAuctionEntries.keySet().iterator();
   }
 
   private Auctions findSellerList() {
-    synchronized (_allLists) {
-      for (AuctionListHolder step : _allLists) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
         if (step.getList().isSelling()) return step.getList();
       }
     }
@@ -296,8 +313,8 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   private Auctions findCompletedList() {
-    synchronized (_allLists) {
-      for (AuctionListHolder step : _allLists) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
         if (step.getList().isCompleted()) return step.getList();
       }
     }
@@ -314,8 +331,8 @@ public class FilterManager implements MessageQueue.Listener {
   public Auctions findCategory(String categoryName) {
     if(categoryName == null) return null;
 
-    synchronized (_allLists) {
-      for (AuctionListHolder step : _allLists) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
         if (categoryName.equals(step.getList().getName())) return step.getList();
       }
     }
@@ -325,8 +342,8 @@ public class FilterManager implements MessageQueue.Listener {
   public List<String> allCategories() {
     List<String> resultSet = null;
 
-    synchronized (_allLists) {
-      for (AuctionListHolder step : _allLists) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
         if (resultSet == null) resultSet = new ArrayList<String>();
         resultSet.add(step.getList().getName());
       }
@@ -376,16 +393,16 @@ public class FilterManager implements MessageQueue.Listener {
    * @param bgColor - The color to set the background to.
    */
   public void setBackground(Color bgColor) {
-    synchronized (_allLists) {
-      for (AuctionListHolder step : _allLists) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
         step.getUI().setBackground(bgColor);
       }
     }
   }
 
   public Auctions whereIsAuction(AuctionEntry ae) {
-    synchronized (_allLists) {
-      for (AuctionListHolder step : _allLists) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
         if (step.getList().verifyEntry(ae)) return step.getList();
       }
     }
@@ -394,8 +411,8 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   public Auctions whereIsAuction(String aucId) {
-    synchronized (_allLists) {
-      for (AuctionListHolder step : _allLists) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
         if (step.getList().verifyEntry(aucId)) return step.getList();
       }
     }
@@ -418,7 +435,7 @@ public class FilterManager implements MessageQueue.Listener {
    */
   public Auctions refilterAuction(AuctionEntry ae) {
     Auctions newAuctions = matchAuction(ae);
-    Auctions oldAuctions = _allOrderedAuctionEntries.get(ae);
+    Auctions oldAuctions = mAllOrderedAuctionEntries.get(ae);
 
     if(oldAuctions == null) {
       oldAuctions = whereIsAuction(ae);
@@ -465,14 +482,14 @@ public class FilterManager implements MessageQueue.Listener {
     if(oldUI != null) oldUI.delEntry(ae);
     if(newUI != null) newUI.addEntry(ae);
 
-    _allOrderedAuctionEntries.put(ae,newAuctions);
+    mAllOrderedAuctionEntries.put(ae,newAuctions);
     return newAuctions;
   }
 
   public Properties extractProperties(Properties outProps) {
-    synchronized (_allLists) {
-      for(int i = 0; i<_allLists.size(); i++) {
-        AuctionListHolder step = _allLists.get(i);
+    synchronized (mAllLists) {
+      for(int i = 0; i< mAllLists.size(); i++) {
+        AuctionListHolder step = mAllLists.get(i);
 
         // getSortProperties must be called first in order to restore original column names
         step.getUI().getTableSorter().getSortProperties(step.getList().getName(), outProps);
@@ -499,16 +516,25 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   public int listLength() {
-    synchronized (_allLists) {
-      return _allLists.size();
+    synchronized (mAllLists) {
+      return mAllLists.size();
     }
   }
 
   public Auctions getList(int index) {
     AuctionListHolder ret;
-    synchronized (_allLists) {
-      ret = _allLists.get(index);
+    synchronized (mAllLists) {
+      ret = mAllLists.get(index);
     }
     return ret.getList();
   }
+
+  /**
+   * @brief Retrieve the tab manager which controls ALL the tabs that
+   * are displaying UI models.
+   *
+   * @return A JTabManager which handles all the tabs into which are
+   * rendered UI models.
+   */
+  public static JTabManager getTabManager() { return allTabs; }
 }
