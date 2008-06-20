@@ -205,10 +205,8 @@ public abstract class AuctionServer implements AuctionServerInterface {
     SpecificAuction curAuction = (SpecificAuction) loadAuction(auctionURL, inEntry.getIdentifier(), inEntry);
 
     if (curAuction != null) {
-      AuctionServerManager.getInstance().deleteEntry(inEntry);
       inEntry.setAuctionInfo(curAuction);
       inEntry.clearInvalid();
-      AuctionServerManager.getInstance().addEntry(inEntry);
       MQFactory.getConcrete("Swing").enqueue("LINK UP");
     } else {
       if(!inEntry.isDeleted() && !inEntry.getLastStatus().equals("Seller away - item unavailable.")) {

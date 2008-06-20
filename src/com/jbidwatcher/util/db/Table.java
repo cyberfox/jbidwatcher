@@ -122,12 +122,12 @@ public class Table
     return findByColumn(key, value);
   }
 
-  public Record findFirstBy(String conditions) {
+  public Record findFirstBy(String query) {
     try {
-      ResultSet rs = mS.executeQuery("select * FROM " + mTableName + " WHERE " + conditions);
+      ResultSet rs = mS.executeQuery(query);
       return getFirstResult(rs);
     } catch (SQLException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      e.printStackTrace();
       return null;
     }
   }

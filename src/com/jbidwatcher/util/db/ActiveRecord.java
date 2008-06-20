@@ -36,12 +36,14 @@ public abstract class ActiveRecord extends HashBacked {
   protected abstract Table getDatabase();
 
   /**
-   * This returns the count of entries in the table.
+   * This returns the count of entries in the table for an ActiveRecord descendant.
    *
-   * @return - The count of entries in the database table.
+   * @param klass - The class to count for.
+   *
+   * @return - The count of entries in the database table associated with the given class.
    */
-  public int count() {
-    return getDatabase().count();
+  public static int count(Class klass) {
+    return getExemplar(klass).getDatabase().count();
   }
 
   public void commit() {
@@ -166,10 +168,35 @@ public abstract class ActiveRecord extends HashBacked {
     return id != null && getDatabase().delete(Integer.parseInt(id));
   }
 
+  protected static ActiveRecord findFirstBySQL(Class klass, String query) {
+    ActiveRecord found = getExemplar(klass);
+    Record result = getTable(found).findFirstBy(query);
+    if (result != null && !result.isEmpty()) {
+      found.setBacking(result);
+    } else {
+      found = null;
+    }
+    return found;
+  }
+
+  protected static ActiveRecord findFirstByUncached(Class klass, String key, String value) {
+    ActiveRecord found = getExemplar(klass);
+    Record result = getTable(found).findFirstBy(key, value);
+    if (result != null && !result.isEmpty()) {
+      found.setBacking(result);
+    } else {
+      found = null;
+    }
+    return found;
+  }
+
   protected static ActiveRecord findFirstBy(Class klass, String key, String value) {
     ActiveRecord cached = ActiveRecordCache.cached(klass, key, value);
     if(cached != null) return cached;
 
-    return ActiveRecordCache.findFirstByUncached(klass, key, value);
+    cached = findFirstByUncached(klass, key, value);
+    if (cached != null) ActiveRecordCache.cache(klass, key, value, cached);
+
+    return cached;
   }
 }

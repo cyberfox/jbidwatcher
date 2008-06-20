@@ -14,18 +14,6 @@ import java.util.*;
  * Adds rudimentary caching to the ActiveRecord objects.
  */
 public abstract class ActiveRecordCache extends ActiveRecord {
-  protected static ActiveRecord findFirstByUncached(Class klass, String key, String value) {
-    ActiveRecord found = getExemplar(klass);
-    Record result = getTable(found).findFirstBy(key, value);
-    if (result != null && !result.isEmpty()) {
-      found.setBacking(result);
-    } else {
-      found = null;
-    }
-    if(found != null) cache(klass, key, value, found);
-    return found;
-  }
-
   private final static Map<Class, SoftMap<String, ActiveRecord>> sCache=new HashMap<Class, SoftMap<String, ActiveRecord>>();
 
   public static Map<String, ActiveRecord> getCache(final Class klass) {

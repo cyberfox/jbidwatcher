@@ -398,13 +398,11 @@ public class AuctionsUIModel {
 
     boolean inserted = (_tSort.insert(aeNew) != -1);
 
-    if (inserted) {
-      AuctionServerManager.getInstance().addEntry(aeNew);
-      return true;
+    if (!inserted) {
+      ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
     }
-    ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
 
-    return false;
+    return inserted;
   }
 
   /**

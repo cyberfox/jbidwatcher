@@ -32,7 +32,6 @@ import java.util.*;
  * been for many years.
  */
 public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener {
-  private final List<AuctionEntry> mEntryList = Collections.synchronizedList(new ArrayList<AuctionEntry>());
   private final static AuctionServerManager mInstance;
   private static EntryManager sEntryManager = null;
   private AuctionServer mServer;
@@ -50,16 +49,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   public static void setEntryManager(EntryManager newEM) { sEntryManager = newEM; }
 
   public List<AuctionEntry> allSniped() {
-    if(mEntryList == null) return null;
-
-    List<AuctionEntry> sniped = new ArrayList<AuctionEntry>();
-
-    synchronized (mEntryList) {
-      for(AuctionEntry ae : mEntryList) {
-        if(ae.isSniped()) sniped.add(ae);
-      }
-    }
-    return sniped;
+    return AuctionEntry.findAllSniped();
   }
 
   public AuctionServer getServerByName(String name) {
@@ -206,37 +196,32 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
   public XMLElement toXML() {
     XMLElement xmlResult = new XMLElement("auctions");
+    XMLElement serverChild = new XMLElement("server");
+    List<AuctionEntry> entryList = AuctionEntry.findAll();
     int aucCount = 0;
 
-    XMLElement serverChild = new XMLElement("server");
+    if (entryList == null || entryList.isEmpty()) return null;
 
     serverChild.setProperty("name", mServer.getName());
 
-    if (mEntryList == null) return null;
-    synchronized (mEntryList) {
-      aucCount += mEntryList.size();
+    aucCount += entryList.size();
 
-      for (AuctionEntry ae : mEntryList) {
-        try {
-          serverChild.addChild(ae.toXML());
-        } catch (Exception e) {
-          ErrorManagement.handleException("Exception trying to save auction " + ae.getIdentifier() + " (" + ae.getTitle() + ") -- Not saving", e);
-        }
+    for (AuctionEntry ae : entryList) {
+      try {
+        serverChild.addChild(ae.toXML());
+      } catch (Exception e) {
+        ErrorManagement.handleException("Exception trying to save auction " + ae.getIdentifier() + " (" + ae.getTitle() + ") -- Not saving", e);
       }
     }
-    xmlResult.addChild(serverChild);
 
+    xmlResult.addChild(serverChild);
     xmlResult.setProperty("count", Integer.toString(aucCount));
 
     return xmlResult;
   }
 
   public void deleteEntry(AuctionEntry ae) {
-    synchronized (mEntryList) { mEntryList.remove(ae); }
-  }
-
-  public void addEntry(AuctionEntry ae) {
-    synchronized (mEntryList) { mEntryList.add(ae); }
+    ae.delete();
   }
 
   public static AuctionServerManager getInstance() {
@@ -296,38 +281,16 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   public AuctionStats getStats() {
     AuctionStats outStat = new AuctionStats();
 
-    if(mEntryList == null) return null;
-    synchronized (mEntryList) {
-      outStat._count = mEntryList.size();
-      long lastUpdateTime = Long.MAX_VALUE;
-      long lastEndedTime = Long.MAX_VALUE;
-      long lastSnipeTime = Long.MAX_VALUE;
-      for (AuctionEntry ae : mEntryList) {
-        if (ae.isComplete()) {
-          outStat._completed++;
-        } else {
-          long thisTime = ae.getEndDate().getTime();
-          if (ae.isSniped()) {
-            outStat._snipes++;
-            if (thisTime < lastSnipeTime) {
-              outStat._nextSnipe = ae;
-              lastSnipeTime = thisTime;
-            }
-          }
+    outStat._count = AuctionEntry.count();
+    long lastUpdateTime = Long.MAX_VALUE;
+    long lastEndedTime = Long.MAX_VALUE;
+    long lastSnipeTime = Long.MAX_VALUE;
+    outStat._completed = AuctionEntry.completedCount();
+    outStat._snipes = AuctionEntry.snipedCount();
+    outStat._nextSnipe = AuctionEntry.nextSniped();
+    outStat._nextEnd = null;
+    outStat._nextUpdate = null;
 
-          if (thisTime < lastEndedTime) {
-            outStat._nextEnd = ae;
-            lastEndedTime = thisTime;
-          }
-
-          long nextTime = ae.getNextUpdate();
-          if (nextTime < lastUpdateTime) {
-            outStat._nextUpdate = ae;
-            lastUpdateTime = nextTime;
-          }
-        }
-      }
-    }
     return outStat;
   }
 }

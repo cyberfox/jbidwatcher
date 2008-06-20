@@ -961,7 +961,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     XMLElement xmlResult = new XMLElement("auction");
 
     xmlResult.setProperty("id", getIdentifier());
-    xmlResult.addChild(mAuction.toXML());
+    xmlResult.addChild(getAuction().toXML());
 
     if(isBidOn()) {
       XMLElement xbid = new XMLElement("bid");
@@ -1092,7 +1092,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     boolean shouldSnipe = false;
 
     if(isSniped()) {
-      long endDate = mAuction.getEndDate().getTime();
+      long endDate = getAuction().getEndDate().getTime();
       long curDate = getServer().getAdjustedTime();
 
       //  If the auction hasn't ended already...
@@ -1553,7 +1553,15 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   ////////////////////////////////////////
   //  Passthrough functions to AuctionInfo
 
-  protected AuctionInfo getAuction() { return mAuction; }
+  protected AuctionInfo getAuction() {
+    if(mAuction == null) {
+      String aid = get("auction_id");
+      if(aid != null && aid.length() != 0) {
+        mAuction = AuctionInfo.findFirstBy("id", aid);
+      }
+    }
+    return mAuction;
+  }
 
   /**
    * @brief Force this auction to use a particular set of auction
@@ -1597,33 +1605,33 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   /* Accessor functions that are passed through directly down
    * to the internal AuctionInfo object.
    */
-  public Currency getCurBid() { return mAuction.getCurBid(); }
-  public Currency getUSCurBid() { return mAuction.getUSCurBid(); }
-  public Currency getMinBid() { return mAuction.getMinBid(); }
+  public Currency getCurBid() { return getAuction().getCurBid(); }
+  public Currency getUSCurBid() { return getAuction().getUSCurBid(); }
+  public Currency getMinBid() { return getAuction().getMinBid(); }
 
   /**
    * @return - Shipping amount, overrides AuctionInfo shipping amount if present.
    */
   public Currency getShipping() {
     if(!getMonetary("shipping").isNull()) return getMonetary("shipping");
-    return mAuction.getShipping();
+    return getAuction().getShipping();
   }
-  public Currency getInsurance() { return mAuction.getInsurance(); }
-  public boolean getInsuranceOptional() { return mAuction.isInsuranceOptional(); }
-  public Currency getBuyNow() { return mAuction.getBuyNow(); }
+  public Currency getInsurance() { return getAuction().getInsurance(); }
+  public boolean getInsuranceOptional() { return getAuction().isInsuranceOptional(); }
+  public Currency getBuyNow() { return getAuction().getBuyNow(); }
 
-  public int getQuantity() { return mAuction.getQuantity(); }
-  public int getNumBidders() { return mAuction.getNumBidders(); }
+  public int getQuantity() { return getAuction().getQuantity(); }
+  public int getNumBidders() { return getAuction().getNumBidders(); }
 
 
-  public String getSeller() { return mAuction.getSellerName(); }
-  public String getHighBidder() { return mAuction.getHighBidder(); }
-  public String getHighBidderEmail() { return mAuction.getHighBidderEmail(); }
-  public String getTitle() { return mAuction.getTitle(); }
+  public String getSeller() { return getAuction().getSellerName(); }
+  public String getHighBidder() { return getAuction().getHighBidder(); }
+  public String getHighBidderEmail() { return getAuction().getHighBidderEmail(); }
+  public String getTitle() { return getAuction().getTitle(); }
 
   public Date getStartDate() {
-    if (mAuction != null && mAuction.getStartDate() != null) {
-      Date start = mAuction.getStartDate();
+    if (getAuction() != null && getAuction().getStartDate() != null) {
+      Date start = getAuction().getStartDate();
       if(start != null) return start;
     }
 
@@ -1631,29 +1639,29 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public Date getEndDate() {
-    if(mAuction != null && mAuction.getEndDate() != null) {
-      Date end = mAuction.getEndDate();
+    if(getAuction() != null && getAuction().getEndDate() != null) {
+      Date end = getAuction().getEndDate();
       if(end != null) return end;
     }
 
     return Constants.FAR_FUTURE;
   }
-  public Date getSnipeDate() { return new Date(mAuction.getEndDate().getTime() - getSnipeTime()); }
+  public Date getSnipeDate() { return new Date(getAuction().getEndDate().getTime() - getSnipeTime()); }
 
-  public boolean isDutch() { return mAuction.isDutch(); }
-  public boolean isReserve() { return mAuction.isReserve(); }
-  public boolean isReserveMet() { return mAuction.isReserveMet(); }
-  public boolean isPrivate() { return mAuction.isPrivate(); }
-  public boolean isFixed() { return mAuction.isFixedPrice(); }
-  public boolean isOutbid() { return mAuction.isOutbid(); }
+  public boolean isDutch() { return getAuction().isDutch(); }
+  public boolean isReserve() { return getAuction().isReserve(); }
+  public boolean isReserveMet() { return getAuction().isReserveMet(); }
+  public boolean isPrivate() { return getAuction().isPrivate(); }
+  public boolean isFixed() { return getAuction().isFixedPrice(); }
+  public boolean isOutbid() { return getAuction().isOutbid(); }
 
-  public StringBuffer getContent() { return mAuction.getContent(); }
-  public String getThumbnail() { return mAuction.getThumbnail(); }
+  public StringBuffer getContent() { return getAuction().getContent(); }
+  public String getThumbnail() { return getAuction().getThumbnail(); }
 
-  public boolean hasPaypal() { return mAuction.hasPaypal(); }
-  public String getItemLocation() { return mAuction.getItemLocation(); }
-  public String getPositiveFeedbackPercentage() { return mAuction.getPositiveFeedbackPercentage(); }
-  public int getFeedbackScore() { return mAuction.getFeedbackScore(); }
+  public boolean hasPaypal() { return getAuction().hasPaypal(); }
+  public String getItemLocation() { return getAuction().getItemLocation(); }
+  public String getPositiveFeedbackPercentage() { return getAuction().getPositiveFeedbackPercentage(); }
+  public int getFeedbackScore() { return getAuction().getFeedbackScore(); }
 
   public void setErrorPage(StringBuffer page) { mLastErrorPage = page; }
   public StringBuffer getErrorPage() { return mLastErrorPage; }
@@ -1682,7 +1690,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public String getURL() {
-    return getServer().getStringURLFromItem(mAuction.getIdentifier());
+    return getServer().getStringURLFromItem(getAuction().getIdentifier());
   }
 
   public StringBuffer getBody() throws FileNotFoundException {
@@ -1766,7 +1774,32 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public static List<AuctionEntry> findAllSniped() {
-    return (List<AuctionEntry>) ActiveRecord.findAllBySQL(AuctionEntry.class, "SELECT * FROM " + getTableName() + " WHERE (snipe_id is not null or multisnipe_id is not null)");
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT * FROM " + getTableName() + " WHERE (snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL)");
+  }
+
+  public static List<AuctionEntry> findAll() {
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT * FROM " + getTableName());
+  }
+
+  public static int count() {
+    return count(AuctionEntry.class);
+  }
+
+  public static int completedCount() {
+    return getRealDatabase().count_by("ended = 1");
+  }
+
+  public static int snipedCount() {
+    return getRealDatabase().count_by("(snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL)");
+  }
+
+  public static AuctionEntry nextSniped() {
+    String sql = "SELECT entries.* FROM entries, auctions WHERE " +
+        "(entries.snipe_id IS NOT NULL OR entries.multisnipe_id IS NOT NULL) AND " +
+        "ended != 1 AND " +
+        "(entries.auction_id = auctions.id) " +
+        "ORDER BY auctions.ending_at ASC";
+    return (AuctionEntry) findFirstBySQL(AuctionEntry.class, sql);
   }
 
   public static AuctionEntry findByIdentifier(String identifier) {
