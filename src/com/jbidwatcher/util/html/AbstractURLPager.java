@@ -43,8 +43,4 @@ public abstract class AbstractURLPager extends AbstractSequentialList {
   public int size() {
     return lastPageNumber;
   }
-
-  public ListIterator listIterator(int index) {
-    return new URLPagerIterator(this, index);
-  }
 }

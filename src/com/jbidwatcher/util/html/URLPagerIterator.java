@@ -14,7 +14,7 @@ public class URLPagerIterator implements ListIterator {
 	private AbstractURLPager urlPager;
 	private int index;
 
-	URLPagerIterator(AbstractURLPager pager, int idx) {
+	public URLPagerIterator(AbstractURLPager pager, int idx) {
 		urlPager = pager;
 		index = idx;
 	}

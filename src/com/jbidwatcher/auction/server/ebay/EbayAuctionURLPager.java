@@ -7,9 +7,11 @@ package com.jbidwatcher.auction.server.ebay;
  */
 
 import java.util.NoSuchElementException;
+import java.util.ListIterator;
 
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.html.AbstractURLPager;
+import com.jbidwatcher.util.html.URLPagerIterator;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.server.LoginManager;
@@ -136,5 +138,9 @@ public class EbayAuctionURLPager extends AbstractURLPager {
       // We set the flag regardless an error occurred.
       itemCountSet = true;
     }
+  }
+
+  public ListIterator listIterator(int index) {
+    return new URLPagerIterator(this, index);
   }
 }
