@@ -12,6 +12,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.DeletedEntry;
 import com.jbidwatcher.auction.server.AuctionServer;
 
 public class JBWDropHandler implements MessageQueue.Listener {
@@ -42,17 +43,13 @@ public class JBWDropHandler implements MessageQueue.Listener {
       aucServ = AuctionServerManager.getInstance().getServerForUrlString(auctionURL);
       aucId = aucServ.extractIdentifierFromURLString(auctionURL);
     } else {
-      aucServ = AuctionServerManager.getInstance().getDefaultServer();
       aucId = auctionURL;
     }
-    //  TODO -- WTF?  Why do we get the URL from the Id, then create an
-    //  TODO -- auction entry from the URL instead of just creating it from the Id?
-    String cvtURL = aucServ.getStringURLFromItem(aucId);
+    if(dObj.isInteractive()) DeletedEntry.remove(aucId);
 
-    if(dObj.isInteractive()) {
-      AuctionsManager.getInstance().undelete(aucId);
-    }
-    AuctionEntry aeNew = AuctionsManager.getInstance().newAuctionEntry(cvtURL);
+    //  We get the identifier from the URL (which is multi-country),
+    //  then create an auction entry from the id.
+    AuctionEntry aeNew = AuctionsManager.getInstance().newAuctionEntry(aucId);
     if(aeNew != null && aeNew.isLoaded()) {
       if(label != null) {
         aeNew.setCategory(label);
@@ -63,11 +60,12 @@ public class JBWDropHandler implements MessageQueue.Listener {
       AuctionsManager.getInstance().addEntry(aeNew);
     } else {
       if(lastSeen == null || !aucId.equals(lastSeen)) {
-        ErrorManagement.logDebug("Not loaded (url " + cvtURL + ").");
+        ErrorManagement.logDebug("Not loaded (" + aucId + ").");
         lastSeen = aucId;
       }
       if(aeNew != null) {
         AuctionServerManager.getInstance().deleteEntry(aeNew);
+        aeNew.delete();
       }
     }
   }

@@ -1298,7 +1298,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     Currency bin = getBuyNow();
     if(bin != null && !bin.isNull()) {
       setBid(getBuyNow());
-      setBidQuantity(1);  //  TODO --  Is it possible to Buy more than 1 item?
+      setBidQuantity(1);  //  TODO --  Is it possible to Buy more than 1 item?  Yes...how?
       mBidAt = System.currentTimeMillis();
       ErrorManagement.logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
       return getServer().buy(this, quant);

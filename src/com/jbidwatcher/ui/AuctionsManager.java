@@ -179,7 +179,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     new DeletedEntry(id).saveDB();
     ae.cancelSnipe(false);
     FilterManager.getInstance().deleteAuction(ae);
-    //  TODO -- Actually delete the auction from the database.
     ae.delete();
   }
 
@@ -332,7 +331,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     return DeletedEntry.exists(id);
   }
 
-  //  This is silly!  TODO mrs -- Fix this, so it can be reclaimed?  WeakReference?
+  //  Reuse a single save buffer when writing out the auctions.xml file.
   private static final int ONEK = 1024;
   private static final StringBuffer _saveBuf = new StringBuffer(AUCTIONCOUNT *ONEK);
 

@@ -91,8 +91,7 @@ public class JBidProxy extends HTTPProxyClient {
         if(sIcon == null) sIcon = new StringBuffer(Http.receivePage(resource.openConnection()));
 
         outBuf.append("Content-Type: image/x-icon\n");
-        outBuf.append("Content-Length: ").append(sIcon.length()).append('\n').append('\n');
-        outBuf.append(sIcon);
+        outBuf.append("Content-Length: ").append(sIcon.length()).append('\n');
 
         return outBuf;
       } catch (IOException ignored) {
@@ -104,28 +103,11 @@ public class JBidProxy extends HTTPProxyClient {
       dumpImage(relativeDocument, outBuf, buf);
       return outBuf;
     }
+
     if(relativeDocument.equals("synchronize") || relativeDocument.startsWith(syndicate)) {
       outBuf.append("Content-Type: text/xml\n");
     } else {
       outBuf.append("Content-Type: text/html; charset=").append(Charset.defaultCharset()).append('\n');
-    }
-    AuctionServer aucServ;
-
-    AuctionEntry ae = AuctionEntry.findByIdentifier(relativeDocument);
-    if(ae != null) {
-      aucServ = ae.getServer();
-    } else {
-      aucServ = AuctionServerManager.getInstance().getDefaultServer();
-    }
-
-    //  TODO -- Is this the only way to get the cookie passed through?  I don't like it...
-    CookieJar cj = aucServ.getNecessaryCookie(false);
-    String newCookie = null;
-    if(cj != null) newCookie = cj.toString();
-    if(newCookie != null) {
-      outBuf.append("Set-Cookie: ");
-      outBuf.append(newCookie);
-      outBuf.append('\n');
     }
     return outBuf;
   }
@@ -247,7 +229,11 @@ public class JBidProxy extends HTTPProxyClient {
       relativeDocument = relativeDocument.substring(1);
     }
 
-    if(relativeDocument.equals("favicon.ico") || relativeDocument.endsWith(".jpg")) return null;
+    if(relativeDocument.equals("favicon.ico")) {
+      return sIcon;
+    }
+
+    if(relativeDocument.endsWith(".jpg")) return null;
 
     if(relativeDocument.startsWith(syndicate)) {
       if(relativeDocument.indexOf(".xml") == -1) {

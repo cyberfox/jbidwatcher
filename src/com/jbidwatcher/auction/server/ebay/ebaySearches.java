@@ -98,10 +98,11 @@ public class ebaySearches {
   }
 
   /**
+   * @brief Load the contents of a URL in, find all hrefs on that page
+   * that point to an auction item, and add them.
+   *
    * @param searcher - The Searcher object that contains the URL to load and search for items in.
    * @param label    - What 'group' to label items retrieved this way as.
-   * @brief Load a URL in, find all hrefs on the page that point to an
-   * auction item, and load them into the program.
    */
   void loadAllFromURLString(Object searcher, String label) {
     String urlStr = ((Searcher) searcher).getSearch();
@@ -216,10 +217,12 @@ public class ebaySearches {
   }
 
   /**
+   * Check for searches, and execute one if that's what is requested.
+   * @brief Given a search string, send it to eBay's search, and gather up the results.
+
    * @param searcher   - The Searcher object containing the string to search for.
    * @param label      - What 'group' to label items retrieved this way as.
    * @param title_only - Should the search focus on the titles only, or titles and descriptions?
-   * @brief Given a search string, send it to eBay's search, and gather up the results.
    */
   void loadSearchString(Object searcher, String label, boolean title_only) {
     String search = ((Searcher) searcher).getSearch();

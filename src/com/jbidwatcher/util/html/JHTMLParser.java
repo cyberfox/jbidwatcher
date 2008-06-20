@@ -200,10 +200,14 @@ public class JHTMLParser {
     return(checkTag.charAt(0) == '/');
   }
 
-  //  Right now this 'fakes' it, by checking for the XMLish extension to
-  //  HTML, which places a '/' at the end of singleton tags.
-  //  TODO: This should be replaced with a lookup into a table of singleton tags.
-  //
+  /**
+   * Right now this 'fakes' it, by checking for the XMLish extension to
+   * HTML, which places a '/' at the end of singleton tags.
+   *
+   * @param checkTag - The tag to check, to see if it's a singleton.
+   *
+   * @return - true if the tag is considered a singleton, false otherwise.
+   */
   private boolean isSingletonTag(String checkTag) {
     return(checkTag.charAt(checkTag.length()-1)=='/');
   }

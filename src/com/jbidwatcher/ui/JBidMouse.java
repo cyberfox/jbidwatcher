@@ -997,7 +997,31 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       }
     }
 
-    ae.getServer().showBrowser(ae);
+    showInBrowser(ae);
+  }
+
+  /**
+   * @brief Show an auction entry in the browser.
+   *
+   * @param inEntry - The auction entry to load up and display in the users browser.
+   */
+  public void showInBrowser(AuctionEntry inEntry) {
+    final String entryId = inEntry.getIdentifier();
+    String doLocalServer = JConfig.queryConfiguration("server.enabled", "false");
+    String browseTo;
+
+    if (doLocalServer.equals("false")) {
+      browseTo = inEntry.getServer().getBrowsableURLFromItem(entryId);
+    } else {
+      String localServerPort = JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING);
+      if (inEntry.isInvalid()) {
+        browseTo = "http://localhost:" + localServerPort + "/cached_" + entryId;
+      } else {
+        browseTo = "http://localhost:" + localServerPort + '/' + entryId;
+      }
+    }
+
+    MQFactory.getConcrete("browse").enqueue(browseTo);
   }
 
   private void DeleteComment(AuctionEntry ae) {

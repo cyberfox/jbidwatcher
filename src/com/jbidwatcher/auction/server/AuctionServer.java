@@ -56,7 +56,6 @@ public abstract class AuctionServer implements AuctionServerInterface {
   public abstract ServerMenu establishMenu();
   public abstract List<JConfigTab> getConfigurationTabs();
 
-  // TODO -- A better search structure would be nice.
   //  Note: AuctionServerManager
   public abstract void cancelSearches();
   public abstract void addSearches(SearchManagerInterface searchManager);
@@ -144,32 +143,6 @@ public abstract class AuctionServer implements AuctionServerInterface {
     } else {
       MQFactory.getConcrete("Swing").enqueue("Failed to synchronize time with " + getName() + '!');
     }
-  }
-
-  /**
-   * @brief Show an auction entry in the browser.
-   * TODO -- Move this someplace more sane.
-   * Note: JBidMouse
-   * 
-   * @param inEntry - The auction entry to load up and display in the users browser.
-   */
-  public void showBrowser(AuctionEntry inEntry) {
-    final String entryId = inEntry.getIdentifier();
-    String doLocalServer = JConfig.queryConfiguration("server.enabled", "false");
-    String browseTo;
-
-    if(doLocalServer.equals("false")) {
-      browseTo = getBrowsableURLFromItem(entryId);
-    } else {
-      String localServerPort = JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING);
-      if(inEntry.isInvalid()) {
-        browseTo = "http://localhost:" + localServerPort + "/cached_" + entryId;
-      } else {
-        browseTo = "http://localhost:" + localServerPort + '/' + entryId;
-      }
-    }
-
-    MQFactory.getConcrete("browse").enqueue(browseTo);
   }
 
   //  Generalized logic
@@ -371,18 +344,15 @@ public abstract class AuctionServer implements AuctionServerInterface {
     }
   }
 
-  //  TODO -- Make sense out of this.
+  /**
+   * If we had an auction entry, note the failure on it's record.
+   * Otherwise, note a general communications failure.
+   *
+   * @param ae - The optional auction entry.
+   */
   private void checkLogError(AuctionEntry ae) {
     if (ae != null) {
       ae.logError();
-    } else {
-      markCommunicationError(ae);
-    }
-  }
-
-  private void markCommunicationError(AuctionEntry ae) {
-    if (ae != null) {
-      MQFactory.getConcrete("Swing").enqueue("LINK DOWN Communications failure talking to the server during item #" + ae.getIdentifier() + "( " + ae.getTitle() + " )");
     } else {
       MQFactory.getConcrete("Swing").enqueue("LINK DOWN Communications failure talking to the server");
     }

@@ -265,37 +265,22 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   /**
    * @brief Process an action, based on messages passed through our internal queues.
-   *
-   * This function is required, as an implementor of MessageQueue.Listener.
-   * TODO -- Too Long.
    */
   public void messageAction(Object deQ) {
     AuctionQObject ac = (AuctionQObject)deQ;
     String failString = null;
 
-    /**
-     * Just load all listings on a specific URL.
-     */
     switch(ac.getCommand()) {
       case AuctionQObject.LOAD_URL:
         mSearcher.loadAllFromURLString(ac.getData(), ac.getLabel());
         return;
       case AuctionQObject.LOAD_SEARCH:
-        /**
-         * Check for searches, and execute one if that's what is requested.
-         */
         mSearcher.loadSearchString(ac.getData(), ac.getLabel(), false);
         return;
       case AuctionQObject.LOAD_TITLE:
-        /**
-         * Check for searches, and execute one if that's what is requested.
-         */
         mSearcher.loadSearchString(ac.getData(), ac.getLabel(), true);
         return;
       case AuctionQObject.LOAD_SELLER:
-        /**
-         * Load all items being sold by a given seller.
-         */
         doGetSelling(ac.getData(), ac.getLabel());
         return;
       case AuctionQObject.LOAD_MYITEMS:
@@ -307,41 +292,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
         break;
       case AuctionQObject.CANCEL_SNIPE:
-        AuctionEntry snipeCancel = (AuctionEntry)ac.getData();
-        String id = snipeCancel.getIdentifier();
-        AuctionQObject cancellable = snipeMap.get(id);
-
-        _etqm.erase(cancellable);
-        snipeMap.remove(id);
+        cancelSnipeMsg(ac);
         return;
       case AuctionQObject.SET_SNIPE:
-        AuctionEntry snipeOn = (AuctionEntry)ac.getData();
-        AuctionQObject currentlyExists = snipeMap.get(snipeOn.getIdentifier());
-        //  If we already have a snipe set for it, first cancel the old one, and then set up the new.
-        if(currentlyExists != null) {
-          _etqm.erase(currentlyExists);
-          snipeMap.remove(snipeOn.getIdentifier());
-        }
-
-        long two_minutes = Constants.ONE_MINUTE*2;
-        AuctionQObject payload = new AuctionQObject(AuctionQObject.SNIPE, new Snipe(mLogin, mBidder, snipeOn), null);
-
-        _etqm.add(payload, "snipes", (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime())-two_minutes);
-        _etqm.add(payload, "snipes", (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime()));
-        snipeMap.put(snipeOn.getIdentifier(), payload);
+        setSnipeMsg(ac);
         return;
       case AuctionQObject.BID:
-        AuctionAction ab = (AuctionAction)ac.getData();
-        String bidResultString = ab.activate();
-        String configBidMsg;
-
-        if(ab.isSuccessful()) {
-          configBidMsg = "prompt.hide_bidalert";
-        } else {
-          configBidMsg = "prompt.hide_bidfailalert";
-        }
-
-        MQFactory.getConcrete("Swing").enqueue("IGNORE " + configBidMsg + ' ' + bidResultString);
+        bidMsg(ac);
         return;
       default:
         //  It's okay if we don't recognize it.
@@ -405,6 +362,46 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         ErrorManagement.logMessage("Can't recognize ebay-queued data: " + ac.getData());
       }
     }
+  }
+
+  private void bidMsg(AuctionQObject ac) {
+    AuctionAction ab = (AuctionAction)ac.getData();
+    String bidResultString = ab.activate();
+    String configBidMsg;
+
+    if(ab.isSuccessful()) {
+      configBidMsg = "prompt.hide_bidalert";
+    } else {
+      configBidMsg = "prompt.hide_bidfailalert";
+    }
+
+    MQFactory.getConcrete("Swing").enqueue("IGNORE " + configBidMsg + ' ' + bidResultString);
+  }
+
+  private void setSnipeMsg(AuctionQObject ac) {
+    AuctionEntry snipeOn = (AuctionEntry)ac.getData();
+    AuctionQObject currentlyExists = snipeMap.get(snipeOn.getIdentifier());
+    //  If we already have a snipe set for it, first cancel the old one, and then set up the new.
+    if(currentlyExists != null) {
+      _etqm.erase(currentlyExists);
+      snipeMap.remove(snipeOn.getIdentifier());
+    }
+
+    long two_minutes = Constants.ONE_MINUTE*2;
+    AuctionQObject payload = new AuctionQObject(AuctionQObject.SNIPE, new Snipe(mLogin, mBidder, snipeOn), null);
+
+    _etqm.add(payload, "snipes", (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime())-two_minutes);
+    _etqm.add(payload, "snipes", (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime()));
+    snipeMap.put(snipeOn.getIdentifier(), payload);
+  }
+
+  private void cancelSnipeMsg(AuctionQObject ac) {
+    AuctionEntry snipeCancel = (AuctionEntry)ac.getData();
+    String id = snipeCancel.getIdentifier();
+    AuctionQObject cancellable = snipeMap.get(id);
+
+    _etqm.erase(cancellable);
+    snipeMap.remove(id);
   }
 
   /**
@@ -637,6 +634,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     MQFactory.getConcrete("Swing").enqueue("Done synchronizing with My eBay...");
   }
 
+  /**
+   * Load all items being sold by a given seller.
+   *
+   * @param searcher - The search to run
+   * @param label - The category/label/tab to put it under
+   */
   private void doGetSelling(Object searcher, String label) {
     String userId = ((Searcher)searcher).getSearch();
     MQFactory.getConcrete("Swing").enqueue("Getting Selling Items for " + userId);

@@ -19,8 +19,6 @@ import javax.swing.border.*;
 //
 // TODO: add a menu of recent searches.
 // TODO: make recent searches persistent.
-// TODO: use rounded corners, at least on Mac OS X.
-//
 
 public class SearchField extends JTextField {
   private static final Border CANCEL_BORDER = new CancelBorder();
