@@ -18,6 +18,7 @@ import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
+import com.jbidwatcher.util.db.ActiveRecordCache;
 import com.jbidwatcher.util.xml.XMLElement;
 
 import java.io.FileNotFoundException;
@@ -300,7 +301,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(ae.isLoaded()) {
       String id = ae.saveDB();
       if (id != null) {
-        cache(ae.getClass(), "id", id, ae);
+        ActiveRecordCache.cache(ae.getClass(), "id", id, ae);
         return ae;
       }
     }
@@ -1750,6 +1751,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   private static Table sDB = null;
   protected static String getTableName() { return "entries"; }
   protected Table getDatabase() {
+    return getRealDatabase();
+  }
+
+  private static Table getRealDatabase() {
     if(sDB == null) {
       sDB = openDB(getTableName());
     }
@@ -1758,6 +1763,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   public static AuctionEntry findFirstBy(String key, String value) {
     return (AuctionEntry) ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
+  }
+
+  public static List<AuctionEntry> findAllSniped() {
+    return (List<AuctionEntry>) ActiveRecord.findAllBySQL(AuctionEntry.class, "SELECT * FROM " + getTableName() + " WHERE (snipe_id is not null or multisnipe_id is not null)");
   }
 
   public static AuctionEntry findByIdentifier(String identifier) {

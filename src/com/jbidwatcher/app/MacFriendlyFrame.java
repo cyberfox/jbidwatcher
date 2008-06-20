@@ -2,7 +2,7 @@ package com.jbidwatcher.app;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.db.ActiveRecordCache;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -82,7 +82,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
   }
 
   public void handleQuit() {
-    ActiveRecord.saveCached();
+    ActiveRecordCache.saveCached();
     if (!(JConfig.queryConfiguration("prompt.snipe_quit", "false").equals("true")) &&
         (AuctionsManager.getInstance().anySnipes())) {
       MQFactory.getConcrete("Swing").enqueue(UIBackbone.QUIT_MSG);
@@ -141,7 +141,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
    * if there are any outstanding snipes.
    */
   public void shutdown() {
-    ActiveRecord.saveCached();
+    ActiveRecordCache.saveCached();
     if (AuctionsManager.getInstance().anySnipes()) {
       OptionUI oui = new OptionUI();
       //  Use the right parent!  FIXME -- mrs: 17-February-2003 23:53

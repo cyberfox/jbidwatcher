@@ -37,7 +37,7 @@ public class HashBacked extends XMLSerializeSimple {
 
   public void setTranslationTable(Map<String, String> table) { if(mTranslationTable == null) mTranslationTable = table; }
 
-  protected boolean isDirty() { return mDirty; }
+  public boolean isDirty() { return mDirty; }
   protected void clearDirty() { mDirty = false; }
   protected void setDirty() { mDirty = true; }
 
@@ -225,7 +225,7 @@ public class HashBacked extends XMLSerializeSimple {
   }
 
   public Record getBacking() { return mBacking; }
-  protected void setBacking(Record r) {
+  public void setBacking(Record r) {
     mBacking = r;
     if(get("currency") == null) mDefaultCurrency = ONE_DOLLAR.fullCurrencyName();
     else mDefaultCurrency = get("currency");    
