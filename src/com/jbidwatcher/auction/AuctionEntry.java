@@ -1039,7 +1039,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public void fromXML(XMLElement inXML) {
     String inID = inXML.getProperty("ID", null);
     if(inID != null) {
-      mAuction = getServer().getNewSpecificAuction();
+      mAuction = new AuctionInfo();
       mAuction.setIdentifier(inID);
 
       super.fromXML(inXML);

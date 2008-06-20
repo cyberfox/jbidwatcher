@@ -3,7 +3,6 @@ package com.jbidwatcher.auction.server.ebay;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.auction.ThumbnailLoader;
-import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -384,7 +383,7 @@ class ebayAuction extends SpecificAuction {
    * @return - false if the parse failed, true if it succeeded.  This needs
    * to be turned into a set of enums.
    */
-  public AuctionServer.ParseErrors parseAuction(AuctionEntry ae) {
+  public ParseErrors parseAuction(AuctionEntry ae) {
     //  Verify the title (in case it's an invalid page, the site is
     //  down for maintenance, etc).
     String prelimTitle;
@@ -397,7 +396,7 @@ class ebayAuction extends SpecificAuction {
 
     if(prelimTitle == null) {
       finish();
-      return AuctionServer.ParseErrors.BAD_TITLE;
+      return ParseErrors.BAD_TITLE;
     }
 
     //  Get the integer values (Quantity, Bidcount)
@@ -429,7 +428,7 @@ class ebayAuction extends SpecificAuction {
       ErrorManagement.handleException("Shipping / Insurance Loading Failed", e);
     }
 
-    if (checkSeller(ae)) return AuctionServer.ParseErrors.SELLER_AWAY;
+    if (checkSeller(ae)) return ParseErrors.SELLER_AWAY;
 
     checkDates(prelimTitle, ae);
     checkHighBidder();
@@ -441,16 +440,16 @@ class ebayAuction extends SpecificAuction {
 
     finish();
     MQFactory.getConcrete("dbsave").enqueue(this);
-    return AuctionServer.ParseErrors.SUCCESS;
+    return ParseErrors.SUCCESS;
   }
 
   private class ParseException extends Exception {
-    private AuctionServer.ParseErrors mError;
-    public ParseException(AuctionServer.ParseErrors error) {
+    private ParseErrors mError;
+    public ParseException(ParseErrors error) {
       mError = error;
     }
 
-    public AuctionServer.ParseErrors getError() {
+    public ParseErrors getError() {
       return mError;
     }
   }
@@ -467,21 +466,21 @@ class ebayAuction extends SpecificAuction {
       prelimTitle = Externalized.getString("ebayServer.unavailable");
     }
     if(prelimTitle.equals(Externalized.getString("ebayServer.adultPageTitle")) || prelimTitle.indexOf("Terms of Use") != -1) {
-      throw new ParseException(AuctionServer.ParseErrors.NOT_ADULT);
+      throw new ParseException(ParseErrors.NOT_ADULT);
     }
 
     if(prelimTitle.equals("Invalid Item")) {
-      throw new ParseException(AuctionServer.ParseErrors.DELETED);
+      throw new ParseException(ParseErrors.DELETED);
     }
 
     if(prelimTitle.equals("Security Measure")) {
-      throw new ParseException(AuctionServer.ParseErrors.CAPTCHA);
+      throw new ParseException(ParseErrors.CAPTCHA);
     }
 
     //  Is this a valid eBay item page?
     if(prelimTitle != null && !checkValidTitle(prelimTitle)) {
       handle_bad_title(prelimTitle);
-      throw new ParseException(AuctionServer.ParseErrors.BAD_TITLE);
+      throw new ParseException(ParseErrors.BAD_TITLE);
     }
 
     if(prelimTitle != null) {

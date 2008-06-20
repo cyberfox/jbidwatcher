@@ -34,15 +34,6 @@ import java.net.*;
 import java.io.*;
 
 public abstract class AuctionServer implements AuctionServerInterface {
-  public enum ParseErrors {
-    SUCCESS,
-    NOT_ADULT,
-    BAD_TITLE,
-    SELLER_AWAY,
-    ERROR,
-    CAPTCHA,
-    DELETED
-  }
   private static long sLastUpdated = 0;
 
   private class ReloadItemException extends Exception {
@@ -281,8 +272,8 @@ public abstract class AuctionServer implements AuctionServerInterface {
     curAuction.setContent(sb, false);
     String error = null;
     if (curAuction.preParseAuction()) {
-      ParseErrors result = curAuction.parseAuction(ae);
-      if (result != ParseErrors.SUCCESS) {
+      SpecificAuction.ParseErrors result = curAuction.parseAuction(ae);
+      if (result != SpecificAuction.ParseErrors.SUCCESS) {
         switch(result) {
           case CAPTCHA: {
             ErrorManagement.logDebug("Failed to load (likely adult) item, captcha intervened.");
@@ -308,9 +299,9 @@ public abstract class AuctionServer implements AuctionServerInterface {
             break;
           }
         }
-        if(result != ParseErrors.SUCCESS && error == null) error = "Bad Parse!";
+        if(result != SpecificAuction.ParseErrors.SUCCESS && error == null) error = "Bad Parse!";
       }
-      if (result == ParseErrors.SUCCESS) curAuction.save();
+      if (result == SpecificAuction.ParseErrors.SUCCESS) curAuction.save();
     } else error = "Bad pre-parse!";
 
     if(error != null) {
