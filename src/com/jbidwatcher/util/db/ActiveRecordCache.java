@@ -6,12 +6,12 @@ import com.jbidwatcher.util.Record;
 import java.util.*;
 
 /**
- * Provides utility methods for database-backed objects.
- *
+ * Created by IntelliJ IDEA.
  * User: Morgan
- * Date: Oct 21, 2007
- * Time: 1:54:46 PM
- * To change this template use File | Settings | File Templates.
+ * Date: Jun 19, 2008
+ * Time: 7:46:41 PM
+ *
+ * Adds rudimentary caching to the ActiveRecord objects.
  */
 public abstract class ActiveRecordCache extends ActiveRecord {
   protected static ActiveRecord findFirstByUncached(Class klass, String key, String value) {

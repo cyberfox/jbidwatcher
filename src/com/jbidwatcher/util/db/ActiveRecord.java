@@ -6,13 +6,14 @@ import com.jbidwatcher.util.Record;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
+import java.lang.reflect.Field;
 
 /**
- * Created by IntelliJ IDEA.
+ * Provides utility methods for database-backed objects.
+ *
  * User: Morgan
- * Date: Jun 19, 2008
- * Time: 7:46:41 PM
- * To change this template use File | Settings | File Templates.
+ * Date: Oct 21, 2007
+ * Time: 1:54:46 PM
  */
 public abstract class ActiveRecord extends HashBacked {
   protected static Table openDB(String tableName) {
@@ -48,12 +49,9 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   /**
-   * TODO -- Look for columns of type: {foo}_id
-   * For each of those, introspect for 'm{Foo}'.  For each non-null of
-   * those, call 'saveDB' on it.  Store the result of that call as
-   * '{foo}_id'.
-   *
-   * @return
+   * Look for columns with the name: {foo}_id.  For each of those,
+   * introspect for 'm{Foo}'.  For each non-null of those, call 'saveDB'
+   * on it. Store the result of that call in the '{foo}_id' column.
    */
   private void saveAssociations() {
     Set<String> colNames=getDatabase().getColumns();
@@ -62,8 +60,17 @@ public abstract class ActiveRecord extends HashBacked {
         String className = name.substring(0, name.length()-3);
         String member = "m" + classify(className);
 
-        // TODO -- Inspect for 'member', instanceof ActiveRecord.
-        // TODO -- set("#{name}", member.saveDB())
+        try {
+          Field classMember = getClass().getField(member);
+          Object memberVariable = classMember.get(this);
+          if(memberVariable instanceof ActiveRecord) {
+            set(name, ((ActiveRecord)memberVariable).saveDB());
+          }
+        } catch (NoSuchFieldException e) {
+          System.err.println("No such field: " + member);
+        } catch (IllegalAccessException e) {
+          System.err.println("Can't access field: " + member);
+        }
       }
     }
   }
@@ -71,9 +78,9 @@ public abstract class ActiveRecord extends HashBacked {
   /**
    * Upcase first letter, and each letter after an '_', and remove all '_'...
    *
-   * @param className
+   * @param className - The lowercase version of the name to be converted.
    *
-   * @return
+   * @return - The capitalized version of the word provided.  i.e. 'auction' becomes Auction.
    */
   private String classify(String className) {
     return String.valueOf(className.charAt(0)).toUpperCase() + className.substring(1);
