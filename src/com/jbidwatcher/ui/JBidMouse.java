@@ -74,7 +74,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
       return aeNew;
     } else {
-      if(aeNew != null) AuctionServerManager.getInstance().deleteEntry(aeNew);
+      if(aeNew != null) aeNew.delete();
       return null;
     }
   }

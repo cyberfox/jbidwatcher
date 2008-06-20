@@ -220,10 +220,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     return xmlResult;
   }
 
-  public void deleteEntry(AuctionEntry ae) {
-    ae.delete();
-  }
-
   public static AuctionServerManager getInstance() {
     return mInstance;
   }

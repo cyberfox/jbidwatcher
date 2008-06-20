@@ -378,11 +378,7 @@ public class AuctionsUIModel {
    * @param inEntry - The auction entry to delete.
    */
   public void delEntry(AuctionEntry inEntry) {
-    boolean removedAny = _tSort.delete(inEntry);
-
-    if (removedAny) {
-      AuctionServerManager.getInstance().deleteEntry(inEntry);
-    }
+    _tSort.delete(inEntry);
   }
 
   /**

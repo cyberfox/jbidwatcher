@@ -63,10 +63,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
         ErrorManagement.logDebug("Not loaded (" + aucId + ").");
         lastSeen = aucId;
       }
-      if(aeNew != null) {
-        AuctionServerManager.getInstance().deleteEntry(aeNew);
-        aeNew.delete();
-      }
+      if(aeNew != null) aeNew.delete();
     }
   }
 
