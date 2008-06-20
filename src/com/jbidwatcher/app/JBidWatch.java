@@ -518,7 +518,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
         MQFactory.getConcrete("Swing").enqueue("LOGINSTATUS " + deQ.toString());
       }
     });
-    ThumbnailManager.start();
+    ThumbnailLoader.start();
     inSplash.message("Initializing Scripting");
     try {
       Scripting.initialize();

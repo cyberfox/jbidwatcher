@@ -2,7 +2,7 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
-import com.jbidwatcher.auction.ThumbnailManager;
+import com.jbidwatcher.auction.ThumbnailLoader;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Externalized;
@@ -855,7 +855,7 @@ class ebayAuction extends SpecificAuction {
   private ByteBuffer getThumbnailByURL(String url) {
     ByteBuffer tmpThumb;
     try {
-      tmpThumb = ThumbnailManager.downloadThumbnail(new URL(url));
+      tmpThumb = ThumbnailLoader.downloadThumbnail(new URL(url));
     } catch(Exception ignored) {
       tmpThumb = null;
     }

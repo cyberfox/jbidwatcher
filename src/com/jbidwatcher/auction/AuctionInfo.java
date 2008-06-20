@@ -265,7 +265,7 @@ public class AuctionInfo extends ActiveRecord
     String imgPath = mThumbnailPath;
 
     if(imgPath == null) {
-      imgPath = ThumbnailManager.getValidImagePath(this);
+      imgPath = Thumbnail.getValidImagePath(getIdentifier());
       if(imgPath == null) return false;
     }
 
