@@ -13,7 +13,8 @@ import com.jbidwatcher.util.Currency;
  * User: Morgan Schweers
  * Date: Aug 18, 2005
  * Time: 12:20:35 AM
- * To change this template use File | Settings | File Templates.
+ *
+ * Abstraction of the actions that you can take on an auction (bidding and buying) so they can be acted on independantly.
  */
 public interface AuctionAction {
   public String activate();

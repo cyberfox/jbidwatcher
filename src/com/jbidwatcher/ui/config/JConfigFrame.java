@@ -8,7 +8,6 @@ package com.jbidwatcher.ui.config;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.ui.util.JBidFrame;
 import com.jbidwatcher.ui.util.OptionUI;
 

@@ -81,6 +81,8 @@ public class XMLParseException extends RuntimeException {
 
   /**
    * Where the error occurred, or -1 if the line number is unknown.
+   * 
+   * @return - The line number of the error.
    */
   public int getLineNr() {
     return this.lineNr;

@@ -33,6 +33,7 @@ public abstract class SoftMap<K, V> extends AbstractMap<K, V> {
   public Set<K> keySet() { return cacheMap.keySet(); }
 
   //  Things which need special handling...
+  @SuppressWarnings({"unchecked"})
   public V remove(Object key) {
     V rval = null;
     SoftReference<V> element = cacheMap.remove(key);

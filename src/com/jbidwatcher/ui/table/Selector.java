@@ -12,7 +12,8 @@ import javax.swing.*;
  * User: mrs
  * Date: Dec 1, 2004
  * Time: 4:37:37 PM
- * To change this template use File | Settings | File Templates.
+ *
+ * Abstraction for selecting entries in a table.
  */
 public interface Selector {
   public boolean select(JTable inTable);

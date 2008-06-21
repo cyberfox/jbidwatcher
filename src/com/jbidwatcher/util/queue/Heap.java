@@ -66,6 +66,7 @@ public class Heap  {
   *
   * @return
   */
+  @SuppressWarnings({"unchecked"})
   protected int compare(Object a, Object b) {
     if (mCmp == null)
       return ((Comparable)a).compareTo(b);

@@ -15,7 +15,6 @@ import com.jbidwatcher.util.Parameters;
 import java.net.*;
 import java.io.*;
 import java.util.Map;
-import java.awt.datatransfer.DataFlavor;
 
 public class Http {
   private static void setConnectionProxyInfo(URLConnection huc) {

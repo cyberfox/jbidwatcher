@@ -11,7 +11,8 @@ package com.jbidwatcher.ui.table;
  * User: Morgan Schweers
  * Date: Mar 18, 2005
  * Time: 1:32:34 AM
- * To change this template use File | Settings | File Templates.
+ *
+ * The basic model for table transformations.
  */
 
 public interface BaseModel {

@@ -278,9 +278,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     AuctionStats outStat = new AuctionStats();
 
     outStat._count = AuctionEntry.count();
-    long lastUpdateTime = Long.MAX_VALUE;
-    long lastEndedTime = Long.MAX_VALUE;
-    long lastSnipeTime = Long.MAX_VALUE;
     outStat._completed = AuctionEntry.completedCount();
     outStat._snipes = AuctionEntry.snipedCount();
     outStat._nextSnipe = AuctionEntry.nextSniped();

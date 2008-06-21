@@ -7,7 +7,6 @@ package com.jbidwatcher.util.html;
  */
 
 import java.util.AbstractSequentialList;
-import java.util.ListIterator;
 
 public abstract class AbstractURLPager extends AbstractSequentialList {
   protected String urlString;

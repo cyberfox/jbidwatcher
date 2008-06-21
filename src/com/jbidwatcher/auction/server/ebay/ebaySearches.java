@@ -28,7 +28,8 @@ import java.io.UnsupportedEncodingException;
  * User: Morgan
  * Date: Feb 25, 2007
  * Time: 6:36:13 PM
- * To change this template use File | Settings | File Templates.
+ *
+ * Code to support searching eBay auctions.
  */
 public class ebaySearches {
   private static final int ITEMS_PER_PAGE = 100;

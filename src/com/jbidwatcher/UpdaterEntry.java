@@ -51,6 +51,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
 
   public void loadFromString(StringBuffer sb, String packageName) {
     if(sb == null || packageName == null) {
+      //noinspection ThrowableInstanceNeverThrown
       ErrorManagement.handleException("loadFromString Failed with a null pointer!", new Exception("Updater got incorrect XML file."));
     } else {
       XMLElement xmlUpdate = new XMLElement(true);

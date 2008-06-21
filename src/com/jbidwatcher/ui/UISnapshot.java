@@ -11,7 +11,8 @@ import java.util.Properties;
  * User: mrs
  * Date: Mar 3, 2008
  * Time: 7:29:55 PM
- * To change this template use File | Settings | File Templates.
+ *
+ * Utility class to manage location and size of the screen between sessions.
  */
 public class UISnapshot
 {

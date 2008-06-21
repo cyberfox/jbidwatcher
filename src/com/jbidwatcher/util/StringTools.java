@@ -1,8 +1,6 @@
 package com.jbidwatcher.util;
 
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.platform.Platform;
 
 import java.io.*;
 import java.net.MalformedURLException;

@@ -81,6 +81,7 @@ public class JMouseAdapter extends MouseInputAdapter implements ActionListener {
   //  The following two functions are stubs, generally to be
   //  overridden if you want to do anything particularly useful.
   protected void beforePopup(JPopupMenu inPopup, MouseEvent e) { }
+  @SuppressWarnings({"UnusedDeclaration", "UnusedDeclaration"})
   protected void afterPopup(JPopupMenu inPopup, MouseEvent e) { }
 
   private void internalPopupMenu(MouseEvent e) {

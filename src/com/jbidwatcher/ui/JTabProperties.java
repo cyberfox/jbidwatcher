@@ -140,7 +140,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
   }
 
   public void cancel() {
-    //To change body of implemented methods use File | Settings | File Templates.
+    // don't do anything...
   }
 
   public boolean apply() {

@@ -5,7 +5,6 @@ package com.jbidwatcher.ui.table;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.config.ErrorManagement;
 

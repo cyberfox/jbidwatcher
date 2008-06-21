@@ -5,8 +5,6 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.ui.JBidMenuBar;
-
 import java.awt.event.*;
 import javax.swing.*;
 

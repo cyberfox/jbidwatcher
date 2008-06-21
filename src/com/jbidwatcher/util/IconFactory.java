@@ -40,6 +40,7 @@ public class IconFactory {
       return new_icon;
     }
 
+    //  TODO -- Figure this warning out.
     ImageIcon old_icon = combos.get(rightImage);
     if(old_icon == null) {
       _icons.remove(combos);

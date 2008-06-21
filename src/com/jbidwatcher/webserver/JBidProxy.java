@@ -10,7 +10,6 @@ import com.jbidwatcher.util.config.Base64;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTMLDialog;
-import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;

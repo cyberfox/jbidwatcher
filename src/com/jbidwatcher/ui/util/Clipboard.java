@@ -8,7 +8,8 @@ import java.awt.datatransfer.StringSelection;
  * User: Morgan
  * Date: Jun 20, 2008
  * Time: 11:07:14 AM
- * To change this template use File | Settings | File Templates.
+ *
+ * Utility class for dealing with the system clipboard.
  */
 public class Clipboard {
   public static void setClipboardString(String saveString) {

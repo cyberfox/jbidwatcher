@@ -37,6 +37,7 @@ public interface XMLSerialize {
    * @brief Step through all the important variables that had been
    * serialized out, and import them from XMLElements.
    *
+   * @param inXML - The XML element to start the deserialization process from.
    */
   void fromXML(XMLElement inXML);
 }

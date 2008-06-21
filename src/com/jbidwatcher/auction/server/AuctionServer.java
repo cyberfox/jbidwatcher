@@ -348,7 +348,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
   }
 
   public int getCount() {
-    return new AuctionEntry().count();
+    return AuctionEntry.count();
   }
 
   protected abstract String getUserId();

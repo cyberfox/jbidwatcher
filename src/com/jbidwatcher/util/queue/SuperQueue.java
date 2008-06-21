@@ -1,7 +1,5 @@
 package com.jbidwatcher.util.queue;
 
-import com.jbidwatcher.util.queue.TimerHandler;
-
 /**
  * Created by IntelliJ IDEA.
  * User: mrs

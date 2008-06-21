@@ -5,8 +5,6 @@ package com.jbidwatcher.util.queue;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.auction.server.ebay.JConfigEbayTab;
-
 import java.util.*;
 
 public abstract class MessageQueue implements Runnable {

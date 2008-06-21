@@ -13,7 +13,8 @@ import java.net.URL;
  * User: Morgan
  * Date: Jun 20, 2008
  * Time: 10:17:49 AM
- * To change this template use File | Settings | File Templates.
+ *
+ * Utility class to provide button-making tools.
  */
 public class ButtonMaker {
   /**

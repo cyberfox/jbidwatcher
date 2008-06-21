@@ -10,7 +10,8 @@ import com.jbidwatcher.auction.AuctionEntry;
  * User: Morgan
  * Date: Feb 26, 2007
  * Time: 8:55:10 AM
- * To change this template use File | Settings | File Templates.
+ *
+ * Abstraction of the bidding interface, so it can be replaced with other bidding code, if desired.
  */
 public interface Bidder {
   JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr, int inQuant) throws BadBidException;

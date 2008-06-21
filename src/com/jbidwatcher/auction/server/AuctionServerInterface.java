@@ -5,7 +5,6 @@ import com.jbidwatcher.auction.AuctionInfo;
 import com.jbidwatcher.util.Currency;
 
 import java.util.TimeZone;
-import java.net.URL;
 
 /**
  * User: Morgan

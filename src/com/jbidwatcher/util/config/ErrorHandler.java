@@ -5,7 +5,8 @@ package com.jbidwatcher.util.config;
  * User: Morgan
  * Date: Jun 17, 2008
  * Time: 2:18:03 PM
- * To change this template use File | Settings | File Templates.
+ *
+ * An abstract error handler, to be added to the ErrorManagement's notification list.
  */
 public interface ErrorHandler {
   void addLog(String s);

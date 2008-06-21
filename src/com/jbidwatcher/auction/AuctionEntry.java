@@ -1773,10 +1773,12 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return (AuctionEntry) ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
   }
 
+  @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findAllSniped() {
     return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT * FROM " + getTableName() + " WHERE (snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL)");
   }
 
+  @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findAll() {
     return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT * FROM " + getTableName());
   }

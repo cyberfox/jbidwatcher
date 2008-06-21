@@ -26,8 +26,8 @@ public class Externalized {
 		//  Don't need to do anything here.
 	}
 	/**
-	 * @param key
-	 * @return
+	 * @param key - The key to get out of the properties file.
+	 * @return - The value of the provided key in the properties file, or the overridden value if override.{key} is set.
 	 */
 	public static String getString(String key) {
     String override = JConfig.queryConfiguration("override." + key);

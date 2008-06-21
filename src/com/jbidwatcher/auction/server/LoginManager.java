@@ -7,7 +7,8 @@ import com.jbidwatcher.util.http.CookieJar;
  * User: Morgan
  * Date: Feb 25, 2007
  * Time: 7:39:24 PM
- * To change this template use File | Settings | File Templates.
+ *
+ * Abstraction of the process of logging in, to define the API to be used to log in to a service.
  */
 public interface LoginManager {
   void resetCookie();

@@ -5,7 +5,8 @@ package com.jbidwatcher.util;
  * User: Morgan
  * Date: Apr 6, 2008
  * Time: 1:32:41 PM
- * To change this template use File | Settings | File Templates.
+ *
+ * Simple class to manage blocking doing updates while a snipe or bid is going off.
  */
 public class UpdateBlocker {
   public static volatile boolean isBlocked =false;
