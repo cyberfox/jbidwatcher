@@ -73,20 +73,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   //  Mass-equivalents for Auction-list specific operations
 
   /**
-   * @brief Determine if any snipes are pending in any of the auctions
-   * groups handled.
-   * 
-   * @return True if any Auctions have pending snipes.
-   */
-  public boolean anySnipes() {
-    for(int i = 0; i< mFilter.listLength(); i++) {
-      if(mFilter.getList(i).anySnipes()) return true;
-    }
-
-    return false;
-  }
-
-  /**
    * @brief Wake up all Auctions and check to see if anything needs to
    * be done.
    * 

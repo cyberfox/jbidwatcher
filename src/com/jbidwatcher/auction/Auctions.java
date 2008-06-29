@@ -117,24 +117,6 @@ public class Auctions implements TimerHandler.WakeupProcess {
     return result != null;
   }
 
-  /**
-   * Determine if any snipes are pending for any of the auctions
-   * handled by this instance.
-   * 
-   * @return - True if any of the auctions under this instance have a
-   * pending snipe.
-   */
-  public boolean anySnipes() {
-    Object result = mList.find(new Comparison() {
-      public boolean match(Object o) {
-
-        AuctionEntry ae = ((AuctionEntry) o);
-        return ae.isSniped() && !ae.isComplete();
-      }
-    });
-    return result != null;
-  }
-
   /** 
    * For display during updates, we want the title and potentially the
    * comment, to display all that in the status bar while we're
