@@ -666,7 +666,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return The unique identifier for this auction.
    */
-  public String getIdentifier() { if(mAuction == null) return null; else return mAuction.getIdentifier(); }
+  public String getIdentifier() { if(getAuction() == null) return null; else return getAuction().getIdentifier(); }
 
   ///////////////////////////
   //  Actual logic functions
@@ -1084,38 +1084,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   //  Sniping functions
 
   /**
-   * @brief Determine if it is time to trigger this auctions snipe or not.
-   *
-   * @return True if it is time to snipe, false otherwise.
-   */
-  public boolean checkSnipe() {
-    boolean shouldSnipe = false;
-
-    if(isSniped()) {
-      long endDate = getAuction().getEndDate().getTime();
-      long curDate = getServer().getAdjustedTime();
-
-      //  If the auction hasn't ended already...
-      if(endDate > curDate) {
-        //  mSnipeAt / 1000 seconds before the end of the auction.
-        long adjustedDate;
-        if(hasDefaultSnipeTime()) {
-          adjustedDate = curDate + sDefaultSnipeAt;
-        } else {
-          adjustedDate = curDate + mSnipeAt;
-        }
-
-        shouldSnipe = (adjustedDate >= endDate);
-      } else {
-        setLastStatus("Cancelling snipe, time is suddenly past auction-end.");
-        cancelSnipe(true);
-      }
-    }
-
-    return shouldSnipe;
-  }
-
-  /**
    * @brief Return whether this entry ever had a snipe cancelled or not.
    *
    * @return - true if a snipe was cancelled, false otherwise.
@@ -1251,9 +1219,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   /**
-   * @brief Refresh the snipe, so it picks up a potentially changed end time.
+   * @brief Refresh the snipe, so it picks up a potentially changed end time, or when initially loading items.
    */
-  private void refreshSnipe() {
+  public void refreshSnipe() {
     MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
     MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
   }
@@ -1578,7 +1546,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     //  If the end date has changed, let's reschedule the snipes for the new end date...?
     if (mAuction != null &&
         mAuction.getEndDate() != null &&
-        mAuction.getEndDate().equals(inAI.getEndDate()) &&
+        !mAuction.getEndDate().equals(inAI.getEndDate()) &&
         getSnipe() != null) {
       refreshSnipe();
     }
@@ -1841,10 +1809,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public boolean delete() {
-    if(mAuction != null) mAuction.delete();
-    if(getSnipe() != null) {
-      getSnipe().delete();
-    }
+    if(getAuction() != null) getAuction().delete();
+    if(getSnipe() != null) getSnipe().delete();
     return super.delete(AuctionEntry.class);
   }
 
