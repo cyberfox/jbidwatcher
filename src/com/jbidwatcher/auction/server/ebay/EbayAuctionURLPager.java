@@ -14,7 +14,7 @@ import com.jbidwatcher.util.html.AbstractURLPager;
 import com.jbidwatcher.util.html.URLPagerIterator;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.auction.server.LoginManager;
+import com.jbidwatcher.auction.LoginManager;
 
 public class EbayAuctionURLPager extends AbstractURLPager {
 	// constants
@@ -39,7 +39,7 @@ public class EbayAuctionURLPager extends AbstractURLPager {
 		getPage(1);
 	}
 
-	public EbayAuctionURLPager(String url, int perPage, LoginManager login) {
+	public EbayAuctionURLPager(String url, int perPage, com.jbidwatcher.auction.LoginManager login) {
     setURL(url);
     setItemsPerPage(perPage);
 		mLogin = login;

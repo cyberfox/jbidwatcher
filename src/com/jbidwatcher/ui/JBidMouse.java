@@ -33,7 +33,7 @@ import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.auction.AuctionServerInterface;
 
 public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private static JConfigFrame jcf = null;
@@ -527,7 +527,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoShowTime(Component src, AuctionEntry ae) {
-    AuctionServer as = AuctionServerManager.getInstance().getDefaultServer();
+    AuctionServerInterface as = AuctionServerManager.getInstance().getDefaultServer();
     if(ae != null) as = ae.getServer();
 
     String prompt = "<html><body><table>";

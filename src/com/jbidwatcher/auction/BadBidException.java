@@ -1,4 +1,4 @@
-package com.jbidwatcher.auction.server;
+package com.jbidwatcher.auction;
 
 /*!@class BadBidException
  *

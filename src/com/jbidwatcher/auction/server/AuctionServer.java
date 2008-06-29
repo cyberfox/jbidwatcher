@@ -24,15 +24,13 @@ import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.search.SearchManagerInterface;
-import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.SpecificAuction;
-import com.jbidwatcher.auction.AuctionInfo;
+import com.jbidwatcher.auction.*;
 
 import java.util.*;
 import java.net.*;
 import java.io.*;
 
-public abstract class AuctionServer implements AuctionServerInterface {
+public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionServerInterface {
   private static long sLastUpdated = 0;
 
   private class ReloadItemException extends Exception {
@@ -359,7 +357,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
    * @return - false if username is null, or if the current user is the 'default' user, or if the username provided is different
    * than the current username.  True if the current app user is the same as the username passed in.
    */
-  public boolean sameUser(String username) {
+  public boolean isCurrentUser(String username) {
     return !(username == null || isDefaultUser() || !getUserId().trim().equalsIgnoreCase(username.trim()));
   }
 }

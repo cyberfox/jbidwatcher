@@ -1,7 +1,10 @@
 package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.auction.server.*;
-import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.*;
+import com.jbidwatcher.auction.BadBidException;
+import com.jbidwatcher.auction.LoginManager;
+import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
@@ -28,7 +31,7 @@ import java.util.HashMap;
 * Time: 1:38:12 AM
 * To change this template use File | Settings | File Templates.
 */
-public class ebayBidder implements Bidder {
+public class ebayBidder implements com.jbidwatcher.auction.Bidder {
   private LoginManager mLogin;
   private HashMap<String, Integer> mResultHash = null;
   private String mBidResultRegex = null;

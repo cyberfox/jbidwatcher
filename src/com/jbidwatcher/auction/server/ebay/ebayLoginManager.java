@@ -7,7 +7,7 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.auction.server.LoginManager;
+import com.jbidwatcher.auction.LoginManager;
 
 import java.net.URLConnection;
 import java.net.URLEncoder;

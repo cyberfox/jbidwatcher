@@ -1,10 +1,12 @@
-package com.jbidwatcher.auction.server;
+package com.jbidwatcher.auction;
 
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.AuctionInfo;
 import com.jbidwatcher.util.Currency;
 
 import java.util.TimeZone;
+import java.net.URL;
+import java.io.FileNotFoundException;
 
 /**
  * User: Morgan
@@ -108,4 +110,14 @@ public interface AuctionServerInterface {
   public boolean validate(String username, String password);
 
   boolean isDefaultUser();
+
+  String getStringURLFromItem(String identifier);
+
+  StringBuffer getAuction(URL url) throws FileNotFoundException;
+
+  boolean isCurrentUser(String checkUser);
+
+  boolean isHighDutch(AuctionEntry entry);
+
+  void updateHighBid(AuctionEntry eEntry);
 }

@@ -1,4 +1,4 @@
-package com.jbidwatcher.auction.server;
+package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.http.CookieJar;
 

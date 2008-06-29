@@ -8,7 +8,7 @@ package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.auction.server.AuctionServerInterface;
+import com.jbidwatcher.auction.AuctionServerInterface;
 
 /**
  * Created by IntelliJ IDEA.
@@ -73,20 +73,20 @@ public abstract class AuctionActionImpl implements AuctionAction {
       case AuctionServerInterface.BID_ERROR_UNKNOWN:
         bidResultString = "Bidding " + bidAmount + " apparently failed for an unknown reason.  Check the auction in the browser, to see if the bid went through anyway.";
         break;
-      case AuctionServerInterface.BID_ERROR_ENDED:
+      case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_ENDED:
       case AuctionServerInterface.BID_ERROR_CANNOT:
         bidResultString = "Bidding apparently failed, as the auction cannot be bid on anymore (probably ended)!";
         break;
-      case AuctionServerInterface.BID_DUTCH_CONFIRMED:
+      case com.jbidwatcher.auction.AuctionServerInterface.BID_DUTCH_CONFIRMED:
         bidResultString = "Your dutch bid was confirmed, and you are in the list of high bidders!";
         break;
       case AuctionServerInterface.BID_ERROR_BANNED:
         bidResultString = "Your bid failed, as you are disallowed from bidding on this seller's items.";
         break;
-      case AuctionServerInterface.BID_ERROR_TOO_LOW:
+      case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_TOO_LOW:
         bidResultString = "Your bid was too low, and was not accepted.";
         break;
-      case AuctionServerInterface.BID_ERROR_TOO_LOW_SELF:
+      case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_TOO_LOW_SELF:
           bidResultString = "Your bid was below or equal to your previous high bid, and was not accepted.";
           break;
       case AuctionServerInterface.BID_ERROR_RESERVE_NOT_MET:
@@ -95,10 +95,10 @@ public abstract class AuctionActionImpl implements AuctionAction {
       case AuctionServerInterface.BID_ERROR_AMOUNT:
         bidResultString = "Bidding apparently failed, because of an an invalid amount (" + bidAmount + ").";
         break;
-      case AuctionServerInterface.BID_ERROR_OUTBID:
+      case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_OUTBID:
         bidResultString = "Your bid for " + bidAmount + " was submitted, but someone else's bid is still higher.";
         break;
-      case AuctionServerInterface.BID_ERROR_CONNECTION:
+      case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_CONNECTION:
         bidResultString = "Bid failed due to connection problem.  Probably a timeout trying to reach eBay.";
         break;
       case AuctionServer.BID_ERROR_AUCTION_GONE:

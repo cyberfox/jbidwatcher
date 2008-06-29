@@ -16,8 +16,8 @@ import com.jbidwatcher.util.db.ActiveRecordCache;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerialize;
-import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.EntryManager;
+import com.jbidwatcher.auction.*;
+import com.jbidwatcher.auction.AuctionServerInterface;
 
 import java.net.URL;
 import java.util.*;
@@ -43,10 +43,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public static void setEntryManager(EntryManager newEM) { sEntryManager = newEM; }
-
-  public List<AuctionEntry> allSniped() {
-    return AuctionEntry.findAllSniped();
-  }
 
   public AuctionServer getServerByName(String name) {
     if (mServer.getName().equals(name)) return mServer;
@@ -151,7 +147,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     String cmd = (String)deQ;
 
     if(cmd.equals("TIMECHECK")) {
-      AuctionServerInterface defaultServer = getDefaultServer();
+      com.jbidwatcher.auction.AuctionServerInterface defaultServer = getDefaultServer();
 
       defaultServer.reloadTime();
 
@@ -226,7 +222,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   //  Handle the case of '198332643'.  (For 'paste auction').
-  public AuctionServer getServerForIdentifier(String auctionId) {
+  public AuctionServerInterface getServerForIdentifier(String auctionId) {
     if (mServer.checkIfIdentifierIsHandled(auctionId)) return mServer;
 
     return null;

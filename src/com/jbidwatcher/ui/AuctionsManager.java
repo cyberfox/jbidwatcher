@@ -20,7 +20,7 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.auction.server.AuctionServerInterface;
+import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.*;

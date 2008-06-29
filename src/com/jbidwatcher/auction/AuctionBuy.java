@@ -8,7 +8,7 @@ package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.auction.server.AuctionServerInterface;
+import com.jbidwatcher.auction.AuctionServerInterface;
 
 public class AuctionBuy extends AuctionActionImpl {
   public AuctionBuy(String id, Currency amount, int quantity) {
@@ -30,14 +30,14 @@ public class AuctionBuy extends AuctionActionImpl {
       case AuctionServerInterface.BID_ERROR_UNKNOWN:
         bidResultString = "Purchasing " + bidAmount + " apparently failed for an unknown reason.  Check the auction in the browser, to see if it went through anyway.";
         break;
-      case AuctionServerInterface.BID_ERROR_ENDED:
+      case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_ENDED:
       case AuctionServerInterface.BID_ERROR_CANNOT:
         bidResultString = "Purchasing apparently failed, as the auction cannot be bought from anymore (probably ended)!";
         break;
       case AuctionServerInterface.BID_ERROR_BANNED:
         bidResultString = "Your purchase failed, as you are disallowed from buying this seller's items.";
         break;
-      case AuctionServerInterface.BID_ERROR_CONNECTION:
+      case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_CONNECTION:
         bidResultString = "Purchase failed due to connection problem.  Probably a timeout trying to reach eBay.";
         break;
       case AuctionServer.BID_ERROR_AUCTION_GONE:

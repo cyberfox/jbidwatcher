@@ -414,7 +414,7 @@ public class UIBackbone implements MessageQueue.Listener {
     Date now = new Date();
     String status = "We appear to be waking from sleep; networking may not be up yet.";
     ErrorManagement.logDebug(status);
-    List<AuctionEntry> sniped = AuctionServerManager.getInstance().allSniped();
+    List<AuctionEntry> sniped = AuctionEntry.findAllSniped();
     if (sniped != null && !sniped.isEmpty()) {
       boolean foundSnipe = false;
       for (AuctionEntry entry : sniped) {

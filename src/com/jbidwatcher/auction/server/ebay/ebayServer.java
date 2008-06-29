@@ -27,7 +27,7 @@ import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.auction.server.Bidder;
+import com.jbidwatcher.auction.Bidder;
 
 import javax.swing.*;
 import java.net.URL;

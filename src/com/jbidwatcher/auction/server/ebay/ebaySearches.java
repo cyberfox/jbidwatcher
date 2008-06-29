@@ -10,9 +10,9 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.http.CookieJar;
-import com.jbidwatcher.auction.server.AuctionServerInterface;
+import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.auction.server.LoginManager;
+import com.jbidwatcher.auction.LoginManager;
 import com.jbidwatcher.util.html.CleanupHandler;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.DropQObject;
@@ -34,7 +34,7 @@ import java.io.UnsupportedEncodingException;
 public class ebaySearches {
   private static final int ITEMS_PER_PAGE = 100;
   private CleanupHandler mCleaner;
-  private LoginManager mLogin;
+  private com.jbidwatcher.auction.LoginManager mLogin;
 
   public ebaySearches(CleanupHandler cleaner, LoginManager login) {
     mCleaner = cleaner;

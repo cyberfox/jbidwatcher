@@ -19,6 +19,7 @@ import com.jbidwatcher.auction.AuctionTransformer;
 import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.AuctionEntry;
 
 import java.net.*;
@@ -342,7 +343,7 @@ public class JBidProxy extends HTTPProxyClient {
     }
 
     sbOut.append("<hr><br>");
-    AuctionServer aucServ = ae.getServer();
+    AuctionServerInterface aucServ = ae.getServer();
     try {
       //  TODO -- This is nauseating.  Fix it.
       sbOut.append(checkError(aucServ.getAuction(StringTools.getURLFromString(aucServ.getBrowsableURLFromItem(ae.getIdentifier())))));
