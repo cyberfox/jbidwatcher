@@ -247,22 +247,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     mLastUpdatedAt = 0;
     mNeedsUpdate = true;
 
-    // We handle URL identifiers differently than just an auction
-    // identifier, so we can create an AuctionEntry with either.
-    if(auctionIdentifier.startsWith("http")) {
-      mServer = AuctionServerManager.getInstance().getServerForUrlString(auctionIdentifier);
-      if(mServer != null) {
-        String id = mServer.extractIdentifierFromURLString(auctionIdentifier);
-        mAuction = mServer.createAuction(id);
-
-        mNeedsUpdate = false;
-      }
-    } else {
-      mServer = AuctionServerManager.getInstance().getServerForIdentifier(auctionIdentifier);
-
-      if(mServer != null) {
-        mAuction = mServer.createAuction(auctionIdentifier);
-      }
+    if (mServer != null) {
+      mAuction = mServer.createAuction(auctionIdentifier);
     }
 
     mLoaded = mAuction != null;
@@ -289,15 +275,17 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @param auctionIdentifier The auction ID, from which the entire
    *     AuctionEntry is built by loading data from the server.
+   * @param server - The auction server for this entry.
    */
-  private AuctionEntry(String auctionIdentifier) {
+  private AuctionEntry(String auctionIdentifier, AuctionServer server) {
+    mServer = server;
     checkConfigurationSnipeTime();
     mAddedRecently = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
     prepareAuctionEntry(auctionIdentifier);
   }
 
-  public static AuctionEntry buildEntry(String auctionIdentifier) {
-    AuctionEntry ae = new AuctionEntry(auctionIdentifier);
+  public static AuctionEntry buildEntry(String auctionIdentifier, AuctionServer server) {
+    AuctionEntry ae = new AuctionEntry(auctionIdentifier, server);
     if(ae.isLoaded()) {
       String id = ae.saveDB();
       if (id != null) {
@@ -311,7 +299,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   /**
    * A constructor that does absolutely nothing.  This is to be used
    * for loading from XML data later on, where the fromXML function
-   * will fill out all the internal information.
+   * will fill out all the internal information.  Similarly, ActiveRecord
+   * fills this out when pulling from a database record.
    */
   public AuctionEntry() {
     checkConfigurationSnipeTime();

@@ -293,7 +293,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     String strippedId = stripId(id);
 
     if(!DeletedEntry.exists(strippedId) && !verifyEntry(strippedId)) {
-      return AuctionEntry.buildEntry(id);
+      return AuctionEntry.buildEntry(id, AuctionServerManager.getInstance().getServerForIdentifier(id));
     }
 
     return null;
