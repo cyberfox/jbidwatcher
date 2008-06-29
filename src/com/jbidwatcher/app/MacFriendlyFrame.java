@@ -6,6 +6,7 @@ import com.jbidwatcher.util.db.ActiveRecordCache;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.*;
@@ -84,7 +85,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
   public void handleQuit() {
     ActiveRecordCache.saveCached();
     if (!(JConfig.queryConfiguration("prompt.snipe_quit", "false").equals("true")) &&
-        (AuctionsManager.getInstance().anySnipes())) {
+        (AuctionEntry.snipedCount() != 0)) {
       MQFactory.getConcrete("Swing").enqueue(UIBackbone.QUIT_MSG);
       //  Please wait, we'll be ready to quit shortly.
       throw new IllegalStateException("Ne changez pas mains, il viendra bient?t.");
@@ -142,7 +143,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
    */
   public void shutdown() {
     ActiveRecordCache.saveCached();
-    if (AuctionsManager.getInstance().anySnipes()) {
+    if (AuctionEntry.snipedCount() != 0) {
       OptionUI oui = new OptionUI();
       //  Use the right parent!  FIXME -- mrs: 17-February-2003 23:53
       int rval = oui.promptWithCheckbox(null, "There are outstanding snipes that will not be able to fire while " + Constants.PROGRAM_NAME +
