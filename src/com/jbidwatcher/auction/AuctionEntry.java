@@ -1912,4 +1912,26 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     }
   	return(prompt);
   }
+
+  public String buildHTMLComment() {
+    boolean hasComment = (getComment() != null);
+    boolean hasThumb = (getThumbnail() != null);
+
+    if(JConfig.queryConfiguration("display.thumbnail", "true").equals("false")) hasThumb = false;
+    if(!hasComment && !hasThumb) return null;
+
+    StringBuffer wholeHTML = new StringBuffer("<html><body>");
+    if(hasThumb && hasComment) {
+      wholeHTML.append("<table><tr><td><img src=\"").append(getThumbnail()).append("\"></td><td>").append(getComment()).append("</td></tr></table>");
+    } else {
+      if(hasThumb) {
+        wholeHTML.append("<img src=\"").append(getThumbnail()).append("\">");
+      } else {
+        wholeHTML.append(getComment());
+      }
+    }
+    wholeHTML.append("</body></html>");
+
+    return wholeHTML.toString();
+  }
 }

@@ -15,7 +15,7 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigTab;
-import com.jbidwatcher.ui.ServerMenu;
+import com.jbidwatcher.auction.server.ServerMenu;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.html.JHTML;

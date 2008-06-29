@@ -1,7 +1,6 @@
 package com.jbidwatcher.ui.table;
 
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.ui.AuctionsUIModel;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
 
@@ -58,7 +57,7 @@ public class AuctionTable extends JTable {
     if(rowPoint != -1) {
       AuctionEntry ae = (AuctionEntry) getValueAt(rowPoint, -1);
 
-      result = AuctionsUIModel.buildHTMLComment(ae);
+      result = ae.buildHTMLComment();
     }
 
     return result == null ? super.getToolTipText(event) : result;

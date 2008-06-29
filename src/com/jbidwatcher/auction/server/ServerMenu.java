@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;
+package com.jbidwatcher.auction.server;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -16,15 +16,6 @@ public abstract class ServerMenu implements ActionListener {
   public ServerMenu(String serverName, char ch) {
     mMenu = new JMenu(serverName);
     mMenu.setMnemonic(ch);
-    JBidMenuBar.getInstance(null).add(mMenu);
-  }
-
-  public ServerMenu(String serverName) {
-    mMenu = new JMenu(serverName);
-    JBidMenuBar.getInstance(null).add(mMenu);
-  }
-
-  public ServerMenu() {
   }
 
   public void addMenuItem(String inName) {

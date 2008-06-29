@@ -418,30 +418,6 @@ public class AuctionsUIModel {
     }
   }
 
-  public static String buildHTMLComment(AuctionEntry ae) {
-    if(ae == null) return null;
-
-    boolean hasComment = (ae.getComment() != null);
-    boolean hasThumb = (ae.getThumbnail() != null);
-
-    if(JConfig.queryConfiguration("display.thumbnail", "true").equals("false")) hasThumb = false;
-    if(!hasComment && !hasThumb) return null;
-
-    StringBuffer wholeHTML = new StringBuffer("<html><body>");
-    if(hasThumb && hasComment) {
-      wholeHTML.append("<table><tr><td><img src=\"").append(ae.getThumbnail()).append("\"></td><td>").append(ae.getComment()).append("</td></tr></table>");
-    } else {
-      if(hasThumb) {
-        wholeHTML.append("<img src=\"").append(ae.getThumbnail()).append("\">");
-      } else {
-        wholeHTML.append(ae.getComment());
-      }
-    }
-    wholeHTML.append("</body></html>");
-
-    return wholeHTML.toString();
-  }
-
   /**
    * @brief Print this table.
    *

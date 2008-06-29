@@ -6,7 +6,6 @@ package com.jbidwatcher.auction.server;
  */
 
 import com.jbidwatcher.ui.config.JConfigTab;
-import com.jbidwatcher.ui.ServerMenu;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.search.SearchManager;
