@@ -340,7 +340,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
       }
 
-      if(ac.getData().equals("[Dump eBay activity queue]")) {
+      if(ac.getData().equals("Dump eBay Activity Queue")) {
         _etqm.dumpQueue();
         return;
       }
