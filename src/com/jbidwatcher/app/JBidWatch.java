@@ -402,7 +402,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
 
     if(!ebayLoaded) AuctionServerManager.getInstance().addServer(new ebayServer());
-
+    AuctionEntry.setResolver(AuctionServerManager.getInstance());
     loadProxySettings();
 
     if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {

@@ -27,7 +27,7 @@ import java.util.*;
  * JBidwatcher is not used on any other auction sites than eBay, and hasn't
  * been for many years.
  */
-public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener {
+public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener, Resolver {
   private final static AuctionServerManager mInstance;
   private static EntryManager sEntryManager = null;
   private AuctionServer mServer;

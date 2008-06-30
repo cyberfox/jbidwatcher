@@ -8,8 +8,6 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.event.EventLogger;
 import com.jbidwatcher.auction.event.EventStatus;
 import com.jbidwatcher.util.config.*;
@@ -53,6 +51,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public static final String newRow = "<tr><td>";
   public static final String newCol = "</td><td>";
   public static final String endRow = "</td></tr>";
+  private static Resolver sResolver;
 
   /**
    * @brief Set a status message, and mark that the connection is currently invalid.
@@ -179,7 +178,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * What AuctionServer is responsible for handling this
    * AuctionEntry's actions?
    */
-  private com.jbidwatcher.auction.AuctionServerInterface mServer =null;
+  private AuctionServerInterface mServer =null;
 
   /**
    * The last time this auction was bid on.  Not presently used,
@@ -277,14 +276,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *     AuctionEntry is built by loading data from the server.
    * @param server - The auction server for this entry.
    */
-  private AuctionEntry(String auctionIdentifier, com.jbidwatcher.auction.AuctionServerInterface server) {
+  private AuctionEntry(String auctionIdentifier, AuctionServerInterface server) {
     mServer = server;
     checkConfigurationSnipeTime();
     mAddedRecently = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
     prepareAuctionEntry(auctionIdentifier);
   }
 
-  public static AuctionEntry buildEntry(String auctionIdentifier, com.jbidwatcher.auction.AuctionServerInterface server) {
+  public static AuctionEntry buildEntry(String auctionIdentifier, AuctionServerInterface server) {
     AuctionEntry ae = new AuctionEntry(auctionIdentifier, server);
     if(ae.isLoaded()) {
       String id = ae.saveDB();
@@ -330,9 +329,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return The server that this auction entry is associated with.
    */
-  public com.jbidwatcher.auction.AuctionServerInterface getServer() {
+  public AuctionServerInterface getServer() {
     if(mServer == null) {
-      mServer = AuctionServerManager.getInstance().getServerForIdentifier(getIdentifier());
+      mServer = sResolver.getServerForIdentifier(getIdentifier());
     }
     return(mServer);
   }
@@ -344,7 +343,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @param newServer - The server to associate with this auction entry.
    */
-  public void setServer(com.jbidwatcher.auction.AuctionServerInterface newServer) { mServer = newServer; }
+  public void setServer(AuctionServerInterface newServer) { mServer = newServer; }
 
   /**
    * @brief Query whether this entry has ever been loaded from the server.
@@ -1922,5 +1921,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     wholeHTML.append("</body></html>");
 
     return wholeHTML.toString();
+  }
+
+  public static void setResolver(Resolver resolver) {
+    sResolver = resolver;
   }
 }
