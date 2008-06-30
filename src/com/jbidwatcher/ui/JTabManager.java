@@ -22,6 +22,21 @@ public class JTabManager extends JMouseAdapter {
   private JTabbedPane mAuctionTypes;
   private Map<String, TableSorter> mNameTableMap = new TreeMap<String, TableSorter>();
   private JTabPopupMenu mPopupMenu;
+  private static JTabManager sInstance;
+
+  /**
+   * @brief Retrieve the tab manager which controls ALL the tabs that
+   * are displaying UI models.
+   *
+   * @return A JTabManager which handles all the tabs into which are
+   * rendered UI models.
+   */
+  public static JTabManager getInstance() {
+    if(sInstance == null) {
+      sInstance = new JTabManager();
+    }
+    return sInstance;
+  }
 
   public JTabManager() {
     mAuctionTypes = new JTabbedPane();

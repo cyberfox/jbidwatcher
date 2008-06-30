@@ -12,8 +12,8 @@ import javax.swing.JFrame;
 import java.awt.event.ActionListener;
 
 public abstract class MyActionListener implements ActionListener {
-  protected ArrayList<AuctionEntry> m_entries;
+  protected ArrayList<AuctionEntry> mEntries;
   protected JFrame m_within;
-  public void setEntries(ArrayList<AuctionEntry> allEntries) { m_entries = allEntries; }
+  public void setEntries(ArrayList<AuctionEntry> allEntries) { mEntries = allEntries; }
   public void setFrame(JFrame jf) { m_within = jf; }
 }

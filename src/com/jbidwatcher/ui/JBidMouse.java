@@ -68,7 +68,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private static final String SEARCH="SEARCH";
 
   private AuctionEntry addAuction(String auctionSource) {
-    AuctionEntry aeNew = AuctionsManager.getInstance().newAuctionEntry(auctionSource);
+    AuctionEntry aeNew = AuctionEntry.construct(auctionSource);
     if(aeNew != null && aeNew.isLoaded()) {
       aeNew.clearNeedsUpdate();
       AuctionsManager.getInstance().addEntry(aeNew);
@@ -128,10 +128,10 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     AuctionEntry aeNew = addAuction(auctionSource);
     if(aeNew == null) {
       AuctionsManager am = AuctionsManager.getInstance();
-      String id = AuctionsManager.stripId(auctionSource);
+      String id = AuctionEntry.stripId(auctionSource);
       //  For user-interactive adds, always override the deleted state.
       if(DeletedEntry.exists(id)) {
-        am.undelete(id);
+        DeletedEntry.remove(id);
         aeNew = addAuction(auctionSource);
       }
       if(aeNew == null) {
@@ -272,23 +272,23 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       buttons.add("CHECK Don't prompt in the future.");
 
       MyActionListener al = new MyActionListener() {
-        boolean m_dontprompt = false;
+        boolean mDontPrompt = false;
         public void actionPerformed(ActionEvent listen_ae) {
           String actionString = listen_ae.getActionCommand();
           if(actionString.equals("Don't prompt in the future.")) {
             JCheckBox jch = (JCheckBox) listen_ae.getSource();
-            m_dontprompt = jch.isSelected();
+            mDontPrompt = jch.isSelected();
           } else {
             if(actionString.equals("Yes")) {
               //  Delete all those items...
-              for (AuctionEntry m_entry : m_entries) {
-                m_entry.cancelSnipe(false);
-                FilterManager.getInstance().deleteAuction(m_entry);
-                new DeletedEntry(m_entry.getIdentifier()).saveDB();
+              for (AuctionEntry entry : mEntries) {
+                entry.cancelSnipe(false);
+                MQFactory.getConcrete("delete").enqueue(entry);
+                new DeletedEntry(entry.getIdentifier()).saveDB();
               }
               //  Just pass the list of ids down to a low-level 'delete multiple' method.
-              AuctionEntry.deleteAll(m_entries);
-              if(m_dontprompt) {
+              AuctionEntry.deleteAll(mEntries);
+              if(mDontPrompt) {
                 JConfig.setConfiguration("prompt.hide_delete_confirm", "true");
               }
             }
@@ -458,7 +458,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       return;
     }
 
-    if(FilterManager.getInstance().findCategory(tab) == null) {
+    Category c = Category.findFirstByName(tab);
+
+    if(c == null) {
       JOptionPane.showMessageDialog(null, "Cannot locate that tab, something has gone wrong.\nClose and restart JBidwatcher.", "Error moving listings", JOptionPane.PLAIN_MESSAGE);
       return;
     }
@@ -475,7 +477,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     //  Now move all entries in the temporary table to the new tab.
     for (AuctionEntry moveEntry : tempTable) {
       moveEntry.setCategory(tab);
-      FilterManager.getInstance().refilterAuction(moveEntry);
+      MQFactory.getConcrete("redraw").enqueue(moveEntry);
     }
   }
 
@@ -518,11 +520,11 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
         AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(aRowList);
 
         tempEntry.cancelSnipe(false);
-        FilterManager.getInstance().redrawEntry(tempEntry);
+        MQFactory.getConcrete("redraw").enqueue(tempEntry);
       }
     } else {
       ae.cancelSnipe(false);
-      FilterManager.getInstance().redrawEntry(ae);
+      MQFactory.getConcrete("redraw").enqueue(ae);
     }
   }
 
@@ -753,7 +755,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     for(i=0; i<rowList.length; i++) {
       AuctionEntry stepAE = (AuctionEntry)getIndexedEntry(rowList[i]);
       stepAE.setMultiSnipe(aeMS);
-      FilterManager.getInstance().redrawEntry(stepAE);
+      MQFactory.getConcrete("redraw").enqueue(stepAE);
     }
   }
 
@@ -854,7 +856,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
 
     //  if(JConfig.queryConfiguration("message.sniped", null) == null) { ... }
-    FilterManager.getInstance().redrawEntry(ae);
+    MQFactory.getConcrete("redraw").enqueue(ae);
     _oui.promptWithCheckbox(src, "Sniped for: " + ae.getSnipeAmount(), "Snipe Alert", "message.sniped", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
   }
 
@@ -889,7 +891,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     if(shippingAmount != null) {
       ae.setShipping(shippingAmount);
-      FilterManager.getInstance().redrawEntry(ae);
+      MQFactory.getConcrete("redraw").enqueue(ae);
     }
   }
 
@@ -1035,7 +1037,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
 
     ae.setComment("");
-    FilterManager.getInstance().redrawEntry(ae);
+    MQFactory.getConcrete("redraw").enqueue(ae);
   }
 
   private void DoComment(Component src, AuctionEntry inAuction) {
@@ -1050,7 +1052,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     if(endResult == null) return;
 
     inAuction.setComment(endResult);
-    FilterManager.getInstance().redrawEntry(inAuction);
+    MQFactory.getConcrete("redraw").enqueue(inAuction);
   }
 
   private void ShowComment(Component src, AuctionEntry inAuction) {
@@ -1378,7 +1380,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     if(bgColor == null) {
       return;
     }
-    FilterManager.getInstance().setBackground(bgColor);
+    MQFactory.getConcrete("redraw").enqueue(bgColor);
     myTableCellRenderer.resetBehavior();
     JConfig.setConfiguration("background", MultiSnipe.makeRGB(bgColor));
   }
@@ -1434,9 +1436,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     if(tabMenu != null) {
       tabMenu.removeAll();
 
-      JTabbedPane tabbedPane = FilterManager.getTabManager().getTabs();
+      JTabbedPane tabbedPane = JTabManager.getInstance().getTabs();
       String currentTitle = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
-      List<String> tabs = FilterManager.getInstance().allCategories();
+      List<String> tabs = Category.categories();
       if(tabs == null) {
         tabMenu.setEnabled(false);
       } else {

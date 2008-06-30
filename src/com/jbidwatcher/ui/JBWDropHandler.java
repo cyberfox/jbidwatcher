@@ -49,7 +49,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
 
     //  We get the identifier from the URL (which is multi-country),
     //  then create an auction entry from the id.
-    AuctionEntry aeNew = AuctionsManager.getInstance().newAuctionEntry(aucId);
+    AuctionEntry aeNew = AuctionEntry.construct(aucId);
     if(aeNew != null && aeNew.isLoaded()) {
       if(label != null) {
         aeNew.setCategory(label);

@@ -149,7 +149,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   public void addEntry(AuctionEntry ae) {
     if(mDoSplash) MQFactory.getConcrete("splash").enqueue("SET " + Integer.toString(++mAuctionCount));
 
-    FilterManager.getInstance().addAuction(ae);
+    mFilter.addAuction(ae);
   }
 
   /**
@@ -164,7 +164,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     String id = ae.getIdentifier();
     new DeletedEntry(id).saveDB();
     ae.cancelSnipe(false);
-    FilterManager.getInstance().deleteAuction(ae);
+    mFilter.deleteAuction(ae);
     ae.delete();
   }
 
@@ -287,34 +287,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
         MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions.");
       }
     }
-  }
-
-  public AuctionEntry newAuctionEntry(String id) {
-    String strippedId = stripId(id);
-
-    if(!DeletedEntry.exists(strippedId) && !verifyEntry(strippedId)) {
-      return AuctionEntry.buildEntry(id, AuctionServerManager.getInstance().getServerForIdentifier(id));
-    }
-
-    return null;
-  }
-
-  public static String stripId(String id) {
-    String strippedId = id;
-    if(id.startsWith("http")) {
-      AuctionServerInterface aucServ = AuctionServerManager.getInstance().getServerForUrlString(id);
-      strippedId = aucServ.extractIdentifierFromURLString(id);
-    }
-
-    return strippedId;
-  }
-
-  public void undelete(String id) {
-    DeletedEntry.remove(id);
-  }
-
-  public boolean isDeleted(String id) {
-    return DeletedEntry.exists(id);
   }
 
   //  Reuse a single save buffer when writing out the auctions.xml file.

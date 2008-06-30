@@ -551,7 +551,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     Browser.start();
 
     inSplash.message("Building Interface");
-    jtmAuctions = FilterManager.getTabManager();
+    jtmAuctions = JTabManager.getInstance();
     JBidFrame.setDefaultMenuBar(JBidMenuBar.getInstance(jtmAuctions, "Search Editor"));
 
     mainFrame = buildFrame();

@@ -283,20 +283,34 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     prepareAuctionEntry(auctionIdentifier);
   }
 
-  public static AuctionEntry buildEntry(String auctionIdentifier, AuctionServerInterface server) {
-    AuctionEntry ae = new AuctionEntry(auctionIdentifier, server);
-    if(ae.isLoaded()) {
-      String id = ae.saveDB();
-      if (id != null) {
-        ActiveRecordCache.cache(ae.getClass(), "id", id, ae);
-        return ae;
+  public static String stripId(String id) {
+    String strippedId = id;
+    if (id.startsWith("http")) {
+      AuctionServerInterface aucServ = sResolver.getServerForUrlString(id);
+      strippedId = aucServ.extractIdentifierFromURLString(id);
+    }
+
+    return strippedId;
+  }
+
+  public static AuctionEntry construct(String identifier) {
+    String strippedId = stripId(identifier);
+
+    if (!DeletedEntry.exists(strippedId) && findByIdentifier(strippedId) != null) {
+      AuctionEntry ae = new AuctionEntry(strippedId, sResolver.getServerForIdentifier(strippedId));
+      if(ae.isLoaded()) {
+        String id = ae.saveDB();
+        if (id != null) {
+          ActiveRecordCache.cache(ae.getClass(), "id", id, ae);
+          return ae;
+        }
       }
     }
     return null;
   }
 
   /**
-   * A constructor that does absolutely nothing.  This is to be used
+   * A constructor that does almost nothing.  This is to be used
    * for loading from XML data later on, where the fromXML function
    * will fill out all the internal information.  Similarly, ActiveRecord
    * fills this out when pulling from a database record.

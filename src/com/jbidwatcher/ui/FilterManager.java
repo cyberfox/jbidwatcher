@@ -20,7 +20,7 @@ import java.awt.event.ActionEvent;
 
 public class FilterManager implements MessageQueue.Listener {
   private static FilterManager sInstance = null;
-  private static final JTabManager allTabs = new JTabManager();
+  private static final JTabManager allTabs = JTabManager.getInstance();
 
   private AuctionListHolder _main = null;
   private final List<AuctionListHolder> mAllLists;
@@ -41,6 +41,15 @@ public class FilterManager implements MessageQueue.Listener {
       public void actionPerformed(ActionEvent e) {
         JMenu bangMenu = allTabs.getCustomColumnMenu();
         bangMenu.getPopupMenu().show(mCornerButton, 0, 0);
+      }
+    });
+
+    MQFactory.getConcrete("redraw").registerListener(this);
+
+    MQFactory.getConcrete("delete").registerListener(new MessageQueue.Listener() {
+      public void messageAction(Object deQ) {
+        AuctionEntry ae = (AuctionEntry) deQ;
+        deleteAuction(ae);
       }
     });
   }
@@ -175,7 +184,7 @@ public class FilterManager implements MessageQueue.Listener {
           if (!step.isDeletable()) return false;
           mAllLists.remove(i);
           removeAuctionsFromTab(deleteFirst, step);
-          getTabManager().getTabs().remove(i);
+          JTabManager.getInstance().getTabs().remove(i);
           didRemove = true;
         }
       }
@@ -202,7 +211,6 @@ public class FilterManager implements MessageQueue.Listener {
   public synchronized static FilterManager getInstance() {
     if(sInstance == null) {
       sInstance = new FilterManager();
-      MQFactory.getConcrete("redraw").registerListener(sInstance);
     }
     return sInstance;
   }
@@ -219,6 +227,8 @@ public class FilterManager implements MessageQueue.Listener {
       }
     } else if(deQ instanceof Auctions) {
       matchUI((Auctions)deQ).sort();
+    } else if(deQ instanceof Color) {
+      setBackground((Color)deQ);
     }
   }
 
@@ -528,13 +538,4 @@ public class FilterManager implements MessageQueue.Listener {
     }
     return ret.getList();
   }
-
-  /**
-   * @brief Retrieve the tab manager which controls ALL the tabs that
-   * are displaying UI models.
-   *
-   * @return A JTabManager which handles all the tabs into which are
-   * rendered UI models.
-   */
-  public static JTabManager getTabManager() { return allTabs; }
 }

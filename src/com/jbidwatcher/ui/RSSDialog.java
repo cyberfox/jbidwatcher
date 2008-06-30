@@ -11,6 +11,7 @@ import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.browser.BrowserLauncher;
+import com.jbidwatcher.auction.Category;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -18,6 +19,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -123,7 +125,7 @@ public class RSSDialog extends BasicDialog {
   private void buildTabList() {
     tabList.removeAllItems();
     tabList.setEditable(true);
-    java.util.List<String> tabs = FilterManager.getInstance().allCategories();
+    List<String> tabs = Category.categories();
     if(tabs != null) {
       tabs.remove("complete");
       tabs.remove("selling");
