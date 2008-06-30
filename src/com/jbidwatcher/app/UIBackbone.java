@@ -333,7 +333,7 @@ public class UIBackbone implements MessageQueue.Listener {
 
   private void handleHeader(String headerMsg) {
     JBidToolBar.getInstance().setText(headerMsg);
-    FilterManager.getInstance().check();
+    ListManager.getInstance().check();
   }
 
   private static final int ONEK = 1024;

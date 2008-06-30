@@ -464,7 +464,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     String savedBGColor = JConfig.queryConfiguration("background", "false");
     if(!savedBGColor.equals("false")) {
-      FilterManager.getInstance().setBackground(Color.decode('#' + savedBGColor));
+      ListManager.getInstance().setBackground(Color.decode('#' + savedBGColor));
     }
 
     //  Enable the internal server, if it's set.
@@ -527,6 +527,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       JConfig.disableScripting();
     }
     inSplash.message("Initializing Database");
+    Initializer.setup();
     FilterManager.getInstance().loadFilters();
     inSplash.message("Loading Auctions");
     if (AuctionsManager.getInstance().loadAuctionsFromDatabase() == 0) {

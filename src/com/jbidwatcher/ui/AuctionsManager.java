@@ -20,7 +20,6 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.*;
@@ -73,22 +72,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   //  Mass-equivalents for Auction-list specific operations
 
   /**
-   * @brief Wake up all Auctions and check to see if anything needs to
-   * be done.
-   * 
-   * @return True if anything needs to be done in any auctions.
-   */
-  private boolean checkAuctions() {
-    boolean retval = false;
-
-    for(int i = 0; i< mFilter.listLength(); i++) {
-      if(mFilter.getList(i).check()) retval = true;
-    }
-
-    return retval;
-  }
-
-  /**
    * @brief Check if it's time to save the auctions out yet.
    */
   private void checkSnapshot() {
@@ -109,7 +92,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   public boolean check() {
     //  The auctions themselves will decide which action this is,
     //  snipe-checks, or updating.
-    boolean retval = checkAuctions();
+    boolean retval = ListManager.getInstance().checkEachList();
 
     checkSnapshot();
 
@@ -132,7 +115,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * @return - True if the item exists someplace in our list of Auctions.
    */
   public boolean verifyEntry(String id) {
-    Auctions whereIs = mFilter.whereIsAuction(id);
+    Auctions whereIs = ListManager.getInstance().whereIsAuction(id);
     return whereIs != null;
   }
 

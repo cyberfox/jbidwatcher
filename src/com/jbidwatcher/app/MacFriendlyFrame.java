@@ -131,7 +131,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
   public static Properties getColumnProperties() {
     Properties colProps = new Properties();
 
-    colProps = FilterManager.getInstance().extractProperties(colProps);
+    colProps = ListManager.getInstance().extractProperties(colProps);
 
     return (colProps);
   }

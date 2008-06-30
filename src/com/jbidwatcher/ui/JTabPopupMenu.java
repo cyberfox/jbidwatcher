@@ -112,7 +112,7 @@ public class JTabPopupMenu extends JContext {
   }
 
   private void setColumnChecks(String tabName) {
-    List<String> columns = FilterManager.getInstance().getColumns(tabName);
+    List<String> columns = ListManager.getInstance().getColumns(tabName);
     for (String colName : columns) {
       JCheckBoxMenuItem jch = menuItemMap.get(colName);
       jch.setState(true);
@@ -184,7 +184,7 @@ public class JTabPopupMenu extends JContext {
 
     String tabName = _myTabs.getTitleAt(tabIndex);
     if(actionString.charAt(0) == '~') {
-      boolean result = FilterManager.getInstance().toggleField(tabName, actionString.substring(1));
+      boolean result = ListManager.getInstance().toggleField(tabName, actionString.substring(1));
       if(tabToProperties != null) {
         JTabProperties properties = tabToProperties.get(tabName);
         if(properties != null) {
@@ -206,7 +206,7 @@ public class JTabPopupMenu extends JContext {
       switch(result) {
         case JFileChooser.APPROVE_OPTION:
           String fname = jfc.getSelectedFile().getAbsolutePath();
-          if(!FilterManager.getInstance().exportTab(tabName, fname)) {
+          if(!ListManager.getInstance().exportTab(tabName, fname)) {
             JOptionPane.showMessageDialog(null, "Could not export tab [" + tabName + "].", "Export error", JOptionPane.PLAIN_MESSAGE);
           }
           return;
@@ -221,7 +221,7 @@ public class JTabPopupMenu extends JContext {
       if(tabIndex == -1) {
         ErrorManagement.logDebug("Can't print unknown tab, must prompt...");
       } else {
-        if(!FilterManager.getInstance().printTab(tabName)) {
+        if(!ListManager.getInstance().printTab(tabName)) {
           JOptionPane.showMessageDialog(null, "Could not print tab [" + tabName + "].", "Print error", JOptionPane.PLAIN_MESSAGE);
         }
       }
@@ -240,8 +240,11 @@ public class JTabPopupMenu extends JContext {
         ErrorManagement.logDebug("Prompting for Delete...\n");
       } else {
         ErrorManagement.logDebug("Deleting tab [" + tabName + "]...\n");
-        if(!FilterManager.getInstance().deleteTab(tabName, eraseEntries)) {
+        Component removed = ListManager.getInstance().deleteTab(tabName, eraseEntries);
+        if(removed == null) {
           JOptionPane.showMessageDialog(null, "Could not delete tab [" + tabName + "].", "Tab deletion error", JOptionPane.PLAIN_MESSAGE);
+        } else {
+          JTabManager.getInstance().getTabs().remove(removed);
         }
       }
     }

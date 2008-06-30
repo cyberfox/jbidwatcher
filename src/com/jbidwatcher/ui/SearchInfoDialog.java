@@ -223,7 +223,7 @@ public class SearchInfoDialog extends BasicDialog {
     tabList.removeAllItems();
     tabList.setEditable(true);
 
-    List<String> tabs = FilterManager.getInstance().allCategories();
+    List<String> tabs = ListManager.getInstance().allCategories();
     if(tabs != null) {
       tabs.remove("complete");
       tabs.remove("selling");

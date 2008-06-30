@@ -57,7 +57,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
       apply();
       _frame.setVisible(false);
     } else {
-      FilterManager.getInstance().toggleField(_tab, cmd);
+      ListManager.getInstance().toggleField(_tab, cmd);
     }
   }
 
@@ -97,7 +97,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
 
   private static void prepareComboBox(JComboBox target) {
     target.removeAllItems();
-    List<String> tabs = FilterManager.getInstance().allCategories();
+    List<String> tabs = ListManager.getInstance().allCategories();
 
     target.setEditable(true);
     if(tabs != null) {
@@ -117,7 +117,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
     JPanel internal = new JPanel();
     internal.setLayout(new GridLayout(0, 4, 2*10, 0));
 
-    List<String> columns = FilterManager.getInstance().getColumns(_tab);
+    List<String> columns = ListManager.getInstance().getColumns(_tab);
     Object[] names = TableColumnController.getInstance().getColumnNames().toArray();
     Arrays.sort(names);
     for (Object name1 : names) {
