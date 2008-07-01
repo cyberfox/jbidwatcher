@@ -12,8 +12,6 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-//  JBidMouse needs to be renamed to JMenuAction.
-
 public abstract class JBidContext extends JContext {
   protected JTable _inTable = null;
 

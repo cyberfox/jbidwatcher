@@ -550,7 +550,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  Register the handler for all 'drop' events.
     JBWDropHandler.start();
     Browser.start();
-    JBidMouse.start();
+    UserActions.start();
 
     inSplash.message("Building Interface");
     jtmAuctions = JTabManager.getInstance();
@@ -624,7 +624,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     //  Other interesting examples...
     //q.preQueue("This is a message for the display!", "Swing", System.currentTimeMillis()+Constants.ONE_MINUTE);
-    //q.preQueue(JBidMouse.ADD_AUCTION + "5582606163", "user", System.currentTimeMillis() + (Constants.ONE_MINUTE / 2));
+    //q.preQueue(UserActions.ADD_AUCTION + "5582606163", "user", System.currentTimeMillis() + (Constants.ONE_MINUTE / 2));
     //q.preQueue("http://www.jbidwatcher.com", "browse", System.currentTimeMillis() + (Constants.ONE_MINUTE / 4));
     //q.preQueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), "ebay", System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
   }

@@ -33,7 +33,7 @@ import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionServerInterface;
 
-public class JBidMouse implements MessageQueue.Listener {
+public class UserActions implements MessageQueue.Listener {
   private static JTabManager mTabs = JTabManager.getInstance();
   private static JConfigFrame jcf = null;
   private static SearchFrame _searchFrame = null;
@@ -45,9 +45,9 @@ public class JBidMouse implements MessageQueue.Listener {
 
   private boolean _in_deleting = false;
   private ScriptManager mScriptFrame;
-  private static JBidMouse sInstance;
+  private static UserActions sInstance;
 
-  private JBidMouse() { }
+  private UserActions() { }
 
   public static void setConfigFrame(JConfigFrame curCfg) {
     if(curCfg != null) jcf = curCfg;
@@ -1389,6 +1389,6 @@ public class JBidMouse implements MessageQueue.Listener {
   }
 
   public static void start() {
-    if (sInstance == null) MQFactory.getConcrete("user").registerListener(sInstance = new JBidMouse());
+    if (sInstance == null) MQFactory.getConcrete("user").registerListener(sInstance = new UserActions());
   }
 }
