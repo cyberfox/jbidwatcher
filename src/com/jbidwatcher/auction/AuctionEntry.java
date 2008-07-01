@@ -1132,6 +1132,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     setBidQuantity(getSnipe().getQuantity());
     mNeedsUpdate = true;
     getSnipe().delete();
+    set("snipe_id", null);
     mSnipe = null;
     setDirty();
   }
@@ -1206,8 +1207,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public void prepareSnipe(Currency snipe, int quantity) {
     if(snipe == null || snipe.isNull()) {
-      if(mSnipe != null) {
-        mSnipe.delete();
+      if(getSnipe() != null) {
+        getSnipe().delete();
         set("snipe_id", null);
       }
       mSnipe = null;
@@ -1546,15 +1547,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     }
 
     //  If the end date has changed, let's reschedule the snipes for the new end date...?
-    if (mAuction != null &&
-        mAuction.getEndDate() != null &&
-        !mAuction.getEndDate().equals(inAI.getEndDate()) &&
-        getSnipe() != null) {
-      refreshSnipe();
-    }
+    boolean doRefresh = (mAuction != null && mAuction.getEndDate() != null &&
+        !mAuction.getEndDate().equals(inAI.getEndDate()) && getSnipe() != null);
+
     AuctionInfo oldAuction = mAuction;
     mAuction = inAI;
     String newAuctionId = mAuction.saveDB();
+    if(doRefresh) refreshSnipe();
     if(newAuctionId != null) {
       set("auction_id", newAuctionId);
       //  If we had an old auction, and it's not the same as the new one,
