@@ -173,6 +173,10 @@ public class UserActions implements MessageQueue.Listener {
     _oui.showTextDisplay(new JHTMLOutput("Error Page", wholeStatus).getStringBuffer(), statusBox, "Error Page...");
   }
 
+  private void DoDebugWin(AuctionEntry ae) {
+    ae.win();
+  }
+
   /**
    * @brief Display a list of the items to be deleted, and let the
    * user choose whether to delete them or not.
@@ -1383,6 +1387,7 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Dump")) ActiveRecordCache.saveCached();
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
     else if(actionString.equals("View Log")) DoViewLog();
+    else if(actionString.equals("Win")) DoDebugWin(whichAuction);
     else if(actionString.equals("View Activity")) DoViewActivity();
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
     else ErrorManagement.logDebug('[' + actionString + ']');

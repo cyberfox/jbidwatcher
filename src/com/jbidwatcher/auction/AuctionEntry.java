@@ -296,7 +296,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public static AuctionEntry construct(String identifier) {
     String strippedId = stripId(identifier);
 
-    if (!DeletedEntry.exists(strippedId) && findByIdentifier(strippedId) != null) {
+    if (!DeletedEntry.exists(strippedId) && findByIdentifier(strippedId) == null) {
       AuctionEntry ae = new AuctionEntry(strippedId, sResolver.getServerForIdentifier(strippedId));
       if(ae.isLoaded()) {
         String id = ae.saveDB();
@@ -533,8 +533,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(mMultiSnipe != null) {
         mMultiSnipe.remove(this);
         //  ...and cancel the current snipe, as long as we're not
-        // cancelling this snipe entirely (in which case we cancelit below).
-        if(inMS != null) prepareSnipe(Currency.NoValue(), 0);
+        // cancelling this snipe entirely (in which case we cancel
+        // it below).
+        if(inMS != null) {
+          prepareSnipe(Currency.NoValue(), 0);
+        } else {
+          setInteger("multisnipe_id", null);
+        }
       }
       mMultiSnipe = inMS;
       //  If we weren't just deleting, then prepare the new snipe, and
@@ -1941,5 +1946,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   public static void setResolver(Resolver resolver) {
     sResolver = resolver;
+  }
+
+  //  Debugging method, to test multisnipe cancelling.
+  public void win() {
+    MultiSnipe ms = getMultiSnipe();
+    ms.setWonAuction(/* this */);
   }
 }
