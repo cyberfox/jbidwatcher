@@ -532,6 +532,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       //  If there was a different MultiSnipe before, remove this from it.
       if(mMultiSnipe != null) {
         mMultiSnipe.remove(this);
+        //  ...and cancel the current snipe, as long as we're not
+        // cancelling this snipe entirely (in which case we cancelit below).
+        if(inMS != null) prepareSnipe(Currency.NoValue(), 0);
       }
       mMultiSnipe = inMS;
       //  If we weren't just deleting, then prepare the new snipe, and
@@ -550,7 +553,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       prepareSnipe(Currency.NoValue(), 0);
       setInteger("multisnipe_id", null);
     } else {
-      setInteger("multisnipe_id", inMS.getId());      
+      setInteger("multisnipe_id", inMS.getId());
     }
   }
 
@@ -1132,7 +1135,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     setBidQuantity(getSnipe().getQuantity());
     mNeedsUpdate = true;
     getSnipe().delete();
-    set("snipe_id", null);
+    setInteger("snipe_id", null);
     mSnipe = null;
     setDirty();
   }
@@ -1209,8 +1212,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(snipe == null || snipe.isNull()) {
       if(getSnipe() != null) {
         getSnipe().delete();
-        set("snipe_id", null);
       }
+      setInteger("snipe_id", null);
       mSnipe = null;
       MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
     } else {
