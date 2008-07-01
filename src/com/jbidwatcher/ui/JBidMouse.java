@@ -7,8 +7,6 @@ package com.jbidwatcher.ui;//  -*- Java -*-
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.datatransfer.*;
-import java.awt.datatransfer.Clipboard;
 import java.io.*;
 import javax.swing.*;
 import java.util.*;
@@ -35,10 +33,10 @@ import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionServerInterface;
 
-public class JBidMouse extends JBidContext implements MessageQueue.Listener {
+public class JBidMouse implements MessageQueue.Listener {
+  private static JTabManager mTabs = JTabManager.getInstance();
   private static JConfigFrame jcf = null;
   private static SearchFrame _searchFrame = null;
-  private JDropListener _jdl = new JDropListener(null); //  This would fail miserably if we called drop()...
   private OptionUI _oui = new OptionUI();
   private RSSDialog _rssDialog = null;
   private static StringBuffer _colorHelp = null;
@@ -46,18 +44,10 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private static StringBuffer _faqText = null;
 
   private boolean _in_deleting = false;
-  private JMenu tabMenu = null;
   private ScriptManager mScriptFrame;
+  private static JBidMouse sInstance;
 
-  public JBidMouse(JPopupMenu inPopup) {
-    super(inPopup);
-    buildMenu(inPopup);
-  }
-
-  public JBidMouse() {
-    buildMenu(localPopup);
-    MQFactory.getConcrete("user").registerListener(this);
-  }
+  private JBidMouse() { }
 
   public static void setConfigFrame(JConfigFrame curCfg) {
     if(curCfg != null) jcf = curCfg;
@@ -144,16 +134,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
   }
 
-  protected boolean confirmDeletion(Component src, String prompt) {
-    int endResult = JOptionPane.showOptionDialog(src, prompt,
-        "Confirm", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
-        null, null, null);
-
-    return !(endResult == JOptionPane.CANCEL_OPTION ||
-            endResult == JOptionPane.CLOSED_OPTION);
-
-  }
-
   private void DoHideShowToolbar() {
     MQFactory.getConcrete("Swing").enqueue("TOOLBAR");
   }
@@ -177,7 +157,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DoShowLastError(Component src, AuctionEntry passedAE) {
     AuctionEntry ae = passedAE;
-    int[] rowList = getPossibleRows();
+    int[] rowList = mTabs.getPossibleRows();
 
     if(ae == null && rowList.length == 0 || rowList.length > 1) {
       JOptionPane.showMessageDialog(src, "You must select a single auction to view the error page for.",
@@ -185,7 +165,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       return;
     }
 
-    if(ae == null) ae = (AuctionEntry) getIndexedEntry(rowList[0]);
+    if(ae == null) ae = (AuctionEntry) mTabs.getIndexedEntry(rowList[0]);
 
     StringBuffer wholeStatus = ae.getErrorPage();
     Dimension statusBox = new Dimension(756, 444);
@@ -208,7 +188,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     ArrayList<AuctionEntry> deleteIds = new ArrayList<AuctionEntry>();
     StringBuffer wholeDelete = new StringBuffer();
-    int[] rowList = getPossibleRows();
+    int[] rowList = mTabs.getPossibleRows();
 
     if(ae == null && rowList.length == 0) {
       _in_deleting = false;
@@ -221,7 +201,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       wholeDelete.append("<table border=0 spacing=0 width=\"100%\">");
       wholeDelete.append("<tr><td><u><b>Item Number</b></u></td><td><u><b>Title</b></u></td></tr>");
       for(int i = 0; i<rowList.length; i++) {
-        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
+        AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(rowList[i]);
         deleteIds.add(tempEntry);
         String color = "FFFFFF";
         if( (i % 2) == 1) {
@@ -245,7 +225,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       statusBox = new Dimension(756, Math.min(372, rowList.length * 30 + 30));
     } else {
       if(rowList.length == 1) {
-        ae = (AuctionEntry) getIndexedEntry(rowList[0]);
+        ae = (AuctionEntry) mTabs.getIndexedEntry(rowList[0]);
       }
       if ((ae == null)) {
         throw new IllegalArgumentException();
@@ -315,32 +295,10 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
   }
 
-  private String getClipboardString() {
-    Clipboard sysClip = Toolkit.getDefaultToolkit().getSystemClipboard();
-    Transferable t = sysClip.getContents(null);
-
-    ErrorManagement.logDebug("Clipboard: " + sysClip.getName() + ", valid flavors: " + Arrays.toString(t.getTransferDataFlavors()));
-
-    StringBuffer stBuff = _jdl.getTransferData(t);
-    String clipString;
-    if(stBuff == null) {
-      try {
-        clipString = (String)t.getTransferData(DataFlavor.stringFlavor);
-      } catch(Exception e) {
-        //  Nothing really to do here...
-        clipString = null;
-      }
-    } else {
-      clipString = stBuff.toString();
-    }
-
-    return clipString;
-  }
-
   private static Pattern digitSearch = Pattern.compile("[0-9]+");
 
   private void DoPasteFromClipboard() {
-    String auctionId = getClipboardString();
+    String auctionId = Clipboard.getClipboardString();
     String original = auctionId;
 
     if(auctionId.charAt(0) == '<') {
@@ -408,7 +366,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     for (int aRowList : rowList) {
       try {
-        AuctionEntry ae2 = (AuctionEntry) getIndexedEntry(aRowList);
+        AuctionEntry ae2 = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
         if (accum == null) {
           accum = ae2.getUSCurBid();
           realAccum = getBestBidValue(ae2);
@@ -450,37 +408,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     return accum.toString();
   }
 
-  private void DoSendTo(String tab) {
-    int[] rowList = getPossibleRows();
-
-    if(rowList.length == 0) {
-      JOptionPane.showMessageDialog(null, "No auctions selected to move!", "Error moving listings", JOptionPane.PLAIN_MESSAGE);
-      return;
-    }
-
-    Category c = Category.findFirstByName(tab);
-
-    if(c == null) {
-      JOptionPane.showMessageDialog(null, "Cannot locate that tab, something has gone wrong.\nClose and restart JBidwatcher.", "Error moving listings", JOptionPane.PLAIN_MESSAGE);
-      return;
-    }
-
-    //  Build a temporary table, because the items will vanish out of
-    //  the table when we start refiltering them, and that will mess
-    //  everything up.
-    ArrayList<AuctionEntry> tempTable = new ArrayList<AuctionEntry>(rowList.length);
-    for (int aRowList : rowList) {
-      AuctionEntry moveEntry = (AuctionEntry) getIndexedEntry(aRowList);
-      tempTable.add(moveEntry);
-    }
-
-    //  Now move all entries in the temporary table to the new tab.
-    for (AuctionEntry moveEntry : tempTable) {
-      moveEntry.setCategory(tab);
-      MQFactory.getConcrete("redraw").enqueue(moveEntry);
-    }
-  }
-
   private void DoAdd(Component src) {
     String prompt = "Enter the auction number to add";
 
@@ -506,7 +433,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void CancelSnipe(Component src, AuctionEntry ae) {
-    int[] rowList = getPossibleRows();
+    int[] rowList = mTabs.getPossibleRows();
     int len = rowList.length;
 
     if(ae == null && len == 0) {
@@ -517,7 +444,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
     if(len != 0) {
       for (int aRowList : rowList) {
-        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(aRowList);
+        AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
 
         tempEntry.cancelSnipe(false);
         MQFactory.getConcrete("redraw").enqueue(tempEntry);
@@ -549,7 +476,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoInformation(Component src, AuctionEntry ae) {
-    int[] rowList = getPossibleRows();
+    int[] rowList = mTabs.getPossibleRows();
 
     int len = rowList.length;
     if(ae == null && len == 0) {
@@ -564,7 +491,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   private void showComplexInformation(int[] rowList) {
     StringBuffer prompt = new StringBuffer();
     for (int aRowList : rowList) {
-      AuctionEntry stepAE = (AuctionEntry) getIndexedEntry(aRowList);
+      AuctionEntry stepAE = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
       prompt.append(stepAE.buildInfoHTML(false)).append("<hr>");
     }
     Dimension statusBox = new Dimension(480, Math.min(372, rowList.length * 30 + 200));
@@ -602,13 +529,13 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     boolean foundDangerousSnipe=false;
 
     for(int i = 0; i<rowList.length && !foundDangerousSnipe; i++) {
-      AuctionEntry ae1 = (AuctionEntry) getIndexedEntry(rowList[i]);
+      AuctionEntry ae1 = (AuctionEntry) mTabs.getIndexedEntry(rowList[i]);
       if(ms != null) {
         if(!ms.isSafeToAdd(ae1)) foundDangerousSnipe = true;
       }
 
       for(int j = i + 1; j<rowList.length && !foundDangerousSnipe; j++) {
-        AuctionEntry ae2 = (AuctionEntry) getIndexedEntry(rowList[j]);
+        AuctionEntry ae2 = (AuctionEntry) mTabs.getIndexedEntry(rowList[j]);
         if(!MultiSnipe.isSafeMultiSnipe(ae1, ae2)) {
           foundDangerousSnipe = true;
         }
@@ -619,7 +546,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoMultiSnipe(Component src) {
-    int[] rowList = getPossibleRows();
+    int[] rowList = mTabs.getPossibleRows();
     Currency baseAllBid = Currency.NoValue();
 
     //  You must select multiple auctions to make this work.
@@ -633,7 +560,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     MultiSnipe aeMS = null;
     int i;
     for(i=0; i<rowList.length; i++) {
-      AuctionEntry tempAE = (AuctionEntry) getIndexedEntry(rowList[i]);
+      AuctionEntry tempAE = (AuctionEntry) mTabs.getIndexedEntry(rowList[i]);
       Currency curBid = tempAE.getCurBid();
 
       if(tempAE.getServer().isDefaultUser()) {
@@ -753,7 +680,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     }
 
     for(i=0; i<rowList.length; i++) {
-      AuctionEntry stepAE = (AuctionEntry)getIndexedEntry(rowList[i]);
+      AuctionEntry stepAE = (AuctionEntry)mTabs.getIndexedEntry(rowList[i]);
       stepAE.setMultiSnipe(aeMS);
       MQFactory.getConcrete("redraw").enqueue(stepAE);
     }
@@ -780,14 +707,14 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DoSnipe(Component src, AuctionEntry passedAE) {
     AuctionEntry ae = passedAE;
-    int[] rowList = getPossibleRows();
+    int[] rowList = mTabs.getPossibleRows();
 
     if(rowList.length > 1) {
       DoMultiSnipe(src);
       return;
     }
     if(rowList.length == 1) {
-      ae = (AuctionEntry) getIndexedEntry(rowList[0]);
+      ae = (AuctionEntry) mTabs.getIndexedEntry(rowList[0]);
     }
     if (ae == null) {
       JOptionPane.showMessageDialog(src, "You have not chosen an auction to snipe on!",
@@ -981,21 +908,21 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
 
   private void DoShowInBrowser(Component src, AuctionEntry inAuction) {
     AuctionEntry ae = inAuction;
-    int[] rowList = getPossibleRows();
+    int[] rowList = mTabs.getPossibleRows();
 
     if(rowList.length != 0) {
 //      Vector<String> multiAuctionIds = new Vector<String>();
 //      int i;
 //
 //      for(i=0; i<rowList.length; i++) {
-//        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
+//        AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(rowList[i]);
 //
 //        multiAuctionIds.add(tempEntry.getIdentifier());
 //      }
 //      TODO -- Find another way to do this...
 //      JBidProxy.setItems(multiAuctionIds);
 
-      ae = (AuctionEntry) getIndexedEntry(rowList[0]);
+      ae = (AuctionEntry) mTabs.getIndexedEntry(rowList[0]);
     } else {
       if(ae == null) {
         JOptionPane.showMessageDialog(src, "Cannot launch browser from menu, you must select an auction.", "Menu Error", JOptionPane.PLAIN_MESSAGE);
@@ -1098,11 +1025,11 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoUpdate(Component src, AuctionEntry inAuction) {
-    int[] rowList = getPossibleRows();
+    int[] rowList = mTabs.getPossibleRows();
 
     if(rowList.length != 0) {
       for (int aRowList : rowList) {
-        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(aRowList);
+        AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
 
         tempEntry.setNeedsUpdate();
         if (tempEntry.isComplete() || tempEntry.isPaused()) {
@@ -1122,11 +1049,11 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
   }
 
   private void DoSetNotEnded(AuctionEntry whichAuction) {
-    int[] rowList = getPossibleRows();
+    int[] rowList = mTabs.getPossibleRows();
 
     if (rowList.length != 0) {
       for (int aRowList : rowList) {
-        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(aRowList);
+        AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
 
         tempEntry.setComplete(false);
         tempEntry.setNeedsUpdate();
@@ -1283,7 +1210,7 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
    */
   private void DoCopySomething(Component src, AuctionEntry passedAE, int action, String fail_msg, String seperator) {
     AuctionEntry ae = passedAE;
-    int[] rowList = getPossibleRows();
+    int[] rowList = mTabs.getPossibleRows();
 
     if(ae == null && rowList.length == 0) {
       JOptionPane.showMessageDialog(src, fail_msg, "Error copying", JOptionPane.PLAIN_MESSAGE);
@@ -1294,19 +1221,19 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
       StringBuffer sb = new StringBuffer();
 
       for(int i = 0; i<rowList.length; i++) {
-        AuctionEntry tempEntry = (AuctionEntry) getIndexedEntry(rowList[i]);
+        AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(rowList[i]);
 
         if(i != 0) sb.append(seperator);
 
         sb.append(getActionValue(action, tempEntry));
       }
 
-      com.jbidwatcher.ui.util.Clipboard.setClipboardString(sb.toString());
+      Clipboard.setClipboardString(sb.toString());
     } else {
       //  Shortcut to not have to create and destroy a Stringbuffer
-      if(rowList.length == 1) ae = (AuctionEntry) getIndexedEntry(rowList[0]);
+      if(rowList.length == 1) ae = (AuctionEntry) mTabs.getIndexedEntry(rowList[0]);
 
-      com.jbidwatcher.ui.util.Clipboard.setClipboardString(getActionValue(action, ae));
+      Clipboard.setClipboardString(getActionValue(action, ae));
     }
   }
 
@@ -1391,160 +1318,6 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     _oui.promptWithCheckbox(src, "Cleared " + clearedCount + " deleted entries.", "Clear Complete", "prompt.clear_complete", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
   }
 
-  protected void buildMenu(JPopupMenu menu) {
-    menu.add(makeMenuItem("Snipe")).addActionListener(this);
-    menu.add(makeMenuItem("Cancel Snipe")).addActionListener(this);
-    menu.add(new JPopupMenu.Separator());
-
-    menu.add(makeMenuItem("Bid")).addActionListener(this);
-    menu.add(makeMenuItem("Buy")).addActionListener(this);
-    menu.add(new JPopupMenu.Separator());
-
-    menu.add(makeMenuItem("Update Auction", "Update")).addActionListener(this);
-    menu.add(makeMenuItem("Show Information", "Information")).addActionListener(this);
-    menu.add(makeMenuItem("Show In Browser", "Browse")).addActionListener(this);
-    //menu.add(makeMenuItem("Add Up Prices", "Sum")).addActionListener(this);
-    menu.add(new JPopupMenu.Separator());
-    menu.add(makeMenuItem("Set Shipping", "Shipping")).addActionListener(this);
-    menu.add(new JPopupMenu.Separator());
-
-    tabMenu = new JMenu("Send To");
-    menu.add(tabMenu);
-    JMenu comment = new JMenu("Comment");
-    comment.add(makeMenuItem("Add", "Add Comment")).addActionListener(this);
-    comment.add(makeMenuItem("View", "View Comment")).addActionListener(this);
-    comment.add(makeMenuItem("Remove", "Remove Comment")).addActionListener(this);
-    menu.add(comment);
-    JMenu advanced = new JMenu("Advanced");
-    advanced.add(makeMenuItem("Show Last Error", "ShowError")).addActionListener(this);
-    advanced.add(makeMenuItem("Mark As Not Ended", "NotEnded")).addActionListener(this);
-    menu.add(advanced);
-    menu.add(new JPopupMenu.Separator());
-
-    menu.add(makeMenuItem("Delete")).addActionListener(this);
-  }
-
-  protected void beforePopup(JPopupMenu jp, MouseEvent e) {
-    ActionListener tabActions = new ActionListener() {
-        public void actionPerformed(ActionEvent action) {
-          String toTab = action.getActionCommand();
-          DoSendTo(toTab);
-        }
-      };
-    super.beforePopup(jp, e);
-
-    if(tabMenu != null) {
-      tabMenu.removeAll();
-
-      JTabbedPane tabbedPane = JTabManager.getInstance().getTabs();
-      String currentTitle = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
-      List<String> tabs = Category.categories();
-      if(tabs == null) {
-        tabMenu.setEnabled(false);
-      } else {
-        tabs.remove("selling");
-        tabs.remove(currentTitle);
-        tabMenu.setEnabled(true);
-        for (String tab : tabs) {
-          tabMenu.add(makeMenuItem(tab)).addActionListener(tabActions);
-        }
-      }
-    }
-
-    /**
-     * This sucks.  I need to push the generic code up, and leave the auction-specific code here, or
-     * somehow move all the non-auction-specific functionality to its own class.  This code is broken,
-     * at the least because it has to use 'instanceof' to work.
-     */
-    Object resolvedObject = resolvePoint();
-    AuctionEntry ae = null;
-
-    if(resolvedObject != null && resolvedObject instanceof AuctionEntry) {
-      ae = (AuctionEntry) resolvedObject;
-    }
-
-    int[] rowList = getPossibleRows();
-
-    if(rowList != null && rowList.length != 0) {
-      if(rowList.length == 1) {
-        Object firstSelected = getIndexedEntry(rowList[0]);
-        if(firstSelected != null && firstSelected instanceof AuctionEntry) {
-          ae = (AuctionEntry) firstSelected;
-        }
-      } else {
-        ae = null;
-      }
-    }
-
-    //  Ignored if it wasn't renamed, but otherwise always restore to 'known state'.
-    rename("Multisnipe", "Snipe");
-    rename("Edit", "Add");               // Comment
-
-    if(ae != null) {
-      if(ae.getComment() == null) {
-        disable("View");
-        disable("Remove");
-      } else {
-        rename("Add", "Edit");
-      }
-      if(!ae.isSniped()) disable("Cancel Snipe");
-      if(!ae.isComplete()) {
-        disable("Complete");
-        disable("Mark As Not Ended");
-      } else {
-        enable("Mark As Not Ended");
-      }
-
-      if(ae.isSeller() || ae.isComplete()) {
-        disable("Buy");
-        disable("Bid");
-        disable("Snipe");
-      }
-
-      if(ae.isFixed()) {
-        disable("Bid");
-        disable("Snipe");
-      }
-
-      if(!ae.isFixed() && ae.getBuyNow().isNull()) {
-        disable("Buy");
-      }
-    }
-
-    if(rowList != null && rowList.length > 1) {
-      disable("Bid");
-      disable("Buy");
-      disable("Show Last Error");
-      disable("Set Shipping");
-      disable("Add");
-      disable("View");
-      disable("Remove");
-
-      boolean anySniped = false;
-      boolean anyFixed = false;
-      boolean anyEnded = false;
-      boolean anyCurrent = false;
-      for (int aRowList : rowList) {
-        Object line = getIndexedEntry(aRowList);
-        AuctionEntry step = (AuctionEntry) line;
-        if (step.isSniped()) anySniped = true;
-        if (step.isFixed()) anyFixed = true;
-        if (step.isComplete()) anyEnded = true;
-        if (!step.isComplete()) anyCurrent = true;
-      }
-
-      if(!anySniped) disable("Cancel Snipe");
-      if(anyFixed || anyEnded) disable("Snipe");
-      if(!anyCurrent) enable("Complete");
-      if(anyEnded) enable("Mark As Not Ended"); else disable("Mark As Not Ended");
-      rename("Snipe", "Multisnipe");
-    }
-
-    if(ae == null || ae.getErrorPage() == null) {
-      disable("Show Last Error");
-    }
-  }
-
   protected void DoAction(Object src, String actionString, Object whichAuction) {
     DoAction(src, actionString, (AuctionEntry)whichAuction);
   }
@@ -1613,5 +1386,9 @@ public class JBidMouse extends JBidContext implements MessageQueue.Listener {
     else if(actionString.equals("View Activity")) DoViewActivity();
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
     else ErrorManagement.logDebug('[' + actionString + ']');
+  }
+
+  public static void start() {
+    if (sInstance == null) MQFactory.getConcrete("user").registerListener(sInstance = new JBidMouse());
   }
 }

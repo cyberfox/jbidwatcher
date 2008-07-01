@@ -37,9 +37,7 @@ public class FilterManager implements MessageQueue.Listener {
 
   public void loadFilters() {
     //  BUGBUG -- Hardcoded for now, make dynamic later (post 0.8 release).
-    _main = new AuctionListHolder("current");
-    _main.setDeletable(false);
-    mList.add(_main);
+    mList.add(_main = new AuctionListHolder("current", false, false, false));
     mList.add(new AuctionListHolder("complete", true, false, false));
     mList.add(new AuctionListHolder("selling", false, true, false));
 
@@ -54,14 +52,14 @@ public class FilterManager implements MessageQueue.Listener {
     } while (tabName != null);
   }
 
-  public AuctionListHolder addTab(String newTab) {
+  public Auctions addTab(String newTab) {
     Color mainBackground = _main.getUI().getBackground();
     Properties dispProps = new Properties();
     _main.getUI().getColumnWidthsToProperties(dispProps, newTab);
     JConfig.addAllToDisplay(dispProps);
     AuctionListHolder newList = new AuctionListHolder(newTab, mainBackground);
     mList.add(newList);
-    return newList;
+    return newList.getList();
   }
 
   /**  This is a singleton class, it needs an accessor.
@@ -174,7 +172,7 @@ public class FilterManager implements MessageQueue.Listener {
     }
 
     if (category != null && !category.startsWith("New Search")) {
-      return addTab(category).getList();
+      return addTab(category);
     }
 
     return _main.getList();
@@ -223,8 +221,7 @@ public class FilterManager implements MessageQueue.Listener {
           ae.setSticky(true);
           newAuctions = mList.findCategory(destination);
           if(newAuctions == null) {
-            AuctionListHolder alh = addTab(destination);
-            newAuctions = alh.getList();
+            newAuctions = addTab(destination);
           }
         }
       }

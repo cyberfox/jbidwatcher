@@ -21,7 +21,6 @@ import java.util.TreeMap;
 public class JTabManager extends JMouseAdapter {
   private JTabbedPane mAuctionTypes;
   private Map<String, TableSorter> mNameTableMap = new TreeMap<String, TableSorter>();
-  private JTabPopupMenu mPopupMenu;
   private static JTabManager sInstance;
 
   /**
@@ -38,10 +37,8 @@ public class JTabManager extends JMouseAdapter {
     return sInstance;
   }
 
-  public JTabManager() {
+  private JTabManager() {
     mAuctionTypes = new JTabbedPane();
-    mPopupMenu = new JTabPopupMenu(mAuctionTypes);
-    mAuctionTypes.addMouseListener(mPopupMenu);
     mAuctionTypes.addChangeListener(new ChangeListener() {
       // This method is called whenever the selected tab changes
       public void stateChanged(ChangeEvent evt) {
@@ -50,10 +47,6 @@ public class JTabManager extends JMouseAdapter {
         if(ts != null) ts.sort();
       }
     });
-  }
-
-  public JMenu getCustomColumnMenu() {
-    return mPopupMenu.getCustomizeMenu();
   }
 
   public JTabbedPane getTabs() {
@@ -154,9 +147,9 @@ public class JTabManager extends JMouseAdapter {
     return getCurrentTable().getValueAt(i, -1);
   }
 
-  public void actionPerformed(ActionEvent ae) {
+  public void actionPerformed(ActionEvent event) {
     AuctionEntry whichAuction = null;
-    String actionString = ae.getActionCommand();
+    String actionString = event.getActionCommand();
     TableSorter chosenTable = getCurrentTable();
     boolean isButton = false;
 
@@ -178,7 +171,7 @@ public class JTabManager extends JMouseAdapter {
       }
     }
 
-    MQFactory.getConcrete("user").enqueue(new ActionTriple(ae.getSource(), actionString, whichAuction));
+    MQFactory.getConcrete("user").enqueue(new ActionTriple(event.getSource(), actionString, whichAuction));
   }
 
   public void sortDefault() {

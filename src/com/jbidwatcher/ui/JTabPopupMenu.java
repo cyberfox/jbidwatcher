@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.List;
 
 public class JTabPopupMenu extends JContext {
-  private JTabbedPane _myTabs = null;
+  private JTabbedPane mTabs = null;
   private JMenu customize = null;
   private JMenuItem _print = null;
   private JMenu _deleteSubmenu = null;
@@ -64,7 +64,7 @@ public class JTabPopupMenu extends JContext {
    */
   protected void beforePopup(JPopupMenu inPopup, MouseEvent e) {
     super.beforePopup(inPopup, e);
-    int curIndex = _myTabs.indexAtLocation(e.getX(), e.getY());
+    int curIndex = mTabs.indexAtLocation(e.getX(), e.getY());
     preparePopup(curIndex);
   }
 
@@ -100,9 +100,9 @@ public class JTabPopupMenu extends JContext {
       menuItemMap.put(s, colMenuItem);
     }
 
-    if(tabIndex == null) tabIndex = _myTabs.getSelectedIndex();
+    if(tabIndex == null) tabIndex = mTabs.getSelectedIndex();
     customize.setEnabled(true);
-    String tabName = _myTabs.getTitleAt(tabIndex);
+    String tabName = mTabs.getTitleAt(tabIndex);
     uncheckAll();
     setColumnChecks(tabName);
   }
@@ -127,7 +127,7 @@ public class JTabPopupMenu extends JContext {
 
   public void actionPerformed(ActionEvent ae) {
     super.actionPerformed(ae);
-    DoAction(ae.getActionCommand(), _myTabs.getSelectedIndex());
+    DoAction(ae.getActionCommand(), mTabs.getSelectedIndex());
   }
 
   protected JFrame propFrame = null;
@@ -172,7 +172,7 @@ public class JTabPopupMenu extends JContext {
   protected void DoAction(String actionString, int tabIndex) {
     if(actionString.equals("Add Tab")) {
       OptionUI oui = new OptionUI();
-      String result = oui.promptString(_myTabs.getComponentAt(tabIndex>=0?tabIndex:0), "Enter the name of the tab to add.  Prefer brevity.", "Add New Tab", "");
+      String result = oui.promptString(mTabs.getComponentAt(tabIndex>=0?tabIndex:0), "Enter the name of the tab to add.  Prefer brevity.", "Add New Tab", "");
 
       if(result == null) return;
       result = result.trim();
@@ -182,7 +182,7 @@ public class JTabPopupMenu extends JContext {
       return;
     }
 
-    String tabName = _myTabs.getTitleAt(tabIndex);
+    String tabName = mTabs.getTitleAt(tabIndex);
     if(actionString.charAt(0) == '~') {
       boolean result = ListManager.getInstance().toggleField(tabName, actionString.substring(1));
       if(tabToProperties != null) {
@@ -244,7 +244,7 @@ public class JTabPopupMenu extends JContext {
         if(removed == null) {
           JOptionPane.showMessageDialog(null, "Could not delete tab [" + tabName + "].", "Tab deletion error", JOptionPane.PLAIN_MESSAGE);
         } else {
-          JTabManager.getInstance().getTabs().remove(removed);
+          mTabs.remove(removed);
         }
       }
     }
@@ -256,9 +256,10 @@ public class JTabPopupMenu extends JContext {
    * on the tabbed display.
    */
   public JTabPopupMenu(JTabbedPane inTabs) {
-    _myTabs = inTabs;
+    mTabs = inTabs;
     localPopup = new JPopupMenu();
     makeTabMenu(localPopup);
+    inTabs.addMouseListener(this);
   }
 
   /**
@@ -269,7 +270,7 @@ public class JTabPopupMenu extends JContext {
    * @param popup - The popup to add the behavior to.
    */
   public JTabPopupMenu(JTabbedPane inTabs, JPopupMenu popup) {
-    _myTabs = inTabs;
+    mTabs = inTabs;
     localPopup = popup;
     makeTabMenu(localPopup);
   }

@@ -18,7 +18,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 
-public class JSearchContext extends JBidMouse {
+public class JSearchContext extends JBidTableContext {
   private static SearchInfoDialog _searchDetail = null;
 
   private void addMenu(JPopupMenu p, String name, String cmd) {
@@ -158,6 +158,15 @@ public class JSearchContext extends JBidMouse {
 
   private void DoNew() {
     doSingle(null, NEW);
+  }
+
+  protected boolean confirmDeletion(Component src, String prompt) {
+    int endResult = JOptionPane.showOptionDialog(src, prompt,
+        "Confirm", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
+        null, null, null);
+
+    return !(endResult == JOptionPane.CANCEL_OPTION ||
+        endResult == JOptionPane.CLOSED_OPTION);
   }
 
   private void DoDelete(Searcher chosenSearch) {

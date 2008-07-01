@@ -550,6 +550,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  Register the handler for all 'drop' events.
     JBWDropHandler.start();
     Browser.start();
+    JBidMouse.start();
 
     inSplash.message("Building Interface");
     jtmAuctions = JTabManager.getInstance();

@@ -4,6 +4,7 @@ import com.jbidwatcher.auction.Auctions;
 
 import javax.swing.*;
 import java.awt.Color;
+import java.awt.event.ActionListener;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,7 +20,7 @@ class AuctionListHolder {
   private boolean mDeletable = true;
   private static JBidContext sFrameContext;
   private static JBidContext sTableContext;
-  private static JButton sCornerButton;
+  private static ActionListener sCornerButtonListener;
 
   public boolean isDeletable() {
     return mDeletable;
@@ -42,7 +43,7 @@ class AuctionListHolder {
     mAuctionList = new Auctions(name);
     if(_completed) mAuctionList.setComplete();
     if(_selling) mAuctionList.setSelling();
-    mAuctionUI = new AuctionsUIModel(mAuctionList, sTableContext, sFrameContext, sCornerButton);
+    mAuctionUI = new AuctionsUIModel(mAuctionList, sTableContext, sFrameContext, sCornerButtonListener);
     mDeletable = deletable;
     JTabManager.getInstance().add(name, mAuctionUI.getPanel(), mAuctionUI.getTableSorter());
   }
@@ -58,7 +59,7 @@ class AuctionListHolder {
     sTableContext = tableContext;
   }
 
-  public static void setCornerButton(JButton cornerButton) {
-    sCornerButton = cornerButton;
+  public static void setCornerButtonListener(ActionListener listener) {
+    sCornerButtonListener = listener;
   }
 }

@@ -23,6 +23,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.dnd.DropTarget;
 import java.util.*;
 import java.util.List;
@@ -47,15 +48,13 @@ public class AuctionsUIModel {
 
   /**
    * @brief Construct a new UI model for a provided auction list.
-   *
    * @param newAuctionList - The auction list to use as a 'backing
    * store' for displaying lists of auctions.
-   *
-   * @param tableContextMenu - The context menu to present for this table.
+   *@param tableContextMenu - The context menu to present for this table.
    * @param frameContextMenu - The context menu to present for whitespace outside the table.
-   * @param cornerButton - The button to sit above the scrollbar.
+   * @param cornerButtonListener - The button to sit above the scrollbar.
    */
-  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, JContext frameContextMenu, JButton cornerButton) {
+  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, JContext frameContextMenu, ActionListener cornerButtonListener) {
     _dataModel = newAuctionList;
 
     _targets = new DropTarget[2];
@@ -88,6 +87,8 @@ public class AuctionsUIModel {
 
     //  This is a button to manage the custom columns for the current tab.
     if(JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
+      JButton cornerButton = new JButton("*");
+      cornerButton.addActionListener(cornerButtonListener);
       _scroller.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, cornerButton);
     }
 

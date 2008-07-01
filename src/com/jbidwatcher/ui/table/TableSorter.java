@@ -404,6 +404,8 @@ public class TableSorter extends Transformation implements TableModelListener {
     return _table.getSelectedRows();
   }
 
+  public JTable getTable() { return _table; }
+
   private class SortMouseAdapter extends MouseAdapter
   {
     private final JTable mTable;

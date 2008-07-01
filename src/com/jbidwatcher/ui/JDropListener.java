@@ -13,6 +13,7 @@ import java.io.*;
 import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
+import java.awt.datatransfer.Clipboard;
 import java.lang.reflect.*;
 
 public class JDropListener implements DropTargetListener {

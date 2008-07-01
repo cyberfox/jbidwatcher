@@ -3,6 +3,7 @@ package com.jbidwatcher.ui;
 import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.Component;
 
 /**
  * Created by IntelliJ IDEA.
@@ -13,22 +14,23 @@ import java.awt.event.ActionEvent;
  * A simple initializer to inject particular objects into the AuctionListHolder's use.
  */
 public class Initializer {
-  private static JButton sCornerButton;
+  private static JTabPopupMenu sMenu;
 
   public static void setup() {
-    sCornerButton = new JButton("*");
-    sCornerButton.addActionListener(new ActionListener() {
+    JTabbedPane tabs = JTabManager.getInstance().getTabs();
+    sMenu = new JTabPopupMenu(tabs);
+    ActionListener cornerButtonListener = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        JMenu bangMenu = JTabManager.getInstance().getCustomColumnMenu();
-        bangMenu.getPopupMenu().show(sCornerButton, 0, 0);
+        JMenu bangMenu = sMenu.getCustomizeMenu();
+        bangMenu.getPopupMenu().show((Component) e.getSource(), 0, 0);
       }
-    });
+    };
+    AuctionListHolder.setCornerButtonListener(cornerButtonListener);
 
-    JBidContext tableContextMenu = new JBidMouse();
+    JBidContext tableContextMenu = new JBidTableContext();
     JBidContext frameContextMenu = new JBidFrameMouse();
 
     AuctionListHolder.setFrameContext(frameContextMenu);
     AuctionListHolder.setTableContext(tableContextMenu);
-    AuctionListHolder.setCornerButton(sCornerButton);
   }
 }

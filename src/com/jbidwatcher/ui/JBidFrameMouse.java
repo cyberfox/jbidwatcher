@@ -7,7 +7,7 @@ package com.jbidwatcher.ui;
 
 import javax.swing.*;
 
-public class JBidFrameMouse extends JBidMouse {
+public class JBidFrameMouse extends JBidTableContext {
   private JPopupMenu constructFramePopup() {
     JPopupMenu myPopup = new JPopupMenu();
 
