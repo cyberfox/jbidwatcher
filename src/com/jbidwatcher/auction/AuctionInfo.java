@@ -291,7 +291,7 @@ public class AuctionInfo extends ActiveRecord
 
   public void save() {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
-    if (outPath != null) {
+    if (outPath != null && outPath.length() != 0) {
       if (JConfig.queryConfiguration("store.auctionHTML", "true").equals("true")) {
         String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
 
@@ -340,7 +340,7 @@ public class AuctionInfo extends ActiveRecord
       mLoadedPage = new GZip();
       mLoadedPage.setData(changedContent);
 
-      if(outPath != null) {
+      if(outPath != null && outPath.length() != 0) {
         if(final_data) {
           String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
           mLoadedPage.save(filePath);
@@ -352,7 +352,7 @@ public class AuctionInfo extends ActiveRecord
 
   GZip getRealContent() {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
-    if(outPath != null) {
+    if(outPath != null && outPath.length() != 0) {
       String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
       ErrorManagement.logDebug("filePath = " + filePath);
       return loadFile(filePath);

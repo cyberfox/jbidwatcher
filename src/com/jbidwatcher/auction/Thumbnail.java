@@ -24,6 +24,8 @@ public class Thumbnail {
 
   static String getValidImagePath(String identifier, ByteBuffer buf) {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
+    if(outPath == null || outPath.length() == 0) return null;
+
     String basePath = outPath + System.getProperty("file.separator") + identifier;
     String thumbPath = basePath + "_t.jpg";
     String imgPath = thumbPath;

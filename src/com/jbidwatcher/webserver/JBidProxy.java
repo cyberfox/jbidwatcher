@@ -114,6 +114,8 @@ public class JBidProxy extends HTTPProxyClient {
 
   private void dumpImage(String relativeDocument, StringBuffer outbuf, byte[][] buf) {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
+    if(outPath == null || outPath.length() == 0) return;
+
     String imgPath = outPath + System.getProperty("file.separator") + relativeDocument;
     File fp = new File(imgPath);
     if(fp.exists()) {

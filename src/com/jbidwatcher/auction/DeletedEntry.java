@@ -41,6 +41,8 @@ public class DeletedEntry extends ActiveRecord {
 
   private void killFiles(String id) {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
+    if(outPath == null || outPath.length() == 0) return;
+
     String imgPath = outPath + System.getProperty("file.separator") + id;
 
     File thumb = new File(imgPath + ".jpg");
