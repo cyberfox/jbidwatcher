@@ -121,6 +121,7 @@ public class UIBackbone implements MessageQueue.Listener {
   private final static String INVALID_LOGIN_MSG = "INVALID LOGIN";
   private final static String VALID_LOGIN_MSG = "VALID LOGIN";
   private final static String START_UPDATING = "ALLOW_UPDATES";
+  private static final String NOACCOUNT_MSG = "NOACCOUNT ";
 
   /**
    * @brief Handle messages to tell the UI to do something.
@@ -167,6 +168,10 @@ public class UIBackbone implements MessageQueue.Listener {
       String alertMsg = msg.substring(ALERT_MSG.length());
       logActivity("Alert: " + alertMsg);
       JOptionPane.showMessageDialog(null, alertMsg, "Alert", JOptionPane.PLAIN_MESSAGE);
+    } else if (msg.startsWith(NOACCOUNT_MSG)) {
+      String noAcctMsg = msg.substring(NOACCOUNT_MSG.length());
+      logActivity("Alert: " + noAcctMsg);
+      JOptionPane.showMessageDialog(null, noAcctMsg, "No auction account", JOptionPane.PLAIN_MESSAGE);
     } else if (msg.startsWith(NOTIFY_MSG)) {
       String notifyMsg = msg.substring(NOTIFY_MSG.length());
       logActivity("Notify: " + notifyMsg);

@@ -352,7 +352,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
      * unexpected command.
      */
     if(failString != null && failString.length() != 0 && mLogin.isDefault()) {
-      JOptionPane.showMessageDialog(null, failString, "No auction account error", JOptionPane.PLAIN_MESSAGE);
+      MQFactory.getConcrete("Swing").enqueue("NOACCOUNT " + failString);
     } else {
       if (ac.getData() instanceof String) {
         String acData = (String) ac.getData();
