@@ -5,6 +5,7 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorHandler;
 import com.jbidwatcher.util.Parameters;
 import com.jbidwatcher.util.http.Http;
+import com.jbidwatcher.auction.AuctionEntry;
 
 /**
  * Created by IntelliJ IDEA.
@@ -38,6 +39,12 @@ public class MyJBidwatcher {
   public static MyJBidwatcher getInstance() {
     if(sInstance == null) sInstance = new MyJBidwatcher();
     return sInstance;
+  }
+
+  public void postAuction(AuctionEntry ae) {
+    Parameters p = new Parameters();
+    p.put("auction_data", ae.toXML().toString());
+    Http.postTo("http://my.jbidwatcher.com/auctions/import", p);
   }
 
   //  The only thing that gets submitted to the queue is exceptions...?
