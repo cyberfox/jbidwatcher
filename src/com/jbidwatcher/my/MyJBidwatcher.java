@@ -43,11 +43,11 @@ public class MyJBidwatcher {
 
   public void postAuction(AuctionEntry ae) {
     Parameters p = new Parameters();
+    p.put("user", JConfig.queryConfiguration("my.jbidwatcher.id"));
     p.put("auction_data", ae.toXML().toString());
     Http.postTo("http://my.jbidwatcher.com/auctions/import", p);
   }
 
-  //  The only thing that gets submitted to the queue is exceptions...?
   private MyJBidwatcher() {
     ErrorManagement.addHandler(new ErrorHandler() {
       public void addLog(String s) { /* ignored */}

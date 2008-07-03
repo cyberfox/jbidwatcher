@@ -764,7 +764,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     }
 
     if(!mNeedsUpdate) {
-      if(!mUpdating && !isComplete()) {
+      if(!isUpdating() && !isComplete()) {
         long serverTime = curTime + getServer().getServerTimeDelta();
 
         //  If we're past the end time, update once, and never again.
@@ -1149,9 +1149,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @brief Completely update auction info from the server for this auction.
    */
   public void update() {
-    mUpdating =true;
     mNeedsUpdate = false;
-    MQFactory.getConcrete("redraw").enqueue(this);
     mForceUpdate = false;
 
     // We REALLY don't want to leave an auction in the 'updating'
@@ -1162,7 +1160,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       ErrorManagement.handleException("Unexpected exception during auction reload/update.", e);
     }
     mLastUpdatedAt = System.currentTimeMillis();
-    mUpdating =false;
     mAddedRecently = 0;
     try {
       checkHighBidder(true);
@@ -1199,7 +1196,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         mForceUpdate = true;
       }
     }
-    MQFactory.getConcrete("redraw").enqueue(this);
   }
 
   public void prepareSnipe(Currency snipe) { prepareSnipe(snipe, 1); }
@@ -1952,5 +1948,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public void win() {
     MultiSnipe ms = getMultiSnipe();
     ms.setWonAuction(/* this */);
+  }
+
+  public void setUpdating() {
+    mUpdating = true;
+  }
+
+  public void clearUpdating() {
+    mUpdating = false;
   }
 }

@@ -150,7 +150,12 @@ public class Auctions implements TimerHandler.WakeupProcess {
 
     if(!ae.isComplete() || ae.isUpdateForced()) {
       MQFactory.getConcrete("Swing").enqueue("Updating " + titleWithComment);
+      ae.setUpdating();
+      MQFactory.getConcrete("redraw").enqueue(ae);
+      Thread.yield();
       ae.update();
+      ae.clearUpdating();
+      MQFactory.getConcrete("redraw").enqueue(ae);
       MQFactory.getConcrete("Swing").enqueue("Done updating " + Auctions.getTitleAndComment(ae));
     }
     return false;
