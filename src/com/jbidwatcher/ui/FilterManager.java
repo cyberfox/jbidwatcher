@@ -43,7 +43,7 @@ public class FilterManager implements MessageQueue.Listener {
     mDefaultSellingTab = mList.add(new AuctionListHolder("selling", false, true, false));
 
     String tabName;
-    int i = 1;
+    int i = 2;
 
     do {
       tabName = JConfig.queryDisplayProperty("tabs.name." + i++);
