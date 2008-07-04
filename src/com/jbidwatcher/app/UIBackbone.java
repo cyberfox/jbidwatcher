@@ -30,7 +30,7 @@ import java.util.*;
  *
  * The class that handles most of the queued UI messages.
  */
-public class UIBackbone implements MessageQueue.Listener {
+public final class UIBackbone implements MessageQueue.Listener {
   private boolean _userValid;
   private Date mNow = new Date();
   private Calendar mCal = new GregorianCalendar();
@@ -338,7 +338,7 @@ public class UIBackbone implements MessageQueue.Listener {
 
   private void handleHeader(String headerMsg) {
     JBidToolBar.getInstance().setText(headerMsg);
-    ListManager.getInstance().check();
+    ListManager.getInstance().redrawAll();
   }
 
   private static final int ONEK = 1024;

@@ -20,7 +20,7 @@ import java.awt.Component;
 public class ListManager {
   private final List<AuctionListHolder> mAllLists;
   private final Map<String, AuctionListHolder> mCategoryMap;
-  private static ListManager sInstance;
+  private static ListManager sInstance = null;
 
   private ListManager() {
     mAllLists = Collections.synchronizedList(new ArrayList<AuctionListHolder>(3));
@@ -49,39 +49,12 @@ public class ListManager {
     return result != null && result.getUI().export(fname);
   }
 
-  public void redrawEntry(AuctionEntry ae) {
-    synchronized (mAllLists) {
-      for (AuctionListHolder step : mAllLists) {
-        if (step.getUI().redrawEntry(ae)) return;
-      }
-    }
-  }
-
-  public void check() {
-    synchronized (mAllLists) {
-      for (AuctionListHolder step : mAllLists) {
-        if (!step.getList().isCompleted()) {
-          step.getUI().redraw();
-        }
-      }
-    }
-  }
-
-  AuctionsUIModel matchUI(Auctions list) {
-    synchronized (mAllLists) {
-      for (AuctionListHolder step : mAllLists) {
-        if (step.getList() == list) return step.getUI();
-      }
-    }
-    return null;
-  }
-
   /**
    * @param categoryName - The category name / tab name to look for.
    * @return - An Auctions list that matches the category name.
    * @brief Find what category (i.e. tab) an auction entry belongs to.
    */
-  public AuctionListHolder findCategory(String categoryName) {
+  AuctionListHolder findCategory(String categoryName) {
     return mCategoryMap.get(categoryName);
   }
 
@@ -153,7 +126,7 @@ public class ListManager {
     return mAllLists.size();
   }
 
-  public AuctionListHolder add(AuctionListHolder newList) {
+  AuctionListHolder add(AuctionListHolder newList) {
     mAllLists.add(newList);
     mCategoryMap.put(newList.getList().getName(), newList);
     return newList;
@@ -179,7 +152,25 @@ public class ListManager {
     }
   }
 
-  public AuctionListHolder whereIsAuction(AuctionEntry ae) {
+  public void redrawAll() {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
+        if (!step.getList().isCompleted()) {
+          step.getUI().redraw();
+        }
+      }
+    }
+  }
+
+  public void redrawEntry(AuctionEntry ae) {
+    synchronized (mAllLists) {
+      for (AuctionListHolder step : mAllLists) {
+        if (step.getUI().redrawEntry(ae)) return;
+      }
+    }
+  }
+
+  AuctionListHolder whereIsAuction(AuctionEntry ae) {
     synchronized (mAllLists) {
       for (AuctionListHolder step : mAllLists) {
         if (step.getList().verifyEntry(ae)) return step;

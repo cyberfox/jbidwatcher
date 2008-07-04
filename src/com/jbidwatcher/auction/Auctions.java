@@ -178,7 +178,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
       boolean forcedUpdate = result.isUpdateForced();
 
       if(doUpdate(result) || forcedUpdate) {
-        MQFactory.getConcrete("redraw").enqueue(this);
+        MQFactory.getConcrete("redraw").enqueue(getName());
       }
     }
     return result != null;

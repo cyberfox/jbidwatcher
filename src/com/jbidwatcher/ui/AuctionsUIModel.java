@@ -412,7 +412,7 @@ public class AuctionsUIModel {
    * @brief Allows components themselves to be added to a JTable, and
    * allows them to offer themselves as renderers.
    */
-  class JComponentCellRenderer implements TableCellRenderer {
+  static class JComponentCellRenderer implements TableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
                                                    boolean isSelected, boolean hasFocus, int row, int column) {
       return (Component) value;

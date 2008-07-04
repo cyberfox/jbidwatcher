@@ -18,8 +18,8 @@ import java.awt.Color;
 public class FilterManager implements MessageQueue.Listener {
   private static FilterManager sInstance = null;
   private static final ListManager mList = ListManager.getInstance();
-  private AuctionListHolder mMainTab = null;
   private Map<AuctionEntry, AuctionListHolder> mAllOrderedAuctionEntries;
+  private AuctionListHolder mMainTab = null;
   private AuctionListHolder mDefaultCompleteTab = null;
   private AuctionListHolder mDefaultSellingTab = null;
 
@@ -38,7 +38,6 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   public void loadFilters() {
-    //  BUGBUG -- Hardcoded for now, make dynamic later (post 0.8 release).
     mMainTab = mList.add(new AuctionListHolder("current", false, false, false));
     mDefaultCompleteTab = mList.add(new AuctionListHolder("complete", true, false, false));
     mDefaultSellingTab = mList.add(new AuctionListHolder("selling", false, true, false));
@@ -54,7 +53,7 @@ public class FilterManager implements MessageQueue.Listener {
     } while (tabName != null);
   }
 
-  public AuctionListHolder addTab(String newTab) {
+  AuctionListHolder addTab(String newTab) {
     Color mainBackground = mMainTab.getUI().getBackground();
     Properties dispProps = new Properties();
     mMainTab.getUI().getColumnWidthsToProperties(dispProps, newTab);
@@ -85,8 +84,9 @@ public class FilterManager implements MessageQueue.Listener {
       } else {
         mList.redrawEntry(ae);
       }
-    } else if(deQ instanceof Auctions) {
-      mList.matchUI((Auctions)deQ).sort();
+    } else if(deQ instanceof String) {
+      AuctionListHolder toSort = mList.findCategory((String)deQ);
+      if(toSort != null) toSort.getUI().sort();
     } else if(deQ instanceof Color) {
       mList.setBackground((Color)deQ);
     }
@@ -111,8 +111,7 @@ public class FilterManager implements MessageQueue.Listener {
   * @param ae - The auction to add.
   */
   public void addAuction(AuctionEntry ae) {
-    AuctionListHolder which;
-    which = mAllOrderedAuctionEntries.get(ae);
+    AuctionListHolder which = mAllOrderedAuctionEntries.get(ae);
 
     if(which == null) {
       which = mList.whereIsAuction(ae);
@@ -152,7 +151,7 @@ public class FilterManager implements MessageQueue.Listener {
    * @param ae - The auction to locate the collection for.
    * @return - The collection currently holding the provided auction.
    */
-  public AuctionListHolder matchAuction(AuctionEntry ae) {
+  private AuctionListHolder matchAuction(AuctionEntry ae) {
     if (!ae.isSticky() || ae.getCategory() == null) {
       //  Hardcode seller and ended checks.
       if (ae.isSeller()) return mDefaultSellingTab;
@@ -183,7 +182,7 @@ public class FilterManager implements MessageQueue.Listener {
    * and null if it didn't find the auction, or it was in the same
    * filter as it was before.
    */
-  public AuctionListHolder refilterAuction(AuctionEntry ae) {
+  private AuctionListHolder refilterAuction(AuctionEntry ae) {
     AuctionListHolder sendTo = matchAuction(ae);
     AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
 
