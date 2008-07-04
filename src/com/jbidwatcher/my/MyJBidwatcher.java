@@ -4,6 +4,7 @@ import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorHandler;
 import com.jbidwatcher.util.Parameters;
+import com.jbidwatcher.util.xml.XMLSerialize;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.auction.AuctionEntry;
 
@@ -41,7 +42,7 @@ public class MyJBidwatcher {
     return sInstance;
   }
 
-  public void postAuction(AuctionEntry ae) {
+  public void postAuction(XMLSerialize ae) {
     Parameters p = new Parameters();
     p.put("user", JConfig.queryConfiguration("my.jbidwatcher.id"));
     p.put("auction_data", ae.toXML().toString());
