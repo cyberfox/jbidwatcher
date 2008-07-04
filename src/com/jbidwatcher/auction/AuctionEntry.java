@@ -1777,6 +1777,15 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return (AuctionEntry) findFirstBySQL(AuctionEntry.class, sql);
   }
 
+  /**
+   * Locate an AuctionEntry by first finding an AuctionInfo with the passed
+   * in auction identifier, and then looking for an AuctionEntry which
+   * refers to that AuctionInfo row.
+   *
+   * @param identifier - The auction identifier to search for.
+   * @return - null indicates that the auction isn't in the database yet,
+   * otherwise an AuctionEntry will be loaded and returned.
+   */
   public static AuctionEntry findByIdentifier(String identifier) {
     AuctionInfo ai = AuctionInfo.findFirstBy("identifier", identifier);
     AuctionEntry ae = null;
@@ -1784,8 +1793,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(ai != null) {
       ae = AuctionEntry.findFirstBy("auction_id", ai.getString("id"));
       ae.setAuctionInfo(ai);
-    } else {
-      ErrorManagement.logDebug("Can't load auction info with identifier: " + identifier);
     }
 
     return ae;
