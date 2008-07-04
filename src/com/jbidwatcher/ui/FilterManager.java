@@ -77,12 +77,15 @@ public class FilterManager implements MessageQueue.Listener {
   public void messageAction(Object deQ) {
     if(deQ instanceof AuctionEntry) {
       AuctionEntry ae = (AuctionEntry) deQ;
+      AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
       AuctionListHolder newAuction = refilterAuction(ae);
       if (newAuction != null) {
         MQFactory.getConcrete("Swing").enqueue("Moved to " + newAuction.getList().getName() + " " + Auctions.getTitleAndComment(ae));
+        if(old != null) old.getUI().redrawAll();
         newAuction.getUI().redrawAll();
       } else {
-        mList.redrawEntry(ae);
+        JTabManager.getInstance().getCurrentTable().update(ae);
+//        mList.redrawEntry(ae);
       }
     } else if(deQ instanceof String) {
       AuctionListHolder toSort = mList.findCategory((String)deQ);
@@ -146,7 +149,7 @@ public class FilterManager implements MessageQueue.Listener {
   /**
    * Currently auction entries can only be in one Auctions collection
    * at a time.  There MUST be a default auction being returned by
-   * matchAuction.  It cannot return null right now.  BUGBUG.
+   * matchAuction.  It cannot return null right now.
    *
    * @param ae - The auction to locate the collection for.
    * @return - The collection currently holding the provided auction.
