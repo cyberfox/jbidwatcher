@@ -18,12 +18,14 @@ import java.awt.Color;
 public class FilterManager implements MessageQueue.Listener {
   private static FilterManager sInstance = null;
   private static final ListManager mList = ListManager.getInstance();
-  private AuctionListHolder _main = null;
-  private Map<AuctionEntry, Auctions> mAllOrderedAuctionEntries;
+  private AuctionListHolder mMainTab = null;
+  private Map<AuctionEntry, AuctionListHolder> mAllOrderedAuctionEntries;
+  private AuctionListHolder mDefaultCompleteTab = null;
+  private AuctionListHolder mDefaultSellingTab = null;
 
   private FilterManager() {
     //  Sorted by the 'natural order' of AuctionEntries.
-    mAllOrderedAuctionEntries = new TreeMap<AuctionEntry, Auctions>();
+    mAllOrderedAuctionEntries = new TreeMap<AuctionEntry, AuctionListHolder>();
 
     MQFactory.getConcrete("redraw").registerListener(this);
 
@@ -37,9 +39,9 @@ public class FilterManager implements MessageQueue.Listener {
 
   public void loadFilters() {
     //  BUGBUG -- Hardcoded for now, make dynamic later (post 0.8 release).
-    mList.add(_main = new AuctionListHolder("current", false, false, false));
-    mList.add(new AuctionListHolder("complete", true, false, false));
-    mList.add(new AuctionListHolder("selling", false, true, false));
+    mMainTab = mList.add(new AuctionListHolder("current", false, false, false));
+    mDefaultCompleteTab = mList.add(new AuctionListHolder("complete", true, false, false));
+    mDefaultSellingTab = mList.add(new AuctionListHolder("selling", false, true, false));
 
     String tabName;
     int i = 1;
@@ -52,14 +54,14 @@ public class FilterManager implements MessageQueue.Listener {
     } while (tabName != null);
   }
 
-  public Auctions addTab(String newTab) {
-    Color mainBackground = _main.getUI().getBackground();
+  public AuctionListHolder addTab(String newTab) {
+    Color mainBackground = mMainTab.getUI().getBackground();
     Properties dispProps = new Properties();
-    _main.getUI().getColumnWidthsToProperties(dispProps, newTab);
+    mMainTab.getUI().getColumnWidthsToProperties(dispProps, newTab);
     JConfig.addAllToDisplay(dispProps);
     AuctionListHolder newList = new AuctionListHolder(newTab, mainBackground);
     mList.add(newList);
-    return newList.getList();
+    return newList;
   }
 
   /**  This is a singleton class, it needs an accessor.
@@ -76,10 +78,10 @@ public class FilterManager implements MessageQueue.Listener {
   public void messageAction(Object deQ) {
     if(deQ instanceof AuctionEntry) {
       AuctionEntry ae = (AuctionEntry) deQ;
-      Auctions newAuction = refilterAuction(ae);
+      AuctionListHolder newAuction = refilterAuction(ae);
       if (newAuction != null) {
-        MQFactory.getConcrete("Swing").enqueue("Moved to " + newAuction.getName() + " " + Auctions.getTitleAndComment(ae));
-        mList.matchUI(newAuction).redrawAll();
+        MQFactory.getConcrete("Swing").enqueue("Moved to " + newAuction.getList().getName() + " " + Auctions.getTitleAndComment(ae));
+        newAuction.getUI().redrawAll();
       } else {
         mList.redrawEntry(ae);
       }
@@ -95,13 +97,10 @@ public class FilterManager implements MessageQueue.Listener {
    * @param ae - The auction to delete.
    */
   public void deleteAuction(AuctionEntry ae) {
-    Auctions whichAuctionCollection = mAllOrderedAuctionEntries.get(ae);
+    AuctionListHolder which = mAllOrderedAuctionEntries.get(ae);
+    if(which == null) which = mList.whereIsAuction(ae);
+    if(which != null) which.getUI().delEntry(ae);
 
-    if(whichAuctionCollection == null) whichAuctionCollection = mList.whereIsAuction(ae);
-
-    if(whichAuctionCollection != null) {
-      mList.matchUI(whichAuctionCollection).delEntry(ae);
-    }
     mAllOrderedAuctionEntries.remove(ae);
   }
 
@@ -112,29 +111,30 @@ public class FilterManager implements MessageQueue.Listener {
   * @param ae - The auction to add.
   */
   public void addAuction(AuctionEntry ae) {
-    Auctions whichAuctionCollection = mAllOrderedAuctionEntries.get(ae);
+    AuctionListHolder which;
+    which = mAllOrderedAuctionEntries.get(ae);
 
-    if(whichAuctionCollection == null) {
-      whichAuctionCollection = mList.whereIsAuction(ae);
-      if(whichAuctionCollection != null) {
-        mAllOrderedAuctionEntries.put(ae, whichAuctionCollection);
+    if(which == null) {
+      which = mList.whereIsAuction(ae);
+      if(which != null) {
+        mAllOrderedAuctionEntries.put(ae, which);
       }
     }
 
-    if(whichAuctionCollection != null) {
+    if(which != null) {
       //  If it's already sorted into a Auctions list, tell that list
       //  to handle it.
-      if(whichAuctionCollection.allowAddEntry(ae)) {
-        mList.matchUI(whichAuctionCollection).addEntry(ae);
+      if(which.getList().allowAddEntry(ae)) {
+        which.getUI().addEntry(ae);
       }
     } else {
-      Auctions newAuctionCollection = matchAuction(ae);
+      AuctionListHolder sendTo = matchAuction(ae);
 
       //  If we have no auction collections, then this isn't relevant.
-      if(newAuctionCollection != null) {
-        if (newAuctionCollection.allowAddEntry(ae)) {
-          mList.matchUI(newAuctionCollection).addEntry(ae);
-          mAllOrderedAuctionEntries.put(ae, newAuctionCollection);
+      if(sendTo != null) {
+        if (sendTo.getList().allowAddEntry(ae)) {
+          sendTo.getUI().addEntry(ae);
+          mAllOrderedAuctionEntries.put(ae, sendTo);
         }
       }
     }
@@ -152,30 +152,22 @@ public class FilterManager implements MessageQueue.Listener {
    * @param ae - The auction to locate the collection for.
    * @return - The collection currently holding the provided auction.
    */
-  public Auctions matchAuction(AuctionEntry ae) {
+  public AuctionListHolder matchAuction(AuctionEntry ae) {
     if (!ae.isSticky() || ae.getCategory() == null) {
       //  Hardcode seller and ended checks.
-      if (ae.isSeller()) {
-        return mList.findSellerList();
-      }
-      if (ae.isComplete()) {
-        return mList.findCompletedList();
-      }
+      if (ae.isSeller()) return mDefaultSellingTab;
+      if (ae.isComplete()) return mDefaultCompleteTab;
     }
     String category = ae.getCategory();
 
     //  Now iterate over the auction Lists, looking for one named the
     //  same as the AuctionEntry's 'category'.
-    Auctions rval = mList.findCategory(category);
-    if (rval != null) {
-      return rval;
-    }
+    AuctionListHolder rval = mList.findCategory(category);
+    if (rval != null) return rval;
 
-    if (category != null && !category.startsWith("New Search")) {
-      return addTab(category);
-    }
+    if (category != null && !category.startsWith("New Search")) return addTab(category);
 
-    return _main.getList();
+    return mMainTab;
   }
 
   /** Currently auction entries can only be in one Auctions collection
@@ -191,16 +183,15 @@ public class FilterManager implements MessageQueue.Listener {
    * and null if it didn't find the auction, or it was in the same
    * filter as it was before.
    */
-  public Auctions refilterAuction(AuctionEntry ae) {
-    Auctions newAuctions = matchAuction(ae);
-    Auctions oldAuctions = mAllOrderedAuctionEntries.get(ae);
+  public AuctionListHolder refilterAuction(AuctionEntry ae) {
+    AuctionListHolder sendTo = matchAuction(ae);
+    AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
 
-    if(oldAuctions == null) {
-      oldAuctions = mList.whereIsAuction(ae);
-    }
-    if(oldAuctions != null) {
-      String tabName = oldAuctions.getName();
-      if(newAuctions.isCompleted()) {
+    if(old == null) old = mList.whereIsAuction(ae);
+
+    if(old != null) {
+      String tabName = old.getList().getName();
+      if(sendTo.getList().isCompleted()) {
         String destination;
         if(ae.isBidOn() || ae.isSniped()) {
           if(ae.isHighBidder()) {
@@ -219,27 +210,25 @@ public class FilterManager implements MessageQueue.Listener {
           }
 
           ae.setSticky(true);
-          newAuctions = mList.findCategory(destination);
-          if(newAuctions == null) {
-            newAuctions = addTab(destination);
-          }
+          sendTo = mList.findCategory(destination);
+          if(sendTo == null) sendTo = addTab(destination);
         }
       }
     }
 
-    if(oldAuctions == newAuctions || oldAuctions == null) {
-      if(oldAuctions == null) {
+    if(old == sendTo || old == null) {
+      if(old == null) {
         ErrorManagement.logMessage("For some reason oldAuctions is null, and nobody acknowledges owning it, for auction entry " + ae.getTitle());
       }
       return null;
     }
 
-    AuctionsUIModel oldUI = mList.matchUI(oldAuctions);
-    AuctionsUIModel newUI = mList.matchUI(newAuctions);
+    AuctionsUIModel oldUI = old.getUI();
+    AuctionsUIModel newUI = sendTo.getUI();
     if(oldUI != null) oldUI.delEntry(ae);
     if(newUI != null) newUI.addEntry(ae);
 
-    mAllOrderedAuctionEntries.put(ae,newAuctions);
-    return newAuctions;
+    mAllOrderedAuctionEntries.put(ae, sendTo);
+    return sendTo;
   }
 }

@@ -214,13 +214,13 @@ public class TableSorter extends Transformation implements TableModelListener {
     return myRow;
   }
 
-  public boolean update(Object o) {
-    int myRow = m_tm.findRow(o);
-    final Object updated = o;
+  public boolean update(final Object updated) {
+    int myRow = m_tm.findRow(updated);
     final TableSorter sorter = this;
     if (myRow != -1) {
       SwingUtilities.invokeLater(new Runnable() {
         public void run() {
+          System.err.println("Updating: " + updated.toString());
           int row = m_tm.findRow(updated);
           _table.tableChanged(new TableModelEvent(sorter, row));
         }
