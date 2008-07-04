@@ -60,6 +60,8 @@ public class JTabManager extends JMouseAdapter {
 
   public TableSorter getCurrentTable() {
     int currentIndex = mAuctionTypes.getSelectedIndex();
+    if(currentIndex == -1) return null;
+
     String currentTitle = mAuctionTypes.getTitleAt(currentIndex);
 
     return(mNameTableMap.get(currentTitle));
@@ -180,5 +182,10 @@ public class JTabManager extends JMouseAdapter {
       ts.enableInsertionSorting();
       ts.sort();
     }
+  }
+
+  public void updateTime() {
+    TableSorter ts = getCurrentTable();
+    if(ts != null) ts.updateTime();
   }
 }
