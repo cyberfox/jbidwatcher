@@ -10,6 +10,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.UpdateBlocker;
+import com.jbidwatcher.util.xml.XMLElement;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -153,8 +154,13 @@ public class Auctions implements TimerHandler.WakeupProcess {
       ae.setUpdating();
       MQFactory.getConcrete("redraw").enqueue(ae);
       Thread.yield();
+      XMLElement before = ae.toXML();
       ae.update();
+      XMLElement after = ae.toXML();
       ae.clearUpdating();
+      if (!(after.toString().equals(before.toString()))) {
+        MQFactory.getConcrete("upload").enqueue(ae);
+      }
       MQFactory.getConcrete("redraw").enqueue(ae);
       MQFactory.getConcrete("Swing").enqueue("Done updating " + Auctions.getTitleAndComment(ae));
     }

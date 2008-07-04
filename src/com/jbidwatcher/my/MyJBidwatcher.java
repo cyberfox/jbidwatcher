@@ -4,6 +4,8 @@ import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorHandler;
 import com.jbidwatcher.util.Parameters;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.xml.XMLSerialize;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.auction.AuctionEntry;
@@ -50,6 +52,14 @@ public class MyJBidwatcher {
   }
 
   private MyJBidwatcher() {
+    MQFactory.getConcrete("upload").registerListener(new MessageQueue.Listener() {
+      public void messageAction(Object deQ) {
+        if(JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
+          postAuction((XMLSerialize)deQ);
+        }
+      }
+    });
+
     ErrorManagement.addHandler(new ErrorHandler() {
       public void addLog(String s) { /* ignored */}
 

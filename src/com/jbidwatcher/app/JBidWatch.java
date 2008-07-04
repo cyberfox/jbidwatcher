@@ -34,6 +34,7 @@ import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.*;
+import com.jbidwatcher.my.MyJBidwatcher;
 
 import javax.swing.*;
 import java.awt.*;
@@ -527,6 +528,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       JConfig.disableScripting();
     }
     inSplash.message("Initializing Database");
+    MyJBidwatcher.getInstance();
     Initializer.setup();
     FilterManager.getInstance().loadFilters();
     inSplash.message("Loading Auctions");
