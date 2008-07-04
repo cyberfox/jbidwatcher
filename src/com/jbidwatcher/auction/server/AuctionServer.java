@@ -136,7 +136,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   //  Generalized logic
   //  -----------------
   //  Note: AuctionEntry
-  public AuctionInfo createAuction(String itemId) {
+  public AuctionInfo create(String itemId) {
     URL auctionURL = getURLFromItem(itemId);
 
     return loadAuction(auctionURL, itemId, null);
@@ -187,7 +187,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
    * @return - The core auction information that has been set into the
    * auction entry, or null if the update failed.
    */
-  public AuctionInfo reloadAuction(AuctionEntry inEntry) {
+  public AuctionInfo reload(AuctionEntry inEntry) {
     URL auctionURL = getURLFromItem(inEntry.getIdentifier());
 
     SpecificAuction curAuction = (SpecificAuction) loadAuction(auctionURL, inEntry.getIdentifier(), inEntry);

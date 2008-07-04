@@ -324,18 +324,6 @@ public class AuctionsUIModel {
   }
 
   /**
-   * @brief Redraw a specific auction entry, so as not to redraw the
-   * whole table when only one updates.
-   *
-   * @param ae - The auction entry to update.
-   *
-   * @return - Whether it was marked as changed.
-   */
-  public boolean redrawEntry(AuctionEntry ae) {
-    return _tSort.update(ae);
-  }
-
-  /**
    * Delete an auction entry, using that auction entry to match against.
    * This also tells the auction entry to unregister itself!
    *
@@ -353,23 +341,12 @@ public class AuctionsUIModel {
    * @param aeNew - The new auction entry to add to the tables.
    * @return - true if the auction was added, false if not.
    */
-  public boolean addEntry(AuctionEntry aeNew) {
-    if (aeNew == null) return true;
-
-    boolean inserted = (_tSort.insert(aeNew) != -1);
-
-    if (!inserted) {
-      ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
+  public void addEntry(AuctionEntry aeNew) {
+    if (aeNew != null) {
+      if (_tSort.insert(aeNew) == -1) {
+        ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
+      }
     }
-
-    return inserted;
-  }
-
-  /**
-   * @brief Redraw the whole table, but just the 'time left' column.
-   */
-  public void redraw() {
-    _tSort.updateTime();
   }
 
   public boolean toggleField(String field) {

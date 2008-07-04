@@ -50,10 +50,6 @@ public class UserActions implements MessageQueue.Listener {
 
   private UserActions() { }
 
-  public static void setConfigFrame(JConfigFrame curCfg) {
-    if(curCfg != null) jcf = curCfg;
-  }
-
   public static final String ADD_AUCTION="ADD ";
   private static final String GET_SERVER_TIME="GETTIME";
   private static final String SEARCH="SEARCH";
@@ -498,7 +494,7 @@ public class UserActions implements MessageQueue.Listener {
     StringBuffer prompt = new StringBuffer();
     for (int aRowList : rowList) {
       AuctionEntry stepAE = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
-      prompt.append(stepAE.buildInfoHTML(false)).append("<hr>");
+      prompt.append(stepAE.buildInfoHTML()).append("<hr>");
     }
     Dimension statusBox = new Dimension(480, Math.min(372, rowList.length * 30 + 200));
     ArrayList<String> buttons = new ArrayList<String>(2);
@@ -800,7 +796,7 @@ public class UserActions implements MessageQueue.Listener {
       return;
     }
 
-    String prompt = "<html><body>" + ae.buildInfoHTML(false);
+    String prompt = "<html><body>" + ae.buildInfoHTML();
     prompt += "<br><b>How much is shipping?</b></body></html>";
     String endResult[] = promptString(src, prompt, "Shipping", null, null, null);
 

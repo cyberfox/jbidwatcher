@@ -24,7 +24,6 @@ import java.awt.event.ActionEvent;
 public class JConfigEbayTab extends JConfigTab
 {
   JCheckBox adultBox;
-  JCheckBox synchBox = null;
   JTextField username;
   JTextField password;
   JComboBox siteSelect;

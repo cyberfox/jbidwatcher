@@ -3,7 +3,6 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.Auctions;
 
 import java.util.*;
 import java.awt.Color;
@@ -18,13 +17,11 @@ import java.awt.Component;
  * Trying to split up the list management code from FilterManager's other duties.
  */
 public class ListManager {
-  private final List<AuctionListHolder> mAllLists;
   private final Map<String, AuctionListHolder> mCategoryMap;
   private static ListManager sInstance = null;
 
   private ListManager() {
-    mAllLists = Collections.synchronizedList(new ArrayList<AuctionListHolder>(3));
-    mCategoryMap = new HashMap<String, AuctionListHolder>();
+    mCategoryMap = new HashMap<String, AuctionListHolder>(3);
   }
 
   public boolean toggleField(String tabName, String field) {
@@ -72,7 +69,6 @@ public class ListManager {
   public Component deleteTab(String tabName, boolean deleteFirst) {
     AuctionListHolder result = mCategoryMap.get(tabName);
     if (result != null && result.isDeletable()) {
-      mAllLists.remove(result);
       mCategoryMap.remove(tabName);
       removeAuctionsFromTab(deleteFirst, result);
       return result.getUI().getPanel();
@@ -94,40 +90,35 @@ public class ListManager {
   }
 
   public Properties extractProperties(Properties outProps) {
-    synchronized (mAllLists) {
-      for (int i = 0; i < mAllLists.size(); i++) {
-        AuctionListHolder step = mAllLists.get(i);
+    int i = 0;
 
-        // getSortProperties must be called first in order to restore original column names
-        step.getUI().getTableSorter().getSortProperties(step.getList().getName(), outProps);
-        step.getUI().getColumnWidthsToProperties(outProps);
+    for (AuctionListHolder step : mCategoryMap.values()) {
+      // getSortProperties must be called first in order to restore original column names
+      step.getUI().getTableSorter().getSortProperties(step.getList().getName(), outProps);
+      step.getUI().getColumnWidthsToProperties(outProps);
 
-        String tab = step.getList().getName();
-        if (i > 2) {
-          outProps.setProperty("tabs.name." + (i - 2), tab);
-        }
-
-        String KEEP_ENDED = tab + ".end.keep";
-        String DELETE_NOT_MY_BID = tab + ".end.delete.notmybid";
-        String DELETE_NO_BIDS = tab + ".end.delete.nobids";
-        String ARCHIVE = tab + ".archive";
-
-        outProps.setProperty(KEEP_ENDED, JConfig.queryDisplayProperty(KEEP_ENDED, "unset"));
-        outProps.setProperty(DELETE_NOT_MY_BID, JConfig.queryDisplayProperty(DELETE_NOT_MY_BID, "unset"));
-        outProps.setProperty(DELETE_NO_BIDS, JConfig.queryDisplayProperty(DELETE_NO_BIDS, "unset"));
-        outProps.setProperty(ARCHIVE, JConfig.queryDisplayProperty(ARCHIVE, "unset"));
+      String tab = step.getList().getName();
+      if (i > 2) {
+        outProps.setProperty("tabs.name." + (i - 2), tab);
       }
+
+      String KEEP_ENDED = tab + ".end.keep";
+      String DELETE_NOT_MY_BID = tab + ".end.delete.notmybid";
+      String DELETE_NO_BIDS = tab + ".end.delete.nobids";
+      String ARCHIVE = tab + ".archive";
+
+      outProps.setProperty(KEEP_ENDED, JConfig.queryDisplayProperty(KEEP_ENDED, "unset"));
+      outProps.setProperty(DELETE_NOT_MY_BID, JConfig.queryDisplayProperty(DELETE_NOT_MY_BID, "unset"));
+      outProps.setProperty(DELETE_NO_BIDS, JConfig.queryDisplayProperty(DELETE_NO_BIDS, "unset"));
+      outProps.setProperty(ARCHIVE, JConfig.queryDisplayProperty(ARCHIVE, "unset"));
+
+      i++;
     }
 
     return outProps;
   }
 
-  public int listLength() {
-    return mAllLists.size();
-  }
-
   AuctionListHolder add(AuctionListHolder newList) {
-    mAllLists.add(newList);
     mCategoryMap.put(newList.getList().getName(), newList);
     return newList;
   }
@@ -145,58 +136,16 @@ public class ListManager {
    * @param bgColor - The color to set the background to.
    */
   public void setBackground(Color bgColor) {
-    synchronized (mAllLists) {
-      for (AuctionListHolder step : mAllLists) {
-        step.getUI().setBackground(bgColor);
-      }
+    for (AuctionListHolder step : mCategoryMap.values()) {
+      step.getUI().setBackground(bgColor);
     }
-  }
-
-  public void redrawAll() {
-    synchronized (mAllLists) {
-      for (AuctionListHolder step : mAllLists) {
-        if (!step.getList().isCompleted()) {
-          step.getUI().redraw();
-        }
-      }
-    }
-  }
-
-  public void redrawEntry(AuctionEntry ae) {
-    synchronized (mAllLists) {
-      for (AuctionListHolder step : mAllLists) {
-        if (step.getUI().redrawEntry(ae)) return;
-      }
-    }
-  }
-
-  AuctionListHolder whereIsAuction(AuctionEntry ae) {
-    synchronized (mAllLists) {
-      for (AuctionListHolder step : mAllLists) {
-        if (step.getList().verifyEntry(ae)) return step;
-      }
-    }
-
-    return null;
-  }
-
-  public Auctions whereIsAuction(String aucId) {
-    synchronized (mAllLists) {
-      for (AuctionListHolder step : mAllLists) {
-        if (step.getList().verifyEntry(aucId)) return step.getList();
-      }
-    }
-
-    return null;
   }
 
   public boolean checkEachList() {
     boolean retval = false;
 
-    synchronized(mAllLists) {
-      for(AuctionListHolder list : mAllLists) {
-        if(list.getList().check()) retval = true;
-      }
+    for (AuctionListHolder step : mCategoryMap.values()) {
+      if (step.getList().check()) retval = true;
     }
 
     return retval;

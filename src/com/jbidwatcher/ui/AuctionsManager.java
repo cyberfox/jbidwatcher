@@ -115,8 +115,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * @return - True if the item exists someplace in our list of Auctions.
    */
   public boolean verifyEntry(String id) {
-    Auctions whereIs = ListManager.getInstance().whereIsAuction(id);
-    return whereIs != null;
+    return AuctionEntry.findByIdentifier(id) != null;
   }
 
   /**
@@ -307,13 +306,13 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       if(newSaveFile.exists()) newSaveFile.delete();
     }
 
-    buildSaveBuffer(auctionsData, null);
+    StringBuffer buf = buildSaveBuffer(auctionsData, null);
     boolean saveDone = true;
 
     //  Dump the save file out!
     try {
       PrintStream ps = new PrintStream(new FileOutputStream(newSave));
-      ps.println(_saveBuf);
+      ps.println(buf);
       ps.close();
     } catch(IOException e) {
       ErrorManagement.handleException("Failed to save auctions.", e);

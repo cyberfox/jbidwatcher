@@ -58,7 +58,7 @@ public class JTabManager extends JMouseAdapter {
     mNameTableMap.put(tabName, inTS);
   }
 
-  TableSorter getCurrentTable() {
+  public TableSorter getCurrentTable() {
     int currentIndex = mAuctionTypes.getSelectedIndex();
     String currentTitle = mAuctionTypes.getTitleAt(currentIndex);
 

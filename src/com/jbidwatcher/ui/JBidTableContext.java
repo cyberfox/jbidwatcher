@@ -23,11 +23,6 @@ import java.util.ArrayList;
 public class JBidTableContext extends JBidContext {
   private JMenu tabMenu = null;
 
-  public JBidTableContext(JPopupMenu inPopup) {
-    super(inPopup);
-    buildMenu(inPopup);
-  }
-
   public JBidTableContext() {
     buildMenu(localPopup);
   }

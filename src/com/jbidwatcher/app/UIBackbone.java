@@ -338,7 +338,7 @@ public final class UIBackbone implements MessageQueue.Listener {
 
   private void handleHeader(String headerMsg) {
     JBidToolBar.getInstance().setText(headerMsg);
-    ListManager.getInstance().redrawAll();
+    JTabManager.getInstance().getCurrentTable().updateTime();
   }
 
   private static final int ONEK = 1024;

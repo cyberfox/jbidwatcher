@@ -247,7 +247,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     mNeedsUpdate = true;
 
     if (mServer != null) {
-      mAuction = mServer.createAuction(auctionIdentifier);
+      mAuction = mServer.create(auctionIdentifier);
     }
 
     mLoaded = mAuction != null;
@@ -1155,7 +1155,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     // We REALLY don't want to leave an auction in the 'updating'
     // state.  It does bad things.
     try {
-      getServer().reloadAuction(this);
+      getServer().reload(this);
     } catch(Exception e) {
       ErrorManagement.handleException("Unexpected exception during auction reload/update.", e);
     }
@@ -1819,8 +1819,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return super.delete(AuctionEntry.class);
   }
 
-  public String buildInfoHTML(boolean finalize) {
-    return buildInfoHTML(finalize, false);
+  public String buildInfoHTML() {
+    return buildInfoHTML(false, false);
   }
 
   public String buildInfoHTML(boolean finalize, boolean forRSS) {

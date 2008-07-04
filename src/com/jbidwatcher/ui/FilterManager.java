@@ -85,7 +85,6 @@ public class FilterManager implements MessageQueue.Listener {
         newAuction.getUI().redrawAll();
       } else {
         JTabManager.getInstance().getCurrentTable().update(ae);
-//        mList.redrawEntry(ae);
       }
     } else if(deQ instanceof String) {
       AuctionListHolder toSort = mList.findCategory((String)deQ);
@@ -101,7 +100,6 @@ public class FilterManager implements MessageQueue.Listener {
    */
   public void deleteAuction(AuctionEntry ae) {
     AuctionListHolder which = mAllOrderedAuctionEntries.get(ae);
-    if(which == null) which = mList.whereIsAuction(ae);
     if(which != null) which.getUI().delEntry(ae);
 
     mAllOrderedAuctionEntries.remove(ae);
@@ -115,13 +113,6 @@ public class FilterManager implements MessageQueue.Listener {
   */
   public void addAuction(AuctionEntry ae) {
     AuctionListHolder which = mAllOrderedAuctionEntries.get(ae);
-
-    if(which == null) {
-      which = mList.whereIsAuction(ae);
-      if(which != null) {
-        mAllOrderedAuctionEntries.put(ae, which);
-      }
-    }
 
     if(which != null) {
       //  If it's already sorted into a Auctions list, tell that list
@@ -188,8 +179,6 @@ public class FilterManager implements MessageQueue.Listener {
   private AuctionListHolder refilterAuction(AuctionEntry ae) {
     AuctionListHolder sendTo = matchAuction(ae);
     AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
-
-    if(old == null) old = mList.whereIsAuction(ae);
 
     if(old != null) {
       String tabName = old.getList().getName();

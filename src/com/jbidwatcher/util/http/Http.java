@@ -194,50 +194,6 @@ public class Http {
     return new StringBuffer(new String(buff.getData(), 0, buff.getLength()));
   }
 
-  public static StringBuffer receivePage_old(URLConnection uc) throws IOException {
-    StringBuffer loadUp = new StringBuffer();
-
-    BufferedReader br = null;
-    String readData;
-    int retry = 0;
-
-    while(br == null && retry < 3) {
-      try {
-        //        ErrorManagement.logMessage(Thread.currentThread().getName() + ": RcvPage.o");
-        br = new BufferedReader(new InputStreamReader(uc.getInputStream()));
-        //        ErrorManagement.logMessage(Thread.currentThread().getName() + ": RcvPage.c");
-      } catch(java.net.ConnectException jnce) {
-        br = null;
-        retry++;
-        ErrorManagement.handleException("Failed to connect via URLConnection (retry: " + retry + ")", jnce);
-      } catch(java.net.NoRouteToHostException cantGetThere) {
-        br = null;
-        retry++;
-        ErrorManagement.handleException("Failed to find a route to receive the page (retry: " + retry + ")", cantGetThere);
-      } catch(java.net.SocketException jnse) {
-        br = null;
-        retry++;
-        ErrorManagement.handleException("Failed to load from URLConnection (retry: " + retry + ")", jnse);
-      }
-    }
-
-    if(br == null) return null;
-
-    do {
-      readData = br.readLine();
-      if(readData != null) {
-        loadUp.append(readData);
-        loadUp.append("\n");
-        if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) {
-          ErrorManagement.logFile("Read the following data", new StringBuffer(readData));
-        }
-      }
-    } while(readData != null);
-    br.close();
-
-    return(loadUp);
-  }
-
   /**
    * Simplest request, load a URL, no cookie, no referer, follow redirects blindly.
    *

@@ -1,7 +1,5 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.AuctionInfo;
 import com.jbidwatcher.util.Currency;
 
 import java.util.TimeZone;
@@ -67,7 +65,7 @@ public interface AuctionServerInterface {
    * @return - The underlying 'AuctionInfo' object that contains all
    * the basic accessors for auction data.
    */
-  AuctionInfo createAuction(String itemId);
+  AuctionInfo create(String itemId);
 
   /**
    * @brief Get the human-readable auction site name for this server.
@@ -92,7 +90,7 @@ public interface AuctionServerInterface {
    */
   TimeZone getOfficialServerTimeZone();
 
-  AuctionInfo reloadAuction(AuctionEntry inEntry);
+  AuctionInfo reload(AuctionEntry inEntry);
 
   /**
    * @brief Returns the amount of time it takes to retrieve a page
