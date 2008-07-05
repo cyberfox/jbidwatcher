@@ -13,7 +13,7 @@
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidwatcher" />
-  <property name="VER" value="2.0beta3" />
+  <property name="VER" value="2.0beta4" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
@@ -320,7 +320,7 @@
     <delete dir="${dest.dir}/${osx.app.name}" />
   </target>
 
-  <target name="apps" depends="tar,scripting,osx,exe" />
+  <target name="apps" depends="tar,scripting,osx,exe,dmg" />
 
   <target name="release" depends="apps" description="Build for a full release.">
     <property name="server.path" value="cyberfox@jbidwatcher.com:www/htdocs/rdl" />
@@ -347,6 +347,7 @@
 	<include name="${APPSCRIPTING}" />
 	<include name="${EXESCRIPTING}" />
 	<include name="${TARFILE}" />
+	<include name="${DMGFILE}" />
       </fileset>
     </scp>
   </target>
