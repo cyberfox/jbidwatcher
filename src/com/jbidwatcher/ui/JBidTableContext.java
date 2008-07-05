@@ -39,8 +39,8 @@ public class JBidTableContext extends JBidContext {
     menu.add(makeMenuItem("Bid")).addActionListener(this);
     menu.add(makeMenuItem("Buy")).addActionListener(this);
     menu.add(new JPopupMenu.Separator());
-    if(JConfig.debugging()) {
-      menu.add(makeMenuItem("Win")).addActionListener(this);
+    if(JConfig.debugging() && JConfig.queryConfiguration("debug.uber", "false").equals("true")) {
+      menu.add(makeMenuItem("Mark as Won")).addActionListener(this);
       menu.add(new JPopupMenu.Separator());
     }
 
