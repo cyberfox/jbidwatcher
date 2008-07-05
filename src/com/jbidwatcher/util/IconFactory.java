@@ -18,7 +18,7 @@ import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 
 public class IconFactory {
-  private static Hashtable<ImageIcon, Hashtable<Object, ImageIcon>> _icons = new Hashtable<ImageIcon, Hashtable<Object, ImageIcon>>();
+  private static Map<ImageIcon, Map<Object, ImageIcon>> _icons = new HashMap<ImageIcon, Map<Object, ImageIcon>>();
 
   /**
    * Create a combination of two images, and return it as a new image.
@@ -31,21 +31,27 @@ public class IconFactory {
     if(leftImage == null) return rightImage;
     if(rightImage == null) return leftImage;
 
-    Hashtable<Object, ImageIcon> combos = _icons.get(leftImage);
+    // Check the cache to see if there's a set of combination icons with
+    // this as the leftmost image.
+    Map<Object, ImageIcon> combos = _icons.get(leftImage);
+    // If we've never cached anything for this leftImage before, create
+    // a map of (_icons[left])[right] -> combined icon.
     if(combos == null) {
       ImageIcon new_icon = appendIcons(leftImage, rightImage);
-      combos = new Hashtable<Object, ImageIcon>();
+      combos = new HashMap<Object, ImageIcon>();
       combos.put(rightImage, new_icon);
       _icons.put(leftImage, combos);
       return new_icon;
     }
 
-    //  TODO -- Figure this warning out.
+    // We know we've got a combination map, so get the combination for the
+    // rightside icon.
     ImageIcon old_icon = combos.get(rightImage);
+    // If we didn't have a combination for that pair, build it.
     if(old_icon == null) {
-      _icons.remove(combos);
       old_icon = appendIcons(leftImage, rightImage);
       combos.put(rightImage, old_icon);
+      // This will overwrite any previous combo collection with the new one.
       _icons.put(leftImage, combos);
     }
 
