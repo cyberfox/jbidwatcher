@@ -21,8 +21,8 @@ public class StringTools {
   }
 
   public static String decode(String original, String charset) {
-//    if (!JConfig.queryConfiguration("mac", "false").equals("true")) return original;
-    if(charset == null) charset = "UTF-8";
+    if(charset == null || charset.equalsIgnoreCase("UTF-8")) return original;
+
     try {
       return new String(original.getBytes(), charset);
     } catch (UnsupportedEncodingException ignore) {
