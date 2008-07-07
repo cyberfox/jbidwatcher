@@ -6,9 +6,13 @@ import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.ui.util.JPasteListener;
+import com.jbidwatcher.ui.util.OptionUI;
+import com.jbidwatcher.ui.util.JBEditorPane;
 import com.jbidwatcher.ui.config.JConfigTab;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionListener;
@@ -150,12 +154,17 @@ public class JConfigEbayTab extends JConfigTab
 
     tp.setLayout(new BoxLayout(tp, BoxLayout.Y_AXIS));
 
+    JPanel adultPane = new JPanel();
+    adultPane.setLayout(new BorderLayout(0, 0));
     adultBox = new JCheckBox("Registered adult");
     adultBox.setSelected(isAdult.equals("true"));
-    tp.add(adultBox);
+    adultPane.add(adultBox, BorderLayout.WEST);
+    tp.add(adultPane);
 
-    tp.add(new JLabel("     To have JBidwatcher regularly retrieve auctions listed on your My eBay"));
-    tp.add(new JLabel("     page, go to the Search Manager and enable the search also named 'My eBay'."));
+    String searchNotice = "<html><body><div style=\"margin-left: 20px; font-size: 0.96em;\"><i>To have JBidwatcher regularly retrieve auctions listed on your My eBay<br>" +
+                          "page, go to the <a href=\"/SEARCH\">Search Manager</a> and enable the search also named 'My eBay'.</i></div></body></html>";
+    JBEditorPane jep = OptionUI.getHTMLLabel(searchNotice);
+    tp.add(jep);
 
     return(tp);
   }
@@ -188,9 +197,9 @@ public class JConfigEbayTab extends JConfigTab
     setLayout(new BorderLayout());
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
-    jp.add(panelPack(buildCheckboxPanel()), BorderLayout.NORTH);
-    jp.add(panelPack(buildUsernamePanel()), BorderLayout.CENTER);
+    jp.add(panelPack(buildUsernamePanel()), BorderLayout.NORTH);
+    jp.add(panelPack(buildBrowseTargetPanel(choices)), BorderLayout.CENTER);
     add(jp, BorderLayout.NORTH);
-    add(panelPack(buildBrowseTargetPanel(choices)), BorderLayout.CENTER);
+    add(panelPack(buildCheckboxPanel()), BorderLayout.CENTER);
   }
 }

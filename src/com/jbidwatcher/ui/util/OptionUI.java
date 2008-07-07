@@ -171,6 +171,25 @@ public class OptionUI {
   }
 
   /**
+   * @brief Get a basic editor pane for text/html, that listens for
+   * hyperlinks properly, and chains to the Hyperactive module.
+   *
+   * @param s - The String to fill in as the text.
+   *
+   * @return - A JBEditorPane to be embedded in a frame.
+   */
+  public static JBEditorPane getHTMLLabel(String s) {
+    JBEditorPane jep;
+
+    jep = new JBEditorPane("text/html", s);
+    jep.setEditable(false);
+    jep.setOpaque(false);
+    jep.addHyperlinkListener(new Hyperactive(jep));
+
+    return jep;
+  }
+
+  /**
    * @brief Get the upper left point of a box which would be centered
    * exactly, given the provided dimensions.
    *
