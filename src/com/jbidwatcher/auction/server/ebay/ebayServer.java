@@ -99,7 +99,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     "ebay.ca",
     "ebay.co.uk",
     "tw.ebay.com",
-    "es.ebay.com",
+    "ebay.es",
     "ebay.fr",
     "ebay.it",
     "ebay.com.au",
