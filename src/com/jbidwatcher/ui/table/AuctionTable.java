@@ -3,6 +3,7 @@ package com.jbidwatcher.ui.table;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.Constants;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -51,13 +52,20 @@ public class AuctionTable extends JTable {
   }
 
   public String getToolTipText(MouseEvent event) {
-    int rowPoint = rowAtPoint(new Point(event.getX(), event.getY()));
+    Point point = new Point(event.getX(), event.getY());
+    int rowPoint = rowAtPoint(point);
     String result = null;
+    int colPoint = columnAtPoint(point);
 
     if(rowPoint != -1) {
       AuctionEntry ae = (AuctionEntry) getValueAt(rowPoint, -1);
+      boolean showThumbnail = true;
 
-      result = ae.buildHTMLComment();
+      if(getRowHeight() == Constants.MICROTHUMBNAIL_ROW_HEIGHT) {
+        showThumbnail = getColumnName(colPoint).equals("Thumbnail");
+      }
+
+      result = ae.buildHTMLComment(showThumbnail);
     }
 
     return result == null ? super.getToolTipText(event) : result;

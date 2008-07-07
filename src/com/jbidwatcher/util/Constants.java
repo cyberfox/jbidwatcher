@@ -67,4 +67,7 @@ public class Constants {
   public static final String XML_SAVE_DOCTYPE = "<!DOCTYPE auctions SYSTEM \"http://www.jbidwatcher.com/auctions.dtd\">";
   public static final String XML_SEARCHES_DOCTYPE = "<!DOCTYPE auctions SYSTEM \"http://www.jbidwatcher.com/searches.dtd\">";
   public static final int SYNDICATION_ITEM_COUNT = 15;
+  public static final int DEFAULT_COLUMN_WIDTH=75;
+  public static final int DEFAULT_ROW_HEIGHT=16;
+  public static final int MICROTHUMBNAIL_ROW_HEIGHT = 70;
 }

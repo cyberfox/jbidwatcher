@@ -418,7 +418,6 @@ public class auctionTableModel extends BaseTransformation
             if(thumbIcon != null) iconCache.put(thumb, thumbIcon);
             return thumbIcon;
           } else return dummyIcon;
-
         }
         case TableColumnController.SELLER: return aEntry.getSeller();
         case TableColumnController.COMMENT:

@@ -40,10 +40,10 @@ public class Thumbnail {
       imgPath = basePath + ".jpg";
 
       if (!conversionAttempted.exists()) {
-        String maxWidthString = JConfig.queryConfiguration("thumbnail.maxWidth", "256");
-        String prefWidthString = JConfig.queryConfiguration("thumbnail.prefWidth", "128");
-        String maxHeightString = JConfig.queryConfiguration("thumbnail.maxHeight", "256");
-        String prefHeightString = JConfig.queryConfiguration("thumbnail.prefWidth", "128");
+        String maxWidthString = JConfig.queryConfiguration("thumbnail.maxWidth", "512");
+        String prefWidthString = JConfig.queryConfiguration("thumbnail.prefWidth", "256");
+        String maxHeightString = JConfig.queryConfiguration("thumbnail.maxHeight", "512");
+        String prefHeightString = JConfig.queryConfiguration("thumbnail.prefWidth", "256");
         int maxWidth = Integer.parseInt(maxWidthString);
         int prefWidth = Integer.parseInt(prefWidthString);
         int maxHeight = Integer.parseInt(maxHeightString);

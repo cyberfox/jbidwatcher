@@ -1925,9 +1925,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   	return(prompt);
   }
 
-  public String buildHTMLComment() {
+  public String buildHTMLComment(boolean showThumbnail) {
     boolean hasComment = (getComment() != null);
-    boolean hasThumb = (getThumbnail() != null);
+    boolean hasThumb = showThumbnail && (getThumbnail() != null);
 
     if(JConfig.queryConfiguration("display.thumbnail", "true").equals("false")) hasThumb = false;
     if(!hasComment && !hasThumb) return null;

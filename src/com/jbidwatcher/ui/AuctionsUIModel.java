@@ -7,6 +7,7 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.ui.util.*;
@@ -40,9 +41,6 @@ public class AuctionsUIModel {
   private JLabel _prices;
   private JPanel mPanel;
 
-  private static final int DEFAULT_COLUMN_WIDTH=75;
-  private static final int DEFAULT_ROW_HEIGHT=16;
-  private static final int MICROTHUMBNAIL_ROW_HEIGHT = 70;
   private static final myTableCellRenderer _myRenderer = new myTableCellRenderer();
   private TableSorter _tSort;
 
@@ -64,7 +62,7 @@ public class AuctionsUIModel {
     _table = new AuctionTable(_dataModel.getName(), _tSort);
     if(newAuctionList.isCompleted()) {
       if(_table.convertColumnIndexToView(TableColumnController.END_DATE) == -1) {
-        _table.addColumn(new TableColumn(TableColumnController.END_DATE, DEFAULT_COLUMN_WIDTH, _myRenderer, null));
+        _table.addColumn(new TableColumn(TableColumnController.END_DATE, Constants.DEFAULT_COLUMN_WIDTH, _myRenderer, null));
       }
     }
     if(JConfig.queryConfiguration("show_shipping", "false").equals("true")) {
@@ -75,7 +73,7 @@ public class AuctionsUIModel {
     }
     // provide sufficient vertical height in the rows for micro-thumbnails list view
     if (_table.convertColumnIndexToView(TableColumnController.THUMBNAIL) != -1) {
-      _table.setRowHeight(MICROTHUMBNAIL_ROW_HEIGHT);
+      _table.setRowHeight(Constants.MICROTHUMBNAIL_ROW_HEIGHT);
     }
     _table.addMouseListener(tableContextMenu);
     _tSort.addMouseListenerToHeaderInTable(_table);
@@ -353,7 +351,7 @@ public class AuctionsUIModel {
     boolean rval;
     int modelColumn = TableColumnController.getInstance().getColumnNumber(field);
     if(_table.convertColumnIndexToView(modelColumn) == -1) {
-      _table.addColumn(new TableColumn(modelColumn, DEFAULT_COLUMN_WIDTH, _myRenderer, null));
+      _table.addColumn(new TableColumn(modelColumn, Constants.DEFAULT_COLUMN_WIDTH, _myRenderer, null));
       rval = true;
     } else {
       _table.removeColumn(_table.getColumn(field));
@@ -363,9 +361,9 @@ public class AuctionsUIModel {
 
     // hack and a half - but adding a row height attribute for columns seems like overkill
     if (_table.convertColumnIndexToView(TableColumnController.THUMBNAIL) != -1) {
-      _table.setRowHeight(MICROTHUMBNAIL_ROW_HEIGHT);
+      _table.setRowHeight(Constants.MICROTHUMBNAIL_ROW_HEIGHT);
     } else {
-      _table.setRowHeight(DEFAULT_ROW_HEIGHT);
+      _table.setRowHeight(Constants.DEFAULT_ROW_HEIGHT);
     }
 
     return rval;
