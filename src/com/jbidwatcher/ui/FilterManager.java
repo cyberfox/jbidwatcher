@@ -180,6 +180,11 @@ public class FilterManager implements MessageQueue.Listener {
     AuctionListHolder sendTo = matchAuction(ae);
     AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
 
+    if(old == null && ae.getCategory() != null) {
+      old = mList.findCategory(ae.getCategory());
+      if(old != null) mAllOrderedAuctionEntries.put(ae, old);
+    }
+
     if(old != null) {
       String tabName = old.getList().getName();
       if(sendTo.getList().isCompleted()) {
