@@ -8,7 +8,6 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.xml.XMLSerialize;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.auction.AuctionEntry;
 
 /**
  * Created by IntelliJ IDEA.

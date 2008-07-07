@@ -11,8 +11,6 @@ import com.jbidwatcher.ui.util.JBEditorPane;
 import com.jbidwatcher.ui.config.JConfigTab;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.HyperlinkEvent;
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionListener;

@@ -32,7 +32,6 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionServerInterface;
-import com.jbidwatcher.my.MyJBidwatcher;
 
 public class UserActions implements MessageQueue.Listener {
   private static JTabManager mTabs = JTabManager.getInstance();
