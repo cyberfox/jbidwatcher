@@ -129,16 +129,14 @@ class ebayAuction extends SpecificAuction {
    * @return - Either zeroDollars or the approximate USD equivalent of the value of the item.
    */
   private Currency walkForUSCurrency(JHTML html, Currency newCur) {
-    String approxAmount;
     int count = 0;
-    int matchAtIndex;
 
     String usdPattern = Externalized.getString("ebayServer.USD");
     do {
-      approxAmount = html.getNextContent();
+      String approxAmount = html.getNextContent();
       approxAmount = StringTools.stripHigh(approxAmount, "");
       approxAmount = approxAmount.replaceAll("\\s+", " ");
-      matchAtIndex = approxAmount.indexOf(usdPattern);
+      int matchAtIndex = approxAmount.indexOf(usdPattern);
       if (matchAtIndex != -1) {
         approxAmount = approxAmount.substring(matchAtIndex); //$NON-NLS-1$
         newCur = Currency.getCurrency(approxAmount);
@@ -293,8 +291,8 @@ class ebayAuction extends SpecificAuction {
   private String getEndDate(String inTitle) {
     String result = null;
 
-    Matcher dateMatch = datePat.matcher(inTitle);
-    if(dateMatch.find()) result = dateMatch.group(2);
+    Matcher when = datePat.matcher(inTitle);
+    if(when.find()) result = when.group(2);
 
     return result;
   }
@@ -366,12 +364,12 @@ class ebayAuction extends SpecificAuction {
   }
 
   private void loadFeedback(JHTML doc) {
-    String score = getResult(doc, Externalized.getString("ebayServer.feedbackRegex"), 1);
+    String score = doc.getContentBeforeContent("Feedback:");
     if(score != null && StringTools.isNumberOnly(score)) {
       mSeller.setFeedback(Integer.parseInt(score));
     }
 
-    String percentage = getResult(doc, Externalized.getString("ebayServer.feedbackPercentageRegex"), 1);
+    String percentage = doc.getNextContentAfterContent("Feedback:");
     if(percentage != null) mSeller.setPositivePercentage(percentage);
   }
 
@@ -443,7 +441,7 @@ class ebayAuction extends SpecificAuction {
     return ParseErrors.SUCCESS;
   }
 
-  private class ParseException extends Exception {
+  private static class ParseException extends Exception {
     private ParseErrors mError;
     public ParseException(ParseErrors error) {
       mError = error;

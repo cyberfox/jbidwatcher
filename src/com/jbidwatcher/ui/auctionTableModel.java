@@ -383,10 +383,8 @@ public class auctionTableModel extends BaseTransformation
         case TableColumnController.END_DATE: {
           if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE))
             return "N/A";
-          String endTime;
           SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
-          endTime = fmt.format(aEntry.getEndDate());
-          return endTime;
+          return fmt.format(aEntry.getEndDate());
         }
         case TableColumnController.TITLE: return cvt.decodeString(aEntry.getTitle());
         case TableColumnController.STATUS: return getEntryIcon(aEntry);
