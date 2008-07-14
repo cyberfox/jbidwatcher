@@ -482,14 +482,16 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
     loadProxySettings();
 
-    if(JConfig.queryConfiguration("debug.memory", "false").equals("true")) {
-      if(_rti == null) {
-        _rti = new RuntimeInfo();
+    synchronized (this) {
+      if (JConfig.queryConfiguration("debug.memory", "false").equals("true")) {
+        if (_rti == null) {
+          _rti = new RuntimeInfo();
+        } else {
+          _rti.setVisible(true);
+        }
       } else {
-        _rti.setVisible(true);
+        if (_rti != null) _rti.setVisible(false);
       }
-    } else {
-      if(_rti != null) _rti.setVisible(false);
     }
   }
 
@@ -601,7 +603,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     AudioPlayer.start();
 
-    if(JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo();
+    synchronized(this) { if(_rti == null && JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo(); }
     try {
       //  Don't leave this thread until the timeQueue has completed; i.e. the program is exiting.
       timeQueue.join();
