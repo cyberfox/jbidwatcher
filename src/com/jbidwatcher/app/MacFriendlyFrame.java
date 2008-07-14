@@ -18,6 +18,7 @@ import java.awt.event.WindowListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.net.URL;
 import java.util.Properties;
 
@@ -46,6 +47,8 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
    */
   public MacFriendlyFrame(String title, JMouseAdapter myFrameAdapter, URL iconURL, JTabManager tabManager) {
     super(title);
+
+    setMinimumSize(new Dimension(1000, 320));
 
     com.apple.mrj.MRJApplicationUtils.registerQuitHandler(this);
     com.apple.mrj.MRJApplicationUtils.registerAboutHandler(this);
