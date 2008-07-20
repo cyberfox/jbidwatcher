@@ -160,7 +160,7 @@ public class ebayLoginManager implements LoginManager {
 
     CookieJar cj = getSignInCookie(old_cj, getUserId(), getPassword());
 
-    String done_msg = "Done getting the sign in cookie.";
+    String done_msg = (cj!=null)?"Done getting the sign in cookie.":"Did not successfully retrieve the sign in cookie.";
     MQFactory.getConcrete("Swing").enqueue(done_msg);
     ErrorManagement.logDebug(done_msg);
 
