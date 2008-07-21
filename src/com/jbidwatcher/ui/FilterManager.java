@@ -53,11 +53,23 @@ public class FilterManager implements MessageQueue.Listener {
     } while (tabName != null);
   }
 
+  /**
+   * Creates a new tab by copying the background color from the main tab,
+   * looking for an existing set of column settings, and copying them as
+   * well from the main tab if they don't already exist.
+   *
+   * @param newTab - The name of the new tab to create.
+   *
+   * @return - An AuctionListHolder that encapsulates the UI and List
+   * for the new tab.
+   */
   AuctionListHolder addTab(String newTab) {
     Color mainBackground = mMainTab.getUI().getBackground();
-    Properties dispProps = new Properties();
-    mMainTab.getUI().getColumnWidthsToProperties(dispProps, newTab);
-    JConfig.addAllToDisplay(dispProps);
+    Properties dispProps = JConfig.multiMatchDisplay(newTab + ".");
+    if(dispProps.isEmpty()) {
+      mMainTab.getUI().getColumnWidthsToProperties(dispProps, newTab);
+      JConfig.addAllToDisplay(dispProps);
+    }
     AuctionListHolder newList = new AuctionListHolder(newTab, mainBackground);
     mList.add(newList);
     return newList;

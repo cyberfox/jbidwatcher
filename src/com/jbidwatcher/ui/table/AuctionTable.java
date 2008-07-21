@@ -49,6 +49,7 @@ public class AuctionTable extends JTable {
 
     setModel(atm);
     loadColumnSettings(name, atm);
+    doLayout();
   }
 
   public String getToolTipText(MouseEvent event) {
@@ -164,6 +165,7 @@ public class AuctionTable extends JTable {
             initialToSaved.put(curColumnName, Integer.parseInt(colIndex));
           }
           getColumn(curColumnName).setPreferredWidth(Integer.parseInt(colWidth));
+          getColumn(curColumnName).setWidth(Integer.parseInt(colWidth));
         }
       }
     } catch(Exception e) {

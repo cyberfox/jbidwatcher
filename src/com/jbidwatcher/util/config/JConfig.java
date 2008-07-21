@@ -502,6 +502,17 @@ public class JConfig {
     return displayProperty.getProperty(query, null);
   }
 
+  public static Properties multiMatchDisplay(String query) {
+    Properties p = new Properties();
+    for(Object key : displayProperty.keySet()) {
+      if(((String)key).startsWith(query)) {
+        p.setProperty((String)key, displayProperty.getProperty((String)key));
+      }
+    }
+
+    return p;
+  }
+
   public static String queryDisplayProperty(String query, String inDefault) {
     String retVal = queryDisplayProperty(query);
 
