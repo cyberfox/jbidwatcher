@@ -1,8 +1,8 @@
 #
 #   rational.rb -
 #       $Release Version: 0.5 $
-#       $Revision: 5425 $
-#       $Date: 2007-12-29 14:54:51 -0600 (Sat, 29 Dec 2007) $
+#       $Revision: 6775 $
+#       $Date: 2008-05-23 11:38:46 -0500 (Fri, 23 May 2008) $
 #       by Keiju ISHITSUKA(SHL Japan Inc.)
 #
 # Documentation by Kevin Jackson and Gavin Sinclair.
@@ -62,7 +62,7 @@ end
 #   Rational(3,0)             # -> ZeroDivisionError
 #
 class Rational < Numeric
-  @RCS_ID='-$Id: rational.rb 5425 2007-12-29 20:54:51Z headius $-'
+  @RCS_ID='-$Id: rational.rb 6775 2008-05-23 16:38:46Z vvs $-'
 
   #
   # Reduces the given numerator and denominator to their lowest terms.  Use
@@ -263,8 +263,16 @@ class Rational < Numeric
   #   r.divmod Rational(1,2)   # -> [3, Rational(1,4)]
   #
   def divmod(other)
-    value = (self / other).to_i
+    value = (self / other).floor
     return value, self - other * value
+  end
+
+  def floor()
+      @numerator.div(@denominator)
+  end
+
+  def ceil()
+      -((-@numerator).div(@denominator))
   end
 
   #
@@ -340,16 +348,17 @@ class Rational < Numeric
   # Converts the rational to an Integer.  Not the _nearest_ integer, the
   # truncated integer.  Study the following example carefully:
   #   Rational(+7,4).to_i             # -> 1
-  #   Rational(-7,4).to_i             # -> -2
+  #   Rational(-7,4).to_i             # -> -1
   #   (-1.75).to_i                    # -> -1
   #
-  # In other words:
-  #   Rational(-7,4) == -1.75                 # -> true
-  #   Rational(-7,4).to_i == (-1.75).to_i     # false
-  #
-  def to_i
-    Integer(@numerator.div(@denominator))
+  def truncate()
+    if @numerator < 0
+      return -((-@numerator).div(@denominator))
+    end
+    @numerator.div(@denominator)
   end
+
+  alias_method :to_i, :truncate
 
   #
   # Converts the rational to a Float.

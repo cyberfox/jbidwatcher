@@ -44,9 +44,8 @@ public class ScriptManager implements MessageQueue.Listener
     final TextAreaReadline tar = new TextAreaReadline(text, " Welcome to the JBidwatcher IRB Scripting Console \n\n");
 
     final Ruby runtime = Scripting.getRuntime();
-    tar.hookIntoRuntime(runtime);
+    tar.hookIntoRuntimeWithStreams(runtime);
 
-    Scripting.setOutput(tar);
     Thread t2 = new Thread() {
       public void run() {
         console.setVisible(true);

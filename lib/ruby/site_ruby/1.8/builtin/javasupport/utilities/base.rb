@@ -13,12 +13,13 @@ module JavaUtilities
         attr :java_proxy_class, true
         def java_interfaces
           @java_interfaces.dup if @java_interfaces        
-        end     
+        end
       end #self  
     end
 
     subclass.send(:define_method, "__jcreate!") {|*args|
       self.class.java_proxy_class ||= Java::JavaProxyClass.get_with_class(self.class)
+      
       constructors = self.class.java_proxy_class.constructors.select {|c| c.arity == args.length }
       raise NameError.new("wrong # of arguments for constructor") if constructors.empty?
       args.collect! { |v| Java.ruby_to_java(v) }
@@ -26,18 +27,6 @@ module JavaUtilities
     }
   end
 
-  def JavaUtilities.get_java_class(name)
-    begin
-      return Java::JavaClass.for_name(name)
-    rescue NameError
-      return nil
-    end
-  end
-  
-  def JavaUtilities.create_proxy_class(constant, java_class, mod)
-    mod.const_set(constant.to_s, get_proxy_class(java_class))
-  end
-  
   def JavaUtilities.print_class(java_type, indent="")
      while (!java_type.nil? && java_type.name != "java.lang.Class")
         puts "#{indent}Name:  #{java_type.name}, access: #{ JavaUtilities.access(java_type) }  Interfaces: "
@@ -48,17 +37,4 @@ module JavaUtilities
      end
   end
 
-  @primitives = {
-    :boolean => true,
-    :byte => true,
-    :char => true,
-    :short => true,
-    :int => true,
-    :long => true,
-    :float => true,
-    :double => true  
-  }
-  def JavaUtilities.is_primitive_type(sym)
-    @primitives[sym]  
-  end
 end

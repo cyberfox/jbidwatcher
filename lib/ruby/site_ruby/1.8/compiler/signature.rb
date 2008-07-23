@@ -1,6 +1,6 @@
-module Compiler
-  include Java
+require 'java'
 
+module Compiler
   module JavaTypes
     import java.lang.Object
     import java.lang.Byte
@@ -20,7 +20,7 @@ module Compiler
     module_function :classname
     
     def path(cls)
-      return cls if String === cls
+      return cls if Symbol === cls
       cls = cls.java_class if Class === cls
       cls.name.gsub('.', '/')
     end
@@ -28,6 +28,15 @@ module Compiler
     
     def class_id(cls)
       cls = cls.java_class if Class === cls
+      
+      unless cls
+        return "V"
+      end
+      
+      if Module === cls
+        return "L#{cls.java_class};"
+      end
+      
       if cls.array?
         cls = cls.component_type
         if cls.primitive?
@@ -87,6 +96,10 @@ module Compiler
     module_function :class_id, :ci
     
     def signature(*sig_classes)
+      if sig_classes.size == 0
+        return "()V"
+      end
+      
       return_class = sig_classes.shift
       sig_string = "("
       sig_classes.each {|arg_class| sig_string << class_id(arg_class)}

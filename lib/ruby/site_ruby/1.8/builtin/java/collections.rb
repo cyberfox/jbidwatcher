@@ -69,15 +69,22 @@ module java::util::Iterator
 end
 
 module java::util::List
-  def [](ix)
-    if ix < size
-      get(ix)
+  def [](ix1, ix2 = nil)
+    if (ix2)
+      sub_list(ix1, ix1 + ix2)
+    elsif (ix1.is_a?(Range))
+      sub_list(ix1.first, ix1.last)
+    elsif ix1 < size
+      get(ix1)
     else
       nil
     end
   end
   def []=(ix,val)
-    if size < ix
+    if (ix.is_a?(Range))
+      ix.each { |i| remove(i) }
+      add_all(ix.first, val)
+    elsif size < ix
       ((ix-size)+1).times { self << nil }
     end
     set(ix,val)
@@ -85,17 +92,20 @@ module java::util::List
   end
   def sort()
     comparator = java::util::Comparator.new
-
+    
     if block_given?
-      class << comparator
-        def compare(o1, o2); yield(o1, o2); end
+      # These gymnastics are needed because using def will not capture the block in it's closure
+      comparator_singleton = (class << comparator; self; end)
+      comparator_singleton.send :define_method, :compare do |o1, o2|
+        yield(o1, o2)
       end
     else
-      class << comparator
-        def compare(o1, o2); o1 <=> o2; end
+      def comparator.compare(o1, o2)
+        o1 <=> o2
       end
     end
 
+    # This should probably return a new instance of self class instead of ArrayList
     list = java::util::ArrayList.new
     list.addAll(self)
 
@@ -106,12 +116,14 @@ module java::util::List
   def sort!()
     comparator = java::util::Comparator.new
     if block_given?
-      class << comparator
-        def compare(o1, o2); yield(o1, o2); end
+      # These gymnastics are needed because using def will not capture the block in it's closure
+      comparator_singleton = (class << comparator; self; end)
+      comparator_singleton.send :define_method, :compare do |o1, o2|
+        yield(o1, o2)
       end
     else
-      class << comparator
-        def compare(o1, o2); o1 <=> o2; end;
+      def comparator.compare(o1, o2)
+        o1 <=> o2
       end
     end
 

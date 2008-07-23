@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="JBidWatch" default="jar" basedir='.'>
+<project name="JBidwatcher" default="apps" basedir='.'>
 <!-- Since properties are inmutable, the first definition of a properties is used! -->
   <!-- Read computers environment -->
   <property environment="env" />
@@ -192,11 +192,11 @@
   <property name="packaging" value="platform" />
 
   <target name="scripting" depends="scripting-jar">
+    <copy file="${BINARY}" tofile="${BINARYSCRIPTING}" />
     <antcall target="exe-real" />
-    <antcall target="osx-app" />
     <move file="${EXEFILE}" tofile="${EXESCRIPTING}" />
+    <antcall target="osx-app" />
     <move file="${APPFILE}" tofile="${APPSCRIPTING}" />
-    <move file="${BINARY}" tofile="${BINARYSCRIPTING}" />
   </target>
 
   <target name="exe" depends="jar">
@@ -241,7 +241,7 @@
     </copy>
   </target>
 
-  <target name="osx-distribution" depends="jar">
+  <target name="osx-distribution">
     <delete dir="${osx.app.path}" />
     <mkdir dir="${osx.app.path}" />
     <mkdir dir="${osx.app.path}/Contents" />

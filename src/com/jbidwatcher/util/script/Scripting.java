@@ -22,25 +22,19 @@ import java.util.ArrayList;
  */
 public class Scripting {
   private static Object sRuby = null;
-  private static FauxOutputStream mOutput = new FauxOutputStream();
   private static Object sJBidwatcher = null;
 
   private Scripting() { }
 
   public static Ruby getRuntime() { return (Ruby)sRuby; }
-  public static void setOutput(OutputStream stream) { mOutput.setOutput(stream); }
 
   public static void initialize() throws ClassNotFoundException {
     //  Test for JRuby's presence
     Class.forName("org.jruby.RubyInstanceConfig", true, Thread.currentThread().getContextClassLoader());
 
-    final PipedInputStream pipeIn = new PipedInputStream();
     final RubyInstanceConfig config = new RubyInstanceConfig()
     {
       {
-        setInput(pipeIn);
-        setOutput(new PrintStream(mOutput));
-        setError(new PrintStream(mOutput));
         setObjectSpaceEnabled(false);
       }
     };
@@ -58,23 +52,9 @@ public class Scripting {
     sRuby = runtime;
   }
 
-  private static class FauxOutputStream extends OutputStream {
-    private OutputStream mOut = System.out;
-
-    public void write(int b) throws IOException { mOut.write(b); }
-
-    public OutputStream setOutput(OutputStream newOutput) {
-      OutputStream old = mOut;
-      mOut = newOutput;
-      return old;
-    }
-  }
-
   public static Object ruby(String command) {
     if(sRuby != null) {
-      OutputStream old = mOutput.setOutput(System.out);
       Object rval = ((Ruby)sRuby).evalScriptlet(command);
-      mOutput.setOutput(old);
       return rval;
     } else {
       return null;
@@ -90,9 +70,7 @@ public class Scripting {
       sJBidwatcher = ruby("JBidwatcher");
     }
 
-    OutputStream old = mOutput.setOutput(System.out);
     Object rval = JavaEmbedUtils.invokeMethod((Ruby)sRuby, sJBidwatcher, method, method_params, Object.class);
-    mOutput.setOutput(old);
     return rval;
   }
 }

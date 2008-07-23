@@ -1,3 +1,4 @@
+require 'optparse'
 require 'jruby'
 
 module JRubyCompiler
@@ -8,22 +9,51 @@ module JRubyCompiler
   JavaFile = java.io.File
 
   module_function
-  def compile_args  
-    runtime = JRuby.runtime
+  def compile_argv(argv)
+    basedir = Dir.pwd
+    prefix = ""
+    target = Dir.pwd
 
-    if ARGV.size < 1
-      puts "Usage: jrubyc <filename.rb> [<filename.rb> ...]"
-      exit
+    opt_parser = OptionParser.new("", 24, '  ') do |opts|
+      opts.banner = "jrubyc [options] (FILE|DIRECTORY)"
+      opts.separator ""
+
+      opts.on("-d", "--dir DIR", "Use DIR as the root of the compiled package and filename") do |dir|
+        basedir = dir
+      end
+
+      opts.on("-p", "--prefix PREFIX", "Prepend PREFIX to the file path and package. Default is no prefix.") do |pre|
+        prefix = pre
+      end
+
+      opts.on("-t", "--target TARGET", "Output files to TARGET directory") do |tgt|
+        target = tgt
+      end
+
+      opts.parse!(argv)
+    end
+
+    if (argv.length == 0)
+      raise "No files or directories specified"
+    end
+
+    compile_files(argv, basedir, prefix, target)
+  end
+
+  def compile_files(filenames, basedir = Dir.pwd, prefix = "ruby", target = Dir.pwd)
+    runtime = JRuby.runtime
+    
+    unless File.exist? target
+      raise "Target dir not found: #{target}"
     end
 
     # The compilation code
     compile_proc = proc do |filename|
       begin
         file = File.open(filename)
-        destdir = Dir.pwd
 
-        classpath = Mangler.mangle_filename_for_classpath(filename)
-        puts " Compiling #{filename} to class #{classpath}"
+        classpath = Mangler.mangle_filename_for_classpath(filename, basedir, prefix)
+        puts "Compiling #{filename} to class #{classpath}"
 
         inspector = org.jruby.compiler.ASTInspector.new
 
@@ -36,7 +66,7 @@ module JRubyCompiler
         compiler = ASTCompiler.new
         compiler.compile_root(node, asmCompiler, inspector)
 
-        asmCompiler.write_class(JavaFile.new(destdir))
+        asmCompiler.write_class(JavaFile.new(target))
       rescue Exception
         puts "Failure during compilation of file #{filename}:\n#{$!}"
       ensure
@@ -45,7 +75,7 @@ module JRubyCompiler
     end
 
     # Process all the file arguments
-    ARGV.each do |filename|
+    filenames.each do |filename|
       unless File.exists? filename
         puts "Error -- file not found: #{filename}"
         next
