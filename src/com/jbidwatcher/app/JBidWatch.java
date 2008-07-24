@@ -527,6 +527,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       Scripting.initialize();
       JConfig.enableScripting();
     } catch (Throwable e) {
+      System.err.println("Error setting up scripting: " + e.toString());
       JConfig.disableScripting();
     }
     inSplash.message("Initializing Database");

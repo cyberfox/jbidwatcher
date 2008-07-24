@@ -7,10 +7,6 @@ import org.jruby.javasupport.JavaUtil;
 import org.jruby.javasupport.JavaEmbedUtils;
 import org.jruby.runtime.builtin.IRubyObject;
 
-import java.io.PipedInputStream;
-import java.io.PrintStream;
-import java.io.OutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -29,15 +25,11 @@ public class Scripting {
   public static Ruby getRuntime() { return (Ruby)sRuby; }
 
   public static void initialize() throws ClassNotFoundException {
+//    System.err.println("Before: " + System.currentTimeMillis());
     //  Test for JRuby's presence
     Class.forName("org.jruby.RubyInstanceConfig", true, Thread.currentThread().getContextClassLoader());
 
-    final RubyInstanceConfig config = new RubyInstanceConfig()
-    {
-      {
-        setObjectSpaceEnabled(false);
-      }
-    };
+    final RubyInstanceConfig config = new RubyInstanceConfig();
     final Ruby runtime = Ruby.newInstance(config);
 
     String[] args = new String[0];
@@ -47,15 +39,16 @@ public class Scripting {
     runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))));
     runtime.getLoadService().init(new ArrayList());
 
+//    System.err.println("Middle: " + System.currentTimeMillis());
     runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'jbidwatcher/utilities';");
+//    System.err.println("After : " + System.currentTimeMillis());
 
     sRuby = runtime;
   }
 
   public static Object ruby(String command) {
     if(sRuby != null) {
-      Object rval = ((Ruby)sRuby).evalScriptlet(command);
-      return rval;
+      return ((Ruby)sRuby).evalScriptlet(command);
     } else {
       return null;
     }
@@ -70,7 +63,6 @@ public class Scripting {
       sJBidwatcher = ruby("JBidwatcher");
     }
 
-    Object rval = JavaEmbedUtils.invokeMethod((Ruby)sRuby, sJBidwatcher, method, method_params, Object.class);
-    return rval;
+    return JavaEmbedUtils.invokeMethod((Ruby)sRuby, sJBidwatcher, method, method_params, Object.class);
   }
 }

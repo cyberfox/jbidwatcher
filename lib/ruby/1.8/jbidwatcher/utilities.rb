@@ -7,8 +7,8 @@ import com.jbidwatcher.util.Currency
 import com.jbidwatcher.util.queue.MQFactory
 import com.jbidwatcher.auction.AuctionEntry
 import com.jbidwatcher.auction.server.AuctionServerManager
-import com.jbidwatcher.auction.AuctionsManager
-import com.jbidwatcher.auction.FilterManager
+import com.jbidwatcher.ui.AuctionsManager
+import com.jbidwatcher.ui.FilterManager
 import com.jbidwatcher.ui.table.TableColumnController
 
 class JBidwatcherUtilities
