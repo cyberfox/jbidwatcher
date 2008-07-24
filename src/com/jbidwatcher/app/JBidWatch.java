@@ -402,6 +402,11 @@ public final class JBidWatch implements JConfig.ConfigListener {
       ErrorManagement.handleException("Upgrading error", e);
     }
 
+    //  We need to load searches before adding the eBay server, so
+    //  that it knows that a My eBay search already exists and doesn't
+    //  try to recreate it.
+    SearchManager.getInstance().loadSearches();
+
     if(!ebayLoaded) AuctionServerManager.getInstance().addServer(new ebayServer());
     AuctionEntry.setResolver(AuctionServerManager.getInstance());
     loadProxySettings();
@@ -538,12 +543,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
     if (AuctionsManager.getInstance().loadAuctionsFromDatabase() == 0) {
       AuctionsManager.getInstance().loadAuctions();
     }
-
-    //  This needs to be after the auction manager, so that all the
-    //  auction servers that are loaded by loading auctions will be
-    //  available to add searches if they need to.
-    inSplash.message("Loading Searches");
-    SearchManager.getInstance().loadSearches();
 
     AuctionServerManager.getInstance().getDefaultServerTime();
 

@@ -146,7 +146,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
       xmlFile.parseFromReader(isr);
 
       if(!xmlFile.getTagName().equals("searches")) {
-        throw new XMLParseException(xmlFile.getTagName(), "AuctionsManager only recognizes <searches> tag!");
+        throw new XMLParseException(xmlFile.getTagName(), "SearchManager only recognizes <searches> tag!");
       } else {
         fromXML(xmlFile);
       }
