@@ -16,16 +16,24 @@ import java.lang.reflect.Field;
  * Time: 1:54:46 PM
  */
 public abstract class ActiveRecord extends HashBacked {
+  private static ArrayList<Table> sTables = new ArrayList<Table>();
   protected static Table openDB(String tableName) {
     if (tableName == null) return null;
 
     Table db;
     try {
       db = new Table(tableName);
+      sTables.add(db);
     } catch (Exception e) {
       throw new RuntimeException("Can't access the " + tableName + " database table", e);
     }
     return db;
+  }
+
+  public static void shutdown() {
+    for(Table t : sTables) {
+      t.shutdown();
+    }
   }
 
   protected static Table getTable(Object o) {
