@@ -7,9 +7,12 @@ package com.jbidwatcher.util.html;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.xml.XMLElement;
 
 import java.util.Vector;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by IntelliJ IDEA.
@@ -40,16 +43,36 @@ public class JHTMLParser {
 
   protected void parse(StringBuffer trueBuffer) {
     boolean inQuote=false, inTag=false, inComment=false;
-    boolean suspicious = false;
-    int firstClose=0;
-    int charStep, start=0;
     char ch, prev = '\0', next = '\0';
-    boolean spitNextTag = false;
 
-    trueBuffer = new StringBuffer(trueBuffer.toString().replaceAll("(<nobr>|</nobr>)", ""));
+    StringBuffer sb;
+    Matcher m;
+    if(JConfig.queryConfiguration("ebay.titleFix", "true").equals("true")) {
+      sb = new StringBuffer(trueBuffer.length());
+      m = Pattern.compile("<title>(.*)</title>").matcher(trueBuffer);
+      String quotedTitle = null;
+      while(m.find()) {
+        if(quotedTitle == null) quotedTitle = "<title>" + XMLElement.encodeString(m.group(1)) + "</title>";
+        m.appendReplacement(sb, quotedTitle);
+      }
+      m.appendTail(sb);
+      trueBuffer = sb;
+    }
+
+    sb = new StringBuffer(trueBuffer.length());
+    m = Pattern.compile("(<nobr>|</nobr>)").matcher(trueBuffer);
+    while(m.find()) {
+      m.appendReplacement(sb, "");
+    }
+    m.appendTail(sb);
+    trueBuffer = sb;
+
     int bufLen = trueBuffer.length();
-
-    for(charStep=0; charStep<bufLen; charStep++) {
+    boolean spitNextTag = false;
+    int start = 0;
+    int firstClose = 0;
+    boolean suspicious = false;
+    for(int charStep = 0; charStep<bufLen; charStep++) {
       ch = trueBuffer.charAt(charStep);
 
       if(charStep>1) prev = trueBuffer.charAt(charStep-1);
