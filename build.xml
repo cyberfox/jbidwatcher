@@ -195,8 +195,6 @@
     <copy file="${BINARY}" tofile="${BINARYSCRIPTING}" />
     <antcall target="exe-real" />
     <move file="${EXEFILE}" tofile="${EXESCRIPTING}" />
-    <antcall target="osx-app" />
-    <move file="${APPFILE}" tofile="${APPSCRIPTING}" />
   </target>
 
   <target name="exe" depends="jar">
