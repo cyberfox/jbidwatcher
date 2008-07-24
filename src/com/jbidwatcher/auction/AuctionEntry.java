@@ -1764,16 +1764,15 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return getRealDatabase().count_by("ended = 1");
   }
 
+  private static final String snipeFinder = "(snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL) AND ended != 1";
+
   public static int snipedCount() {
-    return getRealDatabase().count_by("(snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL)");
+    return getRealDatabase().count_by(snipeFinder);
   }
 
   public static AuctionEntry nextSniped() {
-    String sql = "SELECT entries.* FROM entries, auctions WHERE " +
-        "(entries.snipe_id IS NOT NULL OR entries.multisnipe_id IS NOT NULL) AND " +
-        "ended != 1 AND " +
-        "(entries.auction_id = auctions.id) " +
-        "ORDER BY auctions.ending_at ASC";
+    String sql = "SELECT entries.* FROM entries, auctions WHERE " + snipeFinder + 
+        " AND (entries.auction_id = auctions.id) ORDER BY auctions.ending_at ASC";
     return (AuctionEntry) findFirstBySQL(AuctionEntry.class, sql);
   }
 
