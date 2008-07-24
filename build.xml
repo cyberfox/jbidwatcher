@@ -321,17 +321,17 @@
   <target name="apps" depends="tar,scripting,osx,exe,dmg" />
 
   <target name="release" depends="apps" description="Build for a full release.">
-    <property name="server.path" value="cyberfox@jbidwatcher.com:www/htdocs/rdl" />
+    <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/htdocs/rdl" />
     <antcall target="upload" />
   </target>
 
   <target name="beta" depends="apps" description="Build for a pre-release version.">
-    <property name="server.path" value="cyberfox@jbidwatcher.com:www/htdocs/beta" />
+    <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/htdocs/beta" />
     <antcall target="upload" />
   </target>
 
   <target name="alpha" depends="apps" description="Build for an alpha or beta version.">
-    <property name="server.path" value="cyberfox@jbidwatcher.com:www/htdocs/alpha" />
+    <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/htdocs/alpha" />
     <antcall target="upload" />
   </target>
 
