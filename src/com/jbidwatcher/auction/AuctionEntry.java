@@ -1761,13 +1761,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   public static int completedCount() {
-    return getRealDatabase().count_by("ended = 1");
+    return getRealDatabase().countBy("ended = 1");
   }
 
   private static final String snipeFinder = "(snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL) AND ended != 1";
 
   public static int snipedCount() {
-    return getRealDatabase().count_by(snipeFinder);
+    return getRealDatabase().countBy(snipeFinder);
   }
 
   public static AuctionEntry nextSniped() {

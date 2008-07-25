@@ -62,14 +62,14 @@ public class Table
   /**
    * Close the statement, commit any last outstanding data (!?) and shut down the database.
    */
-  public void shutdown() {
+  public Database shutdown() {
     try {
       mS.close();
     } catch (SQLException e) {
       ErrorManagement.handleException("Can't shut down database.", e);
     }
     mDB.commit();
-    mDB.shutdown();
+    return mDB;
   }
 
   public void commit() {
@@ -414,7 +414,7 @@ public class Table
     return Integer.parseInt(count);
   }
 
-  public int count_by(String condition) {
+  public int countBy(String condition) {
     Record rm = findFirst("SELECT COUNT(*) AS count FROM " + mTableName + " WHERE " + condition);
     String count = rm.get("count");
     return Integer.parseInt(count);

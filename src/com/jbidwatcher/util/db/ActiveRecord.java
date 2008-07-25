@@ -6,6 +6,7 @@ import com.jbidwatcher.util.Record;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.lang.reflect.Field;
 
 /**
@@ -31,8 +32,12 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   public static void shutdown() {
+    Set<Database> s = new HashSet<Database>();
     for(Table t : sTables) {
-      t.shutdown();
+      s.add(t.shutdown());
+    }
+    for(Database db : s) {
+      db.shutdown();
     }
   }
 
