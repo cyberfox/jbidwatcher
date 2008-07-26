@@ -1,10 +1,12 @@
 package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.Comparison;
+import com.jbidwatcher.util.SortedList;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.TreeSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,7 +16,7 @@ import java.util.Collections;
 * To change this template use File | Settings | File Templates.
 */
 public class AuctionList {
-  private final List<AuctionEntry> mList = Collections.synchronizedList(new ArrayList<AuctionEntry>());
+  private final List<AuctionEntry> mList = Collections.synchronizedList(new SortedList<AuctionEntry>());
 
   public int size() { synchronized(mList) { return mList.size(); } }
   public AuctionEntry get(int i) { synchronized (mList) { return mList.get(i); } }

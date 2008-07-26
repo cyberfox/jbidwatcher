@@ -18,23 +18,23 @@ import com.jbidwatcher.util.http.Http;
  * A set of methods to communicate with the 'my.jbidwatcher.com' site.
  */
 public class MyJBidwatcher {
-  private static MyJBidwatcher sInstance;
+  private static MyJBidwatcher sInstance = null;
 
   public String recognizeBidpage(String identifier, StringBuffer page) {
-    String url = "http://my.jbidwatcher.com/advanced/recognize";
 
     Parameters p = new Parameters();
     if(identifier != null) p.put("item", identifier);
     p.put("user", JConfig.queryConfiguration("my.jbidwatcher.id"));
     p.put("body", page);
+    String url = "http://my.jbidwatcher.com/advanced/recognize";
     return Http.postTo(url, p);
   }
 
   public String reportException(String sb) {
-    String url = "http://my.jbidwatcher.com/advanced/report";
     Parameters p = new Parameters();
     p.put("user", JConfig.queryConfiguration("my.jbidwatcher.id"));
     p.put("body", sb);
+    String url = "http://my.jbidwatcher.com/advanced/report";
     return Http.postTo(url, p);
   }
 
