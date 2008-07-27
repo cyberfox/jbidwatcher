@@ -81,6 +81,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private RuntimeInfo _rti;
   private static final int HOURS_IN_DAY = 24;
   private static final int MINUTES_IN_HOUR = 60;
+  private static boolean sUSB = false;
 
   /**
    * @brief Try to guarantee a directory for saving 'cached copies'
@@ -165,6 +166,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
 
     JConfig.loadDisplayConfig(urlCL, screensize.width, screensize.height);
+    if(sUSB) JConfig.fixupPaths();
 
     String aucSave = makeSaveDirectory(JConfig.queryConfiguration("auctions.savepath"));
     if(aucSave != null) {
@@ -218,6 +220,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       return true;
     } else if (arg.startsWith("--usb")) {
       JConfig.setHome(System.getProperty("user.dir"));
+      sUSB = true;
     }
     return false;
   }

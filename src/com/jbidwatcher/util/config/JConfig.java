@@ -86,6 +86,16 @@ public class JConfig {
     return mScripting;
   }
 
+  public static void fixupPaths() {
+    String[][] s = { { "auctions.savepath", "/auctionsave" },
+        { "platform.path", "/platform" },
+        {  "savefile", "/auctions.xml" },
+        {  "search.savefile", "/searches.xml" } };
+    for(String[] pair : s) {
+      JConfig.setConfiguration(pair[0], getHomeDirectory("jbidwatcher") + pair[1]);
+    }
+  }
+
   public interface ConfigListener {
     void updateConfiguration();
   }
