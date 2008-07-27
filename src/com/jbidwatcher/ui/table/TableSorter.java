@@ -92,13 +92,12 @@ public class TableSorter extends Transformation implements TableModelListener {
   }
 
   private void setDefaults(String inName, String defaultColumn) {
-	  String sortByColumn;
-	  String sortDirection;
-
-	  columnStateList.clear();
+    columnStateList.clear();
 
 	  for(int i=0; ; i++) {
-		  if(i==0) {
+      String sortByColumn;
+      String sortDirection;
+      if(i==0) {
 			  // Initially sort by ending time, ascending.
 			  sortByColumn = JConfig.queryDisplayProperty(inName + ".sort_by", defaultColumn);
 			  sortDirection = JConfig.queryDisplayProperty(inName + ".sort_direction", "ascending");
@@ -174,9 +173,9 @@ public class TableSorter extends Transformation implements TableModelListener {
   }
 
   private void restoreSelection(Selection selection) {
-    boolean lead_selected = false;
     _table.clearSelection();   // call overridden version
 
+    boolean lead_selected = false;
     for (int i = 0; i < selection.selected.length; i++) {
       int selected = selection.selected[i];
       if(selected != selection.lead && selected != -1) {
@@ -237,7 +236,7 @@ public class TableSorter extends Transformation implements TableModelListener {
     });
   }
 
-  private class SortHeaderRenderer extends JLabel implements TableCellRenderer {
+  private static class SortHeaderRenderer extends JLabel implements TableCellRenderer {
     public SortHeaderRenderer() {
       setHorizontalTextPosition(LEFT);
       setHorizontalAlignment(CENTER);
@@ -315,18 +314,16 @@ public class TableSorter extends Transformation implements TableModelListener {
   // Add a mouse listener to the Table to trigger a table sort
   // when a column heading is clicked in the JTable.
   public void addMouseListenerToHeaderInTable(JTable table) {
-    ColumnState columnState;
     TableColumnModel tableColumnModel = table.getColumnModel();
-    TableColumn tableColumn;
 
     _table = table;
 
     // Restore the header as it was saved
     for(int i=0; i < columnStateList.size(); i++) {
-    	columnState = columnStateList.get(i);
+      ColumnState columnState = columnStateList.get(i);
       int viewCol = table.convertColumnIndexToView(columnState.getColumn());
       if(viewCol != -1) {
-        tableColumn = tableColumnModel.getColumn(viewCol);
+        TableColumn tableColumn = tableColumnModel.getColumn(viewCol);
 
         // Save original header
         String headerValue = (String) tableColumn.getHeaderValue();
@@ -345,9 +342,8 @@ public class TableSorter extends Transformation implements TableModelListener {
   }
 
   public void removeColumn(String colId, JTable table) {
-    ColumnState cs;
     for(int i=0; i<columnStateList.size(); i++) {
-      cs = columnStateList.get(i);
+      ColumnState cs = columnStateList.get(i);
       if(cs.getHeaderValue().equals(colId)) {
         columnStateList.remove(cs);
         i--;

@@ -37,7 +37,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private int mRow = 0;
   private boolean mSelected = false;
 
-  private class Colors {
+  private static class Colors {
     Color mForeground;
     Color mBackground;
 
@@ -71,13 +71,12 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
                                                  boolean isSelected, boolean hasFocus,
                                                  int row, int column) {
     column = table.convertColumnIndexToModel(column);
-    Component returnComponent;
     if(value instanceof Icon) {
       setHorizontalAlignment(JLabel.CENTER);
     } else {
       setHorizontalAlignment(JLabel.LEFT);
     }
-    returnComponent = super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
+    Component returnComponent = super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
 
     AuctionEntry ae = (AuctionEntry)table.getValueAt(row, -1);
     if(ae == null) return returnComponent;
