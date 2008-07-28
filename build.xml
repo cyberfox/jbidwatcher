@@ -13,7 +13,7 @@
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidwatcher" />
-  <property name="VER" value="2.0beta4" />
+  <property name="VER" value="2.0beta5" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
@@ -264,7 +264,9 @@
     <copy file="${packaging}/jbidicon.icns" todir="${osx.app.path}/Contents/Resources" />
     <copy file="${packaging}/quaqua.jar" todir="${osx.app.path}/Contents/Resources/Java" />
     <copy file="${packaging}/libquaqua.jnilib" todir="${osx.app.path}/Contents/Resources/Java" />
+    <copy file="${packaging}/libquaqua64.jnilib" todir="${osx.app.path}/Contents/Resources/Java" />
     <chmod file="${osx.app.path}/Contents/Resources/Java/libquaqua.jnilib" perm="755" />
+    <chmod file="${osx.app.path}/Contents/Resources/Java/libquaqua64.jnilib" perm="755" />
     <copy file="${dest.dir}/${INTERMEDIATE}" todir="${osx.app.path}/Contents/Resources/Java" />
     <!--- Testing the possibility of putting all the libraries in the resources directory -->
     <copy todir="${osx.app.path}/Contents/Resources/Java">
@@ -318,7 +320,7 @@
     <delete dir="${dest.dir}/${osx.app.name}" />
   </target>
 
-  <target name="apps" depends="tar,scripting,osx,exe,dmg" />
+  <target name="apps" depends="tar,osx,exe,dmg" />
 
   <target name="release" depends="apps" description="Build for a full release.">
     <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/htdocs/rdl" />
