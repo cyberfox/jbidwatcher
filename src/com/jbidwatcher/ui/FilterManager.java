@@ -47,7 +47,7 @@ public class FilterManager implements MessageQueue.Listener {
 
     do {
       tabName = JConfig.queryDisplayProperty("tabs.name." + i++);
-      if (tabName != null) {
+      if (tabName != null && mList.findCategory(tabName) == null) {
         mList.add(new AuctionListHolder(tabName));
       }
     } while (tabName != null);
