@@ -117,7 +117,10 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
     List<AuctionEntry> sniped = AuctionEntry.findAllSniped();
     for(AuctionEntry snipable:sniped) {
-      if(!snipable.isComplete()) snipable.refreshSnipe();
+      if(!snipable.isComplete()) {
+        snipable.setServer(newServer);
+        snipable.refreshSnipe();
+      }
     }
   }
 
