@@ -237,4 +237,14 @@ public class HashBacked extends XMLSerializeSimple {
   protected void handleTag(int i, XMLElement curElement) { }
   protected String[] getTags() { return new String[0]; }
   public XMLElement toXML() { return null; }
+
+  public String dumpRecord() {
+    StringBuffer sb = new StringBuffer("<record>\n");
+    for(String key : mBacking.keySet()) {
+      sb.append("  <").append(key).append('>').append(mBacking.get(key)).append("</").append(key).append(">\n");
+    }
+    sb.append("</record>\n");
+
+    return sb.toString();
+  }
 }
