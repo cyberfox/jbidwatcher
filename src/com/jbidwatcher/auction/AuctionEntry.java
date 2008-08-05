@@ -1791,7 +1791,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
     if(ai != null) {
       ae = AuctionEntry.findFirstBy("auction_id", ai.getString("id"));
-      ae.setAuctionInfo(ai);
+      if(ae != null) ae.setAuctionInfo(ai);
     }
 
     return ae;
