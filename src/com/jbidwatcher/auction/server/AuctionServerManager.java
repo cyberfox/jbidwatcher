@@ -201,7 +201,11 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       try {
         serverChild.addChild(ae.toXML());
       } catch (Exception e) {
+        try {
         ErrorManagement.handleException("Exception trying to save auction " + ae.getIdentifier() + " (" + ae.getTitle() + ") -- Not saving", e);
+        } catch(Exception e2) {
+          ErrorManagement.handleException("Exception trying to save auction entry id " + ae.getId() + " -- Not saving", e);
+        }
       }
     }
 
