@@ -53,7 +53,7 @@ public class JHTMLParser {
       String quotedTitle = null;
       while(m.find()) {
         if(quotedTitle == null) quotedTitle = "<title>" + XMLElement.encodeString(m.group(1)) + "</title>";
-        m.appendReplacement(sb, quotedTitle);
+        m.appendReplacement(sb, Matcher.quoteReplacement(quotedTitle));
       }
       m.appendTail(sb);
       trueBuffer = sb;
