@@ -25,6 +25,8 @@ import java.util.ArrayList;
  *
  */
 public class EventStatus extends ActiveRecord {
+  private String mAuctionIdentifier;
+
   //  For ActiveRecord construction.
   public EventStatus() { }
 
@@ -34,11 +36,12 @@ public class EventStatus extends ActiveRecord {
     setRepeatCount(1);
   }
 
-  public EventStatus(String what, Date when, String id, String title) {
+  public EventStatus(String what, Date when, Integer entryId, String identifier, String title) {
     setMessage(what);
     setLoggedAt(when);
     setRepeatCount(1);
-    setEntryId(id);
+    setEntryId(entryId);
+    setAuctionIdentifier(identifier);
     setTitle(title);
   }
 
@@ -53,7 +56,7 @@ public class EventStatus extends ActiveRecord {
   public String toString() {
     String count = "";
     if (getRepeatCount() > 1) count = " (" + getRepeatCount() + ")";
-    String outStatus = getLoggedAt() + ": " + getEntryId() + " (" + getTitle() + ") - " + getMessage() + count;
+    String outStatus = getLoggedAt() + ": " + getAuctionIdentifier() + " (" + getTitle() + ") - " + getMessage() + count;
 
     return(outStatus);
   }
@@ -80,13 +83,15 @@ public class EventStatus extends ActiveRecord {
     return (EventStatus) ActiveRecord.findFirstBy(EventStatus.class, "id", Integer.toString(id));
   }
 
-  public static List<EventStatus> findAllByEntry(String entry_id) {
-    List<ActiveRecord> records = ActiveRecord.findAllBy(EventStatus.class, "entry_id", entry_id, "created_at ASC");
+  public static List<EventStatus> findAllByEntry(Integer entryId, String identifier) {
+    List<ActiveRecord> records = ActiveRecord.findAllBy(EventStatus.class, "entry_id", Integer.toString(entryId), "created_at ASC");
 
     if(records != null) {
       List<EventStatus> results = new ArrayList<EventStatus>(records.size());
       for(ActiveRecord record : records) {
-        results.add((EventStatus)record);
+        EventStatus es = (EventStatus)record;
+        es.setAuctionIdentifier(identifier);
+        results.add(es);
       }
 
       return results;
@@ -94,9 +99,17 @@ public class EventStatus extends ActiveRecord {
     return null;
   }
 
+  private String getAuctionIdentifier() {
+    return mAuctionIdentifier;
+  }
+
+  public void setAuctionIdentifier(String identifier) {
+    mAuctionIdentifier = identifier;
+  }
+
   public String getMessage() { return getString("message"); }
   public Date getLoggedAt() { return getDate("created_at"); }
-  public int getRepeatCount() { return getInteger("repeat_count"); }
+  public int getRepeatCount() { return getInteger("repeat_count", 1); }
   public String getTitle() { return getString("title"); }
   public String getEntryId() { return getString("entry_id"); }
 
@@ -104,7 +117,7 @@ public class EventStatus extends ActiveRecord {
   public void setLoggedAt(Date loggedAt) { setDate("created_at", loggedAt); }
   public void setRepeatCount(int repeatCount) { setInteger("repeat_count", repeatCount); }
   public void setTitle(String title) { setString("title", title); }
-  public void setEntryId(String entryId) { setString("entry_id", entryId); }
+  public void setEntryId(Integer entryId) { setInteger("entry_id", entryId); }
 
   public boolean deleteForEntry(int id) {
     return deleteAllEntries(Integer.toString(id));

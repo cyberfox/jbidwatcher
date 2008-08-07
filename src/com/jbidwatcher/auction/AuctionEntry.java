@@ -884,7 +884,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   }
 
   private EventLogger getEvents() {
-    if(mEntryEvents == null) mEntryEvents = new EventLogger(get("id"), getTitle());
+    if(mEntryEvents == null) mEntryEvents = new EventLogger(getIdentifier(), getId(), getTitle());
     return mEntryEvents;
   }
 
@@ -931,7 +931,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         setComment(curElement.getContents());
         break;
       case 6:
-        mEntryEvents = new EventLogger(getIdentifier(), getTitle());
+        mEntryEvents = new EventLogger(getIdentifier(), getId(), getTitle());
         mEntryEvents.fromXML(curElement);
         break;
       case 7:
@@ -976,7 +976,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(isBidOn()) {
       XMLElement xbid = new XMLElement("bid");
       xbid.setEmpty();
-      xbid.setProperty("quantity", Integer.toString(getInteger("last_bid_quantity")));
+      xbid.setProperty("quantity", Integer.toString(getBidQuantity()));
       xbid.setProperty("currency", getBid().fullCurrencyName());
       xbid.setProperty("price", Double.toString(getBid().getValue()));
       if(mBidAt != 0) {

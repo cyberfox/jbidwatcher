@@ -35,8 +35,9 @@ public class EventLogger implements XMLSerialize {
   /** Records all status messages that are added.
    * 
    */
-  private String mId =null;
+  private String mIdentifier =null;
   private String mTitle =null;
+  private Integer mEntryId = null;
   private List<EventStatus> mAllEvents;
   private final EventStatus mNullEvent = new EventStatus("Nothing has happened.", new Date());
 
@@ -65,7 +66,7 @@ public class EventLogger implements XMLSerialize {
           if(entryField.getTagName().equals("date")) msgtime = Long.parseLong(entryField.getContents());
         }
 
-        EventStatus newEvent = new EventStatus(msg, new Date(msgtime), mId, mTitle);
+        EventStatus newEvent = new EventStatus(msg, new Date(msgtime), mEntryId, mIdentifier, mTitle);
         newEvent.setRepeatCount(curCount);
         newEvent.saveDB();
 
@@ -103,13 +104,15 @@ public class EventLogger implements XMLSerialize {
     return(xmlLog);
   }
 
-  public EventLogger(String identifier, String title) {
-    mId = identifier;
+  public EventLogger(String identifier, Integer entryId, String title) {
+    mIdentifier = identifier;
+    mEntryId = entryId;
     mTitle = title;
-    mNullEvent.setEntryId(mId);
+    mNullEvent.setEntryId(mEntryId);
+    mNullEvent.setAuctionIdentifier(mIdentifier);
     mNullEvent.setTitle(mTitle);
 
-    mAllEvents = EventStatus.findAllByEntry(mId);
+    mAllEvents = EventStatus.findAllByEntry(mEntryId, mIdentifier);
     if(mAllEvents == null) mAllEvents = new ArrayList<EventStatus>();
   }
 
@@ -133,7 +136,7 @@ public class EventLogger implements XMLSerialize {
       if(inStatus.equals(lastStatus.getMessage())) {
         lastStatus.setRepeatCount(lastStatus.getRepeatCount() + 1);
       } else {
-        whatHappened = new EventStatus(inStatus, new Date(), mId, mTitle);
+        whatHappened = new EventStatus(inStatus, new Date(), mEntryId, mIdentifier, mTitle);
 
         mAllEvents.add(whatHappened);
         ErrorManagement.logMessage(whatHappened.toString());
