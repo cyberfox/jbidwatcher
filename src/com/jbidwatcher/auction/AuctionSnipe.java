@@ -42,7 +42,7 @@ public class AuctionSnipe extends ActiveRecord
    * How many items are to be sniped on, when the snipe fires?
    * @return - The number of items to snipe for (only valid for multi-item auctions).
    */
-  public int getQuantity() { return getInteger("quantity"); }
+  public int getQuantity() { return getInteger("quantity", 1); }
   public long getDelta() { return getInteger("delta"); }
   public int getUserId() { return getInteger("user_id"); }
   public String getStatus() { return getString("status"); }
