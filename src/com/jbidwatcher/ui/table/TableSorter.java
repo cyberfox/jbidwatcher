@@ -240,8 +240,6 @@ public class TableSorter extends Transformation implements TableModelListener {
   }
 
   private static class SortHeaderRenderer extends JLabel implements TableCellRenderer {
-    private final Border emptyBorder = BorderFactory.createEmptyBorder(5, 5, 5, 5);
-
     public SortHeaderRenderer() {
       setHorizontalTextPosition(LEFT);
       setHorizontalAlignment(CENTER);
@@ -260,11 +258,7 @@ public class TableSorter extends Transformation implements TableModelListener {
       }
 
       setText((value == null) ? "" : value.toString());
-      if(false && Platform.isVista()) {
-        setBorder(emptyBorder);
-      } else {
-        setBorder(UIManager.getBorder("TableHeader.cellBorder"));
-      }
+      setBorder(UIManager.getBorder("TableHeader.cellBorder"));
 
       return this;
     }
