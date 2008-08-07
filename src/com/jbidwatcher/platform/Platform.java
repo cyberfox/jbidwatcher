@@ -43,7 +43,11 @@ public class Platform {
     return JConfig.getOS().equalsIgnoreCase("windows");
   }
 
-  /** 
+  public static boolean isVista() {
+    return System.getProperty("os.name").startsWith("Windows Vista");
+  }
+
+  /**
    * @brief Set up the Mac UI information, based on the configuration.
    */
   public static void setupMacUI() {

@@ -38,6 +38,8 @@ package com.jbidwatcher.ui.table;
  */
 
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.platform.Platform;
+
 import java.util.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -50,6 +52,7 @@ import java.awt.event.InputEvent;
 import java.awt.*;
 import javax.swing.table.*;
 import javax.swing.*;
+import javax.swing.border.Border;
 
 public class TableSorter extends Transformation implements TableModelListener {
   private JTable _table = null;
@@ -237,6 +240,8 @@ public class TableSorter extends Transformation implements TableModelListener {
   }
 
   private static class SortHeaderRenderer extends JLabel implements TableCellRenderer {
+    private final Border emptyBorder = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+
     public SortHeaderRenderer() {
       setHorizontalTextPosition(LEFT);
       setHorizontalAlignment(CENTER);
@@ -255,7 +260,11 @@ public class TableSorter extends Transformation implements TableModelListener {
       }
 
       setText((value == null) ? "" : value.toString());
-      setBorder(UIManager.getBorder("TableHeader.cellBorder"));
+      if(false && Platform.isVista()) {
+        setBorder(emptyBorder);
+      } else {
+        setBorder(UIManager.getBorder("TableHeader.cellBorder"));
+      }
 
       return this;
     }
