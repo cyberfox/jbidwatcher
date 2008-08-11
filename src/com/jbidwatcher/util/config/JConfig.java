@@ -318,6 +318,7 @@ public class JConfig {
       if(mAuxProps != null) {
         mAuxProps.store(fos, "Search display information.  Do not modify while running.");
       }
+      fos.close();
     } catch(IOException e) {
       //  D'oh.  It failed to write the display information...
       ErrorManagement.handleException("Failed to write display configuration.", e);

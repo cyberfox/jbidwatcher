@@ -42,6 +42,7 @@ public class ByteBuffer {
     try {
       FileOutputStream fos = new FileOutputStream(fp);
       fos.write(data, 0, length);
+      fos.close();
     } catch(IOException ioe) {
       ErrorManagement.handleException("Error writing " + fileName, ioe);
     }

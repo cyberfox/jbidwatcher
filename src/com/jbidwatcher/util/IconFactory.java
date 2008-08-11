@@ -146,6 +146,7 @@ public class IconFactory {
     try {
       FileOutputStream fos = new FileOutputStream(outFile);
       ImageIO.write(createResizedCopy(image, new_x, new_y, true), "jpeg", fos);
+      fos.close();
     } catch (FileNotFoundException e) {
       ErrorManagement.handleException("Can't write " + outFile + " to create thumbnail.", e);
       return false;
