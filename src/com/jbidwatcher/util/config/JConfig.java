@@ -448,7 +448,7 @@ public class JConfig {
         width = Integer.parseInt(displayProps.getProperty("width", "0"));
 
         //  If either is invalid, reset it via later code.
-        if(height < 0 || width < 0) {
+        if(height <= 0 || width <= 0) {
           height = 0;
           width = 0;
           setOwnProps = true;

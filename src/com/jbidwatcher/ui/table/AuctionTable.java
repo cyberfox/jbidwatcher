@@ -4,6 +4,7 @@ import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.queue.SuperQueue;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -139,6 +140,18 @@ public class AuctionTable extends JTable {
     }
   }
 
+  private static final String[][] DEFAULT_COLUMNS = new String[][]{
+          {"Number", "100"},
+          {"Current", "89"},
+          {"Max", "62"},
+          {"Description", "297"},
+          {"Time left", "127"},
+          {"Status", "67"},
+          {"Seller", "147"},
+  };
+
+  private static int notify_delay = 0;
+
   private void loadColumnSettings(String prefix, TableModel atm) {
     String curColumnName = "";
 
@@ -173,6 +186,23 @@ public class AuctionTable extends JTable {
       //  to set later columns.
       ErrorManagement.handleException("In display configuration for table " + prefix +", column \"" + curColumnName + "\" has an invalid property.", e);
       ErrorManagement.logDebug("No longer loading column widths from configuration.");
+    }
+
+    //  If there are less than 2 columns, freak out and refresh.
+    if(initialToSaved.size() < 2) {
+      SuperQueue.getInstance().preQueue("NOTIFY Column data for '" + prefix + "' was corrupted; resetting to defaults", "Swing", System.currentTimeMillis() + Constants.ONE_SECOND * 12 + notify_delay);
+      ErrorManagement.logMessage("Column data for '\" + prefix + \"' was corrupted; resetting to defaults");
+      notify_delay += 2 * Constants.ONE_SECOND;
+      for(String[] column : DEFAULT_COLUMNS) {
+        if(column[0].equals("Time left") && prefix.equals("complete")) continue;
+
+        TableColumn tc = new TableColumn(TableColumnController.getInstance().getColumnNumber(column[0]));
+        tc.setHeaderValue(column[0]);
+        tc.setIdentifier(column[0]);
+        addColumn(tc);
+        getColumn(column[0]).setPreferredWidth(Integer.parseInt(column[1]));
+        getColumn(column[0]).setWidth(Integer.parseInt(column[1]));
+      }
     }
 
     if(!initialToSaved.isEmpty()) {
