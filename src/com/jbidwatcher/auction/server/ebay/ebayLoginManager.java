@@ -108,12 +108,12 @@ public class ebayLoginManager implements LoginManager {
   }
 
   private static boolean getAdultConfirmation(URLConnection uc_signin, CookieJar cj) throws IOException {
-    boolean enqueued = false;
     StringBuffer confirm = Http.receivePage(uc_signin);
     ErrorManagement.dump2File("sign_in-a2.html", confirm);
     JHTML confirmPage = new JHTML(confirm);
 
     List<JHTML.Form> confirm_forms = confirmPage.getForms();
+    boolean enqueued = false;
     for (JHTML.Form finalForm : confirm_forms) {
       if (finalForm.hasInput("MfcISAPICommand", "AdultSignIn")) {
         uc_signin = cj.getAllCookiesFromPage(finalForm.getCGI(), null, false);
@@ -244,9 +244,7 @@ public class ebayLoginManager implements LoginManager {
     JConfig.setConfiguration(mSiteName + ".adult", "false");
     cj = getSignInCookie(cj, username, password);
     //  Re-enable adult mode if logging in via non-adult mode still failed...
-    if(cj == null) {
-      JConfig.setConfiguration(mSiteName + ".adult", "true");
-    }
+    JConfig.setConfiguration(mSiteName + ".adult", "true");
     return cj;
   }
 
@@ -261,7 +259,7 @@ public class ebayLoginManager implements LoginManager {
         "eBay.  Please fix it in the eBay tab in the Configuration Manager.");
   }
 
-  public class CaptchaException extends Exception {
+  public static class CaptchaException extends Exception {
     private String _associatedString;
 
     public CaptchaException(String inString) {
