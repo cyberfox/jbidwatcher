@@ -113,7 +113,7 @@ class ebayAuction extends SpecificAuction {
       if (val.getCurrencyType() == Currency.US_DOLLAR) {
         newCur = val;
       } else {
-        newCur = walkForUSCurrency(_htmlDoc, newCur);
+        newCur = walkForUSCurrency(_htmlDoc);
       }
     }
 
@@ -125,10 +125,10 @@ class ebayAuction extends SpecificAuction {
    * Skim forward until we either find something, or give up.  (6 steps for now.)
    *
    * @param html   - The document to search.
-   * @param newCur - The current high bid amount.
    * @return - Either zeroDollars or the approximate USD equivalent of the value of the item.
    */
-  private Currency walkForUSCurrency(JHTML html, Currency newCur) {
+  private Currency walkForUSCurrency(JHTML html) {
+    Currency newCur = zeroDollars;
     int count = 0;
 
     String usdPattern = Externalized.getString("ebayServer.USD");
@@ -142,7 +142,7 @@ class ebayAuction extends SpecificAuction {
         newCur = Currency.getCurrency(approxAmount);
         if (newCur.getCurrencyType() != Currency.US_DOLLAR) newCur = zeroDollars;
       }
-    } while (count++ < 6 && newCur != zeroDollars);
+    } while (count++ < 6 && newCur == zeroDollars);
 
     return newCur;
   }

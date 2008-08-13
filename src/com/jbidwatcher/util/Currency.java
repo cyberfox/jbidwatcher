@@ -8,6 +8,8 @@ package com.jbidwatcher.util;
 import com.jbidwatcher.util.config.ErrorManagement;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 
 public class Currency implements Comparable {
   private static NumberFormat df = NumberFormat.getNumberInstance(Locale.US); // We create a lot of these, so minimizing memory usage is good.
@@ -34,9 +36,19 @@ public class Currency implements Comparable {
   private static final char pound = '\u00A3';
   private static final Character objPound = '\u00A3';
 
+  private static Map<Integer,Double> sCurrencyMap = new HashMap<Integer,Double>();
+
   public static Currency convertToUSD(Currency usd, Currency nonusd, Currency cvt) {
     if(cvt != null && !cvt.isNull() && cvt.getCurrencyType() != US_DOLLAR) {
-      double multiple = usd.getValue() / nonusd.getValue();
+      double multiple;
+      if((usd == null || usd.isNull() || usd.getValue() == 0.0 ||
+          nonusd == null || nonusd.isNull() || nonusd.getValue() == 0.0) &&
+          sCurrencyMap.containsKey(cvt.getCurrencyType())) {
+        multiple = sCurrencyMap.get(cvt.getCurrencyType());
+      } else {
+        multiple = usd.getValue() / nonusd.getValue();
+        if(multiple != 0.0) sCurrencyMap.put(nonusd.getCurrencyType(), multiple);
+      }
       return getCurrency(US_DOLLAR, multiple*cvt.getValue());
     }
 
@@ -49,7 +61,7 @@ public class Currency implements Comparable {
    *
    * This is used when comparing two currencies of disparate monies.
    */
-  public class CurrencyTypeException extends Exception {
+  public static class CurrencyTypeException extends Exception {
     String _associatedString;
 
     public CurrencyTypeException(String inString) {
@@ -148,7 +160,7 @@ public class Currency implements Comparable {
   }
 
   public static Currency getCurrency(String wholeValue) {
-    if(wholeValue == null || wholeValue.equals("") || wholeValue.startsWith("UNK")) return NoValue();
+    if(wholeValue == null || wholeValue.length() == 0 || wholeValue.startsWith("UNK")) return NoValue();
 
     return new Currency(wholeValue);
   }
@@ -216,22 +228,19 @@ public class Currency implements Comparable {
     if(wholeValue == null || wholeValue.equals("null")) {
       setValues(Currency.NONE, 0.0);
     } else {
-      String parseCurrency, valuePortion;
-      double actualValue;
-      int euLen, gbpLen, frfLen, cdnLen, chfLen, ntdLen, audLen, usdLen;
-      char firstChar;
+      char firstChar = wholeValue.charAt(0);
 
-      firstChar = wholeValue.charAt(0);
+      int eurLen = checkLengthMatchStart(wholeValue, "EUR");
+      int gbpLen = checkLengthMatchStart(wholeValue, "GBP");
+      int frfLen = checkLengthMatchStart(wholeValue, "FRF");
+      int chfLen = checkLengthMatchStart(wholeValue, "CHF");
+      int cdnLen = checkLengthMatchStart(wholeValue, "CAD");
+      int ntdLen = checkLengthMatchStart(wholeValue, "NTD");
+      int audLen = checkLengthMatchStart(wholeValue, "AUD");
+      int usdLen = checkLengthMatchStart(wholeValue, "USD");
 
-      euLen = checkLengthMatchStart(wholeValue, "EUR");
-      gbpLen = checkLengthMatchStart(wholeValue, "GBP");
-      frfLen = checkLengthMatchStart(wholeValue, "FRF");
-      chfLen = checkLengthMatchStart(wholeValue, "CHF");
-      cdnLen = checkLengthMatchStart(wholeValue, "CAD");
-      ntdLen = checkLengthMatchStart(wholeValue, "NTD");
-      audLen = checkLengthMatchStart(wholeValue, "AUD");
-      usdLen = checkLengthMatchStart(wholeValue, "USD");
-
+      String parseCurrency;
+      String valuePortion;
       if(wholeValue.startsWith("US $")) {
         parseCurrency = "US $";
         valuePortion = wholeValue.substring(4);
@@ -245,9 +254,9 @@ public class Currency implements Comparable {
       } else if(usdLen != 0) {
         parseCurrency = "USD";
         valuePortion = wholeValue.substring(usdLen);
-      } else if(euLen != 0) {
+      } else if(eurLen != 0) {
         parseCurrency = "EUR";
-        valuePortion = wholeValue.substring(euLen);
+        valuePortion = wholeValue.substring(eurLen);
       } else if(gbpLen != 0) {
         parseCurrency = "GBP";
         valuePortion = wholeValue.substring(gbpLen);
@@ -317,10 +326,11 @@ public class Currency implements Comparable {
       }
 
       //  Kill off non-digit characters.
-      while(!valuePortion.equals("") && !Character.isDigit(valuePortion.charAt(0))) valuePortion = valuePortion.substring(1);
+      while(valuePortion.length() != 0 && !Character.isDigit(valuePortion.charAt(0))) valuePortion = valuePortion.substring(1);
 
       //  If anything's left, try and parse it.
-      if(!valuePortion.equals("")) {
+      if(valuePortion.length() != 0) {
+        double actualValue;
         try {
           actualValue = df.parse(valuePortion).doubleValue();
         } catch(java.text.ParseException e) {
@@ -533,9 +543,6 @@ public class Currency implements Comparable {
    * unequal.
    */
   public boolean equals(Object inValue) {
-    boolean sameCurrency, sameValue;
-    Currency otherValue;
-
     //  Be careful not to compare with null.
     if(inValue == null) return false;
     //  Shortcut for this.equals(this)
@@ -543,10 +550,9 @@ public class Currency implements Comparable {
     //  Is it this class even?
     if(!(inValue instanceof Currency)) return false;
     //  Okay, now cast it because it's safe.
-    otherValue = (Currency)inValue;
-
-    sameCurrency = (otherValue.getCurrencyType() == _whatCurrency);
-    sameValue = ((int)(otherValue.getValue()*1000)) == ((int)(_value*1000));
+    Currency otherValue = (Currency) inValue;
+    boolean sameCurrency = (otherValue.getCurrencyType() == _whatCurrency);
+    boolean sameValue = ((int) (otherValue.getValue() * 1000)) == ((int) (_value * 1000));
 
     return(sameCurrency && sameValue);
   }
@@ -566,19 +572,17 @@ public class Currency implements Comparable {
    * @throws CurrencyTypeException if you try to compare different currencies.
    */
   public boolean less(Currency otherValue) throws CurrencyTypeException {
-    boolean sameCurrency, lowerValue;
-
     //  Be careful
     if(otherValue == null) return false;
     //  Shortcut
     if(otherValue == this) return false;
 
-    sameCurrency = (otherValue.getCurrencyType() == _whatCurrency);
+    boolean sameCurrency = (otherValue.getCurrencyType() == _whatCurrency);
     if(!sameCurrency) {
       throw new CurrencyTypeException("Cannot compare different currencies.");
     }
 
-    lowerValue = Double.compare( (double)((int)(otherValue.getValue()*1000)), (double)(int)(_value*1000)) == 1;
+    boolean lowerValue = Double.compare((double) ((int) (otherValue.getValue() * 1000)), (double) (int) (_value * 1000)) == 1;
 
     return(lowerValue);
   }
@@ -613,8 +617,6 @@ public class Currency implements Comparable {
    * @throws ClassCastException if you try to compareTo non-Currency classes.
    */
   public int compareTo(Object o) {
-    Currency otherValue;
-
     //  We are always greater than null
     if(o == null) return 1;
     //  We are always equal to ourselves
@@ -623,7 +625,7 @@ public class Currency implements Comparable {
     if(!(o instanceof Currency)) throw new ClassCastException("Currency cannot compareTo different classes!");
 
     //  Okay, now cast it because it's safe.
-    otherValue = (Currency)o;
+    Currency otherValue = (Currency) o;
 
     if(otherValue.isNull()) return 1;
     if(isNull()) return -1;
