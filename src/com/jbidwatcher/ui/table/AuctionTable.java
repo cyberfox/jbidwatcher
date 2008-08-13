@@ -167,18 +167,13 @@ public class AuctionTable extends JTable {
           colWidth = JConfig.queryDisplayProperty(curColumnName);
         }
         if(colWidth != null) {
-          TableColumn tc = new TableColumn(i);
-          tc.setHeaderValue(curColumnName);
-          tc.setIdentifier(curColumnName);
-          addColumn(tc);
           int dotIndex = colWidth.indexOf('.');
-          if(dotIndex != -1) {
+          if (dotIndex != -1) {
             String colIndex = colWidth.substring(0, dotIndex);
-            colWidth = colWidth.substring(dotIndex+1);
+            colWidth = colWidth.substring(dotIndex + 1);
             initialToSaved.put(curColumnName, Integer.parseInt(colIndex));
           }
-          getColumn(curColumnName).setPreferredWidth(Integer.parseInt(colWidth));
-          getColumn(curColumnName).setWidth(Integer.parseInt(colWidth));
+          makeNewColumn(curColumnName, colWidth);
         }
       }
     } catch(Exception e) {
@@ -194,14 +189,11 @@ public class AuctionTable extends JTable {
       ErrorManagement.logMessage("Column data for '\" + prefix + \"' was corrupted; resetting to defaults");
       notify_delay += 2 * Constants.ONE_SECOND;
       for(String[] column : DEFAULT_COLUMNS) {
-        if(column[0].equals("Time left") && prefix.equals("complete")) continue;
+        String column_name = column[0];
+        String column_width = column[1];
 
-        TableColumn tc = new TableColumn(TableColumnController.getInstance().getColumnNumber(column[0]));
-        tc.setHeaderValue(column[0]);
-        tc.setIdentifier(column[0]);
-        addColumn(tc);
-        getColumn(column[0]).setPreferredWidth(Integer.parseInt(column[1]));
-        getColumn(column[0]).setWidth(Integer.parseInt(column[1]));
+        if (column_name.equals("Time left") && prefix.equals("complete")) continue;
+        makeNewColumn(column_name, column_width);
       }
     }
 
@@ -216,5 +208,14 @@ public class AuctionTable extends JTable {
         }
       }
     }
+  }
+
+  private void makeNewColumn(String curColumnName, String colWidth) {
+    TableColumn tc = new TableColumn(TableColumnController.getInstance().getColumnNumber(curColumnName));
+    tc.setHeaderValue(curColumnName);
+    tc.setIdentifier(curColumnName);
+    addColumn(tc);
+    getColumn(curColumnName).setPreferredWidth(Integer.parseInt(colWidth));
+    getColumn(curColumnName).setWidth(Integer.parseInt(colWidth));
   }
 }
