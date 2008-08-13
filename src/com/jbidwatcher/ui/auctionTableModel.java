@@ -199,7 +199,9 @@ public class auctionTableModel extends BaseTransformation
         case TableColumnController.BIDCOUNT: return aEntry.getNumBidders();
         case TableColumnController.JUSTPRICE: return aEntry.getUSCurBid();
         case TableColumnController.SELLER_POSITIVE_FEEDBACK: try {
-          return (int)(Double.parseDouble(aEntry.getPositiveFeedbackPercentage())*10.0);
+          String feedbackPercent = aEntry.getPositiveFeedbackPercentage();
+          if(feedbackPercent != null) feedbackPercent = feedbackPercent.replace("%", "");
+          return safeConvert(feedbackPercent);
         } catch(Exception e) {
           return Zero;
         }
@@ -242,6 +244,17 @@ public class auctionTableModel extends BaseTransformation
     } catch(ArrayIndexOutOfBoundsException ignored) {
       return getDummyValueAtColumn(j);
     }
+  }
+
+  private int safeConvert(String feedbackPercent)
+  {
+    int rval;
+    try {
+      rval = (int) (Double.parseDouble(feedbackPercent) * 10.0);
+    } catch (NumberFormatException e) {
+      rval = 0;
+    }
+    return rval;
   }
 
   private Currency getMaxOrSnipe(AuctionEntry aEntry) {
@@ -446,11 +459,11 @@ public class auctionTableModel extends BaseTransformation
           return aEntry.getFeedbackScore();
         case TableColumnController.SELLER_POSITIVE_FEEDBACK:
           String fbp = aEntry.getPositiveFeedbackPercentage();
-          return (fbp == null || fbp.length() == 0)?"--":(fbp+ '%');
+          return (fbp == null || fbp.length() == 0)?"--":fbp;
         case TableColumnController.CUR_TOTAL:
-	  Currency shipping = aEntry.getShippingWithInsurance();
+          Currency shipping = aEntry.getShippingWithInsurance();
           if(shipping.getCurrencyType() == Currency.NONE) {
-	    return "--"; // shipping not set so cannot add up values
+            return "--"; // shipping not set so cannot add up values
           }
           try {
             return aEntry.getCurBid().add(shipping);

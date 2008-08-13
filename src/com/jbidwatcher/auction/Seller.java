@@ -4,6 +4,8 @@ import com.jbidwatcher.util.db.*;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
 
+import java.text.NumberFormat;
+
 /**
  * User: Morgan
  * Date: Sep 29, 2007
@@ -14,7 +16,17 @@ public class Seller extends ActiveRecord
 {
   public String getSeller() { return getString("seller"); }
   public void setSeller(String name) { setString("seller", name); }
-  public String getPositivePercentage() { return getString("feedback_percentage"); }
+
+  private static NumberFormat decimalPercentage = null;
+  public String getPositivePercentage() {
+    if(decimalPercentage == null) {
+      decimalPercentage = NumberFormat.getPercentInstance();
+      decimalPercentage.setMinimumFractionDigits(1);
+      decimalPercentage.setMaximumFractionDigits(1);
+    }
+    Double x = Double.parseDouble(getString("feedback_percentage"));
+    return decimalPercentage.format(x/100.0);
+  }
   public void setPositivePercentage(String positivePercentage) { setString("feedback_percentage", positivePercentage); }
   public int getFeedback() { return getInteger("feedback", 0); }
   public void setFeedback(int feedback) { setInteger("feedback", feedback); }
@@ -31,7 +43,7 @@ public class Seller extends ActiveRecord
     xfeedback.setContents(Integer.toString(getFeedback()));
     xmlResult.addChild(xfeedback);
 
-    xpercentage.setContents(getPositivePercentage());
+    xpercentage.setContents(getString("feedback_percentage"));
     xmlResult.addChild(xpercentage);
 
     return xmlResult;
@@ -70,7 +82,7 @@ public class Seller extends ActiveRecord
   public Seller makeSeller(String sellerName, Seller oldSeller) {
     Seller rval = makeSeller(sellerName);
     rval.setFeedback(oldSeller.getFeedback());
-    rval.setPositivePercentage(oldSeller.getPositivePercentage());
+    rval.setPositivePercentage(oldSeller.getString("feedback_percentage"));
 
     rval.saveDB();
     return rval;
