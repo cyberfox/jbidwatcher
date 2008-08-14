@@ -84,6 +84,7 @@ public class EventStatus extends ActiveRecord {
   }
 
   public static List<EventStatus> findAllByEntry(Integer entryId, String identifier) {
+    if(entryId == null) return null;
     List<ActiveRecord> records = ActiveRecord.findAllBy(EventStatus.class, "entry_id", Integer.toString(entryId), "created_at ASC");
 
     if(records != null) {

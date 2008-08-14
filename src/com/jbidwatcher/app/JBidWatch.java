@@ -82,6 +82,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private static final int HOURS_IN_DAY = 24;
   private static final int MINUTES_IN_HOUR = 60;
   private static boolean sUSB = false;
+  private static boolean sCreatedDB = false;
 
   /**
    * @brief Try to guarantee a directory for saving 'cached copies'
@@ -396,7 +397,11 @@ public final class JBidWatch implements JConfig.ConfigListener {
     setUI(null, null, UIManager.getInstalledLookAndFeels());
 
     try {
+      boolean creatingDB = JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("false");
       Upgrader.upgrade();
+      if(creatingDB && JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("true")) {
+        sCreatedDB = true;
+      }
     } catch(Exception e) {
       if (e.getMessage().matches("^Failed to start database.*")) {
         JOptionPane.showMessageDialog(null, "JBidwatcher can't access its database.\nPlease check to see if you are running another instance.", "Can't access auction database", JOptionPane.PLAIN_MESSAGE);
@@ -543,8 +548,10 @@ public final class JBidWatch implements JConfig.ConfigListener {
     Initializer.setup();
     FilterManager.getInstance().loadFilters();
     inSplash.message("Loading Auctions");
-    if (AuctionsManager.getInstance().loadAuctionsFromDatabase() == 0) {
+    if (sCreatedDB) {
       AuctionsManager.getInstance().loadAuctions();
+    } else {
+      AuctionsManager.getInstance().loadAuctionsFromDatabase();
     }
 
     AuctionServerManager.getInstance().getDefaultServerTime();
