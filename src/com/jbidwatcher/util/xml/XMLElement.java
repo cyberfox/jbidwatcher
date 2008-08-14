@@ -1282,10 +1282,18 @@ public class XMLElement {
       if (index2 == s.length()) break;
 
       index = s.indexOf(';', index2);
+      int space = s.indexOf(' ', index2);
+      int amp = s.indexOf('&', index2+1);
+      if(space == -1) space = s.length();
+      if(amp == -1) amp = s.length();
 
-      if (index < 0) {
+      if(index < 0) {
         result.append(s.substring(index2));
         break;
+      } else if (index > space || index > amp) {
+        result.append(s.substring(index2, Math.min(space, amp)));
+        index = index2+1;
+        continue;
       }
 
       String key = s.substring(index2 + 1, index);
