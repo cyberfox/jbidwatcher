@@ -24,8 +24,13 @@ public class Seller extends ActiveRecord
       decimalPercentage.setMinimumFractionDigits(1);
       decimalPercentage.setMaximumFractionDigits(1);
     }
-    Double x = Double.parseDouble(getString("feedback_percentage"));
-    return decimalPercentage.format(x/100.0);
+    String feedbackPercent = getString("feedback_percentage");
+    if(feedbackPercent != null) {
+      Double x = Double.parseDouble(feedbackPercent);
+      return decimalPercentage.format(x/100.0);
+    } else {
+      return "n/a";
+    }
   }
   public void setPositivePercentage(String positivePercentage) { setString("feedback_percentage", positivePercentage); }
   public int getFeedback() { return getInteger("feedback", 0); }
