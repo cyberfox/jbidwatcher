@@ -171,7 +171,12 @@ public class auctionTableModel extends BaseTransformation
       switch(j) {
         case -1: return aEntry;
         case TableColumnController.ID: return aEntry.getIdentifier();
-        case TableColumnController.CUR_BID: return aEntry.getUSCurBid();
+        case TableColumnController.CUR_BID:
+          Currency rval = aEntry.getUSCurBid();
+          if(rval.getValue() == 0.0 && rval.getCurrencyType() == Currency.US_DOLLAR) {
+            return Currency.convertToUSD(null, null, aEntry.getCurBid());
+          }
+          return rval;
         case TableColumnController.SNIPE_OR_MAX:
           return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), getMaxOrSnipe(aEntry));
         case TableColumnController.TIME_LEFT: return aEntry.getEndDate();

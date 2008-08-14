@@ -41,10 +41,13 @@ public class Currency implements Comparable {
   public static Currency convertToUSD(Currency usd, Currency nonusd, Currency cvt) {
     if(cvt != null && !cvt.isNull() && cvt.getCurrencyType() != US_DOLLAR) {
       double multiple;
-      if((usd == null || usd.isNull() || usd.getValue() == 0.0 ||
-          nonusd == null || nonusd.isNull() || nonusd.getValue() == 0.0) &&
-          sCurrencyMap.containsKey(cvt.getCurrencyType())) {
-        multiple = sCurrencyMap.get(cvt.getCurrencyType());
+      if(usd == null || usd.isNull() || usd.getValue() == 0.0 ||
+          nonusd == null || nonusd.isNull() || nonusd.getValue() == 0.0) {
+        if(sCurrencyMap.containsKey(cvt.getCurrencyType())) {
+          multiple = sCurrencyMap.get(cvt.getCurrencyType());
+        } else {
+          multiple = 0.0;
+        }
       } else {
         multiple = usd.getValue() / nonusd.getValue();
         if(multiple != 0.0) sCurrencyMap.put(nonusd.getCurrencyType(), multiple);
