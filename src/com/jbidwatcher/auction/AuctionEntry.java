@@ -905,6 +905,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     switch(tagId) {
       case 0:  //  Get the general auction information
         mAuction.fromXML(curElement);
+        mAuction.saveDB();
         break;
       case 1:  //  Get bid info
         Currency bidAmount = Currency.getCurrency(curElement.getProperty("CURRENCY"),
@@ -1060,6 +1061,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
       if(!isComplete()) setNeedsUpdate();
 
+      saveDB();
       if(mEntryEvents == null) {
         getEvents();
       }
