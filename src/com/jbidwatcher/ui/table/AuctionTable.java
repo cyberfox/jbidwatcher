@@ -13,7 +13,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Point;
 import java.awt.Dimension;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -152,10 +152,32 @@ public class AuctionTable extends JTable {
 
   private static int notify_delay = 0;
 
+  private class Pair<K,V> {
+    private K mFirst;
+    private V mLast;
+
+    public Pair(K k, V v) {
+      mFirst = k;
+      mLast = v;
+    }
+
+    public K getFirst() {
+      return mFirst;
+    }
+
+    public V getLast() {
+      return mLast;
+    }
+  }
+
+  private class ColumnIndex extends Pair<String,Integer> {
+    public ColumnIndex(String s, Integer i) { super(s, i); }
+  }
+
   private void loadColumnSettings(String prefix, TableModel atm) {
     String curColumnName = "";
 
-    TreeMap<String, Integer> initialToSaved = new TreeMap<String, Integer>();
+    List<ColumnIndex> initialToSaved = new LinkedList<ColumnIndex>();
     //  This code would need to be somewhat revamped if we allowed
     //  arbitrary, or user-selected column names.
     try {
@@ -171,7 +193,7 @@ public class AuctionTable extends JTable {
           if (dotIndex != -1) {
             String colIndex = colWidth.substring(0, dotIndex);
             colWidth = colWidth.substring(dotIndex + 1);
-            initialToSaved.put(curColumnName, Integer.parseInt(colIndex));
+            initialToSaved.add(new ColumnIndex(curColumnName, Integer.parseInt(colIndex)));
           }
           makeNewColumn(curColumnName, colWidth);
         }
@@ -198,9 +220,17 @@ public class AuctionTable extends JTable {
     }
 
     if(!initialToSaved.isEmpty()) {
-      for (String colName : initialToSaved.keySet()) {
-        int colFrom = getColumnModel().getColumnIndex(colName);
-        int colTo = initialToSaved.get(colName);
+      Collections.sort(initialToSaved, new Comparator<ColumnIndex>() {
+        public int compare(ColumnIndex o1, ColumnIndex o2) {
+          if(o1.getLast() < o2.getLast()) return -1;
+          if(o1.getLast() > o2.getLast()) return 1;
+          return 0;
+        }
+      });
+      for (ColumnIndex pair : initialToSaved) {
+        int colFrom = getColumnModel().getColumnIndex(pair.getFirst());
+        int colTo = pair.getLast();
+        System.err.println("Moving column " + colFrom + " to " + colTo);
         try {
           moveColumn(colFrom, colTo);
         } catch (IllegalArgumentException iae) {
