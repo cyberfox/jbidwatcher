@@ -11,6 +11,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
+import com.jbidwatcher.auction.Category;
 
 import java.util.*;
 import java.awt.Color;
@@ -72,6 +73,7 @@ public class FilterManager implements MessageQueue.Listener {
     }
     AuctionListHolder newList = new AuctionListHolder(newTab, mainBackground);
     mList.add(newList);
+    Category.findOrCreateByName(newTab);
     return newList;
   }
 
