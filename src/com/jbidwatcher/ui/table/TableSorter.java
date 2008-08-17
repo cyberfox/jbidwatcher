@@ -38,7 +38,6 @@ package com.jbidwatcher.ui.table;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.platform.Platform;
 
 import java.util.*;
 import javax.swing.event.TableModelEvent;
@@ -52,7 +51,6 @@ import java.awt.event.InputEvent;
 import java.awt.*;
 import javax.swing.table.*;
 import javax.swing.*;
-import javax.swing.border.Border;
 
 public class TableSorter extends Transformation implements TableModelListener {
   private JTable _table = null;
