@@ -1536,6 +1536,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(aid != null && aid.length() != 0) {
         mAuction = AuctionInfo.findFirstBy("id", aid);
       }
+      if(mAuction == null && getString("identifier") != null) {
+        mAuction = AuctionInfo.findByIdentifier(getString("identifier"));
+      }
+    }
+    if(mAuction != null & getString("identifier")==null) {
+      setString("identifier", mAuction.getIdentifier());
+      saveDB();
     }
     return mAuction;
   }

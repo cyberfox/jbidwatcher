@@ -519,6 +519,10 @@ public class AuctionInfo extends ActiveRecord
     return (AuctionInfo) ActiveRecord.findFirstBy(AuctionInfo.class, key, value);
   }
 
+  public static AuctionInfo findByIdentifier(String identifier) {
+    return (AuctionInfo) ActiveRecord.findFirstBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE id IN (SELECT Max(id) FROM auctions WHERE identifier = '" + identifier + "')");
+  }
+
   public static int precache() {
     return ActiveRecordCache.precacheBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE id IN (SELECT auction_id FROM entries)", "id", "identifier");
   }
