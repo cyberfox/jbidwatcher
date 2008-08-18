@@ -107,7 +107,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       AuctionEntry ae = (AuctionEntry) entries.get(auction_id);
       ae.setServer(newServer);
 
-      if (ae.getIdentifier() == null) {
+      if (ae.getAuction() == null) {
         ErrorManagement.logMessage("We lost the underlying auction for: " + ae.dumpRecord());
       } else {
         sEntryManager.addEntry(ae);

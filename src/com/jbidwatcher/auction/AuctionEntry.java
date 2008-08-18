@@ -676,7 +676,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return The unique identifier for this auction.
    */
-  public String getIdentifier() { if(getAuction() == null) return null; else return getAuction().getIdentifier(); }
+  public String getIdentifier() {
+    return getAuction() == null ? null : getAuction().getIdentifier();
+  }
 
   ///////////////////////////
   //  Actual logic functions
@@ -1527,10 +1529,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return r_flags;
   }
 
-  ////////////////////////////////////////
-  //  Passthrough functions to AuctionInfo
-
-  protected AuctionInfo getAuction() {
+  public AuctionInfo getAuction() {
     if(mAuction == null) {
       String aid = get("auction_id");
       if(aid != null && aid.length() != 0) {
@@ -1539,11 +1538,18 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(mAuction == null && getString("identifier") != null) {
         mAuction = AuctionInfo.findByIdentifier(getString("identifier"));
       }
+
+      //  If we successfully loaded an auction info object...
+      if(mAuction != null) {
+        setDefaultCurrency(mAuction.getDefaultCurrency());
+
+        if(getString("identifier") == null) {
+          setString("identifier", mAuction.getIdentifier());
+          saveDB();
+        }
+      }
     }
-    if(mAuction != null & getString("identifier")==null) {
-      setString("identifier", mAuction.getIdentifier());
-      saveDB();
-    }
+
     return mAuction;
   }
 
@@ -1569,6 +1575,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(doRefresh) refreshSnipe();
     if(newAuctionId != null) {
       set("auction_id", newAuctionId);
+      setString("identifier", mAuction.getIdentifier());
       //  If we had an old auction, and it's not the same as the new one,
       //  and the IDs are different, delete the old one.
       if (oldAuction != null &&
@@ -1583,6 +1590,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     checkEnded();
     saveDB();
   }
+
+  ////////////////////////////////////////
+  //  Passthrough functions to AuctionInfo
 
   /* Accessor functions that are passed through directly down
    * to the internal AuctionInfo object.
@@ -1604,7 +1614,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   public int getQuantity() { return getAuction().getQuantity(); }
   public int getNumBidders() { return getAuction().getNumBidders(); }
-
 
   public String getSeller() { return getAuction().getSellerName(); }
   public String getHighBidder() { return getAuction().getHighBidder(); }
@@ -1795,12 +1804,21 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * otherwise an AuctionEntry will be loaded and returned.
    */
   public static AuctionEntry findByIdentifier(String identifier) {
-    AuctionInfo ai = AuctionInfo.findFirstBy("identifier", identifier);
-    AuctionEntry ae = null;
+    AuctionEntry ae = findFirstBy("identifier", identifier);
 
-    if(ai != null) {
-      ae = AuctionEntry.findFirstBy("auction_id", ai.getString("id"));
-      if(ae != null) ae.setAuctionInfo(ai);
+    if(ae != null) {
+      if(ae.getAuction() == null) {
+        ErrorManagement.logMessage("Error loading auction #" + identifier + ", entry found, auction missing.");
+        ae = null;
+      }
+    }
+
+    if(ae == null) {
+      AuctionInfo ai = AuctionInfo.findByIdentifier(identifier);
+      if(ai != null) {
+        ae = AuctionEntry.findFirstBy("auction_id", ai.getString("id"));
+        if (ae != null) ae.setAuctionInfo(ai);
+      }
     }
 
     return ae;
