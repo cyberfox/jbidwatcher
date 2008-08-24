@@ -51,7 +51,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public static final String newRow = "<tr><td>";
   public static final String newCol = "</td><td>";
   public static final String endRow = "</td></tr>";
-  private static Resolver sResolver;
+  private static Resolver sResolver = null;
 
   /**
    * @brief Set a status message, and mark that the connection is currently invalid.
@@ -1311,6 +1311,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         mCategory = Category.findFirstBy("id", category_id);
       }
     }
+    if(mCategory == null) {
+      setCategory(!isComplete() ? (isSeller() ? "selling" : "current") : "complete");
+    }
+
     return mCategory != null ? mCategory.getName() : null;
   }
 
@@ -1728,6 +1732,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     String auctionId = mAuction.saveDB();
     if(auctionId != null) set("auction_id", auctionId);
 
+    //  This just makes sure we have a default category before saving.
+    getCategory();
     if(mCategory != null) {
       String categoryId = mCategory.saveDB();
       if(categoryId != null) set("category_id", categoryId);

@@ -161,9 +161,6 @@ public class Auctions implements TimerHandler.WakeupProcess {
       if (!(after.toString().equals(before.toString()))) {
         MQFactory.getConcrete("upload").enqueue(ae);
         String category = ae.getCategory();
-        if(category == null) {
-          category = !ae.isComplete() ? "current" : "complete";
-        }
         MQFactory.getConcrete("redraw").enqueue(category);
       }
       MQFactory.getConcrete("redraw").enqueue(ae);

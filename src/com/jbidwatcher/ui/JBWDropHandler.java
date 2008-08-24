@@ -16,7 +16,7 @@ import com.jbidwatcher.auction.DeletedEntry;
 import com.jbidwatcher.auction.server.AuctionServer;
 
 public class JBWDropHandler implements MessageQueue.Listener {
-  private static JBWDropHandler sInstance;
+  private static JBWDropHandler sInstance = null;
   private static boolean do_uber_debug = false;
   private static String lastSeen = null;
 
@@ -35,12 +35,11 @@ public class JBWDropHandler implements MessageQueue.Listener {
     }
 
     String aucId;
-    AuctionServer aucServ;
 
     //  Check to see if it's got a protocol ({protocol}:{path})
     //  If not, treat it as an item number alone, in the space of the default auction server.
     if(auctionURL.indexOf(":") != -1) {
-      aucServ = AuctionServerManager.getInstance().getServerForUrlString(auctionURL);
+      AuctionServer aucServ = AuctionServerManager.getInstance().getServerForUrlString(auctionURL);
       aucId = aucServ.extractIdentifierFromURLString(auctionURL);
     } else {
       aucId = auctionURL;
