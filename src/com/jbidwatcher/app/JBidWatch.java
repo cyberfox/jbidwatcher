@@ -26,6 +26,7 @@ import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.RuntimeInfo;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.ActivityMonitor;
+import com.jbidwatcher.util.ErrorMonitor;
 import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
@@ -361,6 +362,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       }
     }
 
+    ErrorMonitor.getInstance();
     cfgLoad = JConfig.getCanonicalFile(cfgLoad, "jbidwatcher", false);
     boolean ebayLoaded = false;
     InputStream configStream = checkConfig(cfgLoad);
