@@ -1,6 +1,7 @@
 package com.jbidwatcher.app;
 
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecordCache;
 import com.jbidwatcher.util.db.ActiveRecord;
@@ -176,6 +177,8 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
     JConfig.saveConfiguration(cfgFilename);
     ActiveRecord.shutdown();
+    ErrorManagement.logMessage("Shutting down JBidwatcher.");
+    ErrorManagement.closeLog();
     System.exit(0);
   }
 }
