@@ -13,6 +13,7 @@ import java.sql.*;
 import java.util.Properties;
 
 public class Database {
+  private static boolean sFirst = true;
   private String framework;
   private String driver;
   private String protocol;
@@ -48,7 +49,7 @@ public class Database {
        In an embedded environment, this will start up Derby, since it is not already running.
      */
     Class.forName(driver).newInstance();
-    ErrorManagement.logDebug("Loaded the appropriate driver.");
+    if(sFirst) ErrorManagement.logDebug("Loaded the appropriate driver.");
 
     Properties props = new Properties();
     props.setProperty("user", JConfig.queryConfiguration("db.user", "user1"));
@@ -70,9 +71,12 @@ public class Database {
       mConn = DriverManager.getConnection(protocol + "jbdb;create=true", props);
       mNew = true;
     }
-    ErrorManagement.logDebug("Connected to " + (mNew?"and created ":"") + "database jbdb (JBidwatcher DataBase)");
+    if(sFirst) {
+      ErrorManagement.logDebug("Connected to " + (mNew?"and created ":"") + "database jbdb (JBidwatcher DataBase)");
+    }
 
     mConn.setAutoCommit(true);
+    sFirst = false;
   }
 
   public Statement getStatement() {
@@ -125,7 +129,7 @@ public class Database {
     } catch (Throwable e) {
       handleSQLException(e);
     }
-
+    sFirst = true;
     return true;
   }
 
