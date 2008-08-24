@@ -32,13 +32,13 @@ public class AuctionTable extends JTable {
    * "prefix." to the front of them, it makes a configuration entry
    * which says the size of that column.
    *
+   * Returns a new JTable, properly spaced and filled out according to
+   * the configuration preferences.
+   *
    * @param name - A string that gets prepended to the column name
    *                 in order to produce a display property showing
    *                 the preferred width of that column.
    * @param atm - A TableModel that will be used for rendering the table.
-   *
-   * @return A new JTable, properly spaced and filled out according to
-   *         the configuration preferences.
    */
   public AuctionTable(String name, TableModel atm) {
     super();
@@ -73,7 +73,7 @@ public class AuctionTable extends JTable {
     return result == null ? super.getToolTipText(event) : result;
   }
 
-  class MouseListenerSelectProxy implements MouseListener {
+  static class MouseListenerSelectProxy implements MouseListener {
     private MouseListener m_peer;
 
     MouseListenerSelectProxy(MouseListener ml) { m_peer = ml; }
@@ -176,6 +176,7 @@ public class AuctionTable extends JTable {
 
   private void loadColumnSettings(String prefix, TableModel atm) {
     String curColumnName = "";
+    int columnCount = 0;
 
     List<ColumnIndex> initialToSaved = new LinkedList<ColumnIndex>();
     //  This code would need to be somewhat revamped if we allowed
@@ -195,6 +196,7 @@ public class AuctionTable extends JTable {
             colWidth = colWidth.substring(dotIndex + 1);
             initialToSaved.add(new ColumnIndex(curColumnName, Integer.parseInt(colIndex)));
           }
+          columnCount++;
           makeNewColumn(curColumnName, colWidth);
         }
       }
@@ -206,7 +208,7 @@ public class AuctionTable extends JTable {
     }
 
     //  If there are less than 2 columns, freak out and refresh.
-    if(initialToSaved.size() < 2) {
+    if(columnCount < 2) {
       SuperQueue.getInstance().preQueue("NOTIFY Column data for '" + prefix + "' was corrupted; resetting to defaults", "Swing", System.currentTimeMillis() + Constants.ONE_SECOND * 12 + notify_delay);
       ErrorManagement.logMessage("Column data for '\" + prefix + \"' was corrupted; resetting to defaults");
       notify_delay += 2 * Constants.ONE_SECOND;
@@ -230,7 +232,6 @@ public class AuctionTable extends JTable {
       for (ColumnIndex pair : initialToSaved) {
         int colFrom = getColumnModel().getColumnIndex(pair.getFirst());
         int colTo = pair.getLast();
-        System.err.println("Moving column " + colFrom + " to " + colTo);
         try {
           moveColumn(colFrom, colTo);
         } catch (IllegalArgumentException iae) {
