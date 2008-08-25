@@ -51,11 +51,11 @@ public class JConfig {
 
   //  A vector of ConfigListener classes who (once they've registered) will be told
   //  when a configuration change is made.
-  private static Vector<ConfigListener> _listeners = new Vector<ConfigListener>();
+  private static List<ConfigListener> _listeners = new LinkedList<ConfigListener>();
 
   //  Were there any configuration changes since the last updateComplete()?
   private static boolean _anyUpdates = false;
-  private static String sHomeDirectory;
+  private static String sHomeDirectory = null;
   private static boolean mScripting = false;
 
   //  A core loader which loads from an InputStream.  Used so that we can
@@ -309,16 +309,20 @@ public class JConfig {
   public static void saveDisplayConfig(Properties displayProps, Properties auxProps) {
     try {
       String dispFile = getCanonicalFile("display.cfg", "jbidwatcher", false);
-
-      FileOutputStream fos = new FileOutputStream(dispFile);
-      displayProps.store(fos, "Display information.  Do not modify while running.");
-      if(auxProps != null) {
-        auxProps.store(fos, "Column header information.  Do not modify while running.");
+      File fd = new File(dispFile);
+      if(fd.canWrite()) {
+        FileOutputStream fos = new FileOutputStream(fd);
+        displayProps.store(fos, "Display information.  Do not modify while running.");
+        if(auxProps != null) {
+          auxProps.store(fos, "Column header information.  Do not modify while running.");
+        }
+        if(mAuxProps != null) {
+          mAuxProps.store(fos, "Search display information.  Do not modify while running.");
+        }
+        fos.close();
+      } else {
+        ErrorManagement.logMessage("Failed to write to the display configuration; no write permissions to " + dispFile);
       }
-      if(mAuxProps != null) {
-        mAuxProps.store(fos, "Search display information.  Do not modify while running.");
-      }
-      fos.close();
     } catch(IOException e) {
       //  D'oh.  It failed to write the display information...
       ErrorManagement.handleException("Failed to write display configuration.", e);
