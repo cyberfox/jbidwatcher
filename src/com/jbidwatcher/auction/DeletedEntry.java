@@ -5,6 +5,7 @@ import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.config.JConfig;
 
 import java.util.Date;
+import java.util.List;
 import java.io.File;
 
 /**
@@ -77,8 +78,12 @@ public class DeletedEntry extends ActiveRecord {
    * @param identifier - The auction identifier to 'undelete', effectively.
    */
   public static void remove(String identifier) {
-    DeletedEntry found = findByIdentifier(identifier);
-    if(found != null) found.delete(DeletedEntry.class);
+    List<ActiveRecord> found = findAllBy(DeletedEntry.class, "identifier", identifier);
+    if(found != null) {
+      for(ActiveRecord entry : found) {
+        entry.delete(DeletedEntry.class);
+      }
+    }
   }
 
   /**
