@@ -49,14 +49,22 @@ public class JHTML implements JHTMLListener {
     m_contentIndex = 0;
   }
 
-  private class intPair {
-    public int first;
-    public int second;
+  private static class intPair {
+    private int first;
+    private int second;
 
     public intPair(int f, int s) { first = f; second = s; }
+
+    public int getFirst() {
+      return first;
+    }
+
+    public int getSecond() {
+      return second;
+    }
   }
 
-  public class Form {
+  public static class Form {
     private List<XMLElement> allInputs;
     private XMLElement formTag;
     private static final String FORM_VALUE = "value";
@@ -160,7 +168,6 @@ public class JHTML implements JHTMLListener {
       XMLElement inputTag = new XMLElement();
 
       inputTag.parseString('<' + newTag + "/>");
-      boolean isError = false;
       String inputType = inputTag.getProperty("type", "text").toLowerCase();
       if(inputTag.getTagName().equals("button")) {
         XMLElement tempTag = new XMLElement();
@@ -174,6 +181,7 @@ public class JHTML implements JHTMLListener {
 
       boolean showInputs = JConfig.queryConfiguration("debug.showInputs", "false").equals("true");
 
+      boolean isError = false;
       if(inputType.equals("text")) {
         if (showInputs) ErrorManagement.logDebug("T: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
       } else if(inputType.equals(FORM_PASSWORD)) {
@@ -318,7 +326,7 @@ public class JHTML implements JHTMLListener {
   }
 
   public String getFirstContent() {
-    if(contentList.size() == 0) return null;
+    if(contentList.isEmpty()) return null;
     return contentList.get(0);
   }
 
@@ -355,7 +363,7 @@ public class JHTML implements JHTMLListener {
 //  private static final int UP = 1;
   private static final boolean CHECK_CASE = false;
 
-  public intPair lookup(String hunt, boolean caseless) {
+  public Object lookup(String hunt, boolean caseless) {
     intPair at;
     if (caseless) {
       at = caselessContentMap.get(hunt.toLowerCase());
@@ -366,11 +374,11 @@ public class JHTML implements JHTMLListener {
   }
 
   private String contentLookup(String hunt, boolean caseless) {
-    intPair at = lookup(hunt, caseless);
+    intPair at = (intPair)lookup(hunt, caseless);
     if(at == null) return null;
 
-    m_tokenIndex = at.first+2;
-    m_contentIndex = at.second+1;
+    m_tokenIndex = at.getFirst() +2;
+    m_contentIndex = at.getSecond() +1;
     return contentList.get(m_contentIndex++);
   }
 
