@@ -181,28 +181,32 @@ public class JHTML implements JHTMLListener {
 
       boolean showInputs = JConfig.queryConfiguration("debug.showInputs", "false").equals("true");
 
-      boolean isError = false;
-      if(inputType.equals("text")) {
-        if (showInputs) ErrorManagement.logDebug("T: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
-      } else if(inputType.equals(FORM_PASSWORD)) {
-        if (showInputs) ErrorManagement.logDebug("P: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
-      } else if (inputType.equals(FORM_HIDDEN)) {
-        if (showInputs) ErrorManagement.logDebug("H: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
-      } else if(inputType.equals(FORM_CHECKBOX)) {
-        if (showInputs) ErrorManagement.logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
-      } else if(inputType.equals(FORM_RADIO)) {
-        if (showInputs) ErrorManagement.logDebug("R: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
-      } else if(inputType.equals(FORM_SUBMIT)) {
-        if (showInputs) ErrorManagement.logDebug("S: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
-      } else if(inputType.equals("image")) {
-        if (showInputs) ErrorManagement.logDebug("I: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
-      } else if(inputType.equals("button")) {
-        if (showInputs) ErrorManagement.logDebug("B: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
-      } else if(inputType.equals("reset")) {
-        if (showInputs) ErrorManagement.logDebug("RST: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+      boolean isError = inputType == null;
+      if(!isError) {
+        if(inputType.equals("text")) {
+          if (showInputs) ErrorManagement.logDebug("T: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        } else if(inputType.equals(FORM_PASSWORD)) {
+          if (showInputs) ErrorManagement.logDebug("P: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        } else if (inputType.equals(FORM_HIDDEN)) {
+          if (showInputs) ErrorManagement.logDebug("H: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        } else if(inputType.equals(FORM_CHECKBOX)) {
+          if (showInputs) ErrorManagement.logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        } else if(inputType.equals(FORM_RADIO)) {
+          if (showInputs) ErrorManagement.logDebug("R: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        } else if(inputType.equals(FORM_SUBMIT)) {
+          if (showInputs) ErrorManagement.logDebug("S: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        } else if(inputType.equals("image")) {
+          if (showInputs) ErrorManagement.logDebug("I: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        } else if(inputType.equals("button")) {
+          if (showInputs) ErrorManagement.logDebug("B: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        } else if(inputType.equals("reset")) {
+          if (showInputs) ErrorManagement.logDebug("RST: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        } else {
+          ErrorManagement.logDebug("Unknown input type: " + inputType);
+          isError = true;
+        }
       } else {
-        ErrorManagement.logDebug("Unknown input type: " + inputType);
-        isError = true;
+        ErrorManagement.logDebug("Bad input tag: " + newTag);
       }
 
       if(!isError) {
