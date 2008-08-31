@@ -210,7 +210,7 @@ public class AuctionTable extends JTable {
     //  If there are less than 2 columns, freak out and refresh.
     if(columnCount < 2) {
       SuperQueue.getInstance().preQueue("NOTIFY Column data for '" + prefix + "' was corrupted; resetting to defaults", "Swing", System.currentTimeMillis() + Constants.ONE_SECOND * 12 + notify_delay);
-      ErrorManagement.logMessage("Column data for '\" + prefix + \"' was corrupted; resetting to defaults");
+      ErrorManagement.logMessage("Column data for '" + prefix + "' was corrupted; resetting to defaults");
       notify_delay += 2 * Constants.ONE_SECOND;
       for(String[] column : DEFAULT_COLUMNS) {
         String column_name = column[0];
