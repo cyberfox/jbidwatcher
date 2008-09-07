@@ -42,7 +42,11 @@ public class AuctionTransformer implements ErrorListener, URIResolver {
   private static SimpleDateFormat dateFmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
 
   public static String formatDate(String when) {
-    return dateFmt.format(new Date(Long.parseLong(when)));
+    try {
+      return dateFmt.format(new Date(Long.parseLong(when)));
+    } catch (NumberFormatException e) {
+      return "(unknown)";
+    }
   }
 
   public static StringBuffer outputHTML(String loadFile) {
