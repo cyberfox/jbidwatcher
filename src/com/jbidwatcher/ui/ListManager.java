@@ -21,7 +21,7 @@ public class ListManager {
   private static ListManager sInstance = null;
 
   private ListManager() {
-    mCategoryMap = new HashMap<String, AuctionListHolder>(3);
+    mCategoryMap = Collections.synchronizedMap(new HashMap<String, AuctionListHolder>(3));
   }
 
   public boolean toggleField(String tabName, String field) {
@@ -91,8 +91,9 @@ public class ListManager {
 
   public Properties extractProperties(Properties outProps) {
     int i = 0;
+    List<AuctionListHolder> categories = new ArrayList<AuctionListHolder>(mCategoryMap.values());
 
-    for (AuctionListHolder step : mCategoryMap.values()) {
+    for (AuctionListHolder step : categories) {
       // getSortProperties must be called first in order to restore original column names
       step.getUI().getTableSorter().getSortProperties(step.getList().getName(), outProps);
       step.getUI().getColumnWidthsToProperties(outProps);
@@ -136,15 +137,18 @@ public class ListManager {
    * @param bgColor - The color to set the background to.
    */
   public void setBackground(Color bgColor) {
-    for (AuctionListHolder step : mCategoryMap.values()) {
+    List<AuctionListHolder> categories = new ArrayList<AuctionListHolder>(mCategoryMap.values());
+
+    for (AuctionListHolder step : categories) {
       step.getUI().setBackground(bgColor);
     }
   }
 
   public boolean checkEachList() {
     boolean retval = false;
+    List<AuctionListHolder> categories = new ArrayList<AuctionListHolder>(mCategoryMap.values());
 
-    for (AuctionListHolder step : mCategoryMap.values()) {
+    for (AuctionListHolder step : categories) {
       if (step.getList().check()) retval = true;
     }
 
