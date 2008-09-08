@@ -194,6 +194,18 @@ public class ebaySearches {
       ErrorManagement.logDebug("URL: " + watchingURL);
 
       JHTML htmlDocument = new JHTML(watchingURL, userCookie, mCleaner);
+      if(htmlDocument.getTitle().equals("eBay Message")) {
+        ErrorManagement.logDebug("eBay is presenting an interstitial 'eBay Message' page!");
+        JHTML.Form f = htmlDocument.getFormWithInput("MfcISAPICommand");
+        if(f != null) {
+          try {
+            ErrorManagement.logDebug("Navigating to the 'Continue to My eBay' page.");
+            htmlDocument = new JHTML(f.getCGI(), userCookie, mCleaner);
+          } catch(UnsupportedEncodingException uee) {
+            ErrorManagement.handleException("Failed to get the real My eBay page", uee);
+          }
+        }
+      }
       addAllItemsOnPage(htmlDocument, label, true);
       String ofX = htmlDocument.getNextContentAfterRegex("Page " + (page + 1));
       if (ofX == null || !ofX.startsWith("of ")) done_watching = true;
