@@ -67,11 +67,9 @@
               row = rows[i];
 
               if(row.className &amp;&amp; row.className != '') {
-                classes = row.className.split(' ');
-                for(index in classes) {
-                  if(!classes[index].match('^row[0-9]') &amp;&amp; cats[classes[index]] != 1) {
-                    cats[classes[index]] = 1;
-                  }
+                cn = row.className.replace('row0 ', '').replace('row1 ', '');
+                if(cn &amp;&amp; cn != '' &amp;&amp; cats[cn] != 1) {
+                  cats[cn] = 1;
                 }
               }
             }
