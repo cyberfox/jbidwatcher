@@ -236,7 +236,10 @@ public class FilterManager implements MessageQueue.Listener {
     AuctionsUIModel oldUI = old.getUI();
     AuctionsUIModel newUI = sendTo.getUI();
     if(oldUI != null) oldUI.delEntry(ae);
-    if(newUI != null) newUI.addEntry(ae);
+    if(newUI != null) {
+      ae.setCategory(sendTo.getList().getName());
+      newUI.addEntry(ae);
+    }
 
     mAllOrderedAuctionEntries.put(ae, sendTo);
     return sendTo;
