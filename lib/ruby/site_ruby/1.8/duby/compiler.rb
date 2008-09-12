@@ -34,13 +34,13 @@ module Duby
     
     class Local
       def compile(compiler)
-        compiler.local(inferred_type, name)
+        compiler.local(name, inferred_type)
       end
     end
     
     class LocalAssignment
       def compile(compiler)
-        compiler.local_assign(inferred_type, name) {
+        compiler.local_assign(name, inferred_type) {
           value.compile(compiler)
         }
       end
@@ -48,15 +48,13 @@ module Duby
     
     class Script
       def compile(compiler)
-        body.compile(compiler)
+        compiler.define_main(body)
       end
     end
     
     class MethodDefinition
       def compile(compiler)
-        args_callback = proc {arguments.compile(compiler)}
-        body_callback = proc {body.compile(compiler)}
-        compiler.define_method(name, signature, args_callback, body_callback)
+        compiler.define_method(name, signature, arguments, body)
       end
     end
     
@@ -74,11 +72,7 @@ module Duby
     
     class If
       def compile(compiler)
-        cond_callback = proc { condition.compile(compiler) }
-        body_callback = proc { body.compile(compiler) }
-        else_callback = proc { self.else.compile(compiler)}
-        
-        compiler.branch(cond_callback, body_callback, else_callback)
+        compiler.branch(self)
       end
     end
     
@@ -90,18 +84,13 @@ module Duby
     
     class FunctionalCall
       def compile(compiler)
-        args_callback = proc { parameters.each {|param| param.compile(compiler)}}
-        
-        compiler.self_call(name, args_callback)
+        compiler.self_call(self)
       end
     end
     
     class Call
       def compile(compiler)
-        recv_callback = proc { target.compile(compiler) }
-        args_callback = proc { parameters.each {|param| param.compile(compiler)}}
-        
-        compiler.call(name, target.inferred_type, recv_callback, args_callback)
+        compiler.call(self)
       end
     end
   end
