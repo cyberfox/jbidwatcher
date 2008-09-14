@@ -45,12 +45,7 @@ import java.net.UnknownHostException;
  * @see SpecificAuction
  */
 public class AuctionEntry extends ActiveRecord implements Comparable {
-  public static final int SUCC_HIGHBID=0, SUCC_OUTBID=1, FAIL_ENDED=2;
-  public static final int FAIL_CONNECT=3, FAIL_PARSE=4, FAIL_BADMULTI=5;
   private Category mCategory;
-  public static final String newRow = "<tr><td>";
-  public static final String newCol = "</td><td>";
-  public static final String endRow = "</td></tr>";
   private static Resolver sResolver = null;
 
   /**
@@ -1858,6 +1853,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return super.delete(AuctionEntry.class);
   }
 
+  public static final String newRow = "<tr><td>";
+  public static final String newCol = "</td><td>";
+  public static final String endRow = "</td></tr>";
+
   public String buildInfoHTML() {
     return buildInfoHTML(false, false);
   }
@@ -1888,42 +1887,55 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         addedThumbnail = true;
       }
     }
+    prompt = buildInfoBody(prompt, addedThumbnail);
+
+    if(finalize) {
+      prompt += "</html>";
+    }
+  	return(prompt);
+  }
+
+  private String buildRow(String label, Object value) {
+    return newRow + label + newCol + value.toString() + endRow;
+  }
+
+  private String buildInfoBody(String prompt, boolean addedThumbnail) {
     if(!isFixed()) {
-      prompt += newRow + "Currently" + newCol + getCurBid() + " (" + getNumBidders() + " Bids)" + endRow;
-      prompt += newRow + "High bidder" + newCol + getHighBidder() + endRow;
+      prompt += buildRow("Currently", getCurBid() + " (" + getNumBidders() + " Bids)");
+      prompt += buildRow("High bidder", getHighBidder());
     } else {
-      prompt += newRow + "Price" + newCol + getCurBid() + endRow;
+      prompt += buildRow("Price", getCurBid());
     }
     if(isDutch()) {
-      prompt += newRow + "Quantity" + newCol + getQuantity() + endRow;
+      prompt += buildRow("Quantity", getQuantity());
     }
 
     if(isBidOn()) {
-      prompt += newRow + "Your max bid" + newCol + getBid() + endRow;
+      prompt += buildRow("Your max bid", getBid());
       if(getBidQuantity() != 1) {
-        prompt += newRow + "Quantity of" + newCol + getBidQuantity() + endRow;
+        prompt += buildRow("Quantity of", getBidQuantity());
       }
     }
 
     if(isSniped()) {
-      prompt += newRow + "Sniped for" + newCol + getSnipeAmount() + endRow;
+      prompt += buildRow("Sniped for", getSnipeAmount());
       if(getSnipeQuantity() != 1) {
-        prompt += newRow + "Quantity of" + newCol + getSnipeQuantity() + endRow;
+        prompt += buildRow("Quantity of", getSnipeQuantity());
       }
       prompt += newRow + "Sniping at " + (getSnipeTime() / 1000) + " seconds before the end." + endRow;
     }
 
     if(getShipping() != null && !getShipping().isNull()) {
-      prompt += newRow + "Shipping" + newCol + getShipping() + endRow;
+      prompt += buildRow("Shipping", getShipping());
     }
     if(!getInsurance().isNull()) {
-      prompt += newRow + "Insurance (" + (getInsuranceOptional()?"optional":"required") + ")" + newCol + getInsurance() + endRow;
+      prompt += buildRow("Insurance (" + (getInsuranceOptional()?"optional":"required") + ")", getInsurance());
     }
-    prompt += newRow + "Seller" + newCol + getSeller() + endRow;
+    prompt += buildRow("Seller", getSeller());
     if(isComplete()) {
-      prompt += newRow + "Listing ended at " + newCol + getEndDate() + endRow;
+      prompt += buildRow("Listing ended at ", getEndDate());
     } else {
-      prompt += newRow + "Listing ends at" + newCol + getEndDate() + endRow;
+      prompt += buildRow("Listing ends at", getEndDate());
     }
     if(addedThumbnail) {
       prompt += "</table>" + endRow;
@@ -1950,11 +1962,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     }
 
     prompt += "<b><u>Events</u></b><blockquote>" + getLastStatus(true) + "</blockquote>";
-
-    if(finalize) {
-      prompt += "</html>";
-    }
-  	return(prompt);
+    return prompt;
   }
 
   public String buildHTMLComment(boolean showThumbnail) {
