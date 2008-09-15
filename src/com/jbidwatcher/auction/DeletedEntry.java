@@ -19,9 +19,15 @@ import java.io.File;
  * automated searches load them up.
  */
 public class DeletedEntry extends ActiveRecord {
-  public DeletedEntry() { setDate("created_at", new Date()); }
+  public DeletedEntry() { }
 
-  public DeletedEntry(String identifier) {
+  public static DeletedEntry create(String identifier) {
+    DeletedEntry d = new DeletedEntry(identifier);
+    d.saveDB();
+    return d;
+  }
+
+  private DeletedEntry(String identifier) {
     setString("identifier", identifier);
     setDate("created_at", new Date());
     killFiles(identifier);

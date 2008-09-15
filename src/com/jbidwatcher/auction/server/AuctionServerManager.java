@@ -104,6 +104,12 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
       if (ae.getAuction() == null) {
         ErrorManagement.logMessage("We lost the underlying auction for: " + ae.dumpRecord());
+        if(ae.getIdentifier() != null) {
+          ErrorManagement.logMessage("Trying to reload auction via its auction identifier.");
+          MQFactory.getConcrete("drop").enqueue(ae);
+        } else {
+          ae.delete();
+        }
       } else {
         sEntryManager.addEntry(ae);
       }
@@ -122,17 +128,19 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   private void getServerAuctionEntries(AuctionServer newServer, XMLElement perServer) {
     try {
       Iterator<XMLElement> entryStep = perServer.getChildren();
+      int count = 0;
       while (entryStep.hasNext()) {
         XMLElement perEntry = entryStep.next();
         AuctionEntry ae = new AuctionEntry();
 
         ae.setServer(newServer);
         ae.fromXML(perEntry);
-        MQFactory.getConcrete("dbsave").enqueue(ae);
+        ae.saveDB();
 
         if (sEntryManager != null) {
           sEntryManager.addEntry(ae);
         }
+        MQFactory.getConcrete("splash").enqueue("SET " + count++);
       }
     } catch(XMLParseException e) {
       ErrorManagement.handleException("Parse exception: ", e);
@@ -184,12 +192,12 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     XMLElement xmlResult = new XMLElement("auctions");
     XMLElement serverChild = new XMLElement("server");
     List<AuctionEntry> entryList = AuctionEntry.findAll();
-    int aucCount = 0;
 
     if (entryList == null || entryList.isEmpty()) return null;
 
     serverChild.setProperty("name", mServer.getName());
 
+    int aucCount = 0;
     aucCount += entryList.size();
 
     for (AuctionEntry ae : entryList) {

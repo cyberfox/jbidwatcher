@@ -61,9 +61,7 @@ public class AuctionSnipe extends ActiveRecord
   }
 
   public String saveDB() {
-    String id = super.saveDB();
-    set("id", id);
-    return id;
+    return super.saveDB();
   }
 
   private static Table sDB = null;

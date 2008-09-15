@@ -124,19 +124,19 @@ public class EventLogger implements XMLSerialize {
    *     occuring to this auction entry.
    */
   public void setLastStatus(String inStatus) {
-    EventStatus whatHappened;
-    EventStatus lastStatus;
-
     if(inStatus != null) {
-      if(mAllEvents.size() > 0) {
-        lastStatus = mAllEvents.get(mAllEvents.size()-1);
-      } else {
+      EventStatus lastStatus;
+      if (mAllEvents.isEmpty()) {
         lastStatus = mNullEvent;
+      } else {
+        lastStatus = mAllEvents.get(mAllEvents.size()-1);
       }
       if(inStatus.equals(lastStatus.getMessage())) {
         lastStatus.setRepeatCount(lastStatus.getRepeatCount() + 1);
+        lastStatus.saveDB();
       } else {
-        whatHappened = new EventStatus(inStatus, new Date(), mEntryId, mIdentifier, mTitle);
+        EventStatus whatHappened = new EventStatus(inStatus, new Date(), mEntryId, mIdentifier, mTitle);
+        whatHappened.saveDB();
 
         mAllEvents.add(whatHappened);
         ErrorManagement.logMessage(whatHappened.toString());

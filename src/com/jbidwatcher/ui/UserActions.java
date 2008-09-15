@@ -263,7 +263,7 @@ public class UserActions implements MessageQueue.Listener {
               for (AuctionEntry entry : mEntries) {
                 entry.cancelSnipe(false);
                 MQFactory.getConcrete("delete").enqueue(entry);
-                new DeletedEntry(entry.getIdentifier()).saveDB();
+                DeletedEntry.create(entry.getIdentifier());
               }
               //  Just pass the list of ids down to a low-level 'delete multiple' method.
               AuctionEntry.deleteAll(mEntries);

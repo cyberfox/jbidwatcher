@@ -241,6 +241,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
             if(!ae.isBidOn() || ae.getBid().less(highBid)) {
               ae.setBid(highBid);
               ae.setBidQuantity(bidCount);
+              ae.saveDB();
             }
           } catch(Currency.CurrencyTypeException cte) {
             //  Bad things happen here.  Ignore it for now.

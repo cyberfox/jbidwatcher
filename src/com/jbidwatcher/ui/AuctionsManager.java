@@ -31,7 +31,6 @@ import java.text.SimpleDateFormat;
 /** @noinspection Singleton*/
 public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager, JConfig.ConfigListener {
   private static AuctionsManager mInstance = null;
-  private int mAuctionCount = 0;
   private FilterManager mFilter;
 
   //  Checkpoint (save) every N minutes where N is configurable.
@@ -39,7 +38,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   private long mLastCheckpointed = 0;
   private static final int AUCTIONCOUNT = 100;
   private static final int MAX_PERCENT = AUCTIONCOUNT;
-  private boolean mDoSplash = false;
   private static TimerHandler sTimer;
 
   /**
@@ -129,8 +127,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * @param ae - The auction entry to add.
    */
   public void addEntry(AuctionEntry ae) {
-    if(mDoSplash) MQFactory.getConcrete("splash").enqueue("SET " + Integer.toString(++mAuctionCount));
-
     mFilter.addAuction(ae);
   }
 
@@ -144,7 +140,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    */
   public void delEntry(AuctionEntry ae) {
     String id = ae.getIdentifier();
-    new DeletedEntry(id).saveDB();
+    DeletedEntry.create(id);
     ae.cancelSnipe(false);
     mFilter.deleteAuction(ae);
     ae.delete();
@@ -177,7 +173,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * network to sync between JBidwatcher instances.
    */
   public void loadAuctions() {
-    mDoSplash = true;
     XMLElement xmlFile = new XMLElement(true);
     String loadFile = JConfig.queryConfiguration("savefile", "auctions.xml");
     String oldLoad = loadFile;
@@ -204,7 +199,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       ErrorManagement.logDebug("JBW: Failed to load saved auctions, the auctions file is probably not there yet.");
       ErrorManagement.logDebug("JBW: This is not an error, unless you're constantly getting it.");
     }
-    mDoSplash = false;
   }
 
   public int loadAuctionsFromDatabase() {
@@ -253,8 +247,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       auctionTotal = Integer.parseInt(auctionQuantity);
       MQFactory.getConcrete("splash").enqueue("SET 0");
       MQFactory.getConcrete("splash").enqueue("WIDTH " + auctionTotal);
-
-      mAuctionCount = 0;
     }
 
     AuctionServerManager.setEntryManager(this);

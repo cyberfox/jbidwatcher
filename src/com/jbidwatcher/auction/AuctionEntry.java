@@ -53,6 +53,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public void logError() {
     setLastStatus("Communications failure talking to the server.");
     setInvalid();
+    saveDB();
   }
 
   public Currency bestValue() {
@@ -287,6 +288,15 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return strippedId;
   }
 
+  /**
+   * Create a new auction entry for the ID passed in.  If it is in the deleted list, or already exists in
+   * the database, it will return null.
+   *
+   * @param identifier - The auction identifier to create an auction for.
+   *
+   * @return - null if the auction is in the deleted entry table, or the existing auction
+   * entry table, otherwise returns a valid AuctionEntry for the auction identifier provided.
+   */
   public static AuctionEntry construct(String identifier) {
     String strippedId = stripId(identifier);
 
@@ -476,9 +486,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public void setBid(Currency highBid)  {
     setMonetary("last_bid_amount", highBid == null? Currency.NoValue() : highBid);
+    saveDB();
   }
 
-  public void setBidQuantity(int quant) { setInteger("last_bid_quantity", quant); }
+  public void setBidQuantity(int quant) {
+    setInteger("last_bid_quantity", quant);
+    saveDB();
+  }
 
   /**
    * @brief What was the most recent number of items actually
@@ -500,7 +514,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(ms == null) {
       ms = new MultiSnipe(bgColor, defaultSnipe, Long.parseLong(identifier), subtractShipping);
     }
-    ms.saveDB();
     setMultiSnipe(ms);
   }
 
@@ -551,6 +564,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     } else {
       setInteger("multisnipe_id", inMS.getId());
     }
+    saveDB();
   }
 
   /**
@@ -674,6 +688,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   ///////////////////////////
   //  Actual logic functions
 
+  //  TODO  -- Check this for the need of a saveDB() occasionally...
   /**
    * @brief On update, we check if we're the high bidder.
    *
@@ -792,6 +807,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public void clearInvalid() {
     setBoolean("invalid", false);
+    saveDB();
   }
 
   /**
@@ -799,6 +815,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public void setInvalid() {
     setBoolean("invalid", true);
+    saveDB();
   }
 
   /**
@@ -826,6 +843,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       setString("comment", null);
     else
       setString("comment", newComment.trim());
+    saveDB();
   }
 
   /**
@@ -848,6 +866,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
   public void setShipping(Currency newShipping) {
     setMonetary("shipping", newShipping);
+    saveDB();
   }
 
   /**
@@ -897,6 +916,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   protected void handleTag(int tagId, XMLElement curElement) {
     switch(tagId) {
       case 0:  //  Get the general auction information
+        //  TODO -- What if it's already in the database?
         mAuction.fromXML(curElement);
         mAuction.saveDB();
         break;
@@ -1060,6 +1080,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       }
       checkHighBidder(false);
       checkSeller();
+      saveDB();
     }
   }
 
@@ -1138,6 +1159,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     setInteger("snipe_id", null);
     mSnipe = null;
     setDirty();
+    saveDB();
   }
 
   /**
@@ -1191,6 +1213,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         mForceUpdate = true;
       }
     }
+    saveDB();
   }
 
   public void prepareSnipe(Currency snipe) { prepareSnipe(snipe, 1); }
@@ -1217,6 +1240,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
     }
     setDirty();
+    saveDB();
     MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");
   }
 
@@ -1255,7 +1279,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
     ErrorManagement.logDebug("Bidding " + bid + " on " + bidQuantity + " item[s] of (" + getIdentifier() + ")-" + getTitle());
 
-    return(getServer().bid(this, bid, bidQuantity));
+    int rval = getServer().bid(this, bid, bidQuantity);
+    saveDB();
+    return rval;
   }
 
   /**
@@ -1266,15 +1292,17 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @return The result of the 'Buy' attempt.
    */
   public int buy(int quant) {
+    int rval = AuctionServerInterface.BID_ERROR_NOT_BIN;
     Currency bin = getBuyNow();
     if(bin != null && !bin.isNull()) {
       setBid(getBuyNow());
       setBidQuantity(1);  //  TODO --  Is it possible to Buy more than 1 item?  Yes...how?
       mBidAt = System.currentTimeMillis();
       ErrorManagement.logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
-      return getServer().buy(this, quant);
+      rval = getServer().buy(this, quant);
+      saveDB();
     }
-    return AuctionServerInterface.BID_ERROR_NOT_BIN;
+    return rval;
   }
 
   /**
@@ -1323,6 +1351,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     setInteger("category_id", c.getId());
     mCategory = c;
     if(isComplete()) setSticky(true);
+    saveDB();
   }
 
   /**
@@ -1341,7 +1370,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @param beSticky - Whether or not this entry should be sticky.
    */
-  public void setSticky(boolean beSticky) { setBoolean("sticky", beSticky); }
+  public void setSticky(boolean beSticky) { setBoolean("sticky", beSticky); saveDB(); }
 
   /**
    * @brief This auction entry does NOT need to be updated.
@@ -1540,6 +1569,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
         if(getString("identifier") == null) {
           setString("identifier", mAuction.getIdentifier());
+          setInteger("auction_id", mAuction.getId());
           saveDB();
         }
       }
@@ -1703,6 +1733,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     setBoolean("deleted", true);
     clearInvalid();
     setComplete(true);
+    saveDB();
   }
 
   /**
@@ -1711,7 +1742,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * Date object, and comparing.
    */
   public boolean isComplete() { return getBoolean("ended"); }
-  public void setComplete(boolean complete) { setBoolean("ended", complete); }
+  public void setComplete(boolean complete) { setBoolean("ended", complete); saveDB(); }
 
   /*************************/
   /* Database access stuff */

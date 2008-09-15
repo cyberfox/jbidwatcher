@@ -30,6 +30,7 @@ public class MultiSnipe extends ActiveRecord {
     //  Basically, the identifier is a long value based on
     //  the time at which it's created.
     setString("identifier", Long.toString(id));
+    saveDB();
   }
 
   /** @noinspection NonConstantStringShouldBeStringBuffer

@@ -437,7 +437,7 @@ class ebayAuction extends SpecificAuction {
     checkThumbnail();
 
     finish();
-    MQFactory.getConcrete("dbsave").enqueue(this);
+    this.saveDB();
     return ParseErrors.SUCCESS;
   }
 

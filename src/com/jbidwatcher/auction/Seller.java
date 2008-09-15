@@ -15,7 +15,7 @@ import java.text.NumberFormat;
 public class Seller extends ActiveRecord
 {
   public String getSeller() { return getString("seller"); }
-  public void setSeller(String name) { setString("seller", name); }
+  private void setSeller(String name) { setString("seller", name); }
 
   private static NumberFormat decimalPercentage = null;
   public String getPositivePercentage() {
@@ -32,9 +32,9 @@ public class Seller extends ActiveRecord
       return "n/a";
     }
   }
-  public void setPositivePercentage(String positivePercentage) { setString("feedback_percentage", positivePercentage); }
+  public void setPositivePercentage(String positivePercentage) { setString("feedback_percentage", positivePercentage); saveDB(); }
   public int getFeedback() { return getInteger("feedback", 0); }
-  public void setFeedback(int feedback) { setInteger("feedback", feedback); }
+  public void setFeedback(int feedback) { setInteger("feedback", feedback); saveDB(); }
 
   @SuppressWarnings({"RefusedBequest"})
   public XMLElement toXML() {

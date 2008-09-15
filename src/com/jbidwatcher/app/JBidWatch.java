@@ -30,7 +30,6 @@ import com.jbidwatcher.util.ErrorMonitor;
 import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
-import com.jbidwatcher.util.db.DBManager;
 import com.jbidwatcher.webserver.JBidProxy;
 import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.util.xml.XMLElement;
@@ -526,8 +525,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
    * @noinspection CallToThreadStartDuringObjectConstruction
    */
   private JBidWatch(JSplashScreen inSplash) {
-    inSplash.message("Initializing Database");
-    DBManager.start();
     inSplash.message("Initializing Monitors");
     ActivityMonitor.start();
     UIBackbone backbone = new UIBackbone();
@@ -648,7 +645,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
     q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", now + Constants.ONE_SECOND * 3, 240 * Constants.ONE_MINUTE);
     q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 2 * 10));
-    q.preQueue("FLUSH", "dbflush", now + Constants.ONE_MINUTE, Constants.ONE_SECOND * 15);
 
     //  Other interesting examples...
     //q.preQueue("This is a message for the display!", "Swing", System.currentTimeMillis()+Constants.ONE_MINUTE);

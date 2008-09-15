@@ -24,6 +24,14 @@ public class JBWDropHandler implements MessageQueue.Listener {
     DropQObject dObj;
     if (deQ instanceof String) {
       dObj = new DropQObject((String)deQ, null, false);
+    } else if (deQ instanceof AuctionEntry) {
+      AuctionEntry ae = (AuctionEntry) deQ;
+      boolean lostAuction = ae.getAuction() == null;
+      ae.update();
+      if(lostAuction) {
+        AuctionsManager.getInstance().addEntry(ae);
+      }
+      return;
     } else {
       dObj = (DropQObject) deQ;
     }

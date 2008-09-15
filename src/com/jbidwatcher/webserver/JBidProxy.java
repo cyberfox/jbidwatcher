@@ -164,8 +164,10 @@ public class JBidProxy extends HTTPProxyClient {
     //Add new Auction to Auction Manager
     AuctionEntry auctionEntry = AuctionEntry.construct(realId);
 
-    if(auctionEntry != null) {
+    if(auctionEntry != null && auctionEntry.isLoaded()) {
       AuctionsManager.getInstance().addEntry(auctionEntry);
+    } else if(auctionEntry != null) {
+      auctionEntry.delete();
     }
   }
 
