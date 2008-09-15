@@ -449,7 +449,6 @@ public class AuctionInfo extends ActiveRecord
       if (raw_id != null && raw_id.length() != 0) seller_id = Integer.parseInt(raw_id);
     }
     setInteger("seller_id", seller_id);
-    ActiveRecordCache.cache(this);
   }
 
   public Currency getUSCur() { return getMonetary("us_cur", Currency.US_DOLLAR); }
@@ -523,10 +522,6 @@ public class AuctionInfo extends ActiveRecord
     return (AuctionInfo) ActiveRecord.findFirstBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE id IN (SELECT Max(id) FROM auctions WHERE identifier = '" + identifier + "')");
   }
 
-  public static int precache() {
-    return ActiveRecordCache.precacheBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE id IN (SELECT auction_id FROM entries)", "id", "identifier");
-  }
-
   public static boolean deleteAll(List<AuctionInfo> toDelete) {
     if(toDelete.isEmpty()) return true;
     String auctions = makeCommaList(toDelete);
@@ -535,7 +530,6 @@ public class AuctionInfo extends ActiveRecord
   }
 
   public void delete() {
-    ActiveRecordCache.uncache(AuctionInfo.class, "identifier", get("identifier"));
     super.delete(AuctionInfo.class);
   }
 }

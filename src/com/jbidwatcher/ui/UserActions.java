@@ -19,7 +19,6 @@ import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.*;
-import com.jbidwatcher.util.db.ActiveRecordCache;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
@@ -1380,7 +1379,7 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Toolbar")) DoHideShowToolbar();
     else if(actionString.equals("Search")) DoSearch();
     else if(actionString.equals("Scripting")) DoScripting();
-    else if(actionString.equals("Dump")) ActiveRecordCache.saveCached();
+    else if(actionString.equals("Dump")) ErrorManagement.logDebug("Dump requested.");
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
     else if(actionString.equals("View Log")) DoViewLog();
     else if(actionString.equals("Mark as Won")) DoDebugWin(whichAuction);

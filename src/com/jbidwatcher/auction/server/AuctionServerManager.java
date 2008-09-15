@@ -11,8 +11,6 @@ import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.util.db.ActiveRecord;
-import com.jbidwatcher.util.db.ActiveRecordCache;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerialize;
@@ -97,14 +95,11 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public void loadAuctionsFromDB(AuctionServer newServer) {
-    MQFactory.getConcrete("splash").enqueue("SET 50");
-    ActiveRecordCache.precache(AuctionEntry.class, "auction_id");
     MQFactory.getConcrete("splash").enqueue("SET 0");
     int count = 0;
 
-    Map<String, ActiveRecord> entries = ActiveRecordCache.getCache(AuctionEntry.class);
-    for(String auction_id : entries.keySet()) {
-      AuctionEntry ae = (AuctionEntry) entries.get(auction_id);
+    List<AuctionEntry> entries = AuctionEntry.findAll();
+    for(AuctionEntry ae : entries) {
       ae.setServer(newServer);
 
       if (ae.getAuction() == null) {

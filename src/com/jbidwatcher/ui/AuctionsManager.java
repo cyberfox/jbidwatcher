@@ -208,7 +208,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   }
 
   public int loadAuctionsFromDatabase() {
-    int count = AuctionInfo.precache();
+    int count = AuctionInfo.count(AuctionInfo.class);
     if (count == 0) return count;
 
     MQFactory.getConcrete("splash").enqueue("WIDTH " + count);

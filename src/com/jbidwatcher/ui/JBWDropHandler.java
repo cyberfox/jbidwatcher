@@ -50,9 +50,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
     //  then create an auction entry from the id.
     AuctionEntry aeNew = AuctionEntry.construct(aucId);
     if(aeNew != null && aeNew.isLoaded()) {
-      if(label != null) {
-        aeNew.setCategory(label);
-      }
+      if(label != null) aeNew.setCategory(label);
       aeNew.clearNeedsUpdate();
       ErrorManagement.logDebug("Loaded " + aeNew.getIdentifier() + '.');
       lastSeen = aeNew.getIdentifier();

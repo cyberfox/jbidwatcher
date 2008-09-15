@@ -177,7 +177,6 @@ public abstract class ActiveRecord extends HashBacked {
 
   public boolean delete(Class klass) {
     String id = get("id");
-    ActiveRecordCache.uncache(klass, "id", id);
     return id != null && getDatabase().delete(Integer.parseInt(id));
   }
 
@@ -204,12 +203,6 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   protected static ActiveRecord findFirstBy(Class klass, String key, String value) {
-    ActiveRecord cached = ActiveRecordCache.cached(klass, key, value);
-    if(cached != null) return cached;
-
-    cached = findFirstByUncached(klass, key, value);
-    if (cached != null) ActiveRecordCache.cache(klass, key, value, cached);
-
-    return cached;
+    return findFirstByUncached(klass, key, value);
   }
 }

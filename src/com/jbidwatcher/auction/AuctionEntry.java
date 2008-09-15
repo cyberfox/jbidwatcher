@@ -16,7 +16,6 @@ import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
-import com.jbidwatcher.util.db.ActiveRecordCache;
 import com.jbidwatcher.util.xml.XMLElement;
 
 import java.io.FileNotFoundException;
@@ -295,10 +294,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       AuctionEntry ae = new AuctionEntry(strippedId, sResolver.getServerForIdentifier(strippedId));
       if(ae.isLoaded()) {
         String id = ae.saveDB();
-        if (id != null) {
-          ActiveRecordCache.cache(ae.getClass(), "id", id, ae);
-          return ae;
-        }
+        if (id != null) return ae;
       }
     }
     return null;
