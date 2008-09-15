@@ -76,6 +76,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
    */
   private SimpleProxy sp;
 
+  private final Object memInfoSynch = new Object();
   private MacFriendlyFrame mainFrame;
   private JTabManager jtmAuctions;
 
@@ -343,8 +344,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
    * @param args Command line arguments.
    */
   public static void main(String[] args) {
-    String cfgLoad = "JBidWatch.cfg";
-
     if(checkArguments(args)) {
       System.exit(0);
     }
@@ -356,6 +355,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     //  Pass a parameter (other than --help or -h) to launch that as a
     //  configuration file.
+    String cfgLoad = "JBidWatch.cfg";
     if (args.length != 0) {
       if(args[0].charAt(0) != '-') {
         cfgLoad = args[0];
@@ -497,7 +497,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
     loadProxySettings();
 
-    synchronized (this) {
+    synchronized (memInfoSynch) {
       if (JConfig.queryConfiguration("debug.memory", "false").equals("true")) {
         if (_rti == null) {
           _rti = new RuntimeInfo();
@@ -537,14 +537,24 @@ public final class JBidWatch implements JConfig.ConfigListener {
       }
     });
     ThumbnailLoader.start();
+
     inSplash.message("Initializing Scripting");
-    try {
-      Scripting.initialize();
-      JConfig.enableScripting();
-    } catch (Throwable e) {
-      System.err.println("Error setting up scripting: " + e.toString());
-      JConfig.disableScripting();
-    }
+    final Object scriptCompletion = new Object();
+    Thread scriptLoading = new Thread(new Runnable() {
+      public void run() {
+        synchronized(scriptCompletion) {
+          try {
+            Scripting.initialize();
+            JConfig.enableScripting();
+          } catch (Throwable e) {
+            ErrorManagement.logMessage("Error setting up scripting: " + e.toString());
+            JConfig.disableScripting();
+          }
+        }
+      }
+    });
+    scriptLoading.start();
+
     inSplash.message("Initializing Database");
     MyJBidwatcher.getInstance();
     Initializer.setup();
@@ -577,9 +587,11 @@ public final class JBidWatch implements JConfig.ConfigListener {
     mainFrame.setSize(JConfig.width, JConfig.height);
     backbone.setMainFrame(mainFrame);
 
-    if(JConfig.scriptingEnabled()) {
-      inSplash.message("Starting scripts");
-      Scripting.ruby("JBidwatcher.after_startup");
+    synchronized (scriptCompletion) {
+      if(JConfig.scriptingEnabled()) {
+        inSplash.message("Starting scripts");
+        Scripting.ruby("JBidwatcher.after_startup");
+      }
     }
     inSplash.close();
     //noinspection UnusedAssignment
@@ -615,7 +627,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     AudioPlayer.start();
 
-    synchronized(this) { if(_rti == null && JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo(); }
+    synchronized(memInfoSynch) { if(_rti == null && JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo(); }
     try {
       //  Don't leave this thread until the timeQueue has completed; i.e. the program is exiting.
       timeQueue.join();
