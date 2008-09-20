@@ -197,7 +197,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
       inEntry.clearInvalid();
       MQFactory.getConcrete("Swing").enqueue("LINK UP");
     } else {
-      if(!inEntry.isDeleted() && !inEntry.getLastStatus().equals("Seller away - item unavailable.")) {
+      if(!inEntry.isDeleted() && !inEntry.getLastStatus().contains("Seller away - item unavailable.")) {
         inEntry.setLastStatus("Failed to load from server!");
         inEntry.setInvalid();
       }
@@ -234,7 +234,13 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
       }
     }
 
-    if (curAuction == null && (ae == null || !ae.isDeleted())) noteRetrieveError(ae);
+    if (curAuction == null) {
+      if (ae != null && ae.getLastStatus().contains("Seller away - item unavailable.")) {
+        ae.setInvalid();
+      } else if (ae == null || !ae.isDeleted()) {
+        noteRetrieveError(ae);
+      }
+    }
     return curAuction;
   }
 
@@ -268,8 +274,9 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
     }
     curAuction.setContent(sb, false);
     String error = null;
+    SpecificAuction.ParseErrors result = null;
     if (curAuction.preParseAuction()) {
-      SpecificAuction.ParseErrors result = curAuction.parseAuction(ae);
+      result = curAuction.parseAuction(ae);
       if (result != SpecificAuction.ParseErrors.SUCCESS) {
         switch(result) {
           case CAPTCHA: {
@@ -291,6 +298,10 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
             error = markAuctionDeleted(ae);
             break;
           }
+          case SELLER_AWAY: {
+            error = "Seller away - item unavailable.";
+            break;
+          }
           case BAD_TITLE: {
             error = "There was a problem parsing the title.";
             break;
@@ -303,7 +314,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
 
     if(error != null) {
       ErrorManagement.logMessage(error);
-      if(ae == null || !ae.isDeleted()) checkLogError(ae);
+      if(ae == null || !ae.isDeleted() && result != SpecificAuction.ParseErrors.SELLER_AWAY) checkLogError(ae);
       curAuction = null;
     }
     return curAuction;

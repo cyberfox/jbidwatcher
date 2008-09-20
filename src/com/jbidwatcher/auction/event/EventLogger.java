@@ -78,24 +78,19 @@ public class EventLogger implements XMLSerialize {
   }
 
   public XMLElement toXML() {
-    XMLElement xmlLog;
+    if(mAllEvents.isEmpty()) return null;
 
-    if(mAllEvents.size() == 0) return null;
-
-    xmlLog = new XMLElement("log");
+    XMLElement xmlLog = new XMLElement("log");
 
     for (EventStatus curEvent : mAllEvents) {
-      XMLElement xmlResult;
-      XMLElement xmsg, xdate;
-
-      xmlResult = new XMLElement("entry");
+      XMLElement xmlResult = new XMLElement("entry");
       xmlResult.setProperty("count", Integer.toString(curEvent.getRepeatCount()));
 
-      xmsg = new XMLElement("message");
+      XMLElement xmsg = new XMLElement("message");
       xmsg.setContents(curEvent.getMessage());
       xmlResult.addChild(xmsg);
 
-      xdate = new XMLElement("date");
+      XMLElement xdate = new XMLElement("date");
       xdate.setContents(Long.toString(curEvent.getLoggedAt().getTime()));
       xmlResult.addChild(xdate);
 
@@ -144,31 +139,32 @@ public class EventLogger implements XMLSerialize {
     }
   }
 
-  public String getLastStatus() { return getLastStatus(false); }
   public int getStatusCount() { return mAllEvents.size(); }
 
   /** What is the most recent thing that happened to this particular auction?
    *
-   * @param bulk - Whether to return them as a bulk set of entries, or not.
-   * 
    * @return A string, formatted, that details the most recent event in plain words.
    */
-  public String getLastStatus(boolean bulk) {
-    if(mAllEvents.size() == 0) {
-      if(bulk) {
+  public String getLastStatus() {
+    if(mAllEvents.isEmpty()) {
+      return(mNullEvent.toString());
+    } else {
+      return mAllEvents.get(mAllEvents.size()-1).toString();
+    }
+  }
+
+  /** What is the most recent thing that happened to this particular auction?
+   *
+   * @return A string, formatted, that details the most recent event in plain words.
+   */
+  public String getAllStatuses() {
+    if(mAllEvents.isEmpty()) {
         return(mNullEvent.toBulkString() + "<br>");
-      } else {
-        return(mNullEvent.toString() + "<br>");
-      }
     } else {
       StringBuffer sb = new StringBuffer();
 
       for(EventStatus lastStatus : mAllEvents) {
-        if(bulk) {
-          sb.append(lastStatus.toBulkString());
-        } else {
-          sb.append(lastStatus.toString());
-        }
+        sb.append(lastStatus.toBulkString());
         sb.append("<br>");
       }
       return(sb.toString());

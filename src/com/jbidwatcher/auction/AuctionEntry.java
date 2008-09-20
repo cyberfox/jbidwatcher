@@ -53,7 +53,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   public void logError() {
     setLastStatus("Communications failure talking to the server.");
     setInvalid();
-    saveDB();
   }
 
   public Currency bestValue() {
@@ -875,20 +874,18 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return A string with all the event information included.
    */
-  public String getLastStatus() { return getLastStatus(false); }
+  public String getLastStatus() { return getEvents().getLastStatus(); }
+
   /**
    * @brief Get either a plain version of the events, or a complex
    * (bulk) version which doesn't include the title and identifier,
    * since those are set by the AuctionEntry itself, and are based
    * on its own data.
    *
-   * @param bulk - Whether to use the plain version (false) or the
-   * minimized version (true).
-   *
    * @return A string with all the event information included.
    */
-  public String getLastStatus(boolean bulk) {
-    return getEvents().getLastStatus(bulk);
+  public String getStatusHistory() {
+    return getEvents().getAllStatuses();
   }
 
   public int getStatusCount() {
@@ -1988,7 +1985,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       prompt += "<b>" + getComment() + "</b><br>";
     }
 
-    prompt += "<b><u>Events</u></b><blockquote>" + getLastStatus(true) + "</blockquote>";
+    prompt += "<b><u>Events</u></b><blockquote>" + getStatusHistory() + "</blockquote>";
     return prompt;
   }
 
