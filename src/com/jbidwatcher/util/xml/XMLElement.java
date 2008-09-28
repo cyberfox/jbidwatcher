@@ -66,7 +66,7 @@ import java.util.*;
  * @version 1.5
  */
 @SuppressWarnings({"JavaDoc", "ThrowableInstanceNeverThrown"})
-public class XMLElement {
+public class XMLElement implements XMLSerialize {
   /**
    * Major version of NanoXML.
    */
@@ -1375,5 +1375,17 @@ public class XMLElement {
   protected XMLParseException valueMissingForAttribute(String key, int lineNr) {
     String msg = "Value missing for attribute with key \"" + key + '\"';
     return new XMLParseException(getTagName(), lineNr,  msg);
+  }
+
+  public XMLElement toXML() {
+    return this;
+  }
+
+  public void fromXML(XMLElement inXML) {
+    _attributes = inXML._attributes;
+    _children = inXML._children;
+    _tagName = inXML._tagName;
+    _empty = inXML._empty;
+    _contents = inXML._contents;
   }
 }

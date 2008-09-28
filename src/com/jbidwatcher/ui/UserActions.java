@@ -1359,6 +1359,7 @@ public class UserActions implements MessageQueue.Listener {
 //    else if(actionString.equals("Status")) DoShowStatus(c_src, whichAuction);
     else if(actionString.equals("Show Time Info")) DoShowTime(c_src, whichAuction);
     else if(actionString.equals("ShowError")) DoShowLastError(c_src, whichAuction);
+    else if(actionString.equals("Report")) DoReportProblem(c_src, whichAuction);
     else if(actionString.equals("Bid")) DoBid(c_src, whichAuction);
     else if(actionString.equals("Buy")) DoBuy(c_src, whichAuction);
     else if(actionString.equals("Shipping")) DoShipping(c_src, whichAuction);
@@ -1386,6 +1387,14 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("View Activity")) DoViewActivity();
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
     else ErrorManagement.logDebug('[' + actionString + ']');
+  }
+
+  private void DoReportProblem(Component src, AuctionEntry auction) {
+    String endResult = promptString(src, "What's wrong with: " + auction.getTitle(), "Reporting a problem", "");
+    if(endResult == null) endResult = "";
+
+    auction.setLastStatus(endResult);
+    MQFactory.getConcrete("report").enqueue(auction);
   }
 
   public static void start() {

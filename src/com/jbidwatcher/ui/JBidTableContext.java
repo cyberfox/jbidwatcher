@@ -62,6 +62,9 @@ public class JBidTableContext extends JBidContext {
     JMenu advanced = new JMenu("Advanced");
     advanced.add(makeMenuItem("Show Last Error", "ShowError")).addActionListener(this);
     advanced.add(makeMenuItem("Mark As Not Ended", "NotEnded")).addActionListener(this);
+    if(JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
+      advanced.add(makeMenuItem("Report a problem with this item", "Report")).addActionListener(this);
+    }
     menu.add(advanced);
     menu.add(new JPopupMenu.Separator());
 

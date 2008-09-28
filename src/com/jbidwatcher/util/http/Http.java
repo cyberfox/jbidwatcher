@@ -238,6 +238,7 @@ public class Http {
       int length = 0;
       if (postData != null) length = postData.length();
       ErrorManagement.logDebug("Couldn't send params (length: " + length + ") to " + url);
+      ErrorManagement.logDebug(e.getMessage());
       return null;
     }
   }
