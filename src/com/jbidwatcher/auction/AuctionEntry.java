@@ -1505,14 +1505,24 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
     AuctionEntry comparedAuctionEntry = (AuctionEntry) other;
 
+    String identifier = getIdentifier();
+
     //  If the identifiers are the same, we're equal.
-    if(getIdentifier().equals(comparedAuctionEntry.getIdentifier())) return 0;
+    if(identifier != null && identifier.equals(comparedAuctionEntry.getIdentifier())) return 0;
 
-    //  If this ends later than the passed in object, then we are 'greater'.
-    if(getEndDate().after(comparedAuctionEntry.getEndDate())) return 1;
-    if(comparedAuctionEntry.getEndDate().after(getEndDate())) return -1;
+    if(getEndDate() == null && comparedAuctionEntry.getEndDate() != null) return 1;
+    if(getEndDate() != null && comparedAuctionEntry.getEndDate() == null) return -1;
+    if (getEndDate() != null && comparedAuctionEntry.getEndDate() != null) {
+      //  If this ends later than the passed in object, then we are 'greater'.
+      if(getEndDate().after(comparedAuctionEntry.getEndDate())) return 1;
+      if(comparedAuctionEntry.getEndDate().after(getEndDate())) return -1;
+    }
 
-    //  Whoops!  Dates are equal, down to the second probably!
+    //  Whoops!  Dates are equal, down to the second probably, or both null...
+
+    //  If this has a null identifier, we're lower.
+    if(identifier == null && comparedAuctionEntry.getIdentifier() != null) return -1;
+    if(identifier == null && comparedAuctionEntry.getIdentifier() == null) return 0;
 
     //  Since this ends exactly at the same time as another auction,
     //  check the identifiers (which *must* be different here.
