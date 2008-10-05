@@ -3,10 +3,7 @@ package com.jbidwatcher.util.db;
 import com.jbidwatcher.util.HashBacked;
 import com.jbidwatcher.util.Record;
 
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.lang.reflect.Field;
 
 /**
@@ -17,9 +14,15 @@ import java.lang.reflect.Field;
  * Time: 1:54:46 PM
  */
 public abstract class ActiveRecord extends HashBacked {
+  private static boolean sDBDisabled = false;
   private static ArrayList<Table> sTables = new ArrayList<Table>();
+
+  public static void disableDatabase() {
+    sDBDisabled = true;
+  }
+
   protected static Table openDB(String tableName) {
-    if (tableName == null) return null;
+    if (sDBDisabled || tableName == null) return null;
 
     Table db;
     try {
@@ -56,11 +59,12 @@ public abstract class ActiveRecord extends HashBacked {
    * @return - The count of entries in the database table associated with the given class.
    */
   public static int count(Class klass) {
+    if(sDBDisabled) return 0;
     return getExemplar(klass).getDatabase().count();
   }
 
   public void commit() {
-    getDatabase().commit();
+    if(!sDBDisabled) getDatabase().commit();
   }
 
   /**
@@ -102,7 +106,10 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   public String saveDB() {
-    if(getDatabase().hasColumn("currency")) {
+    if(sDBDisabled) return "0";
+
+    Table db = getDatabase();
+    if(db.hasColumn("currency")) {
       setString("currency", getDefaultCurrency().fullCurrencyName());
     }
     if(!isDirty() && get("id") != null && get("id").length() != 0) return get("id");
@@ -118,12 +125,14 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   protected static List<ActiveRecord> findAllBy(Class klass, String key, String value, String order) {
+    if(sDBDisabled) return new LinkedList<ActiveRecord>();
     ActiveRecord found = getExemplar(klass);
     List<Record> results = getTable(found).findAll(key, value, order);
     return convertResultsToList(klass, results);
   }
 
   protected static List<? extends ActiveRecord> findAllBySQL(Class klass, String query) {
+    if(sDBDisabled) return new LinkedList<ActiveRecord>();
     ActiveRecord found = getExemplar(klass);
     List<Record> results = getTable(found).findAll(query);
     return convertResultsToList(klass, results);
@@ -176,13 +185,16 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   public boolean delete(Class klass) {
+    if(sDBDisabled) return false;
     String id = get("id");
     return id != null && getDatabase().delete(Integer.parseInt(id));
   }
 
   protected static ActiveRecord findFirstBySQL(Class klass, String query) {
+    if(sDBDisabled) return null;
     ActiveRecord found = getExemplar(klass);
-    Record result = getTable(found).findFirstBy(query);
+    Table t = getTable(found);
+    Record result = t.findFirstBy(query);
     if (result != null && !result.isEmpty()) {
       found.setBacking(result);
     } else {
@@ -192,8 +204,10 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   protected static ActiveRecord findFirstByUncached(Class klass, String key, String value) {
+    if(sDBDisabled) return null;
     ActiveRecord found = getExemplar(klass);
-    Record result = getTable(found).findFirstBy(key, value);
+    Table t = getTable(found);
+    Record result = t.findFirstBy(key, value);
     if (result != null && !result.isEmpty()) {
       found.setBacking(result);
     } else {

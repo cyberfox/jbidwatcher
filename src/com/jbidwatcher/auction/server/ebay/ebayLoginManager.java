@@ -148,6 +148,8 @@ public class ebayLoginManager implements LoginManager {
   }
 
   public synchronized CookieJar getSignInCookie(CookieJar old_cj) {
+    if(getUserId().equals("default")) return old_cj;
+
     if (getPassword().equals(mBadPassword) && getUserId().equals(mBadUsername)) {
       ErrorManagement.logDebug("Not getting the sign in cookie; username/password combo hasn't changed.");
       return old_cj;

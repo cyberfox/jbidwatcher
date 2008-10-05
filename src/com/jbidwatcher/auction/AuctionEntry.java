@@ -1881,10 +1881,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     return success;
   }
 
-  public boolean delete() {
+  public void delete() {
     if(getAuction() != null) getAuction().delete();
     if(getSnipe() != null) getSnipe().delete();
-    return super.delete(AuctionEntry.class);
+    super.delete(AuctionEntry.class);
   }
 
   public static final String newRow = "<tr><td>";

@@ -548,6 +548,9 @@ public class JConfig {
   }
 
   public static String queryConfiguration(String query) {
+    if(soleProperty.getProperty("config.logging", "false").equals("true")) {
+      System.out.println("Query: " + query);
+    }
     return soleProperty.getProperty(query, null);
   }
 

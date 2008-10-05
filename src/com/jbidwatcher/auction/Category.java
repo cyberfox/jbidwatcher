@@ -60,7 +60,7 @@ public class Category extends ActiveRecord
 
   public static List<String> categories() {
     List<Category> categories = (List<Category>) findAllBySQL(Category.class, "SELECT name FROM " + getTableName());
-    if(categories.size() == 0) return null;
+    if(categories.isEmpty()) return null;
 
     List<String> results = new ArrayList<String>(categories.size());
 
