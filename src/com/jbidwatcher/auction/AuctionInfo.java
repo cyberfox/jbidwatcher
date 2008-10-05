@@ -169,7 +169,7 @@ public class AuctionInfo extends ActiveRecord
       case 15: //  Fixed price
       case 17: //  PayPal accepted
         setBoolean(infoTags[i], true);
-        if(i==7) {
+        if(i==7 || i==15) {
           setInteger("quantity", Integer.parseInt(curElement.getProperty("QUANTITY")));
         } else if(i==8) {
           setBoolean("reserveMet", "true".equals(curElement.getProperty("MET")));
@@ -247,7 +247,8 @@ public class AuctionInfo extends ActiveRecord
     if(xreserve != null) xreserve.setProperty("met", isReserveMet() ?"true":"false");
 
     addBooleanChild(xmlResult, "paypal");
-    addBooleanChild(xmlResult, "fixed");
+    XMLElement xfixed = addBooleanChild(xmlResult, "fixed");
+    if(xfixed != null && getQuantity() != 1) xfixed.setProperty("quantity", Integer.toString(getQuantity()));
     addBooleanChild(xmlResult, "private");
 
     addStringChild(xmlResult, "location");

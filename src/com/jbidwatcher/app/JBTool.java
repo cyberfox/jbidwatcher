@@ -75,6 +75,11 @@ public class JBTool {
     AuctionEntry ae = AuctionEntry.construct(params.get(0));
     XMLElement auctionXML = ae.toXML();
     System.out.println(auctionXML.toString());
+    if(JConfig.debugging()) {
+      AuctionEntry ae2 = new AuctionEntry();
+      ae2.fromXML(auctionXML);
+      System.out.println("ae2.quantity == " + ae2.getQuantity());
+    }
     System.exit(0);
   }
 }
