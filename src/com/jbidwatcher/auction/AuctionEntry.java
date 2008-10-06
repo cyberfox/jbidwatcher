@@ -145,13 +145,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   private MultiSnipe mMultiSnipe =null;
 
   /**
-   * Is the current user the high bidder?  This is a tougher problem
-   * for servers where the user is multiple users, so it hasn't been
-   * addressed yet.  FUTURE FEATURE -- mrs: 02-January-2003 00:15
-   */
-  private boolean mHighBidder =false;
-
-  /**
    * Is the current user the seller?  Same caveats as mHighBidder.
    */
   private boolean mSeller =false;
@@ -452,7 +445,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return Whether the current user is the high bidder.
    */
-  public boolean isHighBidder() { return mHighBidder; }
+  public boolean isHighBidder() { return isWinning(); }
+
+  public boolean isWinning() { return getBoolean("winning", false); }
+  public void setWinning(boolean state) { setBoolean("winning", state); }
 
   /**
    * @brief Check if the current user is the seller for this auction.
@@ -707,14 +703,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       if(isBidOn() && isPrivate()) {
         Currency curBid = getCurBid();
         try {
-          if(curBid.less(getBid())) mHighBidder = true;
+          if(curBid.less(getBid())) setWinning(true);
         } catch(Currency.CurrencyTypeException cte) {
           /* Should never happen...?  */
           ErrorManagement.handleException("This should never happen (bad Currency at this point!).", cte);
         }
         if(curBid.equals(getBid())) {
-          mHighBidder = numBidders == 1;
-          //  mHighBidder == false means that there are multiple bidders, and the price that
+          setWinning(numBidders == 1);
+          //  winning == false means that there are multiple bidders, and the price that
           //  two (this user, and one other) bid are exactly the same.  How
           //  do we know who's first, given that it's a private auction?
           //
@@ -723,7 +719,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         }
       } else {
         if(!isDutch()) {
-          mHighBidder = getServer().isCurrentUser(getHighBidder());
+          setWinning(getServer().isCurrentUser(getHighBidder()));
         }
       }
     }
@@ -733,8 +729,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @brief Determine if we're a high bidder on a multi-item ('dutch')
    * auction.
    */
-  private void checkDutchHighBidder() {
-    mHighBidder = getServer().isHighDutch(this);
+  public void checkDutchHighBidder() {
+    setWinning(getServer().isHighDutch(this));
   }
 
   /**
@@ -1021,6 +1017,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     if(isComplete()) addStatusXML(xmlResult, "complete");
     if(isInvalid()) addStatusXML(xmlResult, "invalid");
     if(isDeleted()) addStatusXML(xmlResult, "deleted");
+    if(isWinning()) addStatusXML(xmlResult, "winning");
 
     if(getComment() != null) {
       XMLElement xcomment = new XMLElement("comment");
