@@ -42,6 +42,9 @@ public class Http {
     URL authURL;
 
     try {
+      if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
+        System.err.println("postFormPage: " + urlToPost);
+      }
       authURL = new URL(urlToPost);
 
       huc = authURL.openConnection();
@@ -91,6 +94,9 @@ public class Http {
   public static URLConnection makeRequest(URL source, String cookie) throws java.io.IOException {
     URLConnection uc;
 
+    if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
+      System.err.println("makeRequest: " + source.toString());
+    }
     uc = source.openConnection();
     if(JConfig.queryConfiguration("proxyfirewall", "none").equals("proxy")) {
       String proxyHost = JConfig.queryConfiguration("proxy.host", null);
@@ -208,6 +214,9 @@ public class Http {
     HttpURLConnection huc;
 
     try {
+      if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
+        System.err.println("getPage: " + urlToGet);
+      }
       URL authURL = new URL(urlToGet);
       URLConnection uc = authURL.openConnection();
       if(!(uc instanceof HttpURLConnection)) {

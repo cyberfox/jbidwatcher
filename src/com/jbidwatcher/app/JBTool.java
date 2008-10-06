@@ -44,6 +44,7 @@ public class JBTool {
       if(option.equals("logging")) JConfig.setConfiguration("logging", "true");
       if(option.equals("debug")) JConfig.setConfiguration("debugging", "true");
       if(option.equals("logconfig")) JConfig.setConfiguration("config.logging", "true");
+      if(option.equals("logurls")) JConfig.setConfiguration("debug.urls", "true");
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
