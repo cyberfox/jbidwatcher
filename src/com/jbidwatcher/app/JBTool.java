@@ -57,9 +57,9 @@ public class JBTool {
       JConfig.setConfiguration("ebay.user", "default");
       JConfig.setConfiguration("ebay.password", "default");
     }
+    final AuctionServer ebay = new ebayServer();
 
     Resolver r = new Resolver() {
-      AuctionServer ebay = new ebayServer();
       public AuctionServerInterface getServerByName(String name) {
         return ebay;
       }
@@ -71,9 +71,13 @@ public class JBTool {
       public AuctionServerInterface getServerForUrlString(String strURL) {
         return ebay;
       }
+      public AuctionServerInterface getServer() {
+        return ebay;
+      }
     };
     AuctionEntry.setResolver(r);
     AuctionEntry ae = AuctionEntry.construct(params.get(0));
+    if(ae.isDutch()) ae.checkDutchHighBidder();
     XMLElement auctionXML = ae.toXML();
     System.out.println(auctionXML.toString());
     if(JConfig.debugging()) {

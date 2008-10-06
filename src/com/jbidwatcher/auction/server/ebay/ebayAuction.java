@@ -397,11 +397,14 @@ class ebayAuction extends SpecificAuction {
       return ParseErrors.BAD_TITLE;
     }
 
+    Integer quant = getNumberFromLabel(mDocument, Externalized.getString("ebayServer.quantity"), Externalized.getString("ebayServer.postTitleIgnore"));
+
     //  Get the integer values (Quantity, Bidcount)
-    setQuantity(getNumberFromLabel(mDocument, Externalized.getString("ebayServer.quantity"), Externalized.getString("ebayServer.postTitleIgnore")));
+    setQuantity(quant == null ? 1 : quant);
 
     setFixedPrice(false);
     setNumBids(getBidCount(mDocument, getQuantity()));
+    if(!isFixedPrice() && quant != null) setDutch(true);
 
     try {
       load_buy_now();
@@ -753,7 +756,7 @@ class ebayAuction extends SpecificAuction {
           email = findHighBidderEmail(bidder);
         }
       } else {
-        if (getQuantity() > 1) {
+        if (getQuantity() > 1 || isDutch()) {
           setDutch(true);
           bidder = "(dutch)";
         } else {
@@ -859,19 +862,18 @@ class ebayAuction extends SpecificAuction {
     return tmpThumb;
   }
 
-  private int getNumberFromLabel(JHTML doc, String label, String ignore) {
+  private Integer getNumberFromLabel(JHTML doc, String label, String ignore) {
     String rawQuantity;
     if(ignore == null) {
       rawQuantity = doc.getNextContentAfterRegex(label);
     } else {
       rawQuantity = doc.getNextContentAfterRegexIgnoring(label, ignore);
     }
-    int quant2;
+    Integer quant2;
     if(rawQuantity != null) {
       quant2 = getDigits(rawQuantity);
     } else {
-      //  Why would I set quantity to 0?
-      quant2 = 1;
+      quant2 = null;
     }
     return quant2;
   }

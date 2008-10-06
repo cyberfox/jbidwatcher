@@ -412,7 +412,7 @@ public class AuctionInfo extends ActiveRecord
   Date getStartDate() { return getDate("start"); }
   Date getEndDate() { return getDate("end"); }
 
-  boolean isDutch() { return getBoolean("isDutch"); }
+  public boolean isDutch() { return getBoolean("isDutch"); }
   boolean isReserve() { return getBoolean("isReserve"); }
   protected boolean isPrivate() { return getBoolean("isPrivate"); }
   protected boolean isFixedPrice() { return getBoolean("fixed_price"); }
