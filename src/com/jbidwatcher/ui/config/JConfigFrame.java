@@ -141,6 +141,7 @@ public class JConfigFrame implements ActionListener {
     }
     allTabs.add(new JConfigFirewallTab());
     allTabs.add(new JConfigSnipeTab());
+    allTabs.add(new JConfigMyJBidwatcherTab());
     allTabs.add(new JConfigFilePathTab());
     allTabs.add(new JConfigWebserverTab());
 
