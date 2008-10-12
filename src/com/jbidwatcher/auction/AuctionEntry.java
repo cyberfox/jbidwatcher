@@ -896,7 +896,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
   //////////////////////////
   //  XML Handling functions
 
-  protected String[] infoTags = { "info", "bid", "snipe", "complete", "invalid", "comment", "log", "multisnipe", "shipping", "category" };
+  protected String[] infoTags = { "info", "bid", "snipe", "complete", "invalid", "comment", "log", "multisnipe", "shipping", "category", "winning" };
   protected String[] getTags() { return infoTags; }
 
   /**
@@ -957,6 +957,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       case 9:
         setCategory(curElement.getContents());
         setSticky(curElement.getProperty("STICKY", "false").equals("true"));
+        break;
+      case 10:
+        setWinning(true);
         break;
       default:
         break;
