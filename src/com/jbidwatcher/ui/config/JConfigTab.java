@@ -28,16 +28,6 @@ public abstract class JConfigTab extends JPanel {
     return(onelineBox);
   }
 
-  protected Box makeLine(JComponent first, JComponent second, JComponent third) {
-    Box onelineBox = Box.createHorizontalBox();
-
-    onelineBox.add(first);
-    onelineBox.add(second);
-    onelineBox.add(third);
-
-    return(onelineBox);
-  }
-
   public static void adjustField(JComponent jc, String accessibleName, DocumentListener dl) {
     if(jc == null) return;
 
