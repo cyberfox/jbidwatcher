@@ -799,8 +799,7 @@ class ebayAuction extends SpecificAuction {
     int bidCount = 0;
     if(rawBidCount != null) {
       if(rawBidCount.equals(Externalized.getString("ebayServer.purchasesBidCount")) ||
-         rawBidCount.endsWith(Externalized.getString("ebayServer.offerRecognition")) ||
-         rawBidCount.equals(Externalized.getString("ebayServer.offerRecognition"))) {
+         rawBidCount.endsWith(Externalized.getString("ebayServer.offerRecognition"))) {
         setFixedPrice(true);
         bidCount = -1;
       } else {
@@ -815,7 +814,7 @@ class ebayAuction extends SpecificAuction {
 
     //  If we can't match any digits in the bidcount, or there is no match for the eBayBidCount regex, then
     //  this is a store or FP item.  Still true under BIBO?
-    if (rawBidCount == null || getNumBids() == -1) {
+    if (rawBidCount == null || bidCount == -1) {
       setHighBidder(Externalized.getString("ebayServer.fixedPrice"));
       setFixedPrice(true);
 
