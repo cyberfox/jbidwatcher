@@ -666,8 +666,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
               long retry_wait = (snipeIn / 10) * 2;
               if(retry_wait < THREE_SECONDS) retry_wait = THREE_SECONDS;
 
-              _etqm.erase(deQ);
               _etqm.add(deQ, "snipes", _etqm.getCurrentTime()+retry_wait);
+            } else {
+              //  If there are less than 3 seconds left, give up.
+              ErrorManagement.logDebug("Resnipes failed, and less than 3 seconds away.  Giving up.");
+              _etqm.erase(deQ);
             }
             break;
           case Snipe.FAIL:
