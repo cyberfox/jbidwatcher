@@ -45,6 +45,7 @@ public class JBTool {
       if(option.equals("debug")) JConfig.setConfiguration("debugging", "true");
       if(option.equals("logconfig")) JConfig.setConfiguration("config.logging", "true");
       if(option.equals("logurls")) JConfig.setConfiguration("debug.urls", "true");
+      if(option.equals("sandbox")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi.sandbox.ebay.com");
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
@@ -57,6 +58,7 @@ public class JBTool {
       JConfig.setConfiguration("ebay.user", "default");
       JConfig.setConfiguration("ebay.password", "default");
     }
+
     final AuctionServer ebay = new ebayServer();
 
     Resolver r = new Resolver() {
