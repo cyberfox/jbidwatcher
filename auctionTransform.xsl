@@ -14,6 +14,7 @@
     <html>
       <head>
         <title>Auction List</title>
+        <link rel="shortcut icon" href="/favicon.ico"/>
         <style>
           .winner { color: green }
           .notwinner { color: red }

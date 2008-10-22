@@ -300,7 +300,7 @@ public class JBidProxy extends HTTPProxyClient {
     StringBuffer sbOut;
 
     if(getCached) {
-      sbOut = new StringBuffer("<HTML><BODY><B>This is <a href=\"http://www.jbidwatcher.com\">JBidwatcher</a>'s cached copy.</B><br>");
+      sbOut = new StringBuffer("<html><head><title>").append(ae.getTitle()).append("<link rel=\"shortcut icon\" href=\"/favicon.ico\"/></head><body><b>This is <a href=\"http://www.jbidwatcher.com\">JBidwatcher</a>'s cached copy.</b><br>");
       sbOut.append("Click here for the <a href=\"").append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier())).append("\">current page</a>.<hr>");
       sbOut.append(ae.getContent());
     } else {
@@ -313,7 +313,7 @@ public class JBidProxy extends HTTPProxyClient {
   private StringBuffer getAuctionHTMLFromServer(AuctionEntry ae) {
     StringBuffer sbOut;
     String relativeDocument;
-    sbOut = new StringBuffer("<HTML><BODY><B>JBidwatcher View</B><br>");
+    sbOut = new StringBuffer("<html><head><title>").append(ae.getTitle()).append("<link rel=\"shortcut icon\" href=\"/favicon.ico\"/></head><body><b>JBidwatcher View</b><br>");
     sbOut.append("Click here for the <a href=\"").append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier())).append("\">current page</a>.<br>");
 
     if(_item_list != null &&
