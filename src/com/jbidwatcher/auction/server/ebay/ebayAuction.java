@@ -796,6 +796,11 @@ class ebayAuction extends SpecificAuction {
 
   private int getBidCount(JHTML doc, int quantity) {
     String rawBidCount = doc.getNextContentAfterRegex(Externalized.getString("ebayServer.bidCount"));
+    if (rawBidCount == null) {
+      rawBidCount = doc.getContentBeforeContent("Bids");
+      if(!StringTools.isNumberOnly(rawBidCount)) rawBidCount = null;
+    }
+
     int bidCount = 0;
     if(rawBidCount != null) {
       if(rawBidCount.equals(Externalized.getString("ebayServer.purchasesBidCount")) ||
