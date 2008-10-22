@@ -284,6 +284,10 @@ class ebayAuction extends SpecificAuction {
     }
     if(altBuyNowString1 != null && altBuyNowString1.length() != 0) {
       setBuyNow(Currency.getCurrency(altBuyNowString1));
+      if(getBuyNow().isNull()) {
+        altBuyNowString1 = mDocument.getNextContentAfterContent("Buy It Now:");
+        setBuyNow(Currency.getCurrency(altBuyNowString1));
+      }
       setBuyNowUS(getUSCurrency(getBuyNow(), mDocument));
     }
   }
@@ -424,7 +428,9 @@ class ebayAuction extends SpecificAuction {
       setMinBid(getBuyNow());
     }
     try {
-      load_shipping_insurance(getCurBid());
+      Currency sample = getCurBid();
+      if(sample.isNull()) sample = getMinBid();
+      load_shipping_insurance(sample);
     } catch(Exception e) {
       ErrorManagement.handleException("Shipping / Insurance Loading Failed", e);
     }
@@ -797,8 +803,12 @@ class ebayAuction extends SpecificAuction {
   private int getBidCount(JHTML doc, int quantity) {
     String rawBidCount = doc.getNextContentAfterRegex(Externalized.getString("ebayServer.bidCount"));
     if (rawBidCount == null) {
-      rawBidCount = doc.getContentBeforeContent("Bids");
-      if(!StringTools.isNumberOnly(rawBidCount)) rawBidCount = null;
+      rawBidCount = doc.getContentBeforeContent("See history");
+      if(rawBidCount != null && rawBidCount.matches("^(Purchased|Bid).*")) {
+        if (rawBidCount.matches("^Purchased.*")) setFixedPrice(true);
+        rawBidCount = doc.getPrevContent();
+      }
+      if(rawBidCount != null && !StringTools.isNumberOnly(rawBidCount)) rawBidCount = null;
     }
 
     int bidCount = 0;

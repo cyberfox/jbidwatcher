@@ -170,7 +170,12 @@ public class AuctionInfo extends ActiveRecord
       case 17: //  PayPal accepted
         setBoolean(infoTags[i], true);
         if(i==7 || i==15) {
-          setInteger("quantity", Integer.parseInt(curElement.getProperty("QUANTITY")));
+          String quant = curElement.getProperty("QUANTITY");
+          if(quant == null) {
+            setInteger("quantity", 1);
+          } else {
+            setInteger("quantity", Integer.parseInt(quant));
+          }
         } else if(i==8) {
           setBoolean("reserveMet", "true".equals(curElement.getProperty("MET")));
         }
