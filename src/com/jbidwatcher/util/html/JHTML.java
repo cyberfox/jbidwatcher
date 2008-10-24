@@ -8,6 +8,8 @@ package com.jbidwatcher.util.html;
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLElement;
@@ -519,6 +521,9 @@ public class JHTML implements JHTMLListener {
     return new ArrayList<String>(linkTags);
   }
 
+  //  Extract just the HREF portion (should look for HREF=\")
+  private static Pattern urlMatcher = Pattern.compile("(?i)href=\"([^\"#]*)");
+
   public List<String> getAllURLsOnPage(boolean viewOnly) {
     // Add ALL auctions on myEbay bidding/watching page!
     List<String> addressTags = getAllLinks();
@@ -526,34 +531,21 @@ public class JHTML implements JHTMLListener {
     List<String> outEntries = null;
 
     for (String curTag : addressTags) {
-      //  Extract just the HREF portion (should look for HREF=\")
-      int searchIndex = curTag.indexOf('"');
-      if (searchIndex != -1) {
-        String href = curTag.substring(searchIndex + 1);
+      Matcher result = urlMatcher.matcher(curTag);
+      if(result.find()) {
+        String href = result.group(1);
 
-        //  Find the end of the quoted string (hopefully)
-        searchIndex = href.indexOf('"');
-        if (searchIndex != -1) {
-          href = href.substring(0, searchIndex);
-
-          searchIndex = href.indexOf('#');
-          //  As long as there isn't an anchor location...
-          if (searchIndex == -1) {
-            boolean isView = false;
-            if (viewOnly) {
-              isView = href.indexOf("ViewItem") != -1;
-              if (isView) {
-                href = deAmpersand(href);
-              }
-            }
-
-            if (!viewOnly || isView) {
-              if (outEntries == null) {
-                outEntries = new ArrayList<String>();
-              }
-              outEntries.add(href);
-            }
+        boolean isView = false;
+        if (viewOnly) {
+          isView = href.indexOf("ViewItem") != -1;
+          if (isView) {
+            href = deAmpersand(href);
           }
+        }
+
+        if (!viewOnly || isView) {
+          if (outEntries == null) outEntries = new ArrayList<String>();
+          outEntries.add(href);
         }
       }
     }

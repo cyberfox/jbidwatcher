@@ -5,9 +5,12 @@ import com.jbidwatcher.auction.Resolver;
 import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.queue.AuctionQObject;
+import com.jbidwatcher.util.queue.MQFactory;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -40,11 +43,13 @@ public class JBTool {
       }
     }
 
+    boolean justMyeBay = false;
     for(String option: options) {
       if(option.equals("logging")) JConfig.setConfiguration("logging", "true");
       if(option.equals("debug")) JConfig.setConfiguration("debugging", "true");
       if(option.equals("logconfig")) JConfig.setConfiguration("config.logging", "true");
       if(option.equals("logurls")) JConfig.setConfiguration("debug.urls", "true");
+      if(option.equals("myebay")) justMyeBay = true;
       if(option.equals("sandbox")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi.sandbox.ebay.com");
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
@@ -77,15 +82,21 @@ public class JBTool {
         return ebay;
       }
     };
+    AuctionServerManager.getInstance().addServer(ebay);
     AuctionEntry.setResolver(r);
-    AuctionEntry ae = AuctionEntry.construct(params.get(0));
-    if(ae.isDutch()) ae.checkDutchHighBidder();
-    XMLElement auctionXML = ae.toXML();
-    System.out.println(auctionXML.toString());
-    if(JConfig.debugging()) {
-      AuctionEntry ae2 = new AuctionEntry();
-      ae2.fromXML(auctionXML);
-      System.out.println("ae2.quantity == " + ae2.getQuantity());
+    if(!justMyeBay) {
+      AuctionEntry ae = AuctionEntry.construct(params.get(0));
+      if (ae.isDutch()) ae.checkDutchHighBidder();
+      XMLElement auctionXML = ae.toXML();
+      System.out.println(auctionXML.toString());
+      if (JConfig.debugging()) {
+        AuctionEntry ae2 = new AuctionEntry();
+        ae2.fromXML(auctionXML);
+        System.out.println("ae2.quantity == " + ae2.getQuantity());
+      }
+    } else {
+      MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
+      try { Thread.sleep(120000); } catch(Exception ignored) { }
     }
     System.exit(0);
   }
