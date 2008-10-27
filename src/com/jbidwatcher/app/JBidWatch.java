@@ -643,7 +643,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
       q.preQueue("TIMECHECK", "auction_manager", now + (Constants.ONE_SECOND * 2), Constants.THIRTY_MINUTES);
     }
-    q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", now + Constants.ONE_SECOND * 3, 240 * Constants.ONE_MINUTE);
+    q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", now + Constants.ONE_SECOND * 3, 481 * Constants.ONE_MINUTE + Constants.ONE_SECOND * 17);
     q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 2 * 10));
 
     //  Other interesting examples...
