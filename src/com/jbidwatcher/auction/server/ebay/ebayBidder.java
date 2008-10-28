@@ -8,11 +8,8 @@ import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.UpdateBlocker;
+import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.my.MyJBidwatcher;
@@ -163,7 +160,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
 
   private String checkForWarning(AuctionEntry inEntry, JHTML htmlDocument) throws UnsupportedEncodingException {
     String pageName = null;
-    if (htmlDocument.grep(Externalized.getString("ebayServer.warningPage")) != null) {
+    if (htmlDocument.grep(T.s("ebayServer.warningPage")) != null) {
       JHTML.Form continueForm = htmlDocument.getFormWithInput("firedFilterId");
       if (continueForm != null) {
         inEntry.setLastStatus("Trying to 'continue' for the actual bid.");

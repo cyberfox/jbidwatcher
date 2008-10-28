@@ -602,7 +602,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if (cj != null) userCookie = cj.toString();
     JHTML htmlDocument = new JHTML(Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidderNamesHost") + Externalized.getString("ebayServer.file") + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier(), userCookie, mCleaner);
 
-    String curName = htmlDocument.getNextContentAfterContent(Externalized.getString("ebayServer.bidListPrequel"));
+    String curName = htmlDocument.getNextContentAfterContent(T.s("ebayServer.bidListPrequel"));
 
     if(curName == null) {
       ErrorManagement.logMessage("Problem with loaded page when getting bidder names for auction " + ae.getIdentifier());
@@ -621,7 +621,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
       if(curName != null) curName = htmlDocument.getNextContent();
       if(curName != null) {
-        if(curName.indexOf(Externalized.getString("ebayServer.earlierCheck")) != -1) curName = null;
+        if(curName.indexOf(T.s("ebayServer.earlierCheck")) != -1) curName = null;
       }
     } while(curName != null);
 
@@ -757,7 +757,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     String pageStep = htmlDocument.getNextContent();
     while (result == null && pageStep != null) {
-      if (pageStep.equals(Externalized.getString("ebayServer.timePrequel1")) || pageStep.equals(Externalized.getString("ebayServer.timePrequel2"))) {
+      if (pageStep.equals(T.s("ebayServer.timePrequel1")) || pageStep.equals(T.s("ebayServer.timePrequel2"))) {
         result = StringTools.figureDate(htmlDocument.getNextContent(), Externalized.getString("ebayServer.officialTimeFormat"), false, false);
       }
       pageStep = htmlDocument.getNextContent();
