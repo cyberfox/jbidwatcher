@@ -6,6 +6,7 @@ import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Externalized;
+import com.jbidwatcher.util.T;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.auction.LoginManager;
 
@@ -126,11 +127,11 @@ public class ebayLoginManager implements LoginManager {
           return false;
         }
         enqueued = true;
-        if(htdoc.grep("(?ms).*Your user ID or password is incorrect.*") != null) {
+        if(htdoc.grep(T.s("your.user.id.or.password.is.incorrect")) != null) {
           MQFactory.getConcrete("login").enqueue("FAILED Incorrect login information.");
-        } else if(htdoc.grep("(?ms).*Your information has been verified.*")!=null) {
+        } else if(htdoc.grep(T.s("your.information.has.been.verified"))!=null) {
           MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
-        } else if(htdoc.grep("(?ms).*not to allow access to the Mature Audiences category outside the US.*") != null) {
+        } else if(htdoc.grep(T.s("mature.audiences.disallowed.outside.the.us")) != null) {
           MQFactory.getConcrete("login").enqueue("NEUTRAL Turn off 'Registered Adult', it's not valid for non-US users.");
           JConfig.setConfiguration("ebay.adult", "false");
           JConfig.setConfiguration("ebay.international", "true");
@@ -273,10 +274,10 @@ public class ebayLoginManager implements LoginManager {
   }
 
   private boolean checkSecurityConfirmation(JHTML doc) throws IOException, CaptchaException {
-    if(doc.grep(".*Security.Measure.*") != null ||
-       doc.grep(".*Enter verification code:.*") != null ||
-       doc.grep(".*Enter a verification code to continue.*") != null ||
-       doc.grep(".*[Pp]lease enter the verification code.*") != null) {
+    if(doc.grep(T.s("security.measure")) != null ||
+       doc.grep(T.s("enter.verification.code")) != null ||
+       doc.grep(T.s("enter.a.verification.code.to.continue")) != null ||
+       doc.grep(T.s("please.enter.the.verification.code")) != null) {
       ErrorManagement.logMessage("eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       notifySecurityIssue();
@@ -285,8 +286,8 @@ public class ebayLoginManager implements LoginManager {
       throw new CaptchaException("Failed eBay security check/captcha; verification code required.");
     }
 
-    if (doc.grep("Your sign in information is not valid.") != null ||
-        doc.grep("(?ms).*Your user ID or password is incorrect.*") != null) {
+    if (doc.grep(T.s("your.sign.in.information.is.not.valid")) != null ||
+        doc.grep(T.s("your.user.id.or.password.is.incorrect")) != null) {
       ErrorManagement.logMessage("Your sign in information is not correct.");
       if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN Your sign in information is not correct.  Fix it in the eBay tab in the Configuration Manager.");
       notifyBadSignin();
