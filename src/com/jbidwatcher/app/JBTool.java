@@ -23,10 +23,11 @@ import java.util.LinkedList;
  * Date: Oct 4, 2008
  * Time: 6:42:11 PM
  */
+@SuppressWarnings({"UtilityClass", "UtilityClassWithoutPrivateConstructor"})
 public class JBTool {
   private static boolean mLogin = false;
-  private static String mUsername;
-  private static String mPassword;
+  private static String mUsername = null;
+  private static String mPassword = null;
 
   public static void main(String[] args) {
     List<String> options = new LinkedList<String>();
@@ -51,6 +52,7 @@ public class JBTool {
       if(option.equals("logurls")) JConfig.setConfiguration("debug.urls", "true");
       if(option.equals("myebay")) justMyeBay = true;
       if(option.equals("sandbox")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi.sandbox.ebay.com");
+      if(option.startsWith("country=")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi." + option.substring(8));
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
@@ -85,14 +87,21 @@ public class JBTool {
     AuctionServerManager.getInstance().addServer(ebay);
     AuctionEntry.setResolver(r);
     if(!justMyeBay) {
+      try {
       AuctionEntry ae = AuctionEntry.construct(params.get(0));
-      if (ae.isDutch()) ae.checkDutchHighBidder();
-      XMLElement auctionXML = ae.toXML();
-      System.out.println(auctionXML.toString());
-      if (JConfig.debugging()) {
-        AuctionEntry ae2 = new AuctionEntry();
-        ae2.fromXML(auctionXML);
-        System.out.println("ae2.quantity == " + ae2.getQuantity());
+      if(ae != null) {
+        if (ae.isDutch()) ae.checkDutchHighBidder();
+        XMLElement auctionXML = ae.toXML();
+        System.out.println(auctionXML.toString());
+        if (JConfig.debugging()) {
+          AuctionEntry ae2 = new AuctionEntry();
+          ae2.fromXML(auctionXML);
+          System.out.println("ae2.quantity == " + ae2.getQuantity());
+        }
+      }
+      } catch(Exception dumpMe) {
+        System.out.println("Exception Thrown:\n" + dumpMe.toString() + "\n");
+        dumpMe.printStackTrace(System.out);
       }
     } else {
       MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
