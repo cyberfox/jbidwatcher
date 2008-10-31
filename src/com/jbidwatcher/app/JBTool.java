@@ -11,6 +11,7 @@ import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.T;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -52,7 +53,17 @@ public class JBTool {
       if(option.equals("logurls")) JConfig.setConfiguration("debug.urls", "true");
       if(option.equals("myebay")) justMyeBay = true;
       if(option.equals("sandbox")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi.sandbox.ebay.com");
-      if(option.startsWith("country=")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi." + option.substring(8));
+      if(option.startsWith("country=")) {
+        String country = option.substring(8);
+        JConfig.setConfiguration("override.ebayServer.viewHost", "cgi." + country);
+        String bundle = country.replace('.', '_');
+        try {
+          T.setBundle(bundle);
+        } catch(Exception e) {
+          System.err.println("Can't find bundle " + bundle + ".properties to load.");
+          T.setBundle("ebay_com");
+        }
+      }
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
