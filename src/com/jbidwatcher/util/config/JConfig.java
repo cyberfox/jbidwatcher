@@ -408,26 +408,9 @@ public class JConfig {
   }
 
   public static void loadDisplayConfig(ClassLoader urlCL, int screenwidth, int screenheight) {
+    String loadName = "display.cfg";
     Properties displayProps = new Properties();
-    boolean fileLoadFailed = false;
-    String dispFile = getCanonicalFile("display.cfg", "jbidwatcher", true);
-
-    File checkExistence = new File(dispFile);
-    InputStream dispIS = null;
-    if(checkExistence.exists()) {
-      try {
-        dispIS = new FileInputStream(dispFile);
-      } catch(FileNotFoundException e) {
-        ErrorManagement.handleException(dispFile + " deleted between existence check and loading!", e);
-        fileLoadFailed = true;
-      }
-    } else {
-      fileLoadFailed = true;
-    }
-
-    if(fileLoadFailed) {
-      dispIS = urlCL.getResourceAsStream("/display.cfg");
-    }
+    InputStream dispIS = getExternalWithFallback(urlCL, loadName);
 
     //  Preset to zero, because we check this later.
     height = 0;
@@ -479,6 +462,29 @@ public class JConfig {
       displayProps.setProperty("width", Integer.toString(width));
     }
     displayProperty = displayProps;
+  }
+
+  private static InputStream getExternalWithFallback(ClassLoader urlCL, String loadName) {
+    boolean fileLoadFailed = false;
+    String dispFile = getCanonicalFile(loadName, "jbidwatcher", true);
+
+    File checkExistence = new File(dispFile);
+    InputStream dispIS = null;
+    if(checkExistence.exists()) {
+      try {
+        dispIS = new FileInputStream(dispFile);
+      } catch(FileNotFoundException e) {
+        ErrorManagement.handleException(dispFile + " deleted between existence check and loading!", e);
+        fileLoadFailed = true;
+      }
+    } else {
+      fileLoadFailed = true;
+    }
+
+    if(fileLoadFailed) {
+      dispIS = urlCL.getResourceAsStream("/" + loadName);
+    }
+    return dispIS;
   }
 
   public static URL getResource(String path) {

@@ -358,12 +358,12 @@ class ebayAuction extends SpecificAuction {
   }
 
   private void loadFeedback(JHTML doc) {
-    String score = doc.getContentBeforeContent("Feedback:");
+    String score = doc.getContentBeforeContent(T.s("ebayServer.feedback"));
     if(score != null && StringTools.isNumberOnly(score)) {
       mSeller.setFeedback(Integer.parseInt(score));
     }
 
-    String percentage = doc.getNextContentAfterContent("Feedback:");
+    String percentage = doc.getNextContentAfterContent(T.s("ebayServer.feedback"));
     if(percentage != null) mSeller.setPositivePercentage(percentage);
   }
 
