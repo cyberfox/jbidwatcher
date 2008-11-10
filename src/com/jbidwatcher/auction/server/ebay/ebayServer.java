@@ -69,7 +69,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private Date mNow = new Date();
   private GregorianCalendar mCal;
   private final static ebayCurrencyTables sCurrencies = new ebayCurrencyTables();
-  private final ebayCleaner mCleaner;
+  private ebayCleaner mCleaner;
   private Bidder mBidder;
 
   public boolean equals(Object o) {
@@ -110,6 +110,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     "ebay.ch",
     "befr.ebay.be",
     "ebay.ie"};
+
+  public static int getSiteNumber(String site) {
+    for(int i=0; i<sSiteChoices.length; i++) {
+      if(site.equals(sSiteChoices[i])) return i;
+    }
+    return -1;
+  }
 
   /** @noinspection RedundantIfStatement*/
   public boolean doHandleThisSite(URL checkURL) {
@@ -404,6 +411,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     snipeMap.remove(id);
   }
 
+  public ebayServer(String site, String username, String password) {
+    if(site == null) {
+      String siteNumber = JConfig.queryConfiguration(getName() + ".browse.site");
+    }
+    constructServer(site, username, password);
+  }
+
   /**
    * @brief Constructor for the eBay server object.
    *
@@ -411,15 +425,19 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * now, but it is probably not broken.  -- mrs: 18-September-2003 15:08
    */
   public ebayServer() {
+    String username = JConfig.queryConfiguration(getName() + ".user", "default");
     String siteNumber = JConfig.queryConfiguration(getName() + ".browse.site");
-    if(siteNumber != null && !siteNumber.equals("0")) {
-      String countrySite = sSiteChoices[Integer.parseInt(siteNumber)];
+    final String password = JConfig.queryConfiguration(getName() + ".password", "default");
+    constructServer(siteNumber, username, password);
+  }
+
+  private void constructServer(String site, String username, String password) {
+    if(site != null && !site.equals("0")) {
+      String countrySite = sSiteChoices[Integer.parseInt(site)];
       T.setCountrySite(countrySite);
     }
     mCleaner = new ebayCleaner();
-    mLogin = new ebayLoginManager(eBayServerName,
-        JConfig.queryConfiguration(getName() + ".password", "default"),
-        JConfig.queryConfiguration(getName() + ".user", "default"));
+    mLogin = new ebayLoginManager(eBayServerName, password, username);
     mSearcher = new ebaySearches(mCleaner, mLogin);
     mBidder = new ebayBidder(mLogin);
 

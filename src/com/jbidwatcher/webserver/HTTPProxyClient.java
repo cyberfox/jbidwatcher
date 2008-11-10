@@ -98,6 +98,7 @@ public abstract class HTTPProxyClient extends ProxyClient {
           totalResponse.append(headerAddons);
         } else {
           totalResponse.append("Content-Type: text/html; charset=UTF-8\n");
+          if(builtDocument != null) totalResponse.append("Content-Length: ").append(builtDocument.length()).append('\n');
         }
         if (builtDocument != null) {
           totalResponse.append('\n');

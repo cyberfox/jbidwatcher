@@ -12,10 +12,16 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.T;
+import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.webserver.HTTPProxyClient;
+import com.jbidwatcher.webserver.SimpleProxy;
+import com.jbidwatcher.webserver.JBidProxy;
 
 import java.util.*;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.io.FileNotFoundException;
+import java.net.Socket;
 
 /**
  * This provides a command-line interface to JBidwatcher, loading an individual auction
@@ -30,6 +36,7 @@ public class JBTool {
   private static boolean mLogin = false;
   private static String mUsername = null;
   private static String mPassword = null;
+  private static SimpleProxy mServer = null;
 
   private static void testDateFormatting() {
     String[] zones = TimeZone.getAvailableIDs();
@@ -45,13 +52,46 @@ public class JBTool {
       SimpleDateFormat sdf = new SimpleDateFormat(siteDateFormat, Locale.US);
       Date endingDate = sdf.parse(testTime);
       TimeZone tz = sdf.getCalendar().getTimeZone();
+      System.err.println("EndingDate: " + endingDate + "\nTZ: " + tz);
     } catch (ParseException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      e.printStackTrace();
+    }
+  }
+
+  public static class MiniServer extends HTTPProxyClient {
+    public MiniServer(Socket talkSock) {
+      super(talkSock);
+    }
+
+    protected boolean handleAuthorization(String inAuth) {
+      return true;
+    }
+
+    protected boolean needsAuthorization(String reqFile) {
+      return false;
+    }
+
+    protected StringBuffer buildHeaders(String whatDocument, byte[][] buf) throws FileNotFoundException {
+      return null;
+    }
+
+    protected StringBuffer buildHTML(String whatDocument) {
+      if(whatDocument.indexOf("/") != -1) {
+        whatDocument = whatDocument.substring(whatDocument.indexOf("/") +1);
+      }
+      if(StringTools.isNumberOnly(whatDocument)) {
+        StringBuffer sb = retrieveAuctionXML(whatDocument);
+        System.err.println("Returning: " + sb);
+        return sb;
+      } else if(whatDocument.equals("SHUTDOWN")) {
+        mServer.halt();
+        mServer.interrupt();
+      }
+      return new StringBuffer();
     }
   }
 
   public static void main(String[] args) {
-//    testDateFormatting();
     List<String> options = new LinkedList<String>();
     List<String> params = new LinkedList<String>();
     ActiveRecord.disableDatabase();
@@ -67,9 +107,15 @@ public class JBTool {
     }
 
     boolean justMyeBay = false;
+    boolean runServer = false;
+    int site = -1;
+    String portNumber = null;
     for(String option: options) {
+      if(option.equals("server")) runServer = true;
+      if(option.startsWith("port=")) portNumber = option.substring(5);
       if(option.equals("logging")) JConfig.setConfiguration("logging", "true");
       if(option.equals("debug")) JConfig.setConfiguration("debugging", "true");
+      if(option.equals("timetest")) testDateFormatting();
       if(option.equals("logconfig")) JConfig.setConfiguration("config.logging", "true");
       if(option.equals("logurls")) JConfig.setConfiguration("debug.urls", "true");
       if(option.equals("myebay")) justMyeBay = true;
@@ -80,21 +126,20 @@ public class JBTool {
           System.err.println("Can't find properties bundle to load for country " + country + ".");
           T.setBundle("ebay_com");
         }
+        site = ebayServer.getSiteNumber(country);
+        if(site == -1) System.err.println("That country is not recognized by JBidwatcher's eBay Server.");
       }
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
     }
 
-    if(mLogin) {
-      JConfig.setConfiguration("ebay.user", mUsername);
-      JConfig.setConfiguration("ebay.password", mPassword);
-    } else {
-      JConfig.setConfiguration("ebay.user", "default");
-      JConfig.setConfiguration("ebay.password", "default");
+    if(!mLogin) {
+      mPassword = mUsername = "default";
     }
+    if(site == -1) site = 0;
 
-    final AuctionServer ebay = new ebayServer();
+    final AuctionServer ebay = new ebayServer(Integer.toString(site), mUsername, mPassword);
 
     Resolver r = new Resolver() {
       public AuctionServerInterface getServerByName(String name) {
@@ -114,27 +159,47 @@ public class JBTool {
     };
     AuctionServerManager.getInstance().addServer(ebay);
     AuctionEntry.setResolver(r);
-    if(!justMyeBay) {
+
+    if(runServer) {
+      int listenPort = 9099;
+      if(portNumber != null) listenPort = Integer.parseInt(portNumber);
+      mServer = new SimpleProxy(listenPort, MiniServer.class, null);
+      mServer.go();
+      try { mServer.join(); } catch(Exception ignored) { /* Time to die... */ }
+    } else if(justMyeBay) {
+      MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
+      try { Thread.sleep(120000); } catch(Exception ignored) { }
+    } else {
       try {
-      AuctionEntry ae = AuctionEntry.construct(params.get(0));
-      if(ae != null) {
-        if (ae.isDutch()) ae.checkDutchHighBidder();
-        XMLElement auctionXML = ae.toXML();
-        System.out.println(auctionXML.toString());
-        if (JConfig.debugging()) {
-          AuctionEntry ae2 = new AuctionEntry();
-          ae2.fromXML(auctionXML);
-          System.out.println("ae2.quantity == " + ae2.getQuantity());
+        StringBuffer auctionXML = retrieveAuctionXML(params.get(0));
+        if(auctionXML != null) {
+          System.out.println(auctionXML);
+          XMLElement xmlized = new XMLElement();
+          xmlized.parseString(auctionXML.toString());
+
+          if (JConfig.debugging()) {
+            AuctionEntry ae2 = new AuctionEntry();
+            ae2.fromXML(xmlized);
+            System.out.println("ae2.quantity == " + ae2.getQuantity());
+          }
         }
-      }
       } catch(Exception dumpMe) {
         System.out.println("Exception Thrown:\n" + dumpMe.toString() + "\n");
         dumpMe.printStackTrace(System.out);
       }
-    } else {
-      MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
-      try { Thread.sleep(120000); } catch(Exception ignored) { }
     }
     System.exit(0);
   }
+
+  private static StringBuffer retrieveAuctionXML(String identifier) {
+    AuctionEntry ae = AuctionEntry.construct(identifier);
+    if(ae != null) {
+      if (ae.isDutch()) ae.checkDutchHighBidder();
+      XMLElement auctionXML = ae.toXML();
+      return auctionXML.toStringBuffer();
+    }
+
+    return null;
+  }
+
 }
