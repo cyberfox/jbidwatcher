@@ -31,7 +31,6 @@ public abstract class HTTPProxyClient extends ProxyClient {
   protected abstract boolean handleAuthorization(String inAuth);
 
   protected void handleLine(String inLine) {
-
     if(inLine.startsWith("GET ")) {
       int spaceLocation = inLine.lastIndexOf(' ');
       if(spaceLocation == -1) spaceLocation = inLine.length();

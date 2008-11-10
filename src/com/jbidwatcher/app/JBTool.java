@@ -80,10 +80,10 @@ public class JBTool {
         whatDocument = whatDocument.substring(whatDocument.indexOf("/") +1);
       }
       if(StringTools.isNumberOnly(whatDocument)) {
-        StringBuffer sb = retrieveAuctionXML(whatDocument);
-        System.err.println("Returning: " + sb);
-        return sb;
+        if(JConfig.debugging()) System.out.println("Retrieving auction: " + whatDocument);
+        return retrieveAuctionXML(whatDocument);
       } else if(whatDocument.equals("SHUTDOWN")) {
+        if(JConfig.debugging()) System.out.println("Shutting down.");
         mServer.halt();
         mServer.interrupt();
       }
