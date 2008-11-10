@@ -31,17 +31,25 @@ public class T {
     //  Don't need to do anything here.
   }
 
-  public static void setBundle(String bundleName) {
+  public static boolean setBundle(String bundleName) {
+    boolean successful = false;
+    try {
+      sResource = ResourceBundle.getBundle(bundleName);
+      successful = true;
+    } catch(Exception ignored) { }
+
     InputStream is = JConfig.bestSource(urlCL, bundleName + ".properties");
-    sResource = ResourceBundle.getBundle(bundleName);
     if(is != null) {
       overrideProperties = new Properties();
       try {
         overrideProperties.load(is);
+        successful = true;
       } catch (IOException e) {
         ErrorManagement.logDebug("Failed to load property override file for " + bundleName + ".");
       }
     }
+
+    return successful;
   }
 
   /**
@@ -50,7 +58,7 @@ public class T {
    */
   public static String s(String key) {
     String override = JConfig.queryConfiguration("override." + key);
-    if(override == null) override = overrideProperties.getProperty(key);
+    if(override == null && overrideProperties != null) override = overrideProperties.getProperty(key);
     if(override != null) {
       return override;
     }
@@ -60,5 +68,14 @@ public class T {
     } catch (MissingResourceException e) {
       return '!' + key + '!';
     }
+  }
+
+  public static boolean setCountrySite(String country) {
+    String bundle = country.replace('.', '_');
+    boolean result = T.setBundle(bundle);
+    if(result) {
+      JConfig.setConfiguration("override.ebayServer.viewHost", "cgi." + country);
+    }
+    return result;
   }
 }

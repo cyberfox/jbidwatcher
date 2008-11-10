@@ -5,6 +5,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.http.CookieJar;
+import com.jbidwatcher.util.T;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.JBEditorPane;
@@ -96,6 +97,10 @@ public class JConfigEbayTab extends JConfigTab
 
     if(selectedSite != -1) {
       JConfig.setConfiguration(ebayServer.getSiteName() + ".browse.site", Integer.toString(selectedSite));
+      String selected = (String)siteSelect.getSelectedItem();
+      if(!T.setCountrySite(selected)) {
+        JOptionPane.showMessageDialog(null, "No site bundle exists; JBidwatcher will operate against ebay.com.", "Country Site Bundle", JOptionPane.INFORMATION_MESSAGE);
+      }
     }
 
     if(old_pass == null || !new_pass.equals(old_pass) ||
@@ -182,9 +187,9 @@ public class JConfigEbayTab extends JConfigTab
     }
     siteSelect = new JComboBox(siteChoices);
     siteSelect.setSelectedIndex(realCurrentSite);
-    tp.add(makeLine(new JLabel("Browse to site: "), siteSelect), BorderLayout.NORTH);
+    tp.add(makeLine(new JLabel("Country site: "), siteSelect), BorderLayout.NORTH);
 
-    JLabel bidWarning = new JLabel("Note: Bids will be placed via ebay.com");
+    JLabel bidWarning = new JLabel("Note: Bidding is not entirely supported yet on non-ebay.com sites");
     bidWarning.setFont(bidWarning.getFont().deriveFont(Font.ITALIC));
     tp.add(bidWarning, BorderLayout.EAST);
     return tp;

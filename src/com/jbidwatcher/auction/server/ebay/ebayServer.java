@@ -411,6 +411,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * now, but it is probably not broken.  -- mrs: 18-September-2003 15:08
    */
   public ebayServer() {
+    String siteNumber = JConfig.queryConfiguration(getName() + ".browse.site");
+    if(siteNumber != null && !siteNumber.equals("0")) {
+      String countrySite = sSiteChoices[Integer.parseInt(siteNumber)];
+      T.setCountrySite(countrySite);
+    }
     mCleaner = new ebayCleaner();
     mLogin = new ebayLoginManager(eBayServerName,
         JConfig.queryConfiguration(getName() + ".password", "default"),

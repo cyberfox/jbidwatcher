@@ -13,8 +13,9 @@ import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.T;
 
-import java.util.List;
-import java.util.LinkedList;
+import java.util.*;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 
 /**
  * This provides a command-line interface to JBidwatcher, loading an individual auction
@@ -30,7 +31,27 @@ public class JBTool {
   private static String mUsername = null;
   private static String mPassword = null;
 
+  private static void testDateFormatting() {
+    String[] zones = TimeZone.getAvailableIDs();
+    for(String zone : zones) {
+      if(zone.contains("M")) {
+        System.err.println("MEZ - " + zone);
+      }
+    }
+
+    try {
+      String siteDateFormat = "dd.MM.yy HH:mm:ss z";
+      String testTime = "10.11.08 13:54:28 MET";
+      SimpleDateFormat sdf = new SimpleDateFormat(siteDateFormat, Locale.US);
+      Date endingDate = sdf.parse(testTime);
+      TimeZone tz = sdf.getCalendar().getTimeZone();
+    } catch (ParseException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
+  }
+
   public static void main(String[] args) {
+//    testDateFormatting();
     List<String> options = new LinkedList<String>();
     List<String> params = new LinkedList<String>();
     ActiveRecord.disableDatabase();
@@ -55,12 +76,8 @@ public class JBTool {
       if(option.equals("sandbox")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi.sandbox.ebay.com");
       if(option.startsWith("country=")) {
         String country = option.substring(8);
-        JConfig.setConfiguration("override.ebayServer.viewHost", "cgi." + country);
-        String bundle = country.replace('.', '_');
-        try {
-          T.setBundle(bundle);
-        } catch(Exception e) {
-          System.err.println("Can't find bundle " + bundle + ".properties to load.");
+        if(!T.setCountrySite(country)) {
+          System.err.println("Can't find properties bundle to load for country " + country + ".");
           T.setBundle("ebay_com");
         }
       }

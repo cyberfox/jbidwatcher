@@ -173,6 +173,7 @@ public class StringTools {
    * web page.
    */
   public static ZoneDate figureDate(String endTime, String siteDateFormat, boolean strip_high, boolean ignore_badformat) {
+    if(endTime != null) endTime = endTime.replace("MEZ", "MET");
     String endTimeFmt = endTime;
     SimpleDateFormat sdf = new SimpleDateFormat(siteDateFormat, Locale.US);
 
