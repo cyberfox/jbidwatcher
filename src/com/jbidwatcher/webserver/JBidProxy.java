@@ -39,9 +39,7 @@ public class JBidProxy extends HTTPProxyClient {
   private static final String syndicate = "syndicate/";
   private static final String event = "event";
   private static final String messageFinisher = "<br>Return to <a href=\"" + Constants.PROGRAM_NAME + "\">auction list</a>.";
-
-  private static List<String> _item_list = null;
-  private static StringBuffer sIcon;
+  private static StringBuffer sIcon = null;
 
   public JBidProxy(Socket talkSock) {
     super(talkSock);
@@ -311,40 +309,8 @@ public class JBidProxy extends HTTPProxyClient {
   }
 
   private StringBuffer getAuctionHTMLFromServer(AuctionEntry ae) {
-    StringBuffer sbOut;
-    String relativeDocument;
-    sbOut = new StringBuffer("<html><head><title>").append(ae.getTitle()).append("<link rel=\"shortcut icon\" href=\"/favicon.ico\"/></head><body><b>JBidwatcher View</b><br>");
+    StringBuffer sbOut = new StringBuffer("<html><head><title>").append(ae.getTitle()).append("<link rel=\"shortcut icon\" href=\"/favicon.ico\"/></head><body><b>JBidwatcher View</b><br>");
     sbOut.append("Click here for the <a href=\"").append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier())).append("\">current page</a>.<br>");
-
-    if(_item_list != null &&
-       _item_list.size() > 1) {
-      relativeDocument = ae.getIdentifier();
-
-      int cur_item = _item_list.indexOf(relativeDocument);
-
-      if(cur_item != -1) {
-        if(cur_item != 0) {
-          sbOut.append(getHTMLForEntry("Prev", _item_list.get(cur_item-1)));
-          sbOut.append("&nbsp;");
-        }
-        for(int i=0; i<_item_list.size(); i++) {
-          String showString;
-          if(i==0) showString = "First";
-          else if(i == (_item_list.size()-1)) showString = "Last";
-          else showString = Integer.toString(i+1);
-
-          if (i == cur_item) {
-            sbOut.append('(').append(showString).append(')');
-          } else {
-            sbOut.append(getHTMLForEntry(showString, _item_list.get(i)));
-          }
-          sbOut.append("&nbsp;");
-        }
-        if(cur_item != (_item_list.size()-1)) {
-          sbOut.append(getHTMLForEntry("Next", _item_list.get(cur_item+1)));
-        }
-      }
-    }
 
     sbOut.append("<hr><br>");
     AuctionServerInterface aucServ = ae.getServer();
@@ -451,19 +417,5 @@ public class JBidProxy extends HTTPProxyClient {
             append(genItems(s)).
             append("  </channel>\n").
             append("</rss>\n");
-  }
-
-  public static void setItems(Vector<String> v) {
-    _item_list = v;
-  }
-
-  private String getHTMLForEntry(String linktext, String item_id) {
-    AuctionEntry aePrev = AuctionEntry.findByIdentifier(item_id);
-
-    if(aePrev.isInvalid()) {
-      return "<a href=\"./cached_" + item_id + "\">" + linktext + "</a>";
-    } else {
-      return "<a href=\"./"        + item_id + "\">" + linktext + "</a>";
-    }
   }
 }
