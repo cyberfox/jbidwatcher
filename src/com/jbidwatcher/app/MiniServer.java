@@ -2,8 +2,9 @@ package com.jbidwatcher.app;
 
 import com.jbidwatcher.webserver.HTTPProxyClient;
 import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.*;
 
 import java.net.Socket;
 import java.io.FileNotFoundException;
@@ -35,16 +36,73 @@ public class MiniServer extends HTTPProxyClient {
   protected StringBuffer buildHeaders(String whatDocument, byte[][] buf) throws FileNotFoundException { return null; }
 
   private static Object[][] sRoutes = {
+      //  /390005676820
+      {"showItem", Pattern.compile("^(\\d+)$")},
       //  /show/390005676820
-      {"showItem", Pattern.compile("^show/([0-9]+)$")},
+      {"showItem", Pattern.compile("^show/(\\d+)$")},
       //  /buy/390005676820
-      {"buy", Pattern.compile("^buy/(\\d+)$")},
+      {"buy", Pattern.compile("^buy/(\\d+)(?:/(\\d+))?$")},
       //  /bid/390005676820/8.27 {or} /bid/390005676820/8,27
-      {"bid", Pattern.compile("^bid/(\\d+)/(\\d+[,.]?\\d*)$")}
+      {"bid", Pattern.compile("^bid/(\\d+)/(\\d+[,.]?\\d*)(?:/(\\d+))?$")},
+      {"shutdown", Pattern.compile("^shutdown$")}
   };
 
+  public StringBuffer shutdown() {
+    ErrorManagement.logDebug("Shutting down.");
+    mTool.done();
+
+    return new StringBuffer("Shutting down.");
+  }
+
   public StringBuffer showItem(String identifier) {
+    ErrorManagement.logDebug("Retrieving auction: " + identifier);
     return AuctionEntry.retrieveAuctionXML(identifier);
+  }
+
+  public StringBuffer buy(String identifier, String howMany) {
+    int quantity = getQuantity(howMany);
+
+    AuctionEntry ae = AuctionEntry.construct(identifier);
+    AuctionBuy ab = new AuctionBuy(ae, null, quantity);
+    return fireAction(ae, ab);
+  }
+
+  private int getQuantity(String howMany) {
+    int quantity = 1;
+    if(howMany != null) {
+      quantity = Integer.parseInt(howMany);
+    }
+    return quantity;
+  }
+
+  public StringBuffer bid(String identifier, String howMuch, String howMany) {
+    int quantity = getQuantity(howMany);
+    AuctionEntry ae = AuctionEntry.construct(identifier);
+
+    AuctionBid ab = new AuctionBid(ae, Currency.getCurrency(ae.getCurBid().getCurrencySymbol(), howMuch), quantity);
+    return fireAction(ae, ab);
+  }
+
+  private StringBuffer fireAction(AuctionEntry entry, AuctionAction action) {
+    String result = action.activate();
+    if(result != null) {
+      StringBuffer sb = new StringBuffer("<result>");
+      int numericResult = action.getResult();
+      if(numericResult == AuctionServerInterface.BID_BOUGHT_ITEM ||
+          numericResult == AuctionServerInterface.BID_SELFWIN ||
+          numericResult == AuctionServerInterface.BID_WINNING) {
+        sb.append("<success><![CDATA[").append(result).append("]]></success>\n");
+      } else {
+        sb.append("<error><![CDATA[").append(result).append("]]></error>\n");
+        if(entry.getErrorPage() != null) {
+          sb.append("<page><![CDATA[").append(entry.getErrorPage()).append("]]></page>\n");
+        }
+      }
+
+      return sb;
+    } else {
+      return null;
+    }
   }
 
   protected StringBuffer buildHTML(String whatDocument) throws FileNotFoundException {
@@ -52,16 +110,7 @@ public class MiniServer extends HTTPProxyClient {
       whatDocument = whatDocument.substring(whatDocument.indexOf("/") +1);
     }
 
-    StringBuffer sb = null;
-    if(StringTools.isNumberOnly(whatDocument)) {
-      ErrorManagement.logDebug("Retrieving auction: " + whatDocument);
-      sb = AuctionEntry.retrieveAuctionXML(whatDocument);
-    } else if(whatDocument.equals("shutdown")) {
-      ErrorManagement.logDebug("Shutting down.");
-      mTool.done();
-    } else {
-      sb = processRoutes(whatDocument);
-    }
+    StringBuffer sb = processRoutes(whatDocument);
 
     if(sb == null) throw new FileNotFoundException(whatDocument);
 
