@@ -7,21 +7,17 @@ import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.T;
-import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.webserver.HTTPProxyClient;
 import com.jbidwatcher.webserver.SimpleProxy;
-import com.jbidwatcher.webserver.JBidProxy;
 
 import java.util.*;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
-import java.io.FileNotFoundException;
-import java.net.Socket;
 
 /**
  * This provides a command-line interface to JBidwatcher, loading an individual auction
@@ -33,68 +29,97 @@ import java.net.Socket;
  */
 @SuppressWarnings({"UtilityClass", "UtilityClassWithoutPrivateConstructor"})
 public class JBTool {
-  private static boolean mLogin = false;
-  private static String mUsername = null;
-  private static String mPassword = null;
-  private static SimpleProxy mServer = null;
+  private boolean mLogin = false;
+  private String mUsername = null;
+  private String mPassword = null;
+  private SimpleProxy mServer = null;
+  private boolean mJustMyeBay = false;
+  private boolean mRunServer = false;
+  private int mSiteNumber = -1;
+  private String mPortNumber = null;
+  private List<String> mParams;
 
-  private static void testDateFormatting() {
-    String[] zones = TimeZone.getAvailableIDs();
-    for(String zone : zones) {
-      if(zone.contains("M")) {
-        System.err.println("MEZ - " + zone);
-      }
-    }
-
+  private void testDateFormatting() {
     try {
       String siteDateFormat = "dd.MM.yy HH:mm:ss z";
       String testTime = "10.11.08 13:54:28 MET";
       SimpleDateFormat sdf = new SimpleDateFormat(siteDateFormat, Locale.US);
       Date endingDate = sdf.parse(testTime);
       TimeZone tz = sdf.getCalendar().getTimeZone();
-      System.err.println("EndingDate: " + endingDate + "\nTZ: " + tz);
+      ErrorManagement.logMessage("EndingDate: " + endingDate + "\nTZ: " + tz);
     } catch (ParseException e) {
       e.printStackTrace();
     }
   }
 
-  public static class MiniServer extends HTTPProxyClient {
-    public MiniServer(Socket talkSock) {
-      super(talkSock);
-    }
+  public void execute() {
+    setupAuctionResolver();
 
-    protected boolean handleAuthorization(String inAuth) {
-      return true;
-    }
-
-    protected boolean needsAuthorization(String reqFile) {
-      return false;
-    }
-
-    protected StringBuffer buildHeaders(String whatDocument, byte[][] buf) throws FileNotFoundException {
-      return null;
-    }
-
-    protected StringBuffer buildHTML(String whatDocument) {
-      if(whatDocument.indexOf("/") != -1) {
-        whatDocument = whatDocument.substring(whatDocument.indexOf("/") +1);
-      }
-      if(StringTools.isNumberOnly(whatDocument)) {
-        if(JConfig.debugging()) System.out.println("Retrieving auction: " + whatDocument);
-        return retrieveAuctionXML(whatDocument);
-      } else if(whatDocument.equals("SHUTDOWN")) {
-        if(JConfig.debugging()) System.out.println("Shutting down.");
-        mServer.halt();
-        mServer.interrupt();
-      }
-      return new StringBuffer();
+    if(mRunServer) {
+      spawnServer();
+    } else if(mJustMyeBay) {
+      MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
+      try { Thread.sleep(120000); } catch(Exception ignored) { }
+    } else {
+      retrieveAndVerifyAuctions(mParams);
     }
   }
 
+  public JBTool(String[] args) {
+    mParams = parseOptions(args);
+  }
+
   public static void main(String[] args) {
+    ActiveRecord.disableDatabase();
+    JBTool tool = new JBTool(args);
+
+    tool.execute();
+    System.exit(0);
+  }
+
+  private void retrieveAndVerifyAuctions(List<String> params) {
+    try {
+      StringBuffer auctionXML = AuctionEntry.retrieveAuctionXML(params.get(0));
+      if(auctionXML != null) {
+        ErrorManagement.logMessage(auctionXML.toString());
+        XMLElement xmlized = new XMLElement();
+        xmlized.parseString(auctionXML.toString());
+
+        if (JConfig.debugging()) {
+          AuctionEntry ae2 = new AuctionEntry();
+          ae2.fromXML(xmlized);
+          ErrorManagement.logDebug("ae2.quantity == " + ae2.getQuantity());
+        }
+      }
+    } catch(Exception dumpMe) {
+      ErrorManagement.handleException("Failure during serialization or deserialization of an auction", dumpMe);
+    }
+  }
+
+  private void spawnServer() {
+    int listenPort = 9099;
+    if(mPortNumber != null) listenPort = Integer.parseInt(mPortNumber);
+    mServer = new SimpleProxy(listenPort, MiniServer.class, this);
+    mServer.go();
+    try { mServer.join(); } catch(Exception ignored) { /* Time to die... */ }
+  }
+
+  private void setupAuctionResolver() {
+    final AuctionServer ebay = new ebayServer(Integer.toString(mSiteNumber), mUsername, mPassword);
+
+    Resolver r = new Resolver() {
+      public AuctionServerInterface getServerByName(String name) { return ebay; }
+      public AuctionServerInterface getServerForIdentifier(String auctionId) { return ebay; }
+      public AuctionServerInterface getServerForUrlString(String strURL) { return ebay; }
+      public AuctionServerInterface getServer() { return ebay; }
+    };
+    AuctionServerManager.getInstance().addServer(ebay);
+    AuctionEntry.setResolver(r);
+  }
+
+  private List<String> parseOptions(String[] args) {
     List<String> options = new LinkedList<String>();
     List<String> params = new LinkedList<String>();
-    ActiveRecord.disableDatabase();
 
     for(String arg : args) {
       if(arg.charAt(0) == '-') {
@@ -106,28 +131,24 @@ public class JBTool {
       }
     }
 
-    boolean justMyeBay = false;
-    boolean runServer = false;
-    int site = -1;
-    String portNumber = null;
     for(String option: options) {
-      if(option.equals("server")) runServer = true;
-      if(option.startsWith("port=")) portNumber = option.substring(5);
+      if(option.equals("server")) mRunServer = true;
+      if(option.startsWith("port=")) mPortNumber = option.substring(5);
       if(option.equals("logging")) JConfig.setConfiguration("logging", "true");
       if(option.equals("debug")) JConfig.setConfiguration("debugging", "true");
       if(option.equals("timetest")) testDateFormatting();
       if(option.equals("logconfig")) JConfig.setConfiguration("config.logging", "true");
       if(option.equals("logurls")) JConfig.setConfiguration("debug.urls", "true");
-      if(option.equals("myebay")) justMyeBay = true;
+      if(option.equals("myebay")) mJustMyeBay = true;
       if(option.equals("sandbox")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi.sandbox.ebay.com");
       if(option.startsWith("country=")) {
         String country = option.substring(8);
         if(!T.setCountrySite(country)) {
-          System.err.println("Can't find properties bundle to load for country " + country + ".");
+          ErrorManagement.logMessage("Can't find properties bundle to load for country " + country + ".");
           T.setBundle("ebay_com");
         }
-        site = ebayServer.getSiteNumber(country);
-        if(site == -1) System.err.println("That country is not recognized by JBidwatcher's eBay Server.");
+        mSiteNumber = ebayServer.getSiteNumber(country);
+        if(mSiteNumber == -1) ErrorManagement.logMessage("That country is not recognized by JBidwatcher's eBay Server.");
       }
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
@@ -137,69 +158,12 @@ public class JBTool {
     if(!mLogin) {
       mPassword = mUsername = "default";
     }
-    if(site == -1) site = 0;
-
-    final AuctionServer ebay = new ebayServer(Integer.toString(site), mUsername, mPassword);
-
-    Resolver r = new Resolver() {
-      public AuctionServerInterface getServerByName(String name) {
-        return ebay;
-      }
-
-      public AuctionServerInterface getServerForIdentifier(String auctionId) {
-        return ebay;
-      }
-
-      public AuctionServerInterface getServerForUrlString(String strURL) {
-        return ebay;
-      }
-      public AuctionServerInterface getServer() {
-        return ebay;
-      }
-    };
-    AuctionServerManager.getInstance().addServer(ebay);
-    AuctionEntry.setResolver(r);
-
-    if(runServer) {
-      int listenPort = 9099;
-      if(portNumber != null) listenPort = Integer.parseInt(portNumber);
-      mServer = new SimpleProxy(listenPort, MiniServer.class, null);
-      mServer.go();
-      try { mServer.join(); } catch(Exception ignored) { /* Time to die... */ }
-    } else if(justMyeBay) {
-      MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
-      try { Thread.sleep(120000); } catch(Exception ignored) { }
-    } else {
-      try {
-        StringBuffer auctionXML = retrieveAuctionXML(params.get(0));
-        if(auctionXML != null) {
-          System.out.println(auctionXML);
-          XMLElement xmlized = new XMLElement();
-          xmlized.parseString(auctionXML.toString());
-
-          if (JConfig.debugging()) {
-            AuctionEntry ae2 = new AuctionEntry();
-            ae2.fromXML(xmlized);
-            System.out.println("ae2.quantity == " + ae2.getQuantity());
-          }
-        }
-      } catch(Exception dumpMe) {
-        System.out.println("Exception Thrown:\n" + dumpMe.toString() + "\n");
-        dumpMe.printStackTrace(System.out);
-      }
-    }
-    System.exit(0);
+    if(mSiteNumber == -1) mSiteNumber = 0;
+    return params;
   }
 
-  private static StringBuffer retrieveAuctionXML(String identifier) {
-    AuctionEntry ae = AuctionEntry.construct(identifier);
-    if(ae != null) {
-      if (ae.isDutch()) ae.checkDutchHighBidder();
-      XMLElement auctionXML = ae.toXML();
-      return auctionXML.toStringBuffer();
-    }
-
-    return null;
+  public void done() {
+    mServer.halt();
+    mServer.interrupt();
   }
-
 }

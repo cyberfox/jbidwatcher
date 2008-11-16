@@ -11,25 +11,26 @@ import java.net.*;
 import java.io.*;
 import java.lang.reflect.Constructor;
 
+@SuppressWarnings({"ClassExplicitlyExtendsThread"})
 public class SimpleProxy extends Thread {
-  private int _socketNumber;
-  private Class _subProxy = ProxyClient.class;
-  private ServerSocket _serverSock = null;
-  private boolean _halted = false;
-  private boolean _running = false;
-  private Object _objectToPass = null;
+  private int mSocketNumber;
+  private Class mSubProxy = ProxyClient.class;
+  private ServerSocket mServerSock = null;
+  private boolean mHalted = false;
+  private boolean mRunning = false;
+  private Object mObjectToPass = null;
 
   private void makeProxyServer(int sockNum, Class minorProxyClass) {
-    _socketNumber = sockNum;
-    _subProxy = minorProxyClass;
+    mSocketNumber = sockNum;
+    mSubProxy = minorProxyClass;
   }
 
   public void halt() {
-    if(_serverSock != null) {
+    if(mServerSock != null) {
       try {
-        _halted = true;
-        _serverSock.close();
-        _serverSock = null;
+        mHalted = true;
+        mServerSock.close();
+        mServerSock = null;
       } catch(IOException e) {
         //  We don't care if an error occurs on close.
       }
@@ -37,18 +38,18 @@ public class SimpleProxy extends Thread {
   }
 
   public void go() {
-    if(_serverSock == null) {
+    if(mServerSock == null) {
       try {
-        _serverSock = new ServerSocket(_socketNumber);
+        mServerSock = new ServerSocket(mSocketNumber);
       } catch(IOException e) {
         ErrorManagement.handleException("Server socket open failed", e);
       }
     }
-    if(_halted) {
-      _halted = false;
+    if(mHalted) {
+      mHalted = false;
       this.interrupt();
     } else {
-      if(!_running) {
+      if(!mRunning) {
         this.start();
       }
     }
@@ -65,28 +66,27 @@ public class SimpleProxy extends Thread {
   public SimpleProxy(int sockNum, Class minorProxyClass, Object paramObj) {
     setName("SimpleProxy");
     makeProxyServer(sockNum, minorProxyClass);
-    _objectToPass = paramObj;
+    mObjectToPass = paramObj;
   }
 
   public void run() {
-    ProxyClient pc;
+    mRunning = true;
+    boolean done = false;
     Socket acceptedSock = null;
 
-    _running = true;
-    boolean done = false;
-	while(!done) {
+    while(!done) {
       try {
-        if(_serverSock != null) {
-          acceptedSock = _serverSock.accept();
+        if(mServerSock != null) {
+          acceptedSock = mServerSock.accept();
         }
       } catch(IOException e) {
-        if(!_halted) {
+        if(!mHalted) {
           ErrorManagement.handleException("Exception raised during server accept.", e);
         }
       }
       try {
         synchronized(this) {
-          while(_halted) {
+          while(mHalted) {
             acceptedSock = null;
             wait();
           }
@@ -95,31 +95,29 @@ public class SimpleProxy extends Thread {
         // We've already dealt with clearing acceptedSock, so we're
         // basically done.
         done = true;
-	  }
+      }
 
       if(acceptedSock != null) {
         Class[] subProxyParamClasses;
         Object[] subProxyParamObjects;
 
-        if(_objectToPass == null) {
+        if(mObjectToPass == null) {
           Class[] paramClasses = { acceptedSock.getClass() };
           Object[] paramObjects = { acceptedSock };
 
           subProxyParamClasses = paramClasses;
           subProxyParamObjects = paramObjects;
         } else {
-          Class[] paramClasses = { acceptedSock.getClass(), _objectToPass.getClass() };
-          Object[] paramObjects = { acceptedSock, _objectToPass };
+          Class[] paramClasses = { acceptedSock.getClass(), mObjectToPass.getClass() };
+          Object[] paramObjects = { acceptedSock, mObjectToPass};
 
           subProxyParamClasses = paramClasses;
           subProxyParamObjects = paramObjects;
         }
 
         try {
-          Constructor maker;
-
-          maker = _subProxy.getConstructor(subProxyParamClasses);
-          pc = (ProxyClient)maker.newInstance(subProxyParamObjects);
+          Constructor maker = mSubProxy.getConstructor(subProxyParamClasses);
+          ProxyClient pc = (ProxyClient) maker.newInstance(subProxyParamObjects);
           pc.start();
         } catch(Exception e) {
           ErrorManagement.handleException("Serious failure trying to create a ProxyClient object.", e);
