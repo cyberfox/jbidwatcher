@@ -24,7 +24,7 @@ public abstract class HTTPProxyClient extends ProxyClient {
 
   protected HTTPProxyClient(Socket talkSock) {
     super(talkSock);
-    _serverName = "Generic HTTP Proxy Server/0.1.0alpha (Java)";
+    _serverName = "Generic HTTP Proxy Server/0.2.0alpha (Java)";
   }
 
   private final static String authTitle = "Authorization: Basic ";
@@ -67,16 +67,17 @@ public abstract class HTTPProxyClient extends ProxyClient {
     _serverName = servName;
   }
 
-  protected StringBuffer buildHTML(String whatDocument) {
+  protected StringBuffer buildHTML(String whatDocument) throws FileNotFoundException {
     StringBuffer outBuf = new StringBuffer(15000);
 
-    outBuf.append("<HTML>\n");
-    outBuf.append("<HEAD><TITLE>Default proxy handler document request</TITLE></HEAD>\n");
-    outBuf.append("<BODY>\n");
-    outBuf.append("Requesting: <B>");
+    outBuf.append("<html>\n");
+    outBuf.append("<head><title>Default proxy handler document request</title></head>\n");
+    outBuf.append("<body>\n");
+    outBuf.append("Requesting: <b>");
     outBuf.append(whatDocument);
-    outBuf.append("</B>.\n");
-    outBuf.append("</BODY>\n</HTML>\n");
+    outBuf.append("</b>.\n");
+    outBuf.append("</body>\n");
+    outBuf.append("</html>\n");
 
     return(outBuf);
   }
@@ -120,11 +121,12 @@ public abstract class HTTPProxyClient extends ProxyClient {
         totalResponse.append('\n');
       }
     } catch(FileNotFoundException fnfe) {
-      totalResponse.append("HTTP/1.1 404 File Not Found");
+      totalResponse.append("HTTP/1.1 404 File Not Found\n");
       totalResponse.append("Server: ");
       totalResponse.append(getServerName());
       totalResponse.append('\n');
       totalResponse.append("Content-Type: text/html; charset=UTF-8\n");
+      totalResponse.append("Content-Length: ").append(fnfe.getMessage().length()+1).append('\n');
       totalResponse.append('\n');
       totalResponse.append(fnfe.getMessage());
       totalResponse.append('\n');
