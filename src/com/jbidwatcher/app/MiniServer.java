@@ -44,8 +44,14 @@ public class MiniServer extends HTTPProxyClient {
       {"buy", Pattern.compile("^buy/(\\d+)(?:/(\\d+))?$")},
       //  /bid/390005676820/8.27 {or} /bid/390005676820/8,27
       {"bid", Pattern.compile("^bid/(\\d+)/(\\d+[,.]?\\d*)(?:/(\\d+))?$")},
-      {"shutdown", Pattern.compile("^shutdown$")}
+      {"shutdown", Pattern.compile("^shutdown$")},
+      {"login", Pattern.compile("^login$")}
   };
+
+  public StringBuffer login() {
+    mTool.getEbay().forceLogin();
+    return new StringBuffer("<response>\n  <success><![CDATA[Login requested]]></success>\n</response>\n");
+  }
 
   public StringBuffer shutdown() {
     ErrorManagement.logDebug("Shutting down.");

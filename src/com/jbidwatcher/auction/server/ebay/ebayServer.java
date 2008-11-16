@@ -341,8 +341,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         if(mLogin.isDefault()) {
           failString = Externalized.getString("ebayServer.cantUpdateCookieWithoutUser1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
-          mLogin.resetCookie();
-          mLogin.getNecessaryCookie(true);
+          forceLogin();
           return;
         }
       }
@@ -369,6 +368,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         ErrorManagement.logMessage("Can't recognize ebay-queued data: " + ac.getData());
       }
     }
+  }
+
+  public void forceLogin() {
+    mLogin.resetCookie();
+    mLogin.getNecessaryCookie(true);
   }
 
   private void bidMsg(AuctionQObject ac) {

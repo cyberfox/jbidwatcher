@@ -4,7 +4,6 @@ import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Resolver;
 import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
-import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
@@ -38,6 +37,7 @@ public class JBTool {
   private int mSiteNumber = -1;
   private String mPortNumber = null;
   private List<String> mParams;
+  private ebayServer mEbay;
 
   private void testDateFormatting() {
     try {
@@ -104,16 +104,18 @@ public class JBTool {
     try { mServer.join(); } catch(Exception ignored) { /* Time to die... */ }
   }
 
+  public ebayServer getEbay() { return mEbay; }
+
   private void setupAuctionResolver() {
-    final AuctionServer ebay = new ebayServer(Integer.toString(mSiteNumber), mUsername, mPassword);
+    mEbay = new ebayServer(Integer.toString(mSiteNumber), mUsername, mPassword);
 
     Resolver r = new Resolver() {
-      public AuctionServerInterface getServerByName(String name) { return ebay; }
-      public AuctionServerInterface getServerForIdentifier(String auctionId) { return ebay; }
-      public AuctionServerInterface getServerForUrlString(String strURL) { return ebay; }
-      public AuctionServerInterface getServer() { return ebay; }
+      public AuctionServerInterface getServerByName(String name) { return mEbay; }
+      public AuctionServerInterface getServerForIdentifier(String auctionId) { return mEbay; }
+      public AuctionServerInterface getServerForUrlString(String strURL) { return mEbay; }
+      public AuctionServerInterface getServer() { return mEbay; }
     };
-    AuctionServerManager.getInstance().addServer(ebay);
+    AuctionServerManager.getInstance().addServer(mEbay);
     AuctionEntry.setResolver(r);
   }
 
