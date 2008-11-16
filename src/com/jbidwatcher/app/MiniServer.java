@@ -86,19 +86,20 @@ public class MiniServer extends HTTPProxyClient {
   private StringBuffer fireAction(AuctionEntry entry, AuctionAction action) {
     String result = action.activate();
     if(result != null) {
-      StringBuffer sb = new StringBuffer("<result>");
+      StringBuffer sb = new StringBuffer("<result>\n");
       int numericResult = action.getResult();
       if(numericResult == AuctionServerInterface.BID_BOUGHT_ITEM ||
           numericResult == AuctionServerInterface.BID_SELFWIN ||
           numericResult == AuctionServerInterface.BID_WINNING) {
-        sb.append("<success><![CDATA[").append(result).append("]]></success>\n");
+        sb.append("  <success><![CDATA[").append(result).append("]]></success>\n");
       } else {
-        sb.append("<error><![CDATA[").append(result).append("]]></error>\n");
+        sb.append("  <error><![CDATA[").append(result).append("]]></error>\n");
         if(entry.getErrorPage() != null) {
-          sb.append("<page><![CDATA[").append(entry.getErrorPage()).append("]]></page>\n");
+          sb.append("  <page><![CDATA[").append(entry.getErrorPage()).append("]]></page>\n");
         }
       }
 
+      sb.append("</result>\n");
       return sb;
     } else {
       return null;

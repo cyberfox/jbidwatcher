@@ -1612,6 +1612,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       //  and the IDs are different, delete the old one.
       if (oldAuction != null &&
           oldAuction != mAuction &&
+          mAuction.getId() != null &&
+          oldAuction.getId() != null &&
           !mAuction.getId().equals(oldAuction.getId())) {
         oldAuction.delete();
       }
