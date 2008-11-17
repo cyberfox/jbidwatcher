@@ -12,6 +12,10 @@ public abstract class SpecificAuction extends AuctionInfo implements CleanupHand
 {
   protected JHTML mDocument;
 
+  private String mURL;
+  public void setURL(String URL) { mURL = URL; }
+  public String getURL() { return mURL; }
+
   public enum ParseErrors {
     SUCCESS,
     NOT_ADULT,
@@ -19,7 +23,8 @@ public abstract class SpecificAuction extends AuctionInfo implements CleanupHand
     SELLER_AWAY,
     ERROR,
     CAPTCHA,
-    DELETED
+    DELETED,
+    WRONG_SITE
   }
 
   public abstract ParseErrors parseAuction(AuctionEntry ae);

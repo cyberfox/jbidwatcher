@@ -157,12 +157,7 @@ class ebayAuction extends SpecificAuction {
       MQFactory.getConcrete("Swing").enqueue("LINK DOWN eBay (or the link to eBay) appears to be down.");
       MQFactory.getConcrete("Swing").enqueue("eBay (or the link to eBay) appears to be down for the moment.");
     } else if(title.indexOf(T.s("ebayServer.invalidItem")) != -1) {
-      String realListing = mDocument.getLinkForContent(T.s("view.original.listing"));
-      if(realListing == null) {
-        ErrorManagement.logDebug("Found bad/deleted item.");
-      } else {
-        //  TODO -- throw a new exception that contains a link to the real listing...
-      }
+      ErrorManagement.logDebug("Found bad/deleted item.");
     } else {
       ErrorManagement.logDebug("Failed to load auction title from header: \"" + title + '\"');
     }
@@ -471,7 +466,12 @@ class ebayAuction extends SpecificAuction {
       throw new ParseException(ParseErrors.NOT_ADULT);
     }
 
-    if(prelimTitle.equals("Invalid Item")) {
+    if(prelimTitle.equals(T.s("ebayServer.invalidItem"))) {
+      String realListing = mDocument.getLinkForContent(T.s("view.original.listing"));
+      if(realListing != null) {
+        setURL(realListing);
+        throw new ParseException(ParseErrors.WRONG_SITE);        
+      }
       throw new ParseException(ParseErrors.DELETED);
     }
 
@@ -482,7 +482,11 @@ class ebayAuction extends SpecificAuction {
     //  Is this a valid eBay item page?
     if(prelimTitle != null && !checkValidTitle(prelimTitle)) {
       handleBadTitle(prelimTitle);
-      throw new ParseException(ParseErrors.BAD_TITLE);
+      if(getURL() != null) {
+        throw new ParseException(ParseErrors.WRONG_SITE);
+      } else {
+        throw new ParseException(ParseErrors.BAD_TITLE);
+      }
     }
 
     if(prelimTitle != null) {

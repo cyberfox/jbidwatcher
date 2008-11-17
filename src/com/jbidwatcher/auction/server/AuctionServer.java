@@ -279,6 +279,13 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
       result = curAuction.parseAuction(ae);
       if (result != SpecificAuction.ParseErrors.SUCCESS) {
         switch(result) {
+          case WRONG_SITE: {
+            String rightURL = curAuction.getURL();
+            System.err.println("Need to redirect to: " + rightURL);
+            //  TODO -- Figure out what to do when we've been notified that we're trying to get it off the wrong site...
+            error = "Item is not visible from ebay.com.";
+            break;
+          }
           case CAPTCHA: {
             ErrorManagement.logDebug("Failed to load (likely adult) item, captcha intervened.");
             if(ae != null) ae.setLastStatus("Couldn't access auction on server; captcha blocked.");
