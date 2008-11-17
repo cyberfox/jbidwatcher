@@ -57,7 +57,7 @@ public class MiniServer extends HTTPProxyClient {
     ErrorManagement.logDebug("Shutting down.");
     mTool.done();
 
-    return new StringBuffer("Shutting down.");
+    return new StringBuffer("Shutting down.\n");
   }
 
   public StringBuffer showItem(String identifier) {
