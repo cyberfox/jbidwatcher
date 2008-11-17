@@ -17,16 +17,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by IntelliJ IDEA.
-* User: Morgan
-* Date: Feb 25, 2007
-* Time: 4:08:52 PM
-* To change this template use File | Settings | File Templates.
-*/
+ * User: Morgan
+ * Date: Feb 25, 2007
+ * Time: 4:08:52 PM
+ * The core eBay auction parsing class.
+ * Nearly everything about the item is set by code in this class.
+ */
 class ebayAuction extends SpecificAuction {
   private static Currency zeroDollars = new Currency("$0.00");
-  String _bidCountScript = null;
-  String _startComment = null;
+  String mBidCountScript = null;
+  String mStartComment = null;
   private static final int TITLE_LENGTH = 60;
   private static final int HIGH_BIT_SET = 0x80;
   private final Pattern p = Pattern.compile(Externalized.getString("ebayServer.thumbSearch"), Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
@@ -62,15 +62,15 @@ class ebayAuction extends SpecificAuction {
 
     Matcher startCommentSearch = Pattern.compile(Externalized.getString("ebayServer.startedRegex")).matcher(skimOver);
     if(startCommentSearch.find())
-      _startComment = startCommentSearch.group(1);
+      mStartComment = startCommentSearch.group(1);
     else
-      _startComment = "";
+      mStartComment = "";
 
     Matcher bidCountSearch = Pattern.compile(T.s("ebayServer.bidCountRegex")).matcher(skimOver);
     if(bidCountSearch.find())
-      _bidCountScript = bidCountSearch.group(1);
+      mBidCountScript = bidCountSearch.group(1);
     else
-      _bidCountScript = "";
+      mBidCountScript = "";
 
     //  Use eBay's cleanup method to finish up with.
     new ebayCleaner().cleanup(sb);
@@ -93,14 +93,14 @@ class ebayAuction extends SpecificAuction {
     return false;
   }
 
-  private Currency getUSCurrency(Currency val, JHTML _htmlDoc) {
+  private Currency getUSCurrency(Currency val, JHTML htmlDoc) {
     Currency newCur = zeroDollars;
 
     if(val != null && !val.isNull()) {
       if (val.getCurrencyType() == Currency.US_DOLLAR) {
         newCur = val;
       } else {
-        newCur = walkForUSCurrency(_htmlDoc);
+        newCur = walkForUSCurrency(htmlDoc);
       }
     }
 
@@ -150,16 +150,21 @@ class ebayAuction extends SpecificAuction {
   /**
    * @brief Check the title for unavailable or 'removed item' messages.
    *
-   * @param in_title - The title from the web page, to check.
+   * @param title - The title from the web page, to check.
    */
-  private void handle_bad_title(String in_title) {
-    if(in_title.indexOf(T.s("ebayServer.unavailable")) != -1) {
+  private void handleBadTitle(String title) {
+    if(title.indexOf(T.s("ebayServer.unavailable")) != -1) {
       MQFactory.getConcrete("Swing").enqueue("LINK DOWN eBay (or the link to eBay) appears to be down.");
       MQFactory.getConcrete("Swing").enqueue("eBay (or the link to eBay) appears to be down for the moment.");
-    } else if(in_title.indexOf(T.s("ebayServer.invalidItem")) != -1) {
-      ErrorManagement.logDebug("Found bad/deleted item.");
+    } else if(title.indexOf(T.s("ebayServer.invalidItem")) != -1) {
+      String realListing = mDocument.getLinkForContent(T.s("view.original.listing"));
+      if(realListing == null) {
+        ErrorManagement.logDebug("Found bad/deleted item.");
+      } else {
+        //  TODO -- throw a new exception that contains a link to the real listing...
+      }
     } else {
-      ErrorManagement.logDebug("Failed to load auction title from header: \"" + in_title + '\"');
+      ErrorManagement.logDebug("Failed to load auction title from header: \"" + title + '\"');
     }
   }
 
@@ -191,7 +196,7 @@ class ebayAuction extends SpecificAuction {
 
   private Pattern amountPat = Pattern.compile("(([0-9]+\\.[0-9]+|(?i)free))");
 
-  private void load_shipping_insurance(Currency sampleAmount) {
+  private void loadShippingInsurance(Currency sampleAmount) {
     String shipString = mDocument.getNextContentAfterRegex(T.s("ebayServer.shipping"));
     //  Sometimes the next content might not be the shipping amount, it might be the next-next.
     Matcher amount = null;
@@ -261,7 +266,7 @@ class ebayAuction extends SpecificAuction {
     }
   }
 
-  private void load_buy_now() {
+  private void loadBuyNow() {
     setBuyNow(Currency.NoValue());
     setBuyNowUS(zeroDollars);
 
@@ -401,7 +406,7 @@ class ebayAuction extends SpecificAuction {
     if(!isFixedPrice() && quant != null) setDutch(true);
 
     try {
-      load_buy_now();
+      loadBuyNow();
     } catch(Exception e) {
       ErrorManagement.handleException("Buy It Now Loading error", e);
     }
@@ -420,7 +425,7 @@ class ebayAuction extends SpecificAuction {
     try {
       Currency sample = getCurBid();
       if(sample.isNull()) sample = getMinBid();
-      load_shipping_insurance(sample);
+      loadShippingInsurance(sample);
     } catch(Exception e) {
       ErrorManagement.handleException("Shipping / Insurance Loading Failed", e);
     }
@@ -452,7 +457,7 @@ class ebayAuction extends SpecificAuction {
   }
 
   /**
-   * Sets _title, and possibly _end.
+   * Sets title, and possibly end.
    *
    * @return - The preliminary extraction of the title, in its entirety, for later parsing.  null if a failure occurred.
    * @throws com.jbidwatcher.auction.server.ebay.ebayAuction.ParseException - An exception that describes what's wrong with the title.
@@ -476,7 +481,7 @@ class ebayAuction extends SpecificAuction {
 
     //  Is this a valid eBay item page?
     if(prelimTitle != null && !checkValidTitle(prelimTitle)) {
-      handle_bad_title(prelimTitle);
+      handleBadTitle(prelimTitle);
       throw new ParseException(ParseErrors.BAD_TITLE);
     }
 
@@ -511,7 +516,7 @@ class ebayAuction extends SpecificAuction {
         boolean htmlTitle = false;
         //  The first element after the title is always the description.  Unfortunately, it's in HTML-encoded format,
         //  so there are &lt;'s, and such.  While I could translate that, that's something I can wait on.  --  HACKHACK
-        //      _title = (String)_contentFields.get(1);
+        //      title = (String)contentFields.get(1);
         //  For now, just load from the title, everything after ') - '.
         int titleIndex = prelimTitle.indexOf(") - ");
         if(titleIndex == -1) {
@@ -543,7 +548,7 @@ class ebayAuction extends SpecificAuction {
   }
 
   /**
-   * Sets _start and _end.
+   * Sets start and end.
    *
    * @param prelimTitle - The preliminary title block, because sometimes it has date information in it.
    * @param ae - The old auction, in case we need to fall back because we can't figure out the ending date.
@@ -551,7 +556,7 @@ class ebayAuction extends SpecificAuction {
   private void checkDates(String prelimTitle, AuctionEntry ae) {
     setStart(StringTools.figureDate(mDocument.getNextContentAfterRegexIgnoring(T.s("ebayServer.startTime"), T.s("ebayServer.postTitleIgnore")), T.s("ebayServer.dateFormat")).getDate());
     if (getStart() == null) {
-      setStart(StringTools.figureDate(_startComment, T.s("ebayServer.dateFormat")).getDate());
+      setStart(StringTools.figureDate(mStartComment, T.s("ebayServer.dateFormat")).getDate());
     }
     setStart((Date) ensureSafeValue(getStart(), ae != null ? ae.getStartDate() : null, null));
 
@@ -809,8 +814,8 @@ class ebayAuction extends SpecificAuction {
         bidCount = -1;
       } else {
         if(rawBidCount.matches(T.s("ebayServer.bidderListCount"))) {
-          bidCount = Integer.parseInt(_bidCountScript);
-          _bidCountScript = null;
+          bidCount = Integer.parseInt(mBidCountScript);
+          mBidCountScript = null;
         } else {
           bidCount = getDigits(rawBidCount);
         }

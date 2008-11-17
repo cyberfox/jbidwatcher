@@ -29,6 +29,9 @@ public class JHTML implements JHTMLListener {
   private static boolean do_uber_debug=false;
   private String mCharset;
 
+  //  Extract just the HREF portion (should look for HREF=\")
+  private static Pattern urlMatcher = Pattern.compile("(?i)href=\"([^\"#]*)");
+
   public JHTML(StringBuffer strBuf) {
     setup();
     m_parser = new JHTMLParser(strBuf, this);
@@ -503,6 +506,44 @@ public class JHTML implements JHTMLListener {
     return linkTags;
   }
 
+  public String getLinkForContent(String searchContent) {
+    String lastTag = null;
+    htmlToken curToken = nextToken();
+
+    while(curToken != null) {
+      switch(curToken.getTokenType()) {
+        case htmlToken.HTML_TAG: {
+          String tag = curToken.getToken();
+          if(tag.regionMatches(true, 0, "a ", 0, 2)) {
+            lastTag = tag;
+          }
+          break;
+        }
+        case htmlToken.HTML_ENDTAG: {
+          String tag = curToken.getToken();
+          if(tag.equalsIgnoreCase("a")) {
+            lastTag = null;
+          }
+        }
+        case htmlToken.HTML_CONTENT: {
+          String content = curToken.getToken();
+          if(lastTag != null) {
+            if(searchContent.equals(content)) {
+              Matcher result = urlMatcher.matcher(lastTag);
+              if(result.find()) {
+                return result.group(1);
+              }
+            }
+          }
+        }
+      }
+
+      curToken = nextToken();
+    }
+
+    return null;
+  }
+
   public List<String> getAllImages() {
     HashSet<String> linkTags = null;
     String curTag = getNextTag();
@@ -520,9 +561,6 @@ public class JHTML implements JHTMLListener {
 
     return new ArrayList<String>(linkTags);
   }
-
-  //  Extract just the HREF portion (should look for HREF=\")
-  private static Pattern urlMatcher = Pattern.compile("(?i)href=\"([^\"#]*)");
 
   public List<String> getAllURLsOnPage(boolean viewOnly) {
     // Add ALL auctions on myEbay bidding/watching page!
