@@ -93,7 +93,7 @@ public class JBidTableContext extends JBidContext {
         tabs.remove(currentTitle);
         tabMenu.setEnabled(true);
         for (String tab : tabs) {
-          tabMenu.add(makeMenuItem(tab)).addActionListener(tabActions);
+          if(tab != null) tabMenu.add(makeMenuItem(tab)).addActionListener(tabActions);
         }
       }
     }

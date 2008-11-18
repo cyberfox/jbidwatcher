@@ -131,7 +131,7 @@ public class RSSDialog extends BasicDialog {
       tabs.remove("selling");
 
       for (String tabName : tabs) {
-        tabList.addItem(tabName);
+        if(tabName != null) tabList.addItem(tabName);
       }
     }
   }
