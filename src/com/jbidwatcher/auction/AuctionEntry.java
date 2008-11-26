@@ -1523,6 +1523,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     //  If this has a null identifier, we're lower.
     if(identifier == null && comparedAuctionEntry.getIdentifier() != null) return -1;
     if(identifier == null && comparedAuctionEntry.getIdentifier() == null) return 0;
+    //  At this point, we know identifier != null, so if the compared entry
+    //  has a null identifier, we sort higher.
+    if(comparedAuctionEntry.getIdentifier() == null) return 1;
 
     //  Since this ends exactly at the same time as another auction,
     //  check the identifiers (which *must* be different here.
