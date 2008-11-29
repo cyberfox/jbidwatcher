@@ -15,7 +15,6 @@ import com.jbidwatcher.platform.Browser;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigFrame;
-import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.platform.Tray;
 import com.jbidwatcher.search.SearchManager;
@@ -42,7 +41,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
-import java.util.List;
 
 /**
  * @file   JBidWatch.java
@@ -73,17 +71,19 @@ public final class JBidWatch implements JConfig.ConfigListener {
   /** SimpleProxy is the internal web server proxy class.  This lets
    * us turn on or off the proxy, based on configuration changes.
    */
-  private SimpleProxy sp;
+  private SimpleProxy sp = null;
 
   private final Object memInfoSynch = new Object();
   private MacFriendlyFrame mainFrame;
   private JTabManager jtmAuctions;
 
-  private RuntimeInfo _rti;
+  private RuntimeInfo _rti = null;
   private static final int HOURS_IN_DAY = 24;
   private static final int MINUTES_IN_HOUR = 60;
   private static boolean sUSB = false;
   private static boolean sCreatedDB = false;
+
+  private final Object mScriptCompletion = new Object();
 
   /**
    * @brief Try to guarantee a directory for saving 'cached copies'
@@ -126,7 +126,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       if(fp.exists()) {
         outPath = fp.getAbsolutePath();
       } else {
-        fp.mkdirs();
+        if(!fp.mkdirs()) ErrorManagement.logDebug("Couldn't mkdir " + directoryPath);
         outPath = fp.getAbsolutePath();
       }
     }
@@ -136,8 +136,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
   private static void getUserSetup() {
     JConfig.setConfiguration("config.firstrun", "true");
-    List<JConfigTab> serverTabs = AuctionServerManager.getInstance().getServerConfigurationTabs();
-    JConfigFrame jcf = new JConfigFrame(serverTabs);
+    JConfigFrame jcf = new JConfigFrame();
     jcf.spinWait();
   }
 
@@ -536,10 +535,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
     ThumbnailLoader.start();
 
     inSplash.message("Initializing Scripting");
-    final Object scriptCompletion = new Object();
     Thread scriptLoading = new Thread(new Runnable() {
       public void run() {
-        synchronized(scriptCompletion) {
+        synchronized(mScriptCompletion) {
           try {
             Scripting.initialize();
             JConfig.enableScripting();
@@ -584,7 +582,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     mainFrame.setSize(JConfig.width, JConfig.height);
     backbone.setMainFrame(mainFrame);
 
-    synchronized (scriptCompletion) {
+    synchronized (mScriptCompletion) {
       if(JConfig.scriptingEnabled()) {
         inSplash.message("Starting scripts");
         Scripting.ruby("JBidwatcher.after_startup");

@@ -12,6 +12,7 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.T;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.webserver.SimpleProxy;
 
 import java.util.*;
@@ -149,7 +150,7 @@ public class JBTool {
           ErrorManagement.logMessage("Can't find properties bundle to load for country " + country + ".");
           T.setBundle("ebay_com");
         }
-        mSiteNumber = ebayServer.getSiteNumber(country);
+        mSiteNumber = getSiteNumber(country);
         if(mSiteNumber == -1) ErrorManagement.logMessage("That country is not recognized by JBidwatcher's eBay Server.");
       }
       if(option.equals("login")) mLogin = true;
@@ -162,6 +163,13 @@ public class JBTool {
     }
     if(mSiteNumber == -1) mSiteNumber = 0;
     return params;
+  }
+
+  public static int getSiteNumber(String site) {
+    for(int i=0; i< Constants.SITE_CHOICES.length; i++) {
+      if(site.equals(Constants.SITE_CHOICES[i])) return i;
+    }
+    return -1;
   }
 
   public void done() {

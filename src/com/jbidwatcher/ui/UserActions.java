@@ -17,7 +17,6 @@ import java.util.regex.Matcher;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigFrame;
-import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
@@ -44,7 +43,7 @@ public class UserActions implements MessageQueue.Listener {
 
   private boolean _in_deleting = false;
   private ScriptManager mScriptFrame;
-  private static UserActions sInstance;
+  private static UserActions sInstance = null;
 
   private UserActions() { }
 
@@ -287,8 +286,7 @@ public class UserActions implements MessageQueue.Listener {
 
   private void DoConfigure() {
     if(jcf == null) {
-      List<JConfigTab> serverTabs = AuctionServerManager.getInstance().getServerConfigurationTabs();
-      jcf = new JConfigFrame(serverTabs);
+      jcf = new JConfigFrame();
     } else {
       jcf.show();
     }

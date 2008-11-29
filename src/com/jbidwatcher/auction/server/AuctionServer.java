@@ -17,7 +17,6 @@ package com.jbidwatcher.auction.server;
  * is, and do the appropriate parsing for that site.
  */
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.http.CookieJar;
@@ -33,8 +32,7 @@ import java.io.*;
 public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionServerInterface {
   private static long sLastUpdated = 0;
 
-  private class ReloadItemException extends Exception {
-  }
+  private static class ReloadItemException extends Exception { }
 
   //  Note: JBidProxy
   public abstract CookieJar getNecessaryCookie(boolean force);
@@ -42,7 +40,6 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   //  UI functions
   //  Note: AuctionServerManager
   public abstract ServerMenu establishMenu();
-  public abstract List<JConfigTab> getConfigurationTabs();
 
   //  Note: AuctionServerManager
   public abstract void cancelSearches();
@@ -281,7 +278,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
         switch(result) {
           case WRONG_SITE: {
             String rightURL = curAuction.getURL();
-            System.err.println("Need to redirect to: " + rightURL);
+            ErrorManagement.logDebug("Need to redirect to: " + rightURL);
             //  TODO -- Figure out what to do when we've been notified that we're trying to get it off the wrong site...
             error = "Item is not visible from ebay.com.";
             break;

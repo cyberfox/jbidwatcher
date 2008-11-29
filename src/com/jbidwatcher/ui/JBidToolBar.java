@@ -142,6 +142,7 @@ public class JBidToolBar {
     mBidMenu = JBidMenuBar.getInstance(inAction, "JBidwatcher");
 
     JMenu menu = AuctionServerManager.getInstance().addAuctionServerMenus().getMenu();
+
     if (JBidMenuBar.getInstance(null) != mBidMenu) {
       JBidMenuBar.getInstance(null).add(menu);
       JBidMenuBar.getInstance(null).add(Box.createHorizontalGlue());

@@ -1,4 +1,4 @@
-package com.jbidwatcher.auction.server.ebay;
+package com.jbidwatcher.ui.config;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -9,7 +9,7 @@ import com.jbidwatcher.util.T;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.JBEditorPane;
-import com.jbidwatcher.ui.config.JConfigTab;
+import com.jbidwatcher.auction.server.ebay.ebayLoginManager;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -18,12 +18,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 /**
- * Created by IntelliJ IDEA.
-* User: Morgan
-* Date: Feb 25, 2007
-* Time: 3:08:00 AM
-* To change this template use File | Settings | File Templates.
-*/
+ * User: Morgan
+ * Date: Feb 25, 2007
+ * Time: 3:08:00 AM
+ */
 public class JConfigEbayTab extends JConfigTab
 {
   JCheckBox adultBox;
@@ -32,6 +30,7 @@ public class JConfigEbayTab extends JConfigTab
   JComboBox siteSelect;
   MessageQueue.Listener oldLoginListener = null;
   private String mDisplayName;
+  private String mSitename = "ebay";
 
   private class LoginTestListener implements ActionListener, MessageQueue.Listener {
     CookieJar cj = null;
@@ -84,19 +83,20 @@ public class JConfigEbayTab extends JConfigTab
   public boolean apply() {
     int selectedSite = siteSelect.getSelectedIndex();
 
-    String old_adult = JConfig.queryConfiguration(ebayServer.getSiteName() + ".adult");
-    JConfig.setConfiguration(ebayServer.getSiteName() + ".adult", adultBox.isSelected()?"true":"false");
-    String new_adult = JConfig.queryConfiguration(ebayServer.getSiteName() + ".adult");
+    String old_adult = JConfig.queryConfiguration(mSitename + ".adult");
+    JConfig.setConfiguration(mSitename + ".adult", adultBox.isSelected()?"true":"false");
+    String new_adult = JConfig.queryConfiguration(mSitename + ".adult");
 
-    String old_user = JConfig.queryConfiguration(ebayServer.getSiteName() + ".user");
-    JConfig.setConfiguration(ebayServer.getSiteName() + ".user", username.getText());
-    String new_user = JConfig.queryConfiguration(ebayServer.getSiteName() + ".user");
-    String old_pass = JConfig.queryConfiguration(ebayServer.getSiteName() + ".password");
-    JConfig.setConfiguration(ebayServer.getSiteName() + ".password", password.getText());
-    String new_pass = JConfig.queryConfiguration(ebayServer.getSiteName() + ".password");
+    String old_user = JConfig.queryConfiguration(mSitename + ".user");
+    JConfig.setConfiguration(mSitename + ".user", username.getText());
+    String new_user = JConfig.queryConfiguration(mSitename + ".user");
+
+    String old_pass = JConfig.queryConfiguration(mSitename + ".password");
+    JConfig.setConfiguration(mSitename + ".password", password.getText());
+    String new_pass = JConfig.queryConfiguration(mSitename + ".password");
 
     if(selectedSite != -1) {
-      JConfig.setConfiguration(ebayServer.getSiteName() + ".browse.site", Integer.toString(selectedSite));
+      JConfig.setConfiguration(mSitename + ".browse.site", Integer.toString(selectedSite));
       String selected = (String)siteSelect.getSelectedItem();
       if(!T.setCountrySite(selected)) {
         JOptionPane.showMessageDialog(null, "No site bundle exists; JBidwatcher will operate against ebay.com.", "Country Site Bundle", JOptionPane.INFORMATION_MESSAGE);
@@ -112,11 +112,11 @@ public class JConfigEbayTab extends JConfigTab
   }
 
   public void updateValues() {
-    String isAdult = JConfig.queryConfiguration(ebayServer.getSiteName() + ".adult", "false");
+    String isAdult = JConfig.queryConfiguration(mSitename + ".adult", "false");
     adultBox.setSelected(isAdult.equals("true"));
 
-    username.setText(JConfig.queryConfiguration(ebayServer.getSiteName() + ".user", "default"));
-    password.setText(JConfig.queryConfiguration(ebayServer.getSiteName() + ".password", "default"));
+    username.setText(JConfig.queryConfiguration(mSitename + ".user", "default"));
+    password.setText(JConfig.queryConfiguration(mSitename + ".password", "default"));
   }
 
   private JPanel buildUsernamePanel() {
@@ -127,10 +127,10 @@ public class JConfigEbayTab extends JConfigTab
     username = new JTextField();
     username.addMouseListener(JPasteListener.getInstance());
 
-    username.setText(JConfig.queryConfiguration(ebayServer.getSiteName() + ".user", "default"));
+    username.setText(JConfig.queryConfiguration(mSitename + ".user", "default"));
     username.setEditable(true);
     username.getAccessibleContext().setAccessibleName("User name to log into eBay");
-    password = new JPasswordField(JConfig.queryConfiguration(ebayServer.getSiteName() + ".password"));
+    password = new JPasswordField(JConfig.queryConfiguration(mSitename + ".password"));
     password.addMouseListener(JPasteListener.getInstance());
     password.setEditable(true);
 
@@ -150,7 +150,7 @@ public class JConfigEbayTab extends JConfigTab
   }
 
   private JPanel buildCheckboxPanel() {
-    String isAdult = JConfig.queryConfiguration(ebayServer.getSiteName() + ".adult", "false");
+    String isAdult = JConfig.queryConfiguration(mSitename + ".adult", "false");
     JPanel tp = new JPanel();
 
     tp.setBorder(BorderFactory.createTitledBorder("General eBay Options"));
@@ -178,7 +178,7 @@ public class JConfigEbayTab extends JConfigTab
     tp.setBorder(BorderFactory.createTitledBorder("Browse target"));
     tp.setLayout(new BorderLayout());
 
-    String curSite = JConfig.queryConfiguration(ebayServer.getSiteName() + ".browse.site", "0");
+    String curSite = JConfig.queryConfiguration(mSitename + ".browse.site", "0");
     int realCurrentSite;
     try {
       realCurrentSite = Integer.parseInt(curSite);

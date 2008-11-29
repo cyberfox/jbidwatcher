@@ -14,7 +14,6 @@ package com.jbidwatcher.auction.server.ebay;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.auction.server.ServerMenu;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
@@ -27,7 +26,6 @@ import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.auction.Bidder;
 
 import java.net.URL;
 import java.util.*;
@@ -38,15 +36,16 @@ import java.io.FileNotFoundException;
 
 /** @noinspection OverriddenMethodCallInConstructor*/
 public final class ebayServer extends AuctionServer implements MessageQueue.Listener,JConfig.ConfigListener {
-  private final static String eBayDisplayName = "eBay";
-  private final static String eBayServerName = "ebay";
-
-  private static final int THREE_SECONDS = 3 * Constants.ONE_SECOND;
+  private final static ebayCurrencyTables sCurrencies = new ebayCurrencyTables();
 
   /**
    * The human-readable name of the auction server.
    */
   private static String siteId = "ebay";
+
+  public static String getSiteName() {
+    return siteId;
+  }
 
   /** @noinspection FieldAccessedSynchronizedAndUnsynchronized*/
   private eBayTimeQueueManager _etqm;
@@ -68,7 +67,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private TimeZone mOfficialServerTimeZone = null;
   private Date mNow = new Date();
   private GregorianCalendar mCal;
-  private final static ebayCurrencyTables sCurrencies = new ebayCurrencyTables();
   private ebayCleaner mCleaner;
   private Bidder mBidder;
 
@@ -92,38 +90,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return result;
   }
 
-  private final static String[] sSiteChoices = {
-    "ebay.com",
-    "ebay.de",
-    "ebay.ca",
-    "ebay.co.uk",
-    "tw.ebay.com",
-    "ebay.es",
-    "ebay.fr",
-    "ebay.it",
-    "ebay.com.au",
-    "ebay.at",
-    "benl.ebay.be",
-    "ebay.nl",
-    "ebay.com.sg",
-    "ebaysweden.com",
-    "ebay.ch",
-    "befr.ebay.be",
-    "ebay.ie"};
-
-  public static int getSiteNumber(String site) {
-    for(int i=0; i<sSiteChoices.length; i++) {
-      if(site.equals(sSiteChoices[i])) return i;
-    }
-    return -1;
-  }
-
   /** @noinspection RedundantIfStatement*/
   public boolean doHandleThisSite(URL checkURL) {
     if(checkURL == null) return false;
-    if( (checkURL.getHost().startsWith(Externalized.getString("ebayServer.detectionHost"))) ) return true;
-    if( (checkURL.getHost().startsWith(Externalized.getString("ebayServer.TaiwanDetectionHost"))) ) return true;
-    if( (checkURL.getHost().startsWith(Externalized.getString("ebayServer.SpainDetectionHost"))) ) return true;
+    String host = checkURL.getHost();
+    if( (host.startsWith(Externalized.getString("ebayServer.detectionHost"))) ) return true;
+    if( (host.startsWith(Externalized.getString("ebayServer.TaiwanDetectionHost"))) ) return true;
+    if( (host.startsWith(Externalized.getString("ebayServer.SpainDetectionHost"))) ) return true;
 
     return false;
   }
@@ -151,24 +124,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   /**
-   * @brief Return the UI tab used to configure eBay-specific information.
-   *
-   * @return - A new tab to be added to the configuration display.
-   */
-  public List<JConfigTab> getConfigurationTabs() {
-    List<JConfigTab> tabs = new ArrayList<JConfigTab>();
-    //  Always return a new one, to fix a problem on first startup.
-    tabs.add(new JConfigEbayTab(eBayDisplayName, sSiteChoices));
-    return tabs;
-  }
-
-  /**
    * @brief Build a menu that can be added to the JBidwatcher standard
    * menu, to do eBay-specific things.
    *
    */
   public ServerMenu establishMenu() {
-    ebayServerMenu esm = new ebayServerMenu(eBayDisplayName, 'b');
+    ebayServerMenu esm = new ebayServerMenu(Constants.EBAY_DISPLAY_NAME, 'b');
     esm.initialize();
 
     return esm;
@@ -267,7 +228,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - true if it is a server this class should handle, false otherwise.
    */
   public boolean checkIfSiteNameHandled(String serverName) {
-    return(serverName.equalsIgnoreCase(eBayServerName));
+    return(serverName.equalsIgnoreCase(Constants.EBAY_SERVER_NAME));
   }
 
   /**
@@ -416,9 +377,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public ebayServer(String site, String username, String password) {
-    if(site == null) {
-      String siteNumber = JConfig.queryConfiguration(getName() + ".browse.site");
-    }
+    if(site == null) site = JConfig.queryConfiguration(getName() + ".browse.site");
+    if(site == null) site = "0";
     constructServer(site, username, password);
   }
 
@@ -431,17 +391,18 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   public ebayServer() {
     String username = JConfig.queryConfiguration(getName() + ".user", "default");
     String siteNumber = JConfig.queryConfiguration(getName() + ".browse.site");
-    final String password = JConfig.queryConfiguration(getName() + ".password", "default");
+    String password = JConfig.queryConfiguration(getName() + ".password", "default");
+
     constructServer(siteNumber, username, password);
   }
 
   private void constructServer(String site, String username, String password) {
     if(site != null && !site.equals("0")) {
-      String countrySite = sSiteChoices[Integer.parseInt(site)];
+      String countrySite = Constants.SITE_CHOICES[Integer.parseInt(site)];
       T.setCountrySite(countrySite);
     }
     mCleaner = new ebayCleaner();
-    mLogin = new ebayLoginManager(eBayServerName, password, username);
+    mLogin = new ebayLoginManager(Constants.EBAY_SERVER_NAME, password, username);
     mSearcher = new ebaySearches(mCleaner, mLogin);
     mBidder = new ebayBidder(mLogin);
 
@@ -522,7 +483,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   public String getBrowsableURLFromItem(String itemID) {
     int browse_site = Integer.parseInt(JConfig.queryConfiguration(getName() + ".browse.site", "0"));
 
-    return Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.browseHost") + sSiteChoices[browse_site] + Externalized.getString("ebayServer.file") + '?' + Externalized.getString("ebayServer.viewCmd") + Externalized.getString("ebayServer.viewCGI") + itemID;
+    return Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.browseHost") + Constants.SITE_CHOICES[browse_site] + Externalized.getString("ebayServer.file") + '?' + Externalized.getString("ebayServer.viewCmd") + Externalized.getString("ebayServer.viewCGI") + itemID;
   }
 
   /**
@@ -689,9 +650,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
              * (minimum of 3 seconds), and retry.
              */
             long snipeIn = snipe.getItem().getEndDate().getTime() - _etqm.getCurrentTime();
-            if(snipeIn > THREE_SECONDS) {
+            if(snipeIn > Constants.THREE_SECONDS) {
               long retry_wait = (snipeIn / 10) * 2;
-              if(retry_wait < THREE_SECONDS) retry_wait = THREE_SECONDS;
+              if(retry_wait < Constants.THREE_SECONDS) retry_wait = Constants.THREE_SECONDS;
 
               _etqm.add(deQ, "snipes", _etqm.getCurrentTime()+retry_wait);
             } else {
@@ -754,10 +715,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public String getName() {
-    return siteId;
-  }
-
-  public static String getSiteName() {
     return siteId;
   }
 

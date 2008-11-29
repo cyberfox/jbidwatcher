@@ -8,6 +8,7 @@ package com.jbidwatcher.util;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@SuppressWarnings({"UtilityClass", "ClassMayBeInterface", "UtilityClassWithoutPrivateConstructor"})
 public class Constants {
 /** Program identifaction constants, so we change the version and such
  * in just one place.
@@ -27,7 +28,8 @@ public class Constants {
 /** One second in microseconds.
  */
   public static final int ONE_SECOND = 1000;
-/** Thirty seconds in microseconds.
+  public static final int THREE_SECONDS = 3 * ONE_SECOND;
+  /** Thirty seconds in microseconds.
  */
   public static final int THIRTY_SECONDS= (30 * ONE_SECOND);
 /** One minute in microseconds.
@@ -70,4 +72,24 @@ public class Constants {
   public static final int DEFAULT_COLUMN_WIDTH=75;
   public static final int DEFAULT_ROW_HEIGHT=16;
   public static final int MICROTHUMBNAIL_ROW_HEIGHT = 70;
+  public final static String[] SITE_CHOICES = {
+    "ebay.com",
+    "ebay.de",
+    "ebay.ca",
+    "ebay.co.uk",
+    "tw.ebay.com",
+    "ebay.es",
+    "ebay.fr",
+    "ebay.it",
+    "ebay.com.au",
+    "ebay.at",
+    "benl.ebay.be",
+    "ebay.nl",
+    "ebay.com.sg",
+    "ebaysweden.com",
+    "ebay.ch",
+    "befr.ebay.be",
+    "ebay.ie"};
+  public final static String EBAY_DISPLAY_NAME = "eBay";
+  public final static String EBAY_SERVER_NAME = "ebay";
 }

@@ -5,7 +5,6 @@ package com.jbidwatcher.auction.server;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.search.SearchManager;
@@ -266,10 +265,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
   public void cancelSearches() {
     mServer.cancelSearches();
-  }
-
-  public List<JConfigTab> getServerConfigurationTabs() {
-    return mServer.getConfigurationTabs();
   }
 
   public AuctionStats getStats() {

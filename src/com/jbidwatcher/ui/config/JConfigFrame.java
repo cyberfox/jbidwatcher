@@ -10,6 +10,7 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.ui.util.JBidFrame;
 import com.jbidwatcher.ui.util.OptionUI;
+import com.jbidwatcher.auction.server.ebay.*;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -46,8 +47,8 @@ public class JConfigFrame implements ActionListener {
     }
   }
 
-  public JConfigFrame(List<JConfigTab> serverTabs) {
-    mainFrame = createConfigFrame(serverTabs);
+  public JConfigFrame() {
+    mainFrame = createConfigFrame();
     Rectangle rec = OptionUI.findCenterBounds(mainFrame.getPreferredSize());
     mainFrame.setLocation(rec.x, rec.y);
     show();
@@ -109,7 +110,7 @@ public class JConfigFrame implements ActionListener {
     cfgCount++;
   }
 
-  private JFrame createConfigFrame(List<JConfigTab> serverTabs) {
+  private JFrame createConfigFrame() {
     JTabbedPane jtpAllTabs = new JTabbedPane();
     final JFrame w;
 
@@ -128,10 +129,7 @@ public class JConfigFrame implements ActionListener {
 
     //  Add all non-server-specific tabs here.
     allTabs.add(new JConfigGeneralTab());
-
-    for (JConfigTab serverTab : serverTabs) {
-      allTabs.add(serverTab);
-    }
+    allTabs.add(new JConfigEbayTab("eBay", Constants.SITE_CHOICES));
 
     //  Stub the browser tab under MacOSX, so they don't try to use it.
     if(Platform.isMac()) {
