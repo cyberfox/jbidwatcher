@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
+//  TODO -- Interface-ize all the getters, and make AuctionEntry and AuctionInfo both implement it.
 public class AuctionInfo extends ActiveRecord
 {
   private static Map<String, String> mKeys;

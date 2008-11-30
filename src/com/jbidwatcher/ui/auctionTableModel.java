@@ -491,7 +491,7 @@ public class auctionTableModel extends BaseTransformation
   }
 
   public auctionTableModel(AuctionList inList) {
-    dispList = inList; //  new ArrayList<AuctionEntry>()
+    dispList = inList;
   }
 
   public int compare(int row1, int row2, ColumnStateList columnStateList) {
