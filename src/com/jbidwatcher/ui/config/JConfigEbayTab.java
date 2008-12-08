@@ -5,7 +5,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.http.CookieJar;
-import com.jbidwatcher.util.T;
+import com.jbidwatcher.util.TT;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.JBEditorPane;
@@ -37,8 +37,9 @@ public class JConfigEbayTab extends JConfigTab
 
     public void actionPerformed(ActionEvent ae) {
       if (ae.getActionCommand().equals("Test Login")) {
+        TT T = new TT("ebay.com");
         oldLoginListener = MQFactory.getConcrete("login").registerListener(this);
-        ebayLoginManager login = new ebayLoginManager("ebay", password.getText(), username.getText(), false);
+        ebayLoginManager login = new ebayLoginManager(T, "ebay", password.getText(), username.getText(), false);
         cj = login.getNecessaryCookie(true);
       }
     }
@@ -98,9 +99,9 @@ public class JConfigEbayTab extends JConfigTab
     if(selectedSite != -1) {
       JConfig.setConfiguration(mSitename + ".browse.site", Integer.toString(selectedSite));
       String selected = (String)siteSelect.getSelectedItem();
-      if(!T.setCountrySite(selected)) {
-        JOptionPane.showMessageDialog(null, "No site bundle exists; JBidwatcher will operate against ebay.com.", "Country Site Bundle", JOptionPane.INFORMATION_MESSAGE);
-      }
+//      if(!TT.setCountrySite(selected)) {
+//        JOptionPane.showMessageDialog(null, "No site bundle exists; JBidwatcher will operate against ebay.com.", "Country Site Bundle", JOptionPane.INFORMATION_MESSAGE);
+//      }
     }
 
     if(old_pass == null || !new_pass.equals(old_pass) ||

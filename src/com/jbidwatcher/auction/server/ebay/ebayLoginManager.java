@@ -6,7 +6,7 @@ import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Externalized;
-import com.jbidwatcher.util.T;
+import com.jbidwatcher.util.TT;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.auction.LoginManager;
 
@@ -32,15 +32,17 @@ public class ebayLoginManager implements LoginManager {
   private String mPassword;
   private String mUserId;
   private String mSiteName;
+  private TT T;
 
-  public ebayLoginManager(String site, String password, String userId) {
+  public ebayLoginManager(TT countryProperties, String site, String password, String userId) {
     mPassword = password;
     mUserId = userId;
     mSiteName = site;
+    T = countryProperties;
   }
 
-  public ebayLoginManager(String site, String password, String userId, boolean notifyFailures) {
-    this(site, password, userId);
+  public ebayLoginManager(TT countryProperties, String site, String password, String userId, boolean notifyFailures) {
+    this(countryProperties, site, password, userId);
     mNotifySwing = notifyFailures;
   }
 
@@ -108,7 +110,7 @@ public class ebayLoginManager implements LoginManager {
 
   }
 
-  private static boolean getAdultConfirmation(URLConnection uc_signin, CookieJar cj) throws IOException {
+  private boolean getAdultConfirmation(URLConnection uc_signin, CookieJar cj) throws IOException {
     StringBuffer confirm = Http.receivePage(uc_signin);
     ErrorManagement.dump2File("sign_in-a2.html", confirm);
     JHTML confirmPage = new JHTML(confirm);

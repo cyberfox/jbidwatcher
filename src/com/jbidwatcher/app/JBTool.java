@@ -11,7 +11,6 @@ import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.T;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.webserver.SimpleProxy;
 
@@ -35,10 +34,11 @@ public class JBTool {
   private SimpleProxy mServer = null;
   private boolean mJustMyeBay = false;
   private boolean mRunServer = false;
-  private int mSiteNumber = -1;
+//  private int mSiteNumber = -1;
   private String mPortNumber = null;
   private List<String> mParams;
   private ebayServer mEbay;
+  private String mCountry = "ebay.com";
 
   private void testDateFormatting() {
     try {
@@ -108,7 +108,7 @@ public class JBTool {
   public ebayServer getEbay() { return mEbay; }
 
   private void setupAuctionResolver() {
-    mEbay = new ebayServer(Integer.toString(mSiteNumber), mUsername, mPassword);
+    mEbay = new ebayServer(mCountry, mUsername, mPassword);
 
     Resolver r = new Resolver() {
       public AuctionServerInterface getServerByName(String name) { return mEbay; }
@@ -145,13 +145,8 @@ public class JBTool {
       if(option.equals("myebay")) mJustMyeBay = true;
       if(option.equals("sandbox")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi.sandbox.ebay.com");
       if(option.startsWith("country=")) {
-        String country = option.substring(8);
-        if(!T.setCountrySite(country)) {
-          ErrorManagement.logMessage("Can't find properties bundle to load for country " + country + ".");
-          T.setBundle("ebay_com");
-        }
-        mSiteNumber = getSiteNumber(country);
-        if(mSiteNumber == -1) ErrorManagement.logMessage("That country is not recognized by JBidwatcher's eBay Server.");
+        mCountry = option.substring(8);
+        if(getSiteNumber(mCountry) == -1) ErrorManagement.logMessage("That country is not recognized by JBidwatcher's eBay Server.");
       }
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
@@ -161,7 +156,6 @@ public class JBTool {
     if(!mLogin) {
       mPassword = mUsername = "default";
     }
-    if(mSiteNumber == -1) mSiteNumber = 0;
     return params;
   }
 

@@ -20,18 +20,21 @@ import java.io.IOException;
  * To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class T {
-  private static ClassLoader urlCL = (ClassLoader)T.class.getClassLoader();
-  private static ResourceBundle sResource = ResourceBundle.getBundle("ebay_com");
-  private static Properties overrideProperties = null;
+public class TT {
+  private static ClassLoader urlCL = (ClassLoader) TT.class.getClassLoader();
+  private ResourceBundle sResource = ResourceBundle.getBundle("ebay_com");
+  private Properties countryProperties = null;
+
   /**
+   * Create a new country-site specific properties matching object.
    *
+   * @param countrySite - The name of the site to load.
    */
-  private T() {
-    //  Don't need to do anything here.
+  public TT(String countrySite) {
+    setCountrySite(countrySite);
   }
 
-  public static boolean setBundle(String bundleName) {
+  public boolean setBundle(String bundleName) {
     boolean successful = false;
     try {
       sResource = ResourceBundle.getBundle(bundleName);
@@ -40,12 +43,12 @@ public class T {
 
     InputStream is = JConfig.bestSource(urlCL, bundleName + ".properties");
     if(is != null) {
-      overrideProperties = new Properties();
+      countryProperties = new Properties();
       try {
-        overrideProperties.load(is);
+        countryProperties.load(is);
         successful = true;
       } catch (IOException e) {
-        ErrorManagement.logDebug("Failed to load property override file for " + bundleName + ".");
+        ErrorManagement.logDebug("Failed to load country property file for " + bundleName + ".");
       }
     }
 
@@ -56,9 +59,9 @@ public class T {
    * @param key - The key to get out of the properties file.
    * @return - The value of the provided key in the properties file, or the overridden value if override.{key} is set.
    */
-  public static String s(String key) {
+  public String s(String key) {
     String override = JConfig.queryConfiguration("override." + key);
-    if(override == null && overrideProperties != null) override = overrideProperties.getProperty(key);
+    if(override == null && countryProperties != null) override = countryProperties.getProperty(key);
     if(override != null) {
       return override;
     }
@@ -70,12 +73,12 @@ public class T {
     }
   }
 
-  public static boolean setCountrySite(String country) {
+  public boolean setCountrySite(String country) {
     String bundle = country.replace('.', '_');
-    boolean result = T.setBundle(bundle);
-    if(result) {
-      JConfig.setConfiguration("override.ebayServer.viewHost", "cgi." + country);
-    }
+    boolean result = setBundle(bundle);
+//    if(result) {
+//      countryProperties.setProperty("ebayServer.viewHost", "cgi." + country);
+//    }
     return result;
   }
 }

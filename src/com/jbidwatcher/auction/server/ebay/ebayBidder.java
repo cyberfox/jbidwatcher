@@ -34,8 +34,10 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
   private String mBidResultRegex = null;
 
   private Pattern mFindBidResult;
+  private TT T;
 
-  public ebayBidder(LoginManager login) {
+  public ebayBidder(TT countryProperties, LoginManager login) {
+    T = countryProperties;
     mLogin = login;
     /**
      * Build a simple hashtable of results that bidding might get.

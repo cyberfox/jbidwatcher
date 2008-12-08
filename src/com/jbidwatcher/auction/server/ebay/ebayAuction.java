@@ -32,6 +32,12 @@ class ebayAuction extends SpecificAuction {
   private final Pattern p = Pattern.compile(Externalized.getString("ebayServer.thumbSearch"), Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
   private final Pattern p2 = Pattern.compile(Externalized.getString("ebayServer.thumbSearch2"), Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
   private String potentialThumbnail = null;
+  private TT T;
+
+  protected ebayAuction(TT countryProperties) {
+    super();
+    T = countryProperties;
+  }
 
   private void checkThumb(StringBuffer sb) {
     Matcher imgMatch = p.matcher(sb);

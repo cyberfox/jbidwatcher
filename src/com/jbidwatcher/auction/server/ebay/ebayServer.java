@@ -37,6 +37,7 @@ import java.io.FileNotFoundException;
 /** @noinspection OverriddenMethodCallInConstructor*/
 public final class ebayServer extends AuctionServer implements MessageQueue.Listener,JConfig.ConfigListener {
   private final static ebayCurrencyTables sCurrencies = new ebayCurrencyTables();
+  private TT T;
 
   /**
    * The human-readable name of the auction server.
@@ -94,9 +95,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   public boolean doHandleThisSite(URL checkURL) {
     if(checkURL == null) return false;
     String host = checkURL.getHost();
-    if( (host.startsWith(Externalized.getString("ebayServer.detectionHost"))) ) return true;
-    if( (host.startsWith(Externalized.getString("ebayServer.TaiwanDetectionHost"))) ) return true;
-    if( (host.startsWith(Externalized.getString("ebayServer.SpainDetectionHost"))) ) return true;
+    if( host.matches(T.s("ebayServer.detectionHost"))) return true;
 
     return false;
   }
@@ -384,9 +383,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   /**
    * @brief Constructor for the eBay server object.
-   *
-   * It's not a terribly good idea to have multiple of these, right
-   * now, but it is probably not broken.  -- mrs: 18-September-2003 15:08
    */
   public ebayServer() {
     String username = JConfig.queryConfiguration(getName() + ".user", "default");
@@ -397,14 +393,18 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   private void constructServer(String site, String username, String password) {
-    if(site != null && !site.equals("0")) {
+    if(site == null) {
+      T = new TT("ebay.com");
+    } else if(StringTools.isNumberOnly(site)) {
       String countrySite = Constants.SITE_CHOICES[Integer.parseInt(site)];
-      T.setCountrySite(countrySite);
+      T = new TT(countrySite);
+    } else {
+      T = new TT(site);
     }
     mCleaner = new ebayCleaner();
-    mLogin = new ebayLoginManager(Constants.EBAY_SERVER_NAME, password, username);
+    mLogin = new ebayLoginManager(T, Constants.EBAY_SERVER_NAME, password, username);
     mSearcher = new ebaySearches(mCleaner, mLogin);
-    mBidder = new ebayBidder(mLogin);
+    mBidder = new ebayBidder(T, mLogin);
 
     _etqm = new eBayTimeQueueManager();
     eQueue = new TimerHandler(_etqm);
@@ -468,7 +468,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - The real URL pointing to the item referenced by the passed in ID.
    */
   public String getStringURLFromItem(String itemID) {
-    return Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.viewHost") + Externalized.getString("ebayServer.file") + '?' + Externalized.getString("ebayServer.viewCmd") + Externalized.getString("ebayServer.viewCGI") + itemID;
+    return Externalized.getString("ebayServer.protocol") + T.s("ebayServer.viewHost") + Externalized.getString("ebayServer.file") + '?' + Externalized.getString("ebayServer.viewCmd") + Externalized.getString("ebayServer.viewCGI") + itemID;
   }
 
   /**
@@ -492,7 +492,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - An object that can be used as an AuctionInfo object.
    */
   public SpecificAuction getNewSpecificAuction() {
-    return new ebayAuction();
+    return new ebayAuction(T);
   }
 
   /**
