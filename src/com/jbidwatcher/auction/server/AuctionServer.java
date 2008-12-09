@@ -22,6 +22,7 @@ import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
 
@@ -31,6 +32,14 @@ import java.io.*;
 
 public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionServerInterface {
   private static long sLastUpdated = 0;
+
+  public String stripId(String source) {
+    String strippedId = source;
+
+    if (source.startsWith("http")) strippedId = extractIdentifierFromURLString(source);
+
+    return strippedId;
+  }
 
   private static class ReloadItemException extends Exception { }
 
@@ -76,24 +85,6 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
    */
   public abstract SpecificAuction getNewSpecificAuction();
 
-  /** 
-   * @brief Given a URL, determine if this auction server handles it.
-   * 
-   * @param checkURL - The URL to check.
-   * 
-   * @return - true if this auction server handles items at the provided URL.
-   */
-  public abstract boolean doHandleThisSite(URL checkURL);
-
-  /** 
-   * @brief Given a server name, determine if this auction server handles it.
-   * 
-   * @param serverName - The server name to query.
-   * 
-   * @return - true if this auction server recognizes the given server name.
-   */
-  public abstract boolean checkIfSiteNameHandled(String serverName);
-
   /**
    * @brief Get the official 'right now' time from the server.
    *
@@ -102,12 +93,15 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   protected abstract Date getOfficialTime();
 
   /**
-   * @brief Get a URL that points to the item on the auction site's server.
+   * @brief Given a site-dependant item ID, get the URL for that item.
    *
-   * @param itemID - The item to get the URL for.
-   * @return - A URL that refers to the item at the auction site.
+   * @param itemID - The eBay item ID to get a net.URL for.
+   *
+   * @return - a URL to use to pull that item.
    */
-  protected abstract URL getURLFromItem(String itemID);
+  protected URL getURLFromItem(String itemID) {
+    return (StringTools.getURLFromString(getStringURLFromItem(itemID)));
+  }
 
   /**
    * Get the full text of an auction from the auction server.
@@ -115,8 +109,9 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
    * @param id - The item id for the item to retrieve from the server.
    *
    * @return - The full text of the auction from the server, or null if it wasn't found.
+   * @throws java.io.FileNotFoundException - If the auction is gone from the server.
    */
-  public abstract StringBuffer getAuction(String id);
+  protected abstract StringBuffer getAuction(String id) throws FileNotFoundException;
 
   /**
    * @brief Get the current time inline with the current thread.  This will
@@ -134,9 +129,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   //  -----------------
   //  Note: AuctionEntry
   public AuctionInfo create(String itemId) {
-    URL auctionURL = getURLFromItem(itemId);
-
-    return loadAuction(auctionURL, itemId, null);
+    return loadAuction(itemId, null);
   }
 
   /**
@@ -185,9 +178,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
    * auction entry, or null if the update failed.
    */
   public AuctionInfo reload(AuctionEntry inEntry) {
-    URL auctionURL = getURLFromItem(inEntry.getIdentifier());
-
-    SpecificAuction curAuction = (SpecificAuction) loadAuction(auctionURL, inEntry.getIdentifier(), inEntry);
+    SpecificAuction curAuction = (SpecificAuction) loadAuction(inEntry.getIdentifier(), inEntry);
 
     if (curAuction != null) {
       inEntry.setAuctionInfo(curAuction);
@@ -204,25 +195,22 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   }
 
   /**
-   * @brief Load an auction, given its URL, its item id, and its 'AuctionEntry'.
+   * @brief Load an auction, given its item id, and its 'AuctionEntry'.
    *
-   * BUGBUG - This function should not require either of the last two entries.
-   *
-   * @param auctionURL - The URL to load the auction from.
    * @param item_id - The item # to associate this returned info with.
    * @param ae - An object to notify when an error occurs.
    *
    * @return - An object containing the information extracted from the auction.
    */
-  private AuctionInfo loadAuction(URL auctionURL, String item_id, AuctionEntry ae) {
-    StringBuffer sb = retrieveAuctionAlternatives(auctionURL, item_id, ae);
+  private AuctionInfo loadAuction(String item_id, AuctionEntry ae) {
+    StringBuffer sb = retrieveAuctionAlternatives(item_id, ae);
     SpecificAuction curAuction = null;
 
     if(sb != null) {
       try {
         curAuction = doParse(sb, ae, item_id);
       } catch (ReloadItemException e) {
-        sb = retrieveAuctionAlternatives(auctionURL, item_id, ae);
+        sb = retrieveAuctionAlternatives(item_id, ae);
         try {
           curAuction = doParse(sb, ae, item_id);
         } catch (ReloadItemException e1) {
@@ -241,22 +229,20 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
     return curAuction;
   }
 
-  private StringBuffer retrieveAuctionAlternatives(URL auctionURL, String item_id, AuctionEntry ae) {
-    StringBuffer sb = getAuction(item_id);
+  private StringBuffer retrieveAuctionAlternatives(String item_id, AuctionEntry ae) {
+    StringBuffer sb = null;
 
-    if (sb == null) {
-      try {
-        sb = getAuction(auctionURL);
-      } catch (FileNotFoundException ignored) {
-        //  Just get out.  The item no longer exists on the auction
-        //  server, so we shouldn't be trying any of the rest.  The
-        //  Error should have been logged at the lower level, so just
-        //  punt.  It's not a communications error, either.
-        markAuctionDeleted(ae);
-      } catch (Exception catchall) {
-        if (JConfig.debugging()) {
-          ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
-        }
+    try {
+      sb = getAuction(item_id);
+    } catch (FileNotFoundException ignored) {
+      //  Just get out.  The item no longer exists on the auction
+      //  server, so we shouldn't be trying any of the rest.  The
+      //  Error should have been logged at the lower level, so just
+      //  punt.  It's not a communications error, either.
+      markAuctionDeleted(ae);
+    } catch (Exception catchall) {
+      if (JConfig.debugging()) {
+        ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
       }
     }
 
@@ -279,9 +265,8 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
           case WRONG_SITE: {
             String rightURL = curAuction.getURL();
             ErrorManagement.logDebug("Need to redirect to: " + rightURL);
-            //  TODO -- Figure out what to do when we've been notified that we're trying to get it off the wrong site...
-            error = "Item is not visible from ebay.com.";
-            break;
+            AuctionServer realServer = AuctionServerManager.getInstance().getSecondary();
+            return (SpecificAuction) realServer.loadAuction(item_id, ae);
           }
           case CAPTCHA: {
             ErrorManagement.logDebug("Failed to load (likely adult) item, captcha intervened.");

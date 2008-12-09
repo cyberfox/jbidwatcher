@@ -157,7 +157,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   }
 
   public void loadAuctionsFromDB() {
-    int auctionTotal = AuctionServerManager.getInstance().getDefaultServer().getCount();
+    int auctionTotal = AuctionServerManager.getInstance().getServer().getCount();
     MQFactory.getConcrete("splash").enqueue("SET 0");
     MQFactory.getConcrete("splash").enqueue("WIDTH " + auctionTotal);
 
@@ -208,7 +208,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     MQFactory.getConcrete("splash").enqueue("WIDTH " + count);
     MQFactory.getConcrete("splash").enqueue("SET 0");
 
-    AuctionServer newServer = AuctionServerManager.getInstance().getServerByName("ebay");
+    AuctionServer newServer = AuctionServerManager.getInstance().getServer();
     AuctionServerManager.setEntryManager(this);
     AuctionServerManager.getInstance().loadAuctionsFromDB(newServer);
     AuctionStats as = AuctionServerManager.getInstance().getStats();

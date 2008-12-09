@@ -184,7 +184,7 @@ public class ebayLoginManager implements LoginManager {
   public CookieJar getSignInCookie(CookieJar oldCookie, String username, String password) {
     boolean isAdult = JConfig.queryConfiguration(mSiteName + ".adult", "false").equals("true");
     CookieJar cj = (oldCookie == null) ? new CookieJar() : oldCookie;
-    String startURL = Externalized.getString("ebayServer.signInPage");
+    String startURL = T.s("ebayServer.signInPage");
 
     if (isAdult) startURL = Externalized.getString("ebayServer.adultPageLogin");
 

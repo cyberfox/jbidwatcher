@@ -69,16 +69,13 @@ public class TT {
     try {
       return sResource.getString(key);
     } catch (MissingResourceException e) {
-      return '!' + key + '!';
+      // Fall back to the generic if it's there...
+      return Externalized.getString(key);
     }
   }
 
   public boolean setCountrySite(String country) {
     String bundle = country.replace('.', '_');
-    boolean result = setBundle(bundle);
-//    if(result) {
-//      countryProperties.setProperty("ebayServer.viewHost", "cgi." + country);
-//    }
-    return result;
+    return setBundle(bundle);
   }
 }

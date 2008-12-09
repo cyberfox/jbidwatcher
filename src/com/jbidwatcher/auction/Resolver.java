@@ -10,9 +10,5 @@ import com.jbidwatcher.auction.server.AuctionServer;
  * To change this template use File | Settings | File Templates.
  */
 public interface Resolver {
-  AuctionServerInterface getServerByName(String name);//  Handle the case of '198332643'.  (For 'paste auction').
-
-  AuctionServerInterface getServerForIdentifier(String auctionId);
-
-  AuctionServerInterface getServerForUrlString(String strURL);
+  AuctionServerInterface getServer();
 }

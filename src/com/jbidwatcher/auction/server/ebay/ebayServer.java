@@ -91,15 +91,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return result;
   }
 
-  /** @noinspection RedundantIfStatement*/
-  public boolean doHandleThisSite(URL checkURL) {
-    if(checkURL == null) return false;
-    String host = checkURL.getHost();
-    if( host.matches(T.s("ebayServer.detectionHost"))) return true;
-
-    return false;
-  }
-
   public Currency getMinimumBidIncrement(Currency currentBid, int bidCount) {
     return sCurrencies.getMinimumBidIncrement(currentBid, bidCount);
   }
@@ -135,20 +126,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   /**
-   * @brief Determine if an identifier looks like an eBay ID.
-   *
-   * For now, this just determines that it's pure numbers.  It should
-   * be 8-11 digits long, also, but we're not that specific right now.
-   *
-   * @param auctionId - The auction id to test for 'eBay compatibility'.
-   *
-   * @return - true if the item looks like it's an eBay id, false otherwise.
-   */
-  public boolean checkIfIdentifierIsHandled(String auctionId) {
-    return auctionId != null && StringTools.isNumberOnly(auctionId);
-  }
-
-  /**
    * @brief Very simplistic check to see if the current user is the
    * high bidder on a Dutch item.
    *
@@ -160,7 +137,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - true if the user is one of the high bidders on a dutch item, false otherwise.
    */
   public boolean isHighDutch(AuctionEntry inAE) {
-    String dutchWinners = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.dutchRequestHost") + Externalized.getString("ebayServer.V3WS3File") + Externalized.getString("ebayServer.viewDutch") + inAE.getIdentifier();
+    String dutchWinners = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.dutchRequestHost") + Externalized.getString("ebayServer.V3WS3File") + Externalized.getString("ebayServer.viewDutch") + inAE.getIdentifier();
     CookieJar cj = mLogin.getNecessaryCookie(false);
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();
@@ -175,7 +152,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public void updateHighBid(AuctionEntry ae) {
-    String bidHistory = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file") + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier();
+    String bidHistory = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file") + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier();
     CookieJar cj = mLogin.getNecessaryCookie(false);
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();
@@ -217,17 +194,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         newCurrency = htmlDocument.getNextContent();
       }
     }
-  }
-
-  /**
-   * @brief Given a server name, determine if we would normally handle requests for items on that server.
-   *
-   * @param serverName - The server name to check.
-   *
-   * @return - true if it is a server this class should handle, false otherwise.
-   */
-  public boolean checkIfSiteNameHandled(String serverName) {
-    return(serverName.equalsIgnoreCase(Constants.EBAY_SERVER_NAME));
   }
 
   /**
@@ -506,18 +472,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return 1;
   }
 
-  public StringBuffer getAuction(String id) {
-    StringBuffer sb;
-
-    try {
-      long pre = System.currentTimeMillis();
-      sb = getAuction(getURLFromItem(id));
-      long post = System.currentTimeMillis();
-      if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
-        mPageRequestTime = (post - pre);
-      }
-    } catch (FileNotFoundException ignored) {
-      sb = null;
+  public StringBuffer getAuction(String id) throws FileNotFoundException {
+    long pre = System.currentTimeMillis();
+    StringBuffer sb = getAuction(getURLFromItem(id));
+    long post = System.currentTimeMillis();
+    if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
+      mPageRequestTime = (post - pre);
     }
 
     return sb;
@@ -588,7 +548,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     CookieJar cj = mLogin.getNecessaryCookie(false);
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();
-    JHTML htmlDocument = new JHTML(Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidderNamesHost") + Externalized.getString("ebayServer.file") + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier(), userCookie, mCleaner);
+    JHTML htmlDocument = new JHTML(Externalized.getString("ebayServer.protocol") + T.s("ebayServer.bidderNamesHost") + Externalized.getString("ebayServer.file") + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier(), userCookie, mCleaner);
 
     String curName = htmlDocument.getNextContentAfterContent(T.s("ebayServer.bidListPrequel"));
 
@@ -771,16 +731,5 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
 
     return result.getDate();
-  }
-
-  /**
-   * @brief Given a site-dependant item ID, get the URL for that item.
-   *
-   * @param itemID - The eBay item ID to get a net.URL for.
-   *
-   * @return - a URL to use to pull that item.
-   */
-  protected URL getURLFromItem(String itemID) {
-    return (StringTools.getURLFromString(getStringURLFromItem(itemID)));
   }
 }

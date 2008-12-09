@@ -9,14 +9,12 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerialize;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.AuctionServerInterface;
 
-import java.net.URL;
 import java.util.*;
 
 /**
@@ -27,7 +25,8 @@ import java.util.*;
 public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener, Resolver {
   private final static AuctionServerManager mInstance;
   private static EntryManager sEntryManager = null;
-  private AuctionServer mServer;
+  private AuctionServer mServer = null;
+  private AuctionServer mSecondary = null;
   private static SearchManager mSearcher;
 
   private static final boolean sUberDebug = false;
@@ -40,12 +39,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public static void setEntryManager(EntryManager newEM) { sEntryManager = newEM; }
-
-  public AuctionServer getServerByName(String name) {
-    if (mServer.getName().equals(name)) return mServer;
-
-    return null;
-  }
 
   private AuctionServerManager() { }
 
@@ -67,12 +60,12 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         AuctionServer newServer = null;
         String serverName = perServer.getProperty("NAME", null);
         if(serverName != null) {
-          newServer = getServerByName(serverName);
+          newServer = getServer();
           if(newServer == null) {
             try {
               Class<?> newClass = Class.forName(serverName + "Server");
               newServer = (AuctionServer) newClass.newInstance();
-              newServer = addServer(newServer);
+              newServer = setServer(newServer);
             } catch(ClassNotFoundException cnfe) {
               ErrorManagement.handleException("Failed to load controller class for server " + serverName + '.', cnfe);
               throw new XMLParseException(inXML.getTagName(), "Failed to load controller class for server " + serverName + '.');
@@ -156,7 +149,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     String cmd = (String)deQ;
 
     if(cmd.equals("TIMECHECK")) {
-      com.jbidwatcher.auction.AuctionServerInterface defaultServer = getDefaultServer();
+      com.jbidwatcher.auction.AuctionServerInterface defaultServer = getServer();
 
       defaultServer.reloadTime();
 
@@ -183,7 +176,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   public String getDefaultServerTime() {
-    AuctionServerInterface defaultServer = getDefaultServer();
+    AuctionServerInterface defaultServer = getServer();
     return defaultServer.getTime();
   }
 
@@ -221,11 +214,11 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     return mInstance;
   }
 
-  public AuctionServer addServer(AuctionServer aucServ) {
+  public AuctionServer setServer(AuctionServer aucServ) {
     if(mServer != null) {
       //noinspection ThrowableInstanceNeverThrown
       RuntimeException here = new RuntimeException("Trying to add a server, when we've already got one!");
-      ErrorManagement.handleException("addServer error!", here);
+      ErrorManagement.handleException("setServer error!", here);
       return mServer;
     }
     mServer = aucServ;
@@ -234,33 +227,20 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     return(mServer);
   }
 
-  //  Handle the case of '198332643'.  (For 'paste auction').
-  public AuctionServerInterface getServerForIdentifier(String auctionId) {
-    if (mServer.checkIfIdentifierIsHandled(auctionId)) return mServer;
-
-    return null;
+  public AuctionServer getServer() {
+    return mServer;
   }
 
-  public AuctionServer getServerForUrlString(String strURL) {
-    URL serverAddr = StringTools.getURLFromString(strURL);
+  public void setSecondary(AuctionServer server) {
+    mSecondary = server;
+  }
 
-    if (mServer.doHandleThisSite(serverAddr)) return mServer;
-
-    ErrorManagement.logDebug("No matches for getServerForUrlString(" + strURL + ')');
-    return null;
+  public AuctionServer getSecondary() {
+    return mSecondary;
   }
 
   public ServerMenu addAuctionServerMenus() {
     return mServer.establishMenu();
-  }
-
-  /**
-   * Returns the first server, which means it's the 'default'.
-   *
-   * @return - The first auction server in the list, or null if the list is empty.
-   */
-  public AuctionServer getDefaultServer() {
-    return mServer;
   }
 
   public void cancelSearches() {

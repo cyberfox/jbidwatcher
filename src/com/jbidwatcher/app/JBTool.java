@@ -39,6 +39,7 @@ public class JBTool {
   private List<String> mParams;
   private ebayServer mEbay;
   private String mCountry = "ebay.com";
+  private ebayServer mEbayUK;
 
   private void testDateFormatting() {
     try {
@@ -109,14 +110,13 @@ public class JBTool {
 
   private void setupAuctionResolver() {
     mEbay = new ebayServer(mCountry, mUsername, mPassword);
+    mEbayUK = new ebayServer("ebay.co.uk", mUsername, mPassword);
 
     Resolver r = new Resolver() {
-      public AuctionServerInterface getServerByName(String name) { return mEbay; }
-      public AuctionServerInterface getServerForIdentifier(String auctionId) { return mEbay; }
-      public AuctionServerInterface getServerForUrlString(String strURL) { return mEbay; }
       public AuctionServerInterface getServer() { return mEbay; }
     };
-    AuctionServerManager.getInstance().addServer(mEbay);
+    AuctionServerManager.getInstance().setServer(mEbay);
+    AuctionServerManager.getInstance().setSecondary(mEbayUK);
     AuctionEntry.setResolver(r);
   }
 

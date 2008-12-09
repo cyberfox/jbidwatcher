@@ -270,16 +270,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     prepareAuctionEntry(auctionIdentifier);
   }
 
-  public static String stripId(String id) {
-    String strippedId = id;
-    if (id.startsWith("http")) {
-      AuctionServerInterface aucServ = sResolver.getServerForUrlString(id);
-      strippedId = aucServ.extractIdentifierFromURLString(id);
-    }
-
-    return strippedId;
-  }
-
   /**
    * Create a new auction entry for the ID passed in.  If it is in the deleted list, or already exists in
    * the database, it will return null.
@@ -290,10 +280,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * entry table, otherwise returns a valid AuctionEntry for the auction identifier provided.
    */
   public static AuctionEntry construct(String identifier) {
-    String strippedId = stripId(identifier);
+    AuctionServerInterface server = sResolver.getServer();
+    String strippedId = server.stripId(identifier);
 
     if (!DeletedEntry.exists(strippedId) && findByIdentifier(strippedId) == null) {
-      AuctionEntry ae = new AuctionEntry(strippedId, sResolver.getServerForIdentifier(strippedId));
+      AuctionEntry ae = new AuctionEntry(strippedId, server);
       if(ae.isLoaded()) {
         String id = ae.saveDB();
         if (id != null) return ae;
@@ -307,8 +298,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * for loading from XML data later on, where the fromXML function
    * will fill out all the internal information.  Similarly, ActiveRecord
    * fills this out when pulling from a database record.
+   *
+   * Uses the default server.
    */
   public AuctionEntry() {
+    mServer = sResolver.getServer();
     checkConfigurationSnipeTime();
   }
 
@@ -338,7 +332,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    */
   public AuctionServerInterface getServer() {
     if(mServer == null) {
-      mServer = sResolver.getServerForIdentifier(getIdentifier());
+      mServer = sResolver.getServer();
     }
     return(mServer);
   }

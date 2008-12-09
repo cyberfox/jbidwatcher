@@ -370,7 +370,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       setUI(null, null, UIManager.getInstalledLookAndFeels());
       //  Preload the eBay server, must be done before Configuration setup
       //  could happen, to get the configuration tab for eBay.
-      AuctionServerManager.getInstance().addServer(new ebayServer());
+      AuctionServerManager.getInstance().setServer(new ebayServer());
       ebayLoaded = true;
       Platform.setupMacUI();
       JConfig.setConfiguration("first.run", "true");
@@ -415,7 +415,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  try to recreate it.
     SearchManager.getInstance().loadSearches();
 
-    if(!ebayLoaded) AuctionServerManager.getInstance().addServer(new ebayServer());
+    if(!ebayLoaded) AuctionServerManager.getInstance().setServer(new ebayServer());
     AuctionEntry.setResolver(AuctionServerManager.getInstance());
     loadProxySettings();
 
@@ -565,7 +565,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     JConfig.registerListener(this);
 
-//    String defaultServer = AuctionServerManager.getInstance().getDefaultServer().getName();
+//    String defaultServer = AuctionServerManager.getInstance().getServer().getName();
 //    MQFactory.getConcrete(defaultServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$
 
     //  Register the handler for all 'drop' events.

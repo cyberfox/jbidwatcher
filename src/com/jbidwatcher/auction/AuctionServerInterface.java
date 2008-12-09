@@ -42,8 +42,6 @@ public interface AuctionServerInterface {
 
   int bid(AuctionEntry inEntry, Currency inBid, int inQuantity);
 
-  boolean checkIfIdentifierIsHandled(String auctionId);
-
   Currency getMinimumBidIncrement(Currency currentBid, int bidCount);
 
   /**
@@ -118,4 +116,6 @@ public interface AuctionServerInterface {
   boolean isHighDutch(AuctionEntry entry);
 
   void updateHighBid(AuctionEntry eEntry);
+
+  String stripId(String source);
 }

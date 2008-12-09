@@ -89,7 +89,7 @@ public final class UIBackbone implements MessageQueue.Listener {
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
     String bracketed = " [" + defaultServerTime + '/' + Constants.localClockFormat.format(mNow) + ']';
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("false")) {
-      TimeZone tz = AuctionServerManager.getInstance().getDefaultServer().getOfficialServerTimeZone();
+      TimeZone tz = AuctionServerManager.getInstance().getServer().getOfficialServerTimeZone();
       if (tz != null && tz.hasSameRules(mCal.getTimeZone())) {
         bracketed = " [" + Constants.localClockFormat.format(mNow) + ']';
       }

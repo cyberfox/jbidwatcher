@@ -85,7 +85,7 @@ public class ebaySearches {
           /**
            * Does this look like an auction server item URL?
            */
-          AuctionServerInterface aucServ = AuctionServerManager.getInstance().getServerForUrlString(url);
+          AuctionServerInterface aucServ = AuctionServerManager.getInstance().getServer();
           String hasId = aucServ.extractIdentifierFromURLString(url);
 
           if (hasId != null) {

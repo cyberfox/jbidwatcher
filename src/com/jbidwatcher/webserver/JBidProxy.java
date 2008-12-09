@@ -71,7 +71,7 @@ public class JBidProxy extends HTTPProxyClient {
 
     //  TODO -- Actually, validate against ASM, and it can *find* the correct
     //  TODO -- server/user combination and restrict the display/interaction to that server.
-    AuctionServer aucServ = AuctionServerManager.getInstance().getDefaultServer();
+    AuctionServer aucServ = AuctionServerManager.getInstance().getServer();
     return aucServ.validate(user, pass);
   }
 

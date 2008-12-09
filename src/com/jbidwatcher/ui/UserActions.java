@@ -112,7 +112,7 @@ public class UserActions implements MessageQueue.Listener {
     AuctionEntry aeNew = addAuction(auctionSource);
     if(aeNew == null) {
       AuctionsManager am = AuctionsManager.getInstance();
-      String id = AuctionEntry.stripId(auctionSource);
+      String id = AuctionServerManager.getInstance().getServer().stripId(auctionSource);
       //  For user-interactive adds, always override the deleted state.
       if(DeletedEntry.exists(id)) {
         DeletedEntry.remove(id);
@@ -453,7 +453,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private void DoShowTime(Component src, AuctionEntry ae) {
-    AuctionServerInterface as = AuctionServerManager.getInstance().getDefaultServer();
+    AuctionServerInterface as = AuctionServerManager.getInstance().getServer();
     if(ae != null) as = ae.getServer();
 
     String prompt = "<html><body><table>";

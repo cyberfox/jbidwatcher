@@ -47,7 +47,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
     //  Check to see if it's got a protocol ({protocol}:{path})
     //  If not, treat it as an item number alone, in the space of the default auction server.
     if(auctionURL.indexOf(":") != -1) {
-      AuctionServer aucServ = AuctionServerManager.getInstance().getServerForUrlString(auctionURL);
+      AuctionServer aucServ = AuctionServerManager.getInstance().getServer();
       aucId = aucServ.extractIdentifierFromURLString(auctionURL);
     } else {
       aucId = auctionURL;
