@@ -24,6 +24,11 @@ public class TT {
   private static ClassLoader urlCL = (ClassLoader) TT.class.getClassLoader();
   private ResourceBundle sResource = ResourceBundle.getBundle("ebay_com");
   private Properties countryProperties = null;
+  private String mBundle;
+
+  public int hashCode() {
+    return mBundle.hashCode();
+  }
 
   /**
    * Create a new country-site specific properties matching object.
@@ -35,6 +40,7 @@ public class TT {
   }
 
   public boolean setBundle(String bundleName) {
+    mBundle = bundleName;
     boolean successful = false;
     try {
       sResource = ResourceBundle.getBundle(bundleName);

@@ -23,6 +23,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
   private List<Searcher> _searches = new ArrayList<Searcher>();
   private static SearchManager _instance = null;
   private static TimerHandler sTimer;
+  private Object destinationQueue;
 
   private SearchManager() { }
   public static SearchManager getInstance() {
@@ -43,29 +44,33 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     return null;
   }
 
-  private static class StringSearcher extends Searcher {
+  public void setDestinationQueue(Object dQueue) {
+    destinationQueue = dQueue;
+  }
+
+  private class StringSearcher extends Searcher {
     public String getTypeName() { return "Text"; }
-    protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_SEARCH, this, getCategory())); }
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_SEARCH, this, getCategory())); }
   }
 
-  private static class TitleSearcher extends Searcher {
+  private class TitleSearcher extends Searcher {
     public String getTypeName() { return "Title"; }
-    protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_TITLE, this, getCategory())); }
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_TITLE, this, getCategory())); }
   }
 
-  private static class SellerSearcher extends Searcher {
+  private class SellerSearcher extends Searcher {
     public String getTypeName() { return "Seller"; }
-    protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_SELLER, this, getCategory())); }
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_SELLER, this, getCategory())); }
   }
 
-  private static class URLSearcher extends Searcher {
+  private class URLSearcher extends Searcher {
     public String getTypeName() { return "URL"; }
-    protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_URL, this, getCategory())); }
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_URL, this, getCategory())); }
   }
 
-  private static class MyItemSearcher extends Searcher {
+  private class MyItemSearcher extends Searcher {
     public String getTypeName() { return "My Items"; }
-    protected void fire() { MQFactory.getConcrete(_server).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); }
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); }
   }
 
   public Searcher getSearchByIndex(int i) { if(i < _searches.size()) return _searches.get(i); else return null; }

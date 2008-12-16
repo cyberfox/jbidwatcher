@@ -15,9 +15,9 @@ import java.util.*;
 public class TimeQueueManager implements TimerHandler.WakeupProcess {
   private TimeQueue m_tq = new TimeQueue();
 
-  private class TQCarrier {
+  private static class TQCarrier {
     private Object payload;
-    private String destination_queue;
+    private Object destination_queue;
     private long repeatRate;
     private int repeatCount;
 
@@ -25,7 +25,7 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
       return payload;
     }
 
-    public String getDestinationQueue() {
+    public Object getDestinationQueue() {
       return destination_queue;
     }
 
@@ -41,21 +41,21 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
       repeatCount--;
     }
 
-    public TQCarrier(Object o, String s) {
+    public TQCarrier(Object o, Object s) {
       destination_queue = s;
       payload = o;
       repeatRate = 0;
       repeatCount = 1;
     }
 
-    public TQCarrier(Object o, String s, long r) {
+    public TQCarrier(Object o, Object s, long r) {
       destination_queue = s;
       payload = o;
       repeatRate = r;
       repeatCount = -1;
     }
 
-    public TQCarrier(Object o, String s, long r, int c) {
+    public TQCarrier(Object o, Object s, long r, int c) {
       destination_queue = s;
       payload = o;
       repeatRate = r;
@@ -85,11 +85,11 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
     return false;
   }
 
-  public void add(Object payload, String destination, long when) {
+  public void add(Object payload, Object destination, long when) {
     m_tq.addEvent(when, new TQCarrier(payload, destination));
   }
 
-  public void add(Object payload, String destination, long when, long repeat) {
+  public void add(Object payload, Object destination, long when, long repeat) {
     m_tq.addEvent(when, new TQCarrier(payload, destination, repeat));
   }
 

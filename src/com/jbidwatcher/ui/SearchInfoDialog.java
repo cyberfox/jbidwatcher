@@ -7,6 +7,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.util.*;
@@ -79,7 +80,7 @@ public class SearchInfoDialog extends BasicDialog {
 
   protected void onOK() {
     if(curSearch == null) {
-      curSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), getType(), getName(), getSearch(), "ebay", getCurrency(), -1);
+      curSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), getType(), getName(), getSearch(), Constants.EBAY_SERVER_NAME, getCurrency(), -1);
       SearchManager.getInstance().addSearch(curSearch);
     } else {
       curSearch.setName(getName());

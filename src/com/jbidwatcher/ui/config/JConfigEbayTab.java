@@ -6,10 +6,12 @@ import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.TT;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.JBEditorPane;
 import com.jbidwatcher.auction.server.ebay.ebayLoginManager;
+import com.jbidwatcher.auction.server.AuctionServerManager;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -30,7 +32,8 @@ public class JConfigEbayTab extends JConfigTab
   JComboBox siteSelect;
   MessageQueue.Listener oldLoginListener = null;
   private String mDisplayName;
-  private String mSitename = "ebay";
+  //  mSitename is only used to look up configuration values.
+  private String mSitename = Constants.EBAY_SERVER_NAME;
 
   private class LoginTestListener implements ActionListener, MessageQueue.Listener {
     CookieJar cj = null;
@@ -39,7 +42,7 @@ public class JConfigEbayTab extends JConfigTab
       if (ae.getActionCommand().equals("Test Login")) {
         TT T = new TT("ebay.com");
         oldLoginListener = MQFactory.getConcrete("login").registerListener(this);
-        ebayLoginManager login = new ebayLoginManager(T, "ebay", password.getText(), username.getText(), false);
+        ebayLoginManager login = new ebayLoginManager(T, mSitename, password.getText(), username.getText(), false);
         cj = login.getNecessaryCookie(true);
       }
     }
@@ -107,7 +110,8 @@ public class JConfigEbayTab extends JConfigTab
     if(old_pass == null || !new_pass.equals(old_pass) ||
        old_user == null || !new_user.equals(old_user) ||
        old_adult == null || !new_adult.equals(old_adult)) {
-      MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
+      MQFactory.getConcrete(AuctionServerManager.getInstance().getServer()).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
+      MQFactory.getConcrete(AuctionServerManager.getInstance().getSecondary()).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
     }
     return true;
   }

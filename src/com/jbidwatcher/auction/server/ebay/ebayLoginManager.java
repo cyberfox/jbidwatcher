@@ -216,7 +216,7 @@ public class ebayLoginManager implements LoginManager {
             MQFactory.getConcrete("login").enqueue("FAILED Sign in information is not valid.");
           } else {
             JHTML.Form redirect_form = doc.getFormWithInput("hidUrl");
-            if(redirect_form != null && redirect_form.getInputValue("hidUrl").equals("http://my.ebay.com/ws/eBayISAPI.dll?MyeBay")) {
+            if(redirect_form != null && redirect_form.getInputValue("hidUrl").matches("^http://my\\.ebay\\.(com|co.uk)/ws/eBayISAPI.dll\\?My.*eBay.*$")) {
               MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
             } else {
               ErrorManagement.logFile("Security checks out, but no My eBay form link on final page...", confirm);

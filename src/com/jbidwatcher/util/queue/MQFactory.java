@@ -8,33 +8,30 @@ package com.jbidwatcher.util.queue;
 import java.util.*;
 
 /** MQFactory is a factory class, returning MessageQueue objects from a pool.
- *  The object returned is based on the string passed in to the getConcrete()
- *  method.
+ *  The object returned is based on the object passed in to the getConcrete()
+ *  method.  This will usually be a string, but there are times when you want
+ *  to pass a more fundamental object.
  */
+@SuppressWarnings({"UtilityClass"})
 public class MQFactory {
-  private static MQFactory _instance = null;
-  private static Map<String, MessageQueue> MQs;
+  private static Map<Object, MessageQueue> MQs = null;
 
-  private MQFactory() {
-    MQs = new TreeMap<String, MessageQueue>();
-  }
+  private MQFactory() { }
 
   public static void addQueue(String queueName, MessageQueue whatQueue) {
-    if(_instance == null) {
-      _instance = new MQFactory();
+    if(MQs == null) {
+      MQs = new HashMap<Object, MessageQueue>();
     }
 
     MQs.put(queueName, whatQueue);
   }
 
-  public static MessageQueue getConcrete(String whatConcrete) {
-    MessageQueue foundMQ;
-
-    if(_instance == null) {
-      _instance = new MQFactory();
+  public static MessageQueue getConcrete(Object whatConcrete) {
+    if(MQs == null) {
+      MQs = new HashMap<Object, MessageQueue>();
     }
 
-    foundMQ = MQs.get(whatConcrete);
+    MessageQueue foundMQ = MQs.get(whatConcrete);
 
     if(foundMQ == null) {
       foundMQ = new PlainMessageQueue(whatConcrete);

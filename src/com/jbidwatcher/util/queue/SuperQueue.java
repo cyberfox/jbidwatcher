@@ -27,7 +27,7 @@ public class SuperQueue {
     mTQM.add(payload, queueName, when);
   }
 
-  public void preQueue(Object payload, String queueName, long when, long repeat) {
+  public void preQueue(Object payload, Object queueName, long when, long repeat) {
     mTQM.add(payload, queueName, when, repeat);
   }
 

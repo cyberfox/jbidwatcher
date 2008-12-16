@@ -432,7 +432,7 @@ public final class UIBackbone implements MessageQueue.Listener {
       if (foundSnipe) status += "  One or more snipes may not have been fired.";
       MQFactory.getConcrete("Swing").enqueue(NOTIFY_MSG + status);
     }
-    SuperQueue.getInstance().getQueue().add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", System.currentTimeMillis() + (10 * Constants.ONE_SECOND));
+    SuperQueue.getInstance().getQueue().add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), System.currentTimeMillis() + (10 * Constants.ONE_SECOND));
   }
 
   public void setMainFrame(MacFriendlyFrame frame) {

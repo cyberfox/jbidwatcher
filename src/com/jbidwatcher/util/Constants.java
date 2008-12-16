@@ -89,7 +89,8 @@ public class Constants {
     "ebaysweden.com",
     "ebay.ch",
     "befr.ebay.be",
-    "ebay.ie"};
+    "ebay.ie",
+    "ebay.ph"};
   public final static String EBAY_DISPLAY_NAME = "eBay";
   public final static String EBAY_SERVER_NAME = "ebay";
 }

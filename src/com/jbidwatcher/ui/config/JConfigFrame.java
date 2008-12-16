@@ -129,7 +129,7 @@ public class JConfigFrame implements ActionListener {
 
     //  Add all non-server-specific tabs here.
     allTabs.add(new JConfigGeneralTab());
-    allTabs.add(new JConfigEbayTab("eBay", Constants.SITE_CHOICES));
+    allTabs.add(new JConfigEbayTab(Constants.EBAY_DISPLAY_NAME, Constants.SITE_CHOICES));
 
     //  Stub the browser tab under MacOSX, so they don't try to use it.
     if(Platform.isMac()) {

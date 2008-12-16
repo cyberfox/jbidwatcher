@@ -7,6 +7,7 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.ui.table.SearchTableModel;
@@ -181,7 +182,7 @@ public class SearchFrame implements ActionListener {
 
     if(act.equals("Add") || act.equals("Search")) {
       String text = searchString.getText();
-      Searcher s = add((String)newType.getSelectedItem(), "New Search ", text, "ebay");
+      Searcher s = add((String)newType.getSelectedItem(), "New Search ", text, Constants.EBAY_SERVER_NAME);
 
       _stm.fireTableDataChanged();
       newType.setSelectedIndex(0);

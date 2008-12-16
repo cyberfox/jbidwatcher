@@ -849,7 +849,7 @@ public class UserActions implements MessageQueue.Listener {
                                             "Buy Item", "prompt.bin_confirm");
 
     if(endResult != JOptionPane.CANCEL_OPTION && endResult != JOptionPane.CLOSED_OPTION) {
-      MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.BID, new AuctionBuy(ae, Currency.NoValue(), 1), "none"));
+      MQFactory.getConcrete(ae.getServer()).enqueue(new AuctionQObject(AuctionQObject.BID, new AuctionBuy(ae, Currency.NoValue(), 1), "none"));
     }
   }
 
@@ -900,7 +900,7 @@ public class UserActions implements MessageQueue.Listener {
                                     "Bad bid value", JOptionPane.PLAIN_MESSAGE);
       return;
     }
-    MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, Integer.parseInt(endResult[1])), "none"));
+    MQFactory.getConcrete(ae.getServer()).enqueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, Integer.parseInt(endResult[1])), "none"));
   }
 
   private void DoShowInBrowser(Component src, AuctionEntry inAuction) {

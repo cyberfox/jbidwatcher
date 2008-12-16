@@ -39,20 +39,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private final static ebayCurrencyTables sCurrencies = new ebayCurrencyTables();
   private TT T;
 
-  /**
-   * The human-readable name of the auction server.
-   */
-  private static String siteId = "ebay";
-
-  public static String getSiteName() {
-    return siteId;
-  }
-
   /** @noinspection FieldAccessedSynchronizedAndUnsynchronized*/
   private eBayTimeQueueManager _etqm;
   private Searcher mSellerSearch = null;
   private ebaySearches mSearcher;
   private ebayLoginManager mLogin;
+  private SnipeListener mSnipeQueue;
 
   /** @noinspection FieldCanBeLocal*/
   private TimerHandler eQueue;
@@ -77,16 +69,17 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     ebayServer that = (ebayServer) o;
 
-    return getName().equals(that.getName()) && mLogin.equals(that.mLogin);
+    return T.equals(that.T) && mLogin.equals(that.mLogin);
   }
 
   public int hashCode() {
     String user = mLogin.getUserId();
     String pass = mLogin.getPassword();
 
-    int result = siteId.hashCode();
+    int result = Constants.EBAY_SERVER_NAME.hashCode();
     result = 31 * result + (user != null ? user.hashCode() : 0);
     result = 31 * result + (pass != null ? pass.hashCode() : 0);
+    result = 31 * result + T.hashCode();
 
     return result;
   }
@@ -100,10 +93,14 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     mLogin.setPassword(JConfig.queryConfiguration(getName() + ".password", "default"));
 
     if(!mLogin.isDefault()) {
-      SearchManager.getInstance().deleteSearch("My Selling Items");
-      mSellerSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", mLogin.getUserId(), getName(), null, 1);
-      mSellerSearch.setCategory("selling");
-      SearchManager.getInstance().addSearch(mSellerSearch);
+      Searcher s = SearchManager.getInstance().getSearchByName("My Selling Items");
+      if(s == null) {
+        mSellerSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", mLogin.getUserId(), getName(), null, 1);
+        mSellerSearch.setCategory("selling");
+        SearchManager.getInstance().addSearch(mSellerSearch);
+      } else {
+        s.setSearch(mLogin.getUserId());
+      }
     }
   }
 
@@ -119,7 +116,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *
    */
   public ServerMenu establishMenu() {
-    ebayServerMenu esm = new ebayServerMenu(Constants.EBAY_DISPLAY_NAME, 'b');
+    ebayServerMenu esm = new ebayServerMenu(this, Constants.EBAY_DISPLAY_NAME, 'b');
     esm.initialize();
 
     return esm;
@@ -327,8 +324,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     long two_minutes = Constants.ONE_MINUTE*2;
     AuctionQObject payload = new AuctionQObject(AuctionQObject.SNIPE, new Snipe(mLogin, mBidder, snipeOn), null);
 
-    _etqm.add(payload, "snipes", (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime())-two_minutes);
-    _etqm.add(payload, "snipes", (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime()));
+    _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime())-two_minutes);
+    _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime()));
     snipeMap.put(snipeOn.getIdentifier(), payload);
   }
 
@@ -358,6 +355,17 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     constructServer(siteNumber, username, password);
   }
 
+  /**
+   * @brief Constructor for the eBay server object.
+   * @param country - The country site to create an ebay server for.
+   */
+  public ebayServer(String country) {
+    String username = JConfig.queryConfiguration(getName() + ".user", "default");
+    String password = JConfig.queryConfiguration(getName() + ".password", "default");
+
+    constructServer(country, username, password);
+  }
+
   private void constructServer(String site, String username, String password) {
     if(site == null) {
       T = new TT("ebay.com");
@@ -378,8 +386,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     //noinspection CallToThreadStartDuringObjectConstruction
     eQueue.start();
 
-    MQFactory.getConcrete("snipes").registerListener(new SnipeListener());
-    MQFactory.getConcrete("ebay").registerListener(this);
+    mSnipeQueue = new SnipeListener();
+    MQFactory.getConcrete(mSnipeQueue).registerListener(mSnipeQueue);
+    MQFactory.getConcrete(this).registerListener(this);
 
     JConfig.registerListener(this);
   }
@@ -518,7 +527,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *  This queue is basically only used for starting searches.
    */
   public void cancelSearches() {
-    MQFactory.getConcrete("ebay").clear();
+    MQFactory.getConcrete(this).clear();
   }
 
   /**
@@ -531,7 +540,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   public void addSearches(SearchManagerInterface searchManager) {
     Searcher s = searchManager.getSearchByName("My eBay");
-    if(s == null) searchManager.addSearch("My Items", "My eBay", "", "ebay", -1, 1);
+    if(s == null) searchManager.addSearch("My Items", "My eBay", "", Constants.EBAY_SERVER_NAME, -1, 1);
   }
 
   /**
@@ -614,7 +623,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
               long retry_wait = (snipeIn / 10) * 2;
               if(retry_wait < Constants.THREE_SECONDS) retry_wait = Constants.THREE_SECONDS;
 
-              _etqm.add(deQ, "snipes", _etqm.getCurrentTime()+retry_wait);
+              _etqm.add(deQ, mSnipeQueue, _etqm.getCurrentTime()+retry_wait);
             } else {
               //  If there are less than 3 seconds left, give up.
               ErrorManagement.logDebug("Resnipes failed, and less than 3 seconds away.  Giving up.");
@@ -675,7 +684,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public String getName() {
-    return siteId;
+    return Constants.EBAY_SERVER_NAME;
   }
 
   public boolean validate(String username, String password) {

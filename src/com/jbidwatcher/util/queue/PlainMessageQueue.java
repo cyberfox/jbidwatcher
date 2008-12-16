@@ -25,7 +25,7 @@ public final class PlainMessageQueue extends MessageQueue {
     }
   }
 
-  public PlainMessageQueue(String qName) {
+  public PlainMessageQueue(Object qName) {
     _myself = new Thread(this);
     //  Go ahead and die if all other threads are closed!
     _myself.setDaemon(true);

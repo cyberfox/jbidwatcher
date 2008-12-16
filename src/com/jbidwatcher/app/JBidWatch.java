@@ -371,6 +371,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       //  Preload the eBay server, must be done before Configuration setup
       //  could happen, to get the configuration tab for eBay.
       AuctionServerManager.getInstance().setServer(new ebayServer());
+      AuctionServerManager.getInstance().setSecondary(new ebayServer("ebay.co.uk"));
       ebayLoaded = true;
       Platform.setupMacUI();
       JConfig.setConfiguration("first.run", "true");
@@ -415,7 +416,11 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  try to recreate it.
     SearchManager.getInstance().loadSearches();
 
-    if(!ebayLoaded) AuctionServerManager.getInstance().setServer(new ebayServer());
+    if(!ebayLoaded) {
+      AuctionServerManager.getInstance().setServer(new ebayServer());
+      AuctionServerManager.getInstance().setSecondary(new ebayServer("ebay.co.uk"));
+    }
+    SearchManager.getInstance().setDestinationQueue(AuctionServerManager.getInstance().getServer());
     AuctionEntry.setResolver(AuctionServerManager.getInstance());
     loadProxySettings();
 
@@ -641,13 +646,13 @@ public final class JBidWatch implements JConfig.ConfigListener {
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
       q.preQueue("TIMECHECK", "auction_manager", now + (Constants.ONE_SECOND * 2), Constants.THIRTY_MINUTES);
     }
-    q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), "ebay", now + Constants.ONE_SECOND * 3, 481 * Constants.ONE_MINUTE + Constants.ONE_SECOND * 17);
+    q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), now + Constants.ONE_SECOND * 3, 481 * Constants.ONE_MINUTE + Constants.ONE_SECOND * 17);
     q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 2 * 10));
 
     //  Other interesting examples...
     //q.preQueue("This is a message for the display!", "Swing", System.currentTimeMillis()+Constants.ONE_MINUTE);
     //q.preQueue(UserActions.ADD_AUCTION + "5582606163", "user", System.currentTimeMillis() + (Constants.ONE_MINUTE / 2));
     //q.preQueue("http://www.jbidwatcher.com", "browse", System.currentTimeMillis() + (Constants.ONE_MINUTE / 4));
-    //q.preQueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), "ebay", System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
+    //q.preQueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), AuctionServerManager.getInstance().getServer(), System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
   }
 }

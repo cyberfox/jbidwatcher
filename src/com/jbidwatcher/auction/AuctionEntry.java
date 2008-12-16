@@ -1225,10 +1225,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       }
       setInteger("snipe_id", null);
       mSnipe = null;
-      MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
+      MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
     } else {
       mSnipe = AuctionSnipe.create(snipe, quantity, 0);
-      MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
+      MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
     }
     setDirty();
     saveDB();
@@ -1239,8 +1239,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    * @brief Refresh the snipe, so it picks up a potentially changed end time, or when initially loading items.
    */
   public void refreshSnipe() {
-    MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
-    MQFactory.getConcrete(getServer().getName()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
+    MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
+    MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
   }
 
   /** @brief Actually bid on a single item for a given price.

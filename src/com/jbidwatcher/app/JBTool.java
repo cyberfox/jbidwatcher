@@ -60,7 +60,7 @@ public class JBTool {
     if(mRunServer) {
       spawnServer();
     } else if(mJustMyeBay) {
-      MQFactory.getConcrete("ebay").enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
+      MQFactory.getConcrete(mEbay).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
       try { Thread.sleep(120000); } catch(Exception ignored) { }
     } else {
       retrieveAndVerifyAuctions(mParams);
