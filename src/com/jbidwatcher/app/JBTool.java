@@ -27,7 +27,7 @@ import java.text.ParseException;
  * Time: 6:42:11 PM
  */
 @SuppressWarnings({"UtilityClass", "UtilityClassWithoutPrivateConstructor"})
-public class JBTool {
+public class JBTool implements ToolInterface {
   private boolean mLogin = false;
   private String mUsername = null;
   private String mPassword = null;
@@ -106,8 +106,6 @@ public class JBTool {
     try { mServer.join(); } catch(Exception ignored) { /* Time to die... */ }
   }
 
-  public ebayServer getEbay() { return mEbay; }
-
   private void setupAuctionResolver() {
     mEbay = new ebayServer(mCountry, mUsername, mPassword);
     mEbayUK = new ebayServer("ebay.co.uk", mUsername, mPassword);
@@ -169,5 +167,10 @@ public class JBTool {
   public void done() {
     mServer.halt();
     mServer.interrupt();
+  }
+
+  public void forceLogin() {
+    mEbay.forceLogin();
+    if(mEbayUK != null) mEbayUK.forceLogin();
   }
 }

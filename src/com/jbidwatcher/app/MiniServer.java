@@ -1,7 +1,6 @@
 package com.jbidwatcher.app;
 
 import com.jbidwatcher.webserver.HTTPProxyClient;
-import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.*;
@@ -20,13 +19,13 @@ import java.lang.reflect.*;
  * This is a simple, small server, used by the JBTool to listen for simple commands.
  */
 public class MiniServer extends HTTPProxyClient {
-  private JBTool mTool;
+  private ToolInterface mTool;
 
   public MiniServer(Socket talkSock) {
     super(talkSock);
   }
 
-  public MiniServer(Socket talkSock, JBTool tool) {
+  public MiniServer(Socket talkSock, ToolInterface tool) {
     super(talkSock);
     mTool = tool;
   }
@@ -49,7 +48,7 @@ public class MiniServer extends HTTPProxyClient {
   };
 
   public StringBuffer login() {
-    mTool.getEbay().forceLogin();
+    mTool.forceLogin();
     return new StringBuffer("<response>\n  <success><![CDATA[Login requested]]></success>\n</response>\n");
   }
 
