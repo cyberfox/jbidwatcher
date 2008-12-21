@@ -6,6 +6,7 @@ import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
@@ -71,6 +72,7 @@ public class JBTool implements ToolInterface {
   }
 
   public static void main(String[] args) {
+    JConfig.setLogger(new ErrorManagement());
     ActiveRecord.disableDatabase();
     JBTool tool = new JBTool(args);
 

@@ -341,6 +341,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
    * @param args Command line arguments.
    */
   public static void main(String[] args) {
+    JConfig.setLogger(new ErrorManagement());
     if(checkArguments(args)) {
       System.exit(0);
     }
