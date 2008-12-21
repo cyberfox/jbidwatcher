@@ -30,10 +30,6 @@ class ebayServerMenu extends ServerMenu {
 
     //  Handle stuff which is redirected to the search manager.
     if(actionString.equals("Search eBay")) MQFactory.getConcrete("user").enqueue("SEARCH");
-    else if(actionString.equals("Update login cookie")) {
-      MQFactory.getConcrete(mQueueServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null));
-      MQFactory.getConcrete(AuctionServerManager.getInstance().getSecondary()).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null));
-    }
     else MQFactory.getConcrete(mQueueServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null));
   }
 

@@ -231,14 +231,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     return mServer;
   }
 
-  public void setSecondary(AuctionServer server) {
-    mSecondary = server;
-  }
-
-  public AuctionServer getSecondary() {
-    return mSecondary;
-  }
-
   public ServerMenu addAuctionServerMenus() {
     return mServer.establishMenu();
   }

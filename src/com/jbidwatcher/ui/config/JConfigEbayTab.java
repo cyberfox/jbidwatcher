@@ -111,7 +111,6 @@ public class JConfigEbayTab extends JConfigTab
        old_user == null || !new_user.equals(old_user) ||
        old_adult == null || !new_adult.equals(old_adult)) {
       MQFactory.getConcrete(AuctionServerManager.getInstance().getServer()).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
-      MQFactory.getConcrete(AuctionServerManager.getInstance().getSecondary()).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
     }
     return true;
   }

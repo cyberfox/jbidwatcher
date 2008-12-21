@@ -32,6 +32,7 @@ import java.io.*;
 
 public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionServerInterface {
   private static long sLastUpdated = 0;
+  private AuctionServer mBackupServer = null;
 
   public String stripId(String source) {
     String strippedId = source;
@@ -265,7 +266,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
           case WRONG_SITE: {
             String rightURL = curAuction.getURL();
             ErrorManagement.logDebug("Need to redirect to: " + rightURL);
-            AuctionServer realServer = AuctionServerManager.getInstance().getSecondary();
+            AuctionServer realServer = getBackupServer();
             return (SpecificAuction) realServer.loadAuction(item_id, ae);
           }
           case CAPTCHA: {
@@ -359,5 +360,13 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
    */
   public boolean isCurrentUser(String username) {
     return !(username == null || isDefaultUser() || !getUserId().trim().equalsIgnoreCase(username.trim()));
+  }
+
+  public AuctionServer getBackupServer() {
+    return mBackupServer;
+  }
+
+  public void setBackupServer(AuctionServer backupServer) {
+    mBackupServer = backupServer;
   }
 }

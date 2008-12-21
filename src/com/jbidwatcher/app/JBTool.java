@@ -114,7 +114,7 @@ public class JBTool implements ToolInterface {
       public AuctionServerInterface getServer() { return mEbay; }
     };
     AuctionServerManager.getInstance().setServer(mEbay);
-    AuctionServerManager.getInstance().setSecondary(mEbayUK);
+    mEbay.setBackupServer(mEbayUK);
     AuctionEntry.setResolver(r);
   }
 

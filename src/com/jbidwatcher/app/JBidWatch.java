@@ -370,8 +370,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
       setUI(null, null, UIManager.getInstalledLookAndFeels());
       //  Preload the eBay server, must be done before Configuration setup
       //  could happen, to get the configuration tab for eBay.
-      AuctionServerManager.getInstance().setServer(new ebayServer());
-      AuctionServerManager.getInstance().setSecondary(new ebayServer("ebay.co.uk"));
+      AuctionServer ebay = new ebayServer();
+      AuctionServerManager.getInstance().setServer(ebay);
+      ebay.setBackupServer(new ebayServer("ebay.co.uk"));
       ebayLoaded = true;
       Platform.setupMacUI();
       JConfig.setConfiguration("first.run", "true");
@@ -417,8 +418,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
     SearchManager.getInstance().loadSearches();
 
     if(!ebayLoaded) {
-      AuctionServerManager.getInstance().setServer(new ebayServer());
-      AuctionServerManager.getInstance().setSecondary(new ebayServer("ebay.co.uk"));
+      AuctionServer ebay = new ebayServer();
+      AuctionServerManager.getInstance().setServer(ebay);
+      ebay.setBackupServer(new ebayServer("ebay.co.uk"));
     }
     SearchManager.getInstance().setDestinationQueue(AuctionServerManager.getInstance().getServer());
     AuctionEntry.setResolver(AuctionServerManager.getInstance());
