@@ -497,14 +497,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return 0;
   }
 
-  private void setMultiSnipe(String identifier, String bgColor, Currency defaultSnipe, boolean subtractShipping) {
-    MultiSnipe ms = MultiSnipe.findFirstBy("identifier", identifier);
-    if(ms == null) {
-      ms = new MultiSnipe(bgColor, defaultSnipe, Long.parseLong(identifier), subtractShipping);
-    }
-    setMultiSnipe(ms);
-  }
-
   /**
    * @brief Set this auction as being part of a multi-snipe set,
    * change the multi-snipe group associated with it, or delete it
@@ -538,7 +530,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       //  add to the multi-snipe group.
       if(mMultiSnipe != null) {
         if(!isSniped()) {
-          prepareSnipe(mMultiSnipe.getSnipeValue(this));
+          prepareSnipe(mMultiSnipe.getSnipeValue(getShippingWithInsurance()));
         }
         mMultiSnipe.add(this);
         addMulti(mMultiSnipe);
@@ -935,12 +927,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         mEntryEvents.fromXML(curElement);
         break;
       case 7:
-        String identifier = curElement.getProperty("ID");
-        String bgColor = curElement.getProperty("COLOR");
-        Currency defaultSnipe = Currency.getCurrency(curElement.getProperty("DEFAULT"));
-        boolean subtractShipping = curElement.getProperty("SUBTRACTSHIPPING", "false").equals("true");
-
-        setMultiSnipe(identifier, bgColor, defaultSnipe, subtractShipping);
+        setMultiSnipe(MultiSnipe.loadFromXML(curElement));
         break;
       case 8:
         Currency shipping = Currency.getCurrency(curElement.getProperty("CURRENCY"),
@@ -998,17 +985,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       xmlResult.addChild(xsnipe);
     }
 
-    if(isMultiSniped()) {
-      MultiSnipe outMS = getMultiSnipe();
-
-      XMLElement xmulti = new XMLElement("multisnipe");
-      xmulti.setEmpty();
-      xmulti.setProperty("subtractshipping", Boolean.toString(outMS.subtractShipping()));
-      xmulti.setProperty("color", outMS.getColorString());
-      xmulti.setProperty("default", outMS.getSnipeValue(null).fullCurrency());
-      xmulti.setProperty("id", Long.toString(outMS.getIdentifier()));
-      xmlResult.addChild(xmulti);
-    }
+    if(isMultiSniped()) xmlResult.addChild(getMultiSnipe().toXML());
 
     if(isComplete()) addStatusXML(xmlResult, "complete");
     if(isInvalid()) addStatusXML(xmlResult, "invalid");

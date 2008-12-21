@@ -6,6 +6,7 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
@@ -13,6 +14,7 @@ import com.jbidwatcher.util.db.Table;
 import java.awt.Color;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Date;
 
 /**
  *  MultiSnipe class
@@ -78,16 +80,14 @@ public class MultiSnipe extends ActiveRecord {
     }
     return mBackground;
   }
+
   public String getColorString() { return getString("color"); }
-  public Currency getSnipeValue(AuctionEntry ae) {
-    if(ae != null && getBoolean("subtract_shipping")) {
-      Currency shipping = ae.getShippingWithInsurance();
-      if(shipping != null && !shipping.isNull()) {
-        try {
-          return getMonetary("default_bid").subtract(shipping);
-        } catch (Currency.CurrencyTypeException e) {
-          //  It's not relevant (although odd), we fall through to the return.
-        }
+  public Currency getSnipeValue(Currency shipping) {
+    if (shipping != null && !shipping.isNull() && getBoolean("subtract_shipping")) {
+      try {
+        return getMonetary("default_bid").subtract(shipping);
+      } catch (Currency.CurrencyTypeException e) {
+        //  It's not relevant (although odd), we fall through to the return.
       }
     }
 
@@ -124,12 +124,12 @@ public class MultiSnipe extends ActiveRecord {
     oldEntries.clear();
   }
 
-  public boolean anyEarlier(AuctionEntry firingEntry) {
+  public boolean anyEarlier(Date firingDate) {
     for (AuctionEntry ae : auctionEntriesInThisGroup) {
       //  If any auction entry in the list ends BEFORE the one we're
       //  checking, then we really don't want to do anything until
       //  it's no longer in the list.
-      if (ae.getEndDate().before(firingEntry.getEndDate())) return true;
+      if (ae.getEndDate().before(firingDate)) return true;
     }
 
     return false;
@@ -197,5 +197,32 @@ public class MultiSnipe extends ActiveRecord {
     String multisnipes = makeCommaList(toDelete);
 
     return toDelete.get(0).getDatabase().deleteBy("id IN (" + multisnipes + ")");
+  }
+
+  public XMLElement toXML() {
+    XMLElement xmulti = new XMLElement("multisnipe");
+    xmulti.setEmpty();
+    xmulti.setProperty("subtractshipping", Boolean.toString(subtractShipping()));
+    xmulti.setProperty("color", getColorString());
+    xmulti.setProperty("default", getSnipeValue(null).fullCurrency());
+    xmulti.setProperty("id", Long.toString(getIdentifier()));
+
+    return xmulti;
+  }
+
+  public void fromXML(XMLElement in) {
+
+  }
+
+  public static MultiSnipe loadFromXML(XMLElement curElement) {
+    String identifier = curElement.getProperty("ID");
+    String bgColor = curElement.getProperty("COLOR");
+    Currency defaultSnipe = Currency.getCurrency(curElement.getProperty("DEFAULT"));
+    boolean subtractShipping = curElement.getProperty("SUBTRACTSHIPPING", "false").equals("true");
+
+    MultiSnipe ms = MultiSnipe.findFirstBy("identifier", identifier);
+    if(ms == null) ms = new MultiSnipe(bgColor, defaultSnipe, Long.parseLong(identifier), subtractShipping);
+
+    return ms;
   }
 }
