@@ -318,16 +318,16 @@ public class AuctionInfo extends ActiveRecord
       //  Okay, I don't allow loading auction data that's over 512K.  Duh.
       if(fp.length() < 512 * 1024) {
         try {
-          ErrorManagement.logDebug("Loading from backing page (file is " + fp.length() + " bytes)!");
+          JConfig.log().logDebug("Loading from backing page (file is " + fp.length() + " bytes)!");
           localZip.load(fp);
         } catch(IOException ioe) {
-          ErrorManagement.handleException("Couldn't read " + fileName, ioe);
+          JConfig.log().handleException("Couldn't read " + fileName, ioe);
           return null;
         }
 
         return localZip;
       } else {
-        ErrorManagement.logDebug("Can't load " + fileName + ", file is too large.");
+        JConfig.log().logDebug("Can't load " + fileName + ", file is too large.");
       }
     }
     return null;
@@ -361,7 +361,7 @@ public class AuctionInfo extends ActiveRecord
     String outPath = JConfig.queryConfiguration("auctions.savepath");
     if(outPath != null && outPath.length() != 0) {
       String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
-      ErrorManagement.logDebug("filePath = " + filePath);
+      JConfig.log().logDebug("filePath = " + filePath);
       return loadFile(filePath);
     }
     return mLoadedPage;
@@ -379,12 +379,12 @@ public class AuctionInfo extends ActiveRecord
       if(outSB == null) outSB = new StringBuffer("mLoadedPage.getUncompressedData is null");
       sb = outSB;
     } else {
-      ErrorManagement.logDebug("mLoadedPage is null, returning the 'real' cached copy!");
+      JConfig.log().logDebug("mLoadedPage is null, returning the 'real' cached copy!");
       GZip gz = getRealContent();
       if(gz != null) {
         sb = gz.getUncompressedData();
-        ErrorManagement.logDebug("Turned the uncompressed data into a StringBuffer!");
-        if(sb == null) ErrorManagement.logDebug(" Failed to uncompress for id " + getIdentifier());
+        JConfig.log().logDebug("Turned the uncompressed data into a StringBuffer!");
+        if(sb == null) JConfig.log().logDebug(" Failed to uncompress for id " + getIdentifier());
       } else {
         sb = new StringBuffer("Error getting real content.");
       }

@@ -7,7 +7,6 @@ package com.jbidwatcher.util.http;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.Base64;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.ByteBuffer;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.Parameters;
@@ -71,10 +70,10 @@ public class Http {
       obw.println(cgiData);
       obw.close();
     } catch(ConnectException ce) {
-      ErrorManagement.logMessage("postFormPage: " + ce);
+      JConfig.log().logMessage("postFormPage: " + ce);
       huc = null;
     } catch(Exception e) {
-      ErrorManagement.handleException("postFormPage: " + e, e);
+      JConfig.log().handleException("postFormPage: " + e, e);
       huc = null;
     }
     return(huc);
@@ -147,9 +146,9 @@ public class Http {
     } catch(IOException e) {
       //  Mostly ignore HTTP 504 error, it's just a temporary 'gateway down' error.
       if(e.getMessage().indexOf("HTTP response code: 504")==-1) {
-        ErrorManagement.handleException("Error loading data URL (" + dataURL.toString() + ')', e);
+        JConfig.log().handleException("Error loading data URL (" + dataURL.toString() + ')', e);
       } else {
-        ErrorManagement.logMessage("HTTP 504 error loading URL (" + dataURL.toString() + ')');
+        JConfig.log().logMessage("HTTP 504 error loading URL (" + dataURL.toString() + ')');
       }
       rval = null;
     }
@@ -230,7 +229,7 @@ public class Http {
       if(referer != null) huc.setRequestProperty("Referer", referer);
       if(cookie != null) huc.setRequestProperty("Cookie", cookie);
     } catch(Exception e) {
-      ErrorManagement.handleException("getPage: " + e, e);
+      JConfig.log().handleException("getPage: " + e, e);
       huc = null;
     }
     return(huc);
@@ -246,8 +245,8 @@ public class Http {
     } catch (IOException e) {
       int length = 0;
       if (postData != null) length = postData.length();
-      ErrorManagement.logDebug("Couldn't send params (length: " + length + ") to " + url);
-      ErrorManagement.logDebug(e.getMessage());
+      JConfig.log().logDebug("Couldn't send params (length: " + length + ") to " + url);
+      JConfig.log().logDebug(e.getMessage());
       return null;
     }
   }

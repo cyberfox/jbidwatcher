@@ -8,7 +8,6 @@ import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -125,7 +124,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
 
       if (rval.isSuccess()) return rval.getForm();
     } catch (IOException e) {
-      ErrorManagement.handleException("Failure to get the bid key!  BID FAILURE!", e);
+      JConfig.log().handleException("Failure to get the bid key!  BID FAILURE!", e);
     }
 
     //  If we never got a valid return value (e.g. an exception was thrown early), punt.
@@ -144,7 +143,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
         remote_result = Integer.parseInt(recognize);
       } catch(NumberFormatException nfe) {
         //  Ignore it for now...
-        ErrorManagement.logDebug(recognize);
+        JConfig.log().logDebug(recognize);
       }
 
       if(remote_result != null && remote_result != AuctionServer.BID_ERROR_UNKNOWN) {
@@ -156,7 +155,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     inEntry.setErrorPage(rval.getBuffer());
 
     //  We don't recognize this error.  Damn.  Log it and freak.
-    ErrorManagement.logFile(bidInfo, rval.getBuffer());
+    JConfig.log().logFile(bidInfo, rval.getBuffer());
     return null;
   }
 
@@ -185,10 +184,10 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
   private CookieJar checkSignin(AuctionEntry inEntry, JHTML htmlDocument) {
     String signOn = htmlDocument.getTitle();
     if (signOn != null) {
-      ErrorManagement.logDebug("Checking sign in as bid key load failed!");
+      JConfig.log().logDebug("Checking sign in as bid key load failed!");
       if (StringTools.startsWithIgnoreCase(signOn, "sign in")) {
         //  This means we somehow failed to keep the login in place.  Bad news, in the middle of a snipe.
-        ErrorManagement.logDebug("Being prompted again for sign in, retrying.");
+        JConfig.log().logDebug("Being prompted again for sign in, retrying.");
         if(JConfig.debugging) inEntry.setLastStatus("Not done loading bid request, got re-login request...");
         CookieJar cj = mLogin.getSignInCookie(null);
         if(JConfig.debugging) inEntry.setLastStatus("Done re-logging in, retrying load bid request.");
@@ -288,7 +287,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     } catch (CookieJar.CookieException ignored) {
       return AuctionServerInterface.BID_ERROR_CONNECTION;
     } catch (UnsupportedEncodingException uee) {
-      ErrorManagement.handleException("UTF-8 not supported locally, can't URLEncode buy form.", uee);
+      JConfig.log().handleException("UTF-8 not supported locally, can't URLEncode buy form.", uee);
       return AuctionServerInterface.BID_ERROR_CONNECTION;
     }
 
@@ -314,7 +313,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       UpdateBlocker.endBlocking();
       return rval;
     }
-    ErrorManagement.logMessage("Bad/nonexistent key read in bid, or connection failure!");
+    JConfig.log().logMessage("Bad/nonexistent key read in bid, or connection failure!");
 
     UpdateBlocker.endBlocking();
     return AuctionServerInterface.BID_ERROR_UNKNOWN;
@@ -336,7 +335,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       loadedPage = cj.getAllCookiesAndPage(bidForm.getCGI(), bidURL, false);
       if (JConfig.debugging) inEntry.setLastStatus("Done submitting bid form.");
     } catch (UnsupportedEncodingException uee) {
-      ErrorManagement.handleException("UTF-8 not supported locally, can't URLEncode bid form.", uee);
+      JConfig.log().handleException("UTF-8 not supported locally, can't URLEncode bid form.", uee);
     } catch (CookieJar.CookieException ignored) {
       return AuctionServerInterface.BID_ERROR_CONNECTION;
     }
@@ -413,13 +412,13 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     try {
       safeBidInfo = bidForm.getCGI();
     } catch(UnsupportedEncodingException uee) {
-      ErrorManagement.handleException("UTF-8 not supported locally, can't URLEncode CGI for debugging.", uee);
+      JConfig.log().handleException("UTF-8 not supported locally, can't URLEncode CGI for debugging.", uee);
     }
 
     if(JConfig.debugging) inEntry.setLastStatus("Failed to load post-bid data. 'Show Last Error' from context menu to see the failure page from the post-bid page.");
     inEntry.setErrorPage(loadedPage);
 
-    ErrorManagement.logFile(safeBidInfo, loadedPage);
+    JConfig.log().logFile(safeBidInfo, loadedPage);
     return AuctionServerInterface.BID_ERROR_UNKNOWN;
   }
 }

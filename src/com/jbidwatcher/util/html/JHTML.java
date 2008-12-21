@@ -13,7 +13,6 @@ import java.util.regex.Matcher;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLElement;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.http.Http;
 
 public class JHTML implements JHTMLListener {
@@ -85,7 +84,7 @@ public class JHTML implements JHTMLListener {
 
       allInputs = new ArrayList<XMLElement>();
 
-      if (do_uber_debug) ErrorManagement.logDebug("Name: " + formTag.getProperty("name", "(unnamed)"));
+      if (do_uber_debug) JConfig.log().logDebug("Name: " + formTag.getProperty("name", "(unnamed)"));
     }
 
     public String getName() { return formTag.getProperty("name"); }
@@ -124,7 +123,7 @@ public class JHTML implements JHTMLListener {
       while(it.hasNext()) {
         XMLElement curInput = it.next();
 
-        if(do_uber_debug) ErrorManagement.logDebug("Type == " + curInput.getProperty("type", "text"));
+        if(do_uber_debug) JConfig.log().logDebug("Type == " + curInput.getProperty("type", "text"));
         if (rval.length() != 0) {
           seperator = "&";
         }
@@ -189,29 +188,29 @@ public class JHTML implements JHTMLListener {
       boolean isError = inputType == null;
       if(!isError) {
         if(inputType.equals("text")) {
-          if (showInputs) ErrorManagement.logDebug("T: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+          if (showInputs) JConfig.log().logDebug("T: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals(FORM_PASSWORD)) {
-          if (showInputs) ErrorManagement.logDebug("P: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+          if (showInputs) JConfig.log().logDebug("P: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if (inputType.equals(FORM_HIDDEN)) {
-          if (showInputs) ErrorManagement.logDebug("H: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+          if (showInputs) JConfig.log().logDebug("H: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals(FORM_CHECKBOX)) {
-          if (showInputs) ErrorManagement.logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+          if (showInputs) JConfig.log().logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals(FORM_RADIO)) {
-          if (showInputs) ErrorManagement.logDebug("R: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+          if (showInputs) JConfig.log().logDebug("R: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals(FORM_SUBMIT)) {
-          if (showInputs) ErrorManagement.logDebug("S: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+          if (showInputs) JConfig.log().logDebug("S: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals("image")) {
-          if (showInputs) ErrorManagement.logDebug("I: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+          if (showInputs) JConfig.log().logDebug("I: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals("button")) {
-          if (showInputs) ErrorManagement.logDebug("B: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+          if (showInputs) JConfig.log().logDebug("B: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals("reset")) {
-          if (showInputs) ErrorManagement.logDebug("RST: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+          if (showInputs) JConfig.log().logDebug("RST: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else {
-          ErrorManagement.logDebug("Unknown input type: " + inputType);
+          JConfig.log().logDebug("Unknown input type: " + inputType);
           isError = true;
         }
       } else {
-        ErrorManagement.logDebug("Bad input tag: " + newTag);
+        JConfig.log().logDebug("Bad input tag: " + newTag);
       }
 
       if(!isError) {
@@ -627,7 +626,7 @@ public class JHTML implements JHTMLListener {
       }
     } catch(IOException e) {
       loadedPage = null;
-      ErrorManagement.handleException("JHTML.loadPage: " + e, e);
+      JConfig.log().handleException("JHTML.loadPage: " + e, e);
     }
     if(loadedPage == null) m_loaded = false;
   }

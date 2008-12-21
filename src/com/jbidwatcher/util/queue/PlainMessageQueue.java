@@ -5,7 +5,7 @@ package com.jbidwatcher.util.queue;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,11 +54,11 @@ public final class PlainMessageQueue extends MessageQueue {
             try {
               _listener.messageAction(data);
             } catch (Exception e) {
-              ErrorManagement.handleException("PMQ Caught exception: " + e, e);
+              JConfig.log().handleException("PMQ Caught exception: " + e, e);
               clear();
             }
           } else {
-            ErrorManagement.logDebug(_myself.getName() + ": Postponing Message: " + data);
+            JConfig.log().logDebug(_myself.getName() + ": Postponing Message: " + data);
             if(_postpone != null) _postpone.add(data);
           }
           synchronized (_queue) {

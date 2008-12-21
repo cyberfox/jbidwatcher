@@ -6,7 +6,6 @@ package com.jbidwatcher.util;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -54,7 +53,7 @@ public class TT {
         countryProperties.load(is);
         successful = true;
       } catch (IOException e) {
-        ErrorManagement.logDebug("Failed to load country property file for " + bundleName + ".");
+        JConfig.log().logDebug("Failed to load country property file for " + bundleName + ".");
       }
     }
 

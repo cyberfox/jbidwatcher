@@ -2,7 +2,7 @@ package com.jbidwatcher.app;
 
 import com.jbidwatcher.webserver.HTTPProxyClient;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.*;
 
 import java.net.Socket;
@@ -53,14 +53,14 @@ public class MiniServer extends HTTPProxyClient {
   }
 
   public StringBuffer shutdown() {
-    ErrorManagement.logDebug("Shutting down.");
+    JConfig.log().logDebug("Shutting down.");
     mTool.done();
 
     return new StringBuffer("Shutting down.\n");
   }
 
   public StringBuffer showItem(String identifier) {
-    ErrorManagement.logDebug("Retrieving auction: " + identifier);
+    JConfig.log().logDebug("Retrieving auction: " + identifier);
     return AuctionEntry.retrieveAuctionXML(identifier);
   }
 
@@ -142,11 +142,11 @@ public class MiniServer extends HTTPProxyClient {
           Method m = getClass().getMethod(method, matchedClass);
           return (StringBuffer)m.invoke(this, matched);
         } catch (NoSuchMethodException e) {
-          ErrorManagement.handleException("Failed to resolve route method for " + route[0], e);
+          JConfig.log().handleException("Failed to resolve route method for " + route[0], e);
         } catch (IllegalAccessException e) {
-          ErrorManagement.handleException("Security prevented running route method " + route[0], e);
+          JConfig.log().handleException("Security prevented running route method " + route[0], e);
         } catch (InvocationTargetException e) {
-          ErrorManagement.handleException("Invokation of route method " + route[0] + " failed.", e);
+          JConfig.log().handleException("Invokation of route method " + route[0] + " failed.", e);
         }
       }
     }

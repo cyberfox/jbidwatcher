@@ -6,7 +6,7 @@ package com.jbidwatcher.ui.table;
  */
 
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.*;
@@ -158,7 +158,7 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
     String s2 = o2.toString();
     int result = s1.compareTo(s2);
 
-    ErrorManagement.logDebug("Being asked to compare unknown type: " + type);
+    JConfig.log().logDebug("Being asked to compare unknown type: " + type);
 
     return (result < 0) ? -1 : ((result > 0) ? 1 : 0);
   }

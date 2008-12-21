@@ -9,7 +9,7 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.queue.DropQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.DeletedEntry;
@@ -39,7 +39,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
     String label = dObj.getLabel();
 
     if(do_uber_debug) {
-      ErrorManagement.logDebug("Dropping (action): " + auctionURL);
+      JConfig.log().logDebug("Dropping (action): " + auctionURL);
     }
 
     String aucId;
@@ -60,12 +60,12 @@ public class JBWDropHandler implements MessageQueue.Listener {
     if(aeNew != null && aeNew.isLoaded()) {
       if(label != null) aeNew.setCategory(label);
       aeNew.clearNeedsUpdate();
-      ErrorManagement.logDebug("Loaded " + aeNew.getIdentifier() + '.');
+      JConfig.log().logDebug("Loaded " + aeNew.getIdentifier() + '.');
       lastSeen = aeNew.getIdentifier();
       AuctionsManager.getInstance().addEntry(aeNew);
     } else {
       if(lastSeen == null || !aucId.equals(lastSeen)) {
-        ErrorManagement.logDebug("Not loaded (" + aucId + ").");
+        JConfig.log().logDebug("Not loaded (" + aucId + ").");
         lastSeen = aucId;
       }
       if(aeNew != null) aeNew.delete();

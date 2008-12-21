@@ -1,6 +1,6 @@
 package com.jbidwatcher.util;
 
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 /**
  * Created by IntelliJ IDEA.
@@ -26,7 +26,7 @@ public class ErrorMonitor {
 
   private ErrorMonitor() {
     mBuffer = new ScrollingBuffer(MAX_BUFFER_SIZE);
-    ErrorManagement.addHandler(mBuffer);
+    JConfig.log().addHandler(mBuffer);
   }
 
   public StringBuffer getLog() {

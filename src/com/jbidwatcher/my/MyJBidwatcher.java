@@ -1,10 +1,8 @@
 package com.jbidwatcher.my;
 
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorHandler;
 import com.jbidwatcher.util.Parameters;
-import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.xml.XMLSerialize;
@@ -81,7 +79,7 @@ public class MyJBidwatcher {
       });
     }
 
-    ErrorManagement.addHandler(new ErrorHandler() {
+    JConfig.log().addHandler(new ErrorHandler() {
       public void addLog(String s) { /* ignored */}
 
       public void exception(String log, String message, String trace) {

@@ -5,7 +5,6 @@ package com.jbidwatcher.platform;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.*;
@@ -77,7 +76,7 @@ public class Platform {
       }
       return true;
     } catch (Exception exMe) {
-      ErrorManagement.handleException("Can't set Quaqua UI (" + whatLaF + ")", exMe);
+      JConfig.log().handleException("Can't set Quaqua UI (" + whatLaF + ")", exMe);
       return false;
     }
   }
@@ -126,7 +125,7 @@ public class Platform {
     try {
       f.createNewFile();
     } catch(Exception e) {
-      ErrorManagement.handleException("Can't create output file to copy from JAR.", e);
+      JConfig.log().handleException("Can't create output file to copy from JAR.", e);
       return false;
     }
     InputStream source = Platform.class.getClassLoader().getResourceAsStream(inJarName);
@@ -135,7 +134,7 @@ public class Platform {
         source = Platform.class.getClassLoader().getResourceAsStream(inJarName.substring(1));
       }
       if (source == null) {
-        ErrorManagement.logDebug("Failed to open internal resource " + inJarName + "!");
+        JConfig.log().logDebug("Failed to open internal resource " + inJarName + "!");
         return false;
       }
     }
@@ -154,7 +153,7 @@ public class Platform {
         //  I really don't care about *close* exceptions.
       }
     } catch (IOException e) {
-      ErrorManagement.handleException("Couldn't extract file (" + inJarName + " from jar to " + destination + ".", e);
+      JConfig.log().handleException("Couldn't extract file (" + inJarName + " from jar to " + destination + ".", e);
       return false;
     }
     return true;

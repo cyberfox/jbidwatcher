@@ -13,7 +13,6 @@ import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.AudioPlayer;
 import com.jbidwatcher.platform.Browser;
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.platform.Tray;
@@ -126,7 +125,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       if(fp.exists()) {
         outPath = fp.getAbsolutePath();
       } else {
-        if(!fp.mkdirs()) ErrorManagement.logDebug("Couldn't mkdir " + directoryPath);
+        if(!fp.mkdirs()) JConfig.log().logDebug("Couldn't mkdir " + directoryPath);
         outPath = fp.getAbsolutePath();
       }
     }
@@ -323,7 +322,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       try {
         UIManager.setLookAndFeel(whatLaF);
       } catch (Exception exMe) {
-        ErrorManagement.handleException("Exception in setUI, failure to set " + whatLaF + ": " + exMe, exMe);
+        JConfig.log().handleException("Exception in setUI, failure to set " + whatLaF + ": " + exMe, exMe);
         //  Don't try to update the frame with the new UI.
         inFrame = null;
       }
@@ -409,7 +408,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
         JOptionPane.showMessageDialog(null, "JBidwatcher can't access its database.\nPlease check to see if you are running another instance.", "Can't access auction database", JOptionPane.PLAIN_MESSAGE);
         System.exit(0);
       }
-      ErrorManagement.handleException("Upgrading error", e);
+      JConfig.log().handleException("Upgrading error", e);
     }
 
     //  We need to load searches before adding the eBay server, so
@@ -451,7 +450,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
       program.repaint();
     } catch(Exception e) {
-      ErrorManagement.handleException("JBidwatcher: " + e, e);
+      JConfig.log().handleException("JBidwatcher: " + e, e);
     }
   }
 
@@ -549,7 +548,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
             Scripting.initialize();
             JConfig.enableScripting();
           } catch (Throwable e) {
-            ErrorManagement.logMessage("Error setting up scripting: " + e.toString());
+            JConfig.log().logMessage("Error setting up scripting: " + e.toString());
             JConfig.disableScripting();
           }
         }
@@ -634,7 +633,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       //  Don't leave this thread until the timeQueue has completed; i.e. the program is exiting.
       timeQueue.join();
     } catch (InterruptedException e) {
-      ErrorManagement.handleException("timeQueue interrupted", e);
+      JConfig.log().handleException("timeQueue interrupted", e);
     }
   }
 

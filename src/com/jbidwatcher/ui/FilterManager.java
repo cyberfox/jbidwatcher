@@ -8,7 +8,6 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.Category;
@@ -228,7 +227,7 @@ public class FilterManager implements MessageQueue.Listener {
 
     if(old == sendTo || old == null) {
       if(old == null) {
-        ErrorManagement.logMessage("For some reason oldAuctions is null, and nobody acknowledges owning it, for auction entry " + ae.getTitle());
+        JConfig.log().logMessage("For some reason oldAuctions is null, and nobody acknowledges owning it, for auction entry " + ae.getTitle());
       }
       return null;
     }

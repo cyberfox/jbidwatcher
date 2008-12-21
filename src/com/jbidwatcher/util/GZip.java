@@ -5,7 +5,7 @@ package com.jbidwatcher.util;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.io.*;
 import java.util.zip.*;
@@ -140,7 +140,7 @@ public class GZip {
               System.arraycopy(outdata, 0, _byteHold, 0, accumOutputBytes);
               inflatedBytes = infl.inflate(_byteHold, accumOutputBytes, prevLength * 2);
             } catch(OutOfMemoryError oome) {
-              ErrorManagement.handleException("FAILING to allocate more bytes @ " + _byteHold.length * 3, oome);
+              JConfig.log().handleException("FAILING to allocate more bytes @ " + _byteHold.length * 3, oome);
             }
           } else {
             inflatedBytes = infl.inflate(_byteHold, accumOutputBytes, prevLength - accumOutputBytes);
@@ -149,7 +149,7 @@ public class GZip {
         }
         return new StringBuffer(new String(_byteHold, 0, accumOutputBytes));
       } catch(DataFormatException dfe) {
-        ErrorManagement.handleException("Failed to uncompress data: " + dfe, dfe);
+        JConfig.log().handleException("Failed to uncompress data: " + dfe, dfe);
         return null;
       }
     }
@@ -203,7 +203,7 @@ public class GZip {
       //  directory, and many other reasons, so we do NOT report the
       //  error anymore, unless debugging.  This caused one user
       //  to have >28 megs of error logs.  Stop that!
-      ErrorManagement.handleDebugException("Error writing " + fileName, ioe);
+      JConfig.log().handleDebugException("Error writing " + fileName, ioe);
     }
   }
 }

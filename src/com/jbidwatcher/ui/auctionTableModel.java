@@ -7,7 +7,6 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.AuctionList;
 import com.jbidwatcher.util.Currency;
@@ -220,7 +219,7 @@ public class auctionTableModel extends BaseTransformation
           try {
             return aEntry.getUSCurBid().add(shippingUSD);
           } catch (Currency.CurrencyTypeException e) {
-            ErrorManagement.handleException("Threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
+            JConfig.log().handleException("Threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
             return Currency.NoValue();
           }
         case TableColumnController.SNIPE_TOTAL: {
@@ -233,7 +232,7 @@ public class auctionTableModel extends BaseTransformation
           try {
             return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getSnipeAmount()).add(shippingUSD2);
           } catch (Currency.CurrencyTypeException e) {
-            ErrorManagement.handleException("Currency addition or conversion threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
+            JConfig.log().handleException("Currency addition or conversion threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
             return Currency.NoValue();
           }
         }
@@ -331,7 +330,7 @@ public class auctionTableModel extends BaseTransformation
       totalSnipe = aEntry.getSnipeAmount().add(shipping);
     } catch (Currency.CurrencyTypeException e) {
       /* Should never happen, since we've checked the currency already.  */
-      ErrorManagement.handleException("Currency addition threw a bad currency exception, which should be very difficult to cause to happen.", e); //$NON-NLS-1$
+      JConfig.log().handleException("Currency addition threw a bad currency exception, which should be very difficult to cause to happen.", e); //$NON-NLS-1$
       return "--";
     }
 
@@ -473,7 +472,7 @@ public class auctionTableModel extends BaseTransformation
           try {
             return aEntry.getCurBid().add(shipping);
           } catch (Currency.CurrencyTypeException e) {
-            ErrorManagement.handleException("Currency addition threw a bad currency exception, which is odd...", e); //$NON-NLS-1$
+            JConfig.log().handleException("Currency addition threw a bad currency exception, which is odd...", e); //$NON-NLS-1$
           }
           return "--";
         case TableColumnController.SNIPE_TOTAL:

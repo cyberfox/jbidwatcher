@@ -2,7 +2,6 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Externalized;
@@ -54,7 +53,7 @@ public class ebayLoginManager implements LoginManager {
 
   private URLConnection checkFollowRedirector(URLConnection current, CookieJar cj, String lookFor) throws IOException, CaptchaException {
     StringBuffer signed_in = Http.receivePage(current);
-    ErrorManagement.dump2File("sign_in-a1.html", signed_in);
+    JConfig.log().dump2File("sign_in-a1.html", signed_in);
 
     //  Parse the redirector, and find the URL that points to the adult
     //  confirmation page.
@@ -90,7 +89,7 @@ public class ebayLoginManager implements LoginManager {
               //noinspection StringContatenationInLoop
               url = url.substring(0, step) + encodedURL;
             } catch (UnsupportedEncodingException ignored) {
-              ErrorManagement.logMessage("Failed to build a URL because of encoding transformation failure.");
+              JConfig.log().logMessage("Failed to build a URL because of encoding transformation failure.");
             }
           }
         }
@@ -112,7 +111,7 @@ public class ebayLoginManager implements LoginManager {
 
   private boolean getAdultConfirmation(URLConnection uc_signin, CookieJar cj) throws IOException {
     StringBuffer confirm = Http.receivePage(uc_signin);
-    ErrorManagement.dump2File("sign_in-a2.html", confirm);
+    JConfig.log().dump2File("sign_in-a2.html", confirm);
     JHTML confirmPage = new JHTML(confirm);
 
     List<JHTML.Form> confirm_forms = confirmPage.getForms();
@@ -121,7 +120,7 @@ public class ebayLoginManager implements LoginManager {
       if (finalForm.hasInput("MfcISAPICommand", "AdultSignIn")) {
         uc_signin = cj.getAllCookiesFromPage(finalForm.getCGI(), null, false);
         StringBuffer confirmed = Http.receivePage(uc_signin);
-        ErrorManagement.dump2File("sign_in-a3.html", confirmed);
+        JConfig.log().dump2File("sign_in-a3.html", confirmed);
         JHTML htdoc = new JHTML(confirmed);
         JHTML.Form curForm = htdoc.getFormWithInput("pass");
         if (curForm != null) {
@@ -138,13 +137,13 @@ public class ebayLoginManager implements LoginManager {
           JConfig.setConfiguration("ebay.adult", "false");
           JConfig.setConfiguration("ebay.international", "true");
         } else {
-          ErrorManagement.logFile("Neutral login result...", confirmed);
+          JConfig.log().logFile("Neutral login result...", confirmed);
           MQFactory.getConcrete("login").enqueue("NEUTRAL");
         }
       }
     }
     if(!enqueued) {
-      ErrorManagement.logFile("No confirm form found...", confirm);
+      JConfig.log().logFile("No confirm form found...", confirm);
       MQFactory.getConcrete("login").enqueue("NEUTRAL No confirm form found.");
     }
     return true;
@@ -154,20 +153,20 @@ public class ebayLoginManager implements LoginManager {
     if(getUserId().equals("default")) return old_cj;
 
     if (getPassword().equals(mBadPassword) && getUserId().equals(mBadUsername)) {
-      ErrorManagement.logDebug("Not getting the sign in cookie; username/password combo hasn't changed.");
+      JConfig.log().logDebug("Not getting the sign in cookie; username/password combo hasn't changed.");
       return old_cj;
     }
 
     String msg = "Getting the sign in cookie.";
 
-    ErrorManagement.logDebug(msg);
+    JConfig.log().logDebug(msg);
     MQFactory.getConcrete("Swing").enqueue(msg);
 
     CookieJar cj = getSignInCookie(old_cj, getUserId(), getPassword());
 
     String done_msg = (cj!=null)?"Done getting the sign in cookie.":"Did not successfully retrieve the sign in cookie.";
     MQFactory.getConcrete("Swing").enqueue(done_msg);
-    ErrorManagement.logDebug(done_msg);
+    JConfig.log().logDebug(done_msg);
 
     return cj;
   }
@@ -191,7 +190,7 @@ public class ebayLoginManager implements LoginManager {
     URLConnection uc_signin = cj.getAllCookiesFromPage(startURL, null, false);
     try {
       StringBuffer signin = Http.receivePage(uc_signin);
-      ErrorManagement.dump2File("sign_in-1.html", signin);
+      JConfig.log().dump2File("sign_in-1.html", signin);
       JHTML htdoc = new JHTML(signin);
 
       JHTML.Form curForm = htdoc.getFormWithInput("pass");
@@ -208,7 +207,7 @@ public class ebayLoginManager implements LoginManager {
           }
         } else {
           StringBuffer confirm = Http.receivePage(uc_signin);
-          ErrorManagement.dump2File("sign_in-2.html", confirm);
+          JConfig.log().dump2File("sign_in-2.html", confirm);
           JHTML doc = new JHTML(confirm);
           //  Check for CAPTCHA and bad passwords...
           if (checkSecurityConfirmation(doc)) {
@@ -219,7 +218,7 @@ public class ebayLoginManager implements LoginManager {
             if(redirect_form != null && redirect_form.getInputValue("hidUrl").matches("^http://my\\.ebay\\.(com|co.uk)/ws/eBayISAPI.dll\\?My.*eBay.*$")) {
               MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
             } else {
-              ErrorManagement.logFile("Security checks out, but no My eBay form link on final page...", confirm);
+              JConfig.log().logFile("Security checks out, but no My eBay form link on final page...", confirm);
               MQFactory.getConcrete("login").enqueue("NEUTRAL");
             }
             if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
@@ -231,13 +230,13 @@ public class ebayLoginManager implements LoginManager {
       //  may be valid, even!  We can't assume it, though.
       MQFactory.getConcrete("login").enqueue("FAILED " + e.getMessage());
       if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN " + e.getMessage());
-      ErrorManagement.handleException("Couldn't sign in!", e);
+      JConfig.log().handleException("Couldn't sign in!", e);
       cj = null;
     } catch(CaptchaException ce) {
       MQFactory.getConcrete("login").enqueue("CAPTCHA");
       if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's increased security monitoring has been triggered, JBidwatcher cannot log in for a while.");
       notifySecurityIssue();
-      ErrorManagement.handleException("Couldn't sign in, captcha interference!", ce);
+      JConfig.log().handleException("Couldn't sign in, captcha interference!", ce);
       cj = null;
     }
 
@@ -245,7 +244,7 @@ public class ebayLoginManager implements LoginManager {
   }
 
   private CookieJar retryLoginWithoutAdult(CookieJar cj, String username, String password) {//  Disable adult mode and try again.
-    ErrorManagement.logMessage("Disabling 'adult' mode and retrying.");
+    JConfig.log().logMessage("Disabling 'adult' mode and retrying.");
     JConfig.setConfiguration(mSiteName + ".adult", "false");
     cj = getSignInCookie(cj, username, password);
     //  Re-enable adult mode if logging in via non-adult mode still failed...
@@ -280,7 +279,7 @@ public class ebayLoginManager implements LoginManager {
        doc.grep(T.s("enter.verification.code")) != null ||
        doc.grep(T.s("enter.a.verification.code.to.continue")) != null ||
        doc.grep(T.s("please.enter.the.verification.code")) != null) {
-      ErrorManagement.logMessage("eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
+      JConfig.log().logMessage("eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       notifySecurityIssue();
       mBadPassword = getPassword();
@@ -290,7 +289,7 @@ public class ebayLoginManager implements LoginManager {
 
     if (doc.grep(T.s("your.sign.in.information.is.not.valid")) != null ||
         doc.grep(T.s("your.user.id.or.password.is.incorrect")) != null) {
-      ErrorManagement.logMessage("Your sign in information is not correct.");
+      JConfig.log().logMessage("Your sign in information is not correct.");
       if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN Your sign in information is not correct.  Fix it in the eBay tab in the Configuration Manager.");
       notifyBadSignin();
       mBadPassword = getPassword();

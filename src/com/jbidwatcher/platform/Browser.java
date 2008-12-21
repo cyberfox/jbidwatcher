@@ -8,7 +8,6 @@ package com.jbidwatcher.platform;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.browser.WindowsBrowserLauncher;
 import com.jbidwatcher.util.browser.BrowserLauncher;
 
@@ -56,7 +55,7 @@ public class Browser extends JConfig implements MessageQueue.Listener {
     try {
       BrowserLauncher.openURL(url, launchCommand, JConfig.queryConfiguration("browser.override","false").equals("true"));
     } catch(IOException e) {
-      ErrorManagement.handleException("Launching browser", e);
+      JConfig.log().handleException("Launching browser", e);
       return false;
     }
     return true;

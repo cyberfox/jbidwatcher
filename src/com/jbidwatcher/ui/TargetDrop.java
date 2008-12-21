@@ -8,7 +8,7 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.queue.DropQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.util.JDropHandler;
 
 import java.util.List;
@@ -45,12 +45,12 @@ public class TargetDrop implements JDropHandler
 
   public void receiveDropString(StringBuffer dropped) {
     if(dropped == null) {
-      ErrorManagement.logDebug("Dropped is (null)");
+      JConfig.log().logDebug("Dropped is (null)");
       return;
     }
 
     dropped = new StringBuffer(stripNewlines(dropped.toString()));
-    if(sUberDebug) ErrorManagement.logDebug("Dropping :" + dropped + ":");
+    if(sUberDebug) JConfig.log().logDebug("Dropping :" + dropped + ":");
 
     //  Is it an 'HTML Fragment' as produced by Mozilla, NS6, and IE5+?
     //  BOY it's a small bit to test against, but Mozilla starts with <HTML>,
@@ -67,7 +67,7 @@ public class TargetDrop implements JDropHandler
       for (String anAllItemsOnPage : allItemsOnPage) {
         auctionURL = anAllItemsOnPage;
         if (auctionURL != null) {
-          ErrorManagement.logDebug("Adding: " + auctionURL.trim());
+          JConfig.log().logDebug("Adding: " + auctionURL.trim());
           MQFactory.getConcrete("drop").enqueue(new DropQObject(auctionURL.trim(), mTargetName, true));
         }
       }

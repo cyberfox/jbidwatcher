@@ -5,7 +5,7 @@ package com.jbidwatcher.util;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.util.*;
 import javax.swing.ImageIcon;
@@ -121,7 +121,7 @@ public class IconFactory {
     try {
       image = ImageIO.read(input);
     } catch (IOException ioe) {
-      ErrorManagement.handleException("Can't read " + inFile + " to create thumbnail.", ioe);
+      JConfig.log().handleException("Can't read " + inFile + " to create thumbnail.", ioe);
       return false;
     }
 
@@ -148,10 +148,10 @@ public class IconFactory {
       ImageIO.write(createResizedCopy(image, new_x, new_y, true), "jpeg", fos);
       fos.close();
     } catch (FileNotFoundException e) {
-      ErrorManagement.handleException("Can't write " + outFile + " to create thumbnail.", e);
+      JConfig.log().handleException("Can't write " + outFile + " to create thumbnail.", e);
       return false;
     } catch (IOException e) {
-      ErrorManagement.handleException("Can't generate image " + outFile + ".", e);
+      JConfig.log().handleException("Can't generate image " + outFile + ".", e);
       return false;
     }
     return true;

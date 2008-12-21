@@ -6,7 +6,6 @@ package com.jbidwatcher.util.html;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.xml.XMLElement;
 
 import java.util.Vector;
@@ -94,7 +93,7 @@ public class JHTMLParser {
                  oddText.indexOf("name=\"Submit\"") == -1 &&
                  !oddText.startsWith("<META")) {
                 if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
-                  ErrorManagement.logMessage("Found an unusual tag @ " + charStep + "...  (" + oddText + ")");
+                  JConfig.log().logMessage("Found an unusual tag @ " + charStep + "...  (" + oddText + ")");
                 }
               }
             }
@@ -112,13 +111,13 @@ public class JHTMLParser {
 
               inQuote = false;
               suspicious = false;
-              ErrorManagement.logDebug("Potential quote error!");
+              JConfig.log().logDebug("Potential quote error!");
               spitNextTag = true;
             }
             //  This prevents opening a quote at the end of a tag.
             if(!inQuote && prev != '=' && next == '>') {
               if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
-                ErrorManagement.logDebug("Quote error!");
+                JConfig.log().logDebug("Quote error!");
               }
               spitNextTag = true;
             } else {
@@ -135,14 +134,14 @@ public class JHTMLParser {
               if(suspicious) suspicious = false;
               if(charStep < start) {
                 if(do_uber_debug) {
-                  ErrorManagement.logDebug("substring(" + start + ", " + charStep + ") of " + trueBuffer.length());
-                  ErrorManagement.logDebug("FAILURE @\n-------------------\n" + trueBuffer.substring(charStep, start));
+                  JConfig.log().logDebug("substring(" + start + ", " + charStep + ") of " + trueBuffer.length());
+                  JConfig.log().logDebug("FAILURE @\n-------------------\n" + trueBuffer.substring(charStep, start));
                 }
               }
               addToken(trueBuffer.substring(start, charStep), htmlToken.HTML_TAG);
               if(spitNextTag) {
                 if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
-                  ErrorManagement.logDebug("Added 'bad' tag: <" + trueBuffer.substring(start, charStep) + ">");
+                  JConfig.log().logDebug("Added 'bad' tag: <" + trueBuffer.substring(start, charStep) + ">");
                 }
                 spitNextTag = false;
               }

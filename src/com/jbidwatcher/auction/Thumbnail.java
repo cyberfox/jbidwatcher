@@ -3,7 +3,6 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.ByteBuffer;
 import com.jbidwatcher.util.IconFactory;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +56,7 @@ public class Thumbnail {
             //  using the standard image file.
             conversionAttempted.createNewFile();
           } catch (IOException e) {
-            ErrorManagement.handleException("Can't create 'bad' lock file.", e);
+            JConfig.log().handleException("Can't create 'bad' lock file.", e);
           }
         }
       }

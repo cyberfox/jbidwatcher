@@ -3,7 +3,6 @@ package com.jbidwatcher.app;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.*;
@@ -100,7 +99,7 @@ public final class UIBackbone implements MessageQueue.Listener {
     if (mFrame != null) {
       mFrame.setStatus(statusToDisplay);
     } else {
-      ErrorManagement.logDebug(newStatus + bracketed);
+      JConfig.log().logDebug(newStatus + bracketed);
     }
   }
 
@@ -418,7 +417,7 @@ public final class UIBackbone implements MessageQueue.Listener {
   private void handleSleepDeprivation() {
     Date now = new Date();
     String status = "We appear to be waking from sleep; networking may not be up yet.";
-    ErrorManagement.logDebug(status);
+    JConfig.log().logDebug(status);
     List<AuctionEntry> sniped = AuctionEntry.findAllSniped();
     if (sniped != null && !sniped.isEmpty()) {
       boolean foundSnipe = false;

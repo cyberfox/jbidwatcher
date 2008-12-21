@@ -2,7 +2,6 @@ package com.jbidwatcher.ui.table;
 
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.queue.SuperQueue;
 
@@ -203,14 +202,14 @@ public class AuctionTable extends JTable {
     } catch(Exception e) {
       //  If we encountered any errors in earlier columns, don't try
       //  to set later columns.
-      ErrorManagement.handleException("In display configuration for table " + prefix +", column \"" + curColumnName + "\" has an invalid property.", e);
-      ErrorManagement.logDebug("No longer loading column widths from configuration.");
+      JConfig.log().handleException("In display configuration for table " + prefix +", column \"" + curColumnName + "\" has an invalid property.", e);
+      JConfig.log().logDebug("No longer loading column widths from configuration.");
     }
 
     //  If there are less than 2 columns, freak out and refresh.
     if(columnCount < 2) {
       SuperQueue.getInstance().preQueue("NOTIFY Column data for '" + prefix + "' was corrupted; resetting to defaults", "Swing", System.currentTimeMillis() + Constants.ONE_SECOND * 12 + notify_delay);
-      ErrorManagement.logMessage("Column data for '" + prefix + "' was corrupted; resetting to defaults");
+      JConfig.log().logMessage("Column data for '" + prefix + "' was corrupted; resetting to defaults");
       notify_delay += 2 * Constants.ONE_SECOND;
       for(String[] column : DEFAULT_COLUMNS) {
         String column_name = column[0];

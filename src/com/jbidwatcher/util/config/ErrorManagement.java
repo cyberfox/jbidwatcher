@@ -10,17 +10,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 
-@SuppressWarnings({"UseOfSystemOutOrSystemErr", "UtilityClass"})
-public class ErrorManagement {
+@SuppressWarnings({"UseOfSystemOutOrSystemErr"})
+public class ErrorManagement implements LoggerInterface {
   private static PrintWriter mLogWriter = null;
-  private static List<ErrorHandler> sHandlers = new ArrayList<ErrorHandler>();
-  private ErrorManagement() { }
+  private List<ErrorHandler> sHandlers = new ArrayList<ErrorHandler>();
 
-  public static void addHandler(ErrorHandler eh) {
+  public void addHandler(ErrorHandler eh) {
     sHandlers.add(eh);
   }
 
-  private static void init() {
+  public ErrorManagement() {
     String sep = System.getProperty("file.separator");
     String home = JConfig.getHomeDirectory("jbidwatcher");
 
@@ -45,15 +44,14 @@ public class ErrorManagement {
     }
   }
 
-  public static void closeLog() {
+  public void closeLog() {
     if(mLogWriter != null) {
       mLogWriter.close();
       mLogWriter = null;
     }
   }
 
-  public static void logMessage(String msg) {
-    init();
+  public void logMessage(String msg) {
     Date log_time = new Date();
 
     System.err.println(log_time + ": " + msg);
@@ -72,15 +70,15 @@ public class ErrorManagement {
     }
   }
 
-  public static void logDebug(String msg) {
+  public void logDebug(String msg) {
     if(JConfig.debugging) logMessage(msg);
   }
 
-  public static void logVerboseDebug(String msg) {
+  public void logVerboseDebug(String msg) {
     if(JConfig.queryConfiguration("debug.uber", "false").equals("true")) logMessage(msg);
   }
 
-  public static void handleDebugException(String sError, Throwable e) {
+  public void handleDebugException(String sError, Throwable e) {
     if(JConfig.debugging) handleException(sError, e);
   }
 
@@ -114,9 +112,7 @@ public class ErrorManagement {
     return sb.toString();
   }
 
-  public static void handleException(String sError, Throwable e) {
-    init();
-
+  public void handleException(String sError, Throwable e) {
     Date log_time = new Date();
 
     if(sError == null || sError.length() == 0) {
@@ -150,11 +146,10 @@ public class ErrorManagement {
     }
   }
 
-  public static void logFile(String msgtop, StringBuffer dumpsb) {
+  public void logFile(String msgtop, StringBuffer dumpsb) {
     String doLogging = JConfig.queryConfiguration("logging", "true");
     if(doLogging.equals("true")) {
       if(JConfig.debugging) {
-        init();
         if(mLogWriter != null) {
           mLogWriter.println("+------------------------------");
           mLogWriter.println("| " + msgtop);
@@ -185,7 +180,7 @@ public class ErrorManagement {
    * <p/>
    * This is used for 'emergency' debugging efforts.
    */
-  public static void dump2File(String fname, StringBuffer sb) {
+  public void dump2File(String fname, StringBuffer sb) {
     if (JConfig.queryConfiguration("debug.filedump", "false").equals("false")) return;
 
     FileWriter fw = null;

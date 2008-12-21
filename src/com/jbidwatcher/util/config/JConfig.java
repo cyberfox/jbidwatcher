@@ -57,6 +57,7 @@ public class JConfig {
   private static boolean _anyUpdates = false;
   private static String sHomeDirectory = null;
   private static boolean mScripting = false;
+  private static LoggerInterface mLogger = new NullLogger();
 
   //  A core loader which loads from an InputStream.  Used so that we can
   //  load config files from a resource in a JAR file.
@@ -67,7 +68,7 @@ public class JConfig {
         inConfigFile.close();
       }
     } catch(IOException e) {
-      ErrorManagement.handleException("Fatal error loading config file.", e);
+      JConfig.log().handleException("Fatal error loading config file.", e);
       System.exit(1);
     }
 
@@ -173,7 +174,7 @@ public class JConfig {
       else if (debugFlag.equalsIgnoreCase("false"))
         setDebugging(false);
       else {
-        ErrorManagement.logMessage("debugging flag is bad, only 'true' or 'false' allowed.  Presuming true.");
+        JConfig.log().logMessage("debugging flag is bad, only 'true' or 'false' allowed.  Presuming true.");
         setDebugging(true);
       }
     }
@@ -190,9 +191,9 @@ public class JConfig {
         load(fis);
         fis.close();
       } catch (FileNotFoundException e) {
-        ErrorManagement.handleException("Property file " + configFile + " not found.  Retaining default settings!\n", e);
+        JConfig.log().handleException("Property file " + configFile + " not found.  Retaining default settings!\n", e);
       } catch (IOException e) {
-        ErrorManagement.handleException("Failed to close property file!\n", e);
+        JConfig.log().handleException("Failed to close property file!\n", e);
       }
     }
   }
@@ -204,7 +205,7 @@ public class JConfig {
       fos.close();
     } catch(IOException e) {
       //  D'oh.  It failed to write the display information...
-      ErrorManagement.handleException("Failed to write configuration: " + cfgName, e);
+      JConfig.log().handleException("Failed to write configuration: " + cfgName, e);
     }
   }
 
@@ -216,7 +217,7 @@ public class JConfig {
       slopsProps.load(inCfgStream);
       inCfgStream.close();
     } catch(IOException e) {
-      ErrorManagement.handleException("Failed to load arbitrary stream configuration.", e);
+      JConfig.log().handleException("Failed to load arbitrary stream configuration.", e);
       slopsProps = null;
     }
 
@@ -232,7 +233,7 @@ public class JConfig {
         return(loadArbitrary(fis));
       } catch(IOException e) {
         //  What do we do?  --  hackhack
-        ErrorManagement.handleException("Failed to load configuration " + cfgName, e);
+        JConfig.log().handleException("Failed to load configuration " + cfgName, e);
       }
     }
     return(null);
@@ -321,11 +322,11 @@ public class JConfig {
         }
         fos.close();
       } else {
-        ErrorManagement.logMessage("Failed to write to the display configuration; no write permissions to " + dispFile);
+        JConfig.log().logMessage("Failed to write to the display configuration; no write permissions to " + dispFile);
       }
     } catch(IOException e) {
       //  D'oh.  It failed to write the display information...
-      ErrorManagement.handleException("Failed to write display configuration.", e);
+      JConfig.log().handleException("Failed to write display configuration.", e);
     }
   }
 
@@ -359,7 +360,7 @@ public class JConfig {
         try {
           _inProps.setProperty(key, Base64.decodeToString(val));
         } catch (Exception e) {
-          ErrorManagement.handleException("Couldn't decode the password!", e);
+          JConfig.log().handleException("Couldn't decode the password!", e);
         }
       }
     }
@@ -380,10 +381,10 @@ public class JConfig {
 
     if (_configFileName != null) {
       saveArbitrary(_configFileName, soleProperty);
-      ErrorManagement.logDebug("Saving to: " + _configFileName);
+      JConfig.log().logDebug("Saving to: " + _configFileName);
     } else {
       saveArbitrary("JBidWatch.cfg", soleProperty);
-      ErrorManagement.logDebug("Just saving to: JBidWatch.cfg!");
+      JConfig.log().logDebug("Just saving to: JBidWatch.cfg!");
     }
 
     passwordUnfixup_b64(soleProperty);
@@ -398,7 +399,7 @@ public class JConfig {
       try {
         configStream = new FileInputStream(inConfig);
       } catch(FileNotFoundException ignore) {
-        ErrorManagement.logMessage(inConfig + " deleted between existence check and loading!");
+        JConfig.log().logMessage(inConfig + " deleted between existence check and loading!");
       }
     } else {
       //  Just use the files name as the index in the class loader.
@@ -441,7 +442,7 @@ public class JConfig {
           setOwnProps = true;
         }
       } catch (IOException e) {
-        ErrorManagement.handleException("Error loading display properties.", e);
+        JConfig.log().handleException("Error loading display properties.", e);
         setOwnProps = true;
       }
     } else {
@@ -474,7 +475,7 @@ public class JConfig {
       try {
         dispIS = new FileInputStream(dispFile);
       } catch(FileNotFoundException e) {
-        ErrorManagement.handleException(dispFile + " deleted between existence check and loading!", e);
+        JConfig.log().handleException(dispFile + " deleted between existence check and loading!", e);
         fileLoadFailed = true;
       }
     } else {
@@ -591,5 +592,13 @@ public class JConfig {
 
   public static void addAllToDisplay(Properties replace) {
     displayProperty.putAll(replace);
+  }
+
+  public static void setLogger(LoggerInterface logger) {
+    mLogger = logger;
+  }
+
+  public static LoggerInterface log() {
+    return mLogger;
   }
 }

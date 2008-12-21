@@ -24,7 +24,6 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.net.URL;
 
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.config.JConfig;
@@ -52,7 +51,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
         MQFactory.getConcrete("Swing").enqueue(cmd);
       } else {
         String s = "Action event detected." + '\n' + "    Event source: " + e.getSource() + " (an instance of " + getClassName(e.getSource()) + ")\n    ActionCommand: " + e.getActionCommand();
-        ErrorManagement.logDebug(s);
+        JConfig.log().logDebug(s);
       }
     }
   }
@@ -128,7 +127,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
     sbuf.append("    New state: ");
     sbuf.append((e.getStateChange() == ItemEvent.SELECTED) ? "selected" : "unselected");
 
-    ErrorManagement.logDebug(sbuf.toString());
+    JConfig.log().logDebug(sbuf.toString());
   }
 
   public void messageAction(Object deQ) {

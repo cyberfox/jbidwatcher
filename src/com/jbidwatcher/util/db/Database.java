@@ -7,7 +7,6 @@ package com.jbidwatcher.util.db;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
 
 import java.sql.*;
 import java.util.Properties;
@@ -49,7 +48,7 @@ public class Database {
        In an embedded environment, this will start up Derby, since it is not already running.
      */
     Class.forName(driver).newInstance();
-    if(sFirst) ErrorManagement.logDebug("Loaded the appropriate driver.");
+    if(sFirst) JConfig.log().logDebug("Loaded the appropriate driver.");
 
     Properties props = new Properties();
     props.setProperty("user", JConfig.queryConfiguration("db.user", "user1"));
@@ -72,7 +71,7 @@ public class Database {
       mNew = true;
     }
     if(sFirst) {
-      ErrorManagement.logDebug("Connected to " + (mNew?"and created ":"") + "database jbdb (JBidwatcher DataBase)");
+      JConfig.log().logDebug("Connected to " + (mNew?"and created ":"") + "database jbdb (JBidwatcher DataBase)");
     }
 
     mConn.setAutoCommit(true);
@@ -102,7 +101,7 @@ public class Database {
   public boolean shutdown() {
     try {
       mConn.close();
-      ErrorManagement.logDebug("Closed connection");
+      JConfig.log().logDebug("Closed connection");
 
       /*
          In embedded mode, an application should shut down Derby.
@@ -121,9 +120,9 @@ public class Database {
         }
 
         if (!gotSQLExc) {
-          ErrorManagement.logMessage("Database did not shut down normally");
+          JConfig.log().logMessage("Database did not shut down normally");
         } else {
-          ErrorManagement.logDebug("Database shut down normally");
+          JConfig.log().logDebug("Database shut down normally");
         }
       }
     } catch (Throwable e) {
@@ -134,7 +133,7 @@ public class Database {
   }
 
   private static void handleSQLException(Throwable e) {
-    ErrorManagement.logDebug("exception thrown:");
+    JConfig.log().logDebug("exception thrown:");
 
     if (e instanceof SQLException) {
       printSQLError((SQLException) e);
@@ -146,7 +145,7 @@ public class Database {
 
   static void printSQLError(SQLException e) {
     while (e != null) {
-      ErrorManagement.logDebug(e.toString());
+      JConfig.log().logDebug(e.toString());
       e = e.getNextException();
     }
   }

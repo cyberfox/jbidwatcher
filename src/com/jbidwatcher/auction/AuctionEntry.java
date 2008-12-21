@@ -11,7 +11,6 @@ import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.event.EventLogger;
 import com.jbidwatcher.auction.event.EventStatus;
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
@@ -43,7 +42,7 @@ import java.net.UnknownHostException;
  * @see AuctionInfo
  * @see SpecificAuction
  */
-public class AuctionEntry extends ActiveRecord implements Comparable {
+public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntry> {
   private Category mCategory;
   private static Resolver sResolver = null;
 
@@ -379,7 +378,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         rval = true;
       }
     } catch(Currency.CurrencyTypeException cte) {
-      ErrorManagement.handleException("This should never happen (" + nextBid + ", " + getSnipe().getAmount() + ")!", cte);
+      JConfig.log().handleException("This should never happen (" + nextBid + ", " + getSnipe().getAmount() + ")!", cte);
     }
 
     return rval;
@@ -700,7 +699,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
           if(curBid.less(getBid())) setWinning(true);
         } catch(Currency.CurrencyTypeException cte) {
           /* Should never happen...?  */
-          ErrorManagement.handleException("This should never happen (bad Currency at this point!).", cte);
+          JConfig.log().handleException("This should never happen (bad Currency at this point!).", cte);
         }
         if(curBid.equals(getBid())) {
           setWinning(numBidders == 1);
@@ -1165,7 +1164,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     try {
       getServer().reload(this);
     } catch(Exception e) {
-      ErrorManagement.handleException("Unexpected exception during auction reload/update.", e);
+      JConfig.log().handleException("Unexpected exception during auction reload/update.", e);
     }
     mLastUpdatedAt = System.currentTimeMillis();
     mAddedRecently = 0;
@@ -1173,7 +1172,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       checkHighBidder(true);
       if(isDutch()) checkDutchHighBidder();
     } catch(Exception e) {
-      ErrorManagement.handleException("Unexpected exception during high bidder check.", e);
+      JConfig.log().handleException("Unexpected exception during high bidder check.", e);
     }
     checkSeller();
     if (isComplete()) {
@@ -1268,7 +1267,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
     setBidQuantity(bidQuantity);
     mBidAt = System.currentTimeMillis();
 
-    ErrorManagement.logDebug("Bidding " + bid + " on " + bidQuantity + " item[s] of (" + getIdentifier() + ")-" + getTitle());
+    JConfig.log().logDebug("Bidding " + bid + " on " + bidQuantity + " item[s] of (" + getIdentifier() + ")-" + getTitle());
 
     int rval = getServer().bid(this, bid, bidQuantity);
     saveDB();
@@ -1289,7 +1288,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       setBid(getBuyNow());
       setBidQuantity(quant);  //  TODO --  Is it possible to Buy more than 1 item?  Yes...how?
       mBidAt = System.currentTimeMillis();
-      ErrorManagement.logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
+      JConfig.log().logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
       rval = getServer().buy(this, quant);
       saveDB();
     }
@@ -1422,7 +1421,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
       try {
         dateDiff = getEndDate().getTime() - ((rightNow + officialDelta) - pageReqTime);
       } catch(Exception endDateException) {
-        ErrorManagement.handleException("Error getting the end date.", endDateException);
+        JConfig.log().handleException("Error getting the end date.", endDateException);
         dateDiff = 0;
       }
 
@@ -1489,41 +1488,37 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
    *
    * @return - -1 for lesser, 0 for equal, 1 for greater.
    */
-  public int compareTo(Object other) {
+  public int compareTo(AuctionEntry other) {
     //  We are always greater than null
     if(other == null) return 1;
     //  We are always equal to ourselves
     if(other == this) return 0;
-    //  This is an incorrect usage and should be caught.
-    if(!(other instanceof AuctionEntry)) throw new ClassCastException("AuctionEntry cannot compareTo different classes!");
-
-    AuctionEntry comparedAuctionEntry = (AuctionEntry) other;
 
     String identifier = getIdentifier();
 
     //  If the identifiers are the same, we're equal.
-    if(identifier != null && identifier.equals(comparedAuctionEntry.getIdentifier())) return 0;
+    if(identifier != null && identifier.equals(other.getIdentifier())) return 0;
 
-    if(getEndDate() == null && comparedAuctionEntry.getEndDate() != null) return 1;
-    if(getEndDate() != null && comparedAuctionEntry.getEndDate() == null) return -1;
-    if (getEndDate() != null && comparedAuctionEntry.getEndDate() != null) {
+    if(getEndDate() == null && other.getEndDate() != null) return 1;
+    if(getEndDate() != null && other.getEndDate() == null) return -1;
+    if (getEndDate() != null && other.getEndDate() != null) {
       //  If this ends later than the passed in object, then we are 'greater'.
-      if(getEndDate().after(comparedAuctionEntry.getEndDate())) return 1;
-      if(comparedAuctionEntry.getEndDate().after(getEndDate())) return -1;
+      if(getEndDate().after(other.getEndDate())) return 1;
+      if(other.getEndDate().after(getEndDate())) return -1;
     }
 
     //  Whoops!  Dates are equal, down to the second probably, or both null...
 
     //  If this has a null identifier, we're lower.
-    if(identifier == null && comparedAuctionEntry.getIdentifier() != null) return -1;
-    if(identifier == null && comparedAuctionEntry.getIdentifier() == null) return 0;
+    if(identifier == null && other.getIdentifier() != null) return -1;
+    if(identifier == null && other.getIdentifier() == null) return 0;
     //  At this point, we know identifier != null, so if the compared entry
     //  has a null identifier, we sort higher.
-    if(comparedAuctionEntry.getIdentifier() == null) return 1;
+    if(other.getIdentifier() == null) return 1;
 
     //  Since this ends exactly at the same time as another auction,
     //  check the identifiers (which *must* be different here.
-    return getIdentifier().compareTo(comparedAuctionEntry.getIdentifier());
+    return getIdentifier().compareTo(other.getIdentifier());
   }
 
   /**
@@ -1699,7 +1694,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
         try {
           ship = ship.add(getInsurance());
         } catch(Currency.CurrencyTypeException cte) {
-          ErrorManagement.handleException("Insurance is somehow a different type than shipping?!?", cte);
+          JConfig.log().handleException("Insurance is somehow a different type than shipping?!?", cte);
         }
       }
     }
@@ -1842,7 +1837,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
 
     if(ae != null) {
       if(ae.getAuction() == null) {
-        ErrorManagement.logMessage("Error loading auction #" + identifier + ", entry found, auction missing.");
+        JConfig.log().logMessage("Error loading auction #" + identifier + ", entry found, auction missing.");
         ae = null;
       }
     }
@@ -1913,7 +1908,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable {
           addedThumbnail = true;
         } catch (UnknownHostException e) {
           //  Couldn't find THIS host?!?  Perhaps that means we're not online?
-          ErrorManagement.logMessage("Unknown host trying to look up the local host.  Is the network off?");
+          JConfig.log().logMessage("Unknown host trying to look up the local host.  Is the network off?");
         }
       } else {
         prompt += newRow + "<img src=\"" + getThumbnail() + "\">" + newCol + "<table>";

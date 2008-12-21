@@ -5,7 +5,7 @@ package com.jbidwatcher.webserver;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.net.*;
 import java.io.*;
@@ -42,7 +42,7 @@ public class SimpleProxy extends Thread {
       try {
         mServerSock = new ServerSocket(mSocketNumber);
       } catch(IOException e) {
-        ErrorManagement.handleException("Server socket open failed", e);
+        JConfig.log().handleException("Server socket open failed", e);
       }
     }
     if(mHalted) {
@@ -81,7 +81,7 @@ public class SimpleProxy extends Thread {
         }
       } catch(IOException e) {
         if(!mHalted) {
-          ErrorManagement.handleException("Exception raised during server accept.", e);
+          JConfig.log().handleException("Exception raised during server accept.", e);
         }
       }
       try {
@@ -120,7 +120,7 @@ public class SimpleProxy extends Thread {
           ProxyClient pc = (ProxyClient) maker.newInstance(subProxyParamObjects);
           pc.start();
         } catch(Exception e) {
-          ErrorManagement.handleException("Serious failure trying to create a ProxyClient object.", e);
+          JConfig.log().handleException("Serious failure trying to create a ProxyClient object.", e);
         }
       }
     }

@@ -11,7 +11,6 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.Constants;
 
 import java.io.*;
@@ -41,7 +40,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
       _valid = true;
     } catch(IOException e) {
       loadedUpdate = null;
-      ErrorManagement.handleException("UpdaterEntry: " + e, e);
+      JConfig.log().handleException("UpdaterEntry: " + e, e);
       _valid = false;
     }
 
@@ -52,7 +51,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
   public void loadFromString(StringBuffer sb, String packageName) {
     if(sb == null || packageName == null) {
       //noinspection ThrowableInstanceNeverThrown
-      ErrorManagement.handleException("loadFromString Failed with a null pointer!", new Exception("Updater got incorrect XML file."));
+      JConfig.log().handleException("loadFromString Failed with a null pointer!", new Exception("Updater got incorrect XML file."));
     } else {
       XMLElement xmlUpdate = new XMLElement(true);
 

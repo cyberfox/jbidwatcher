@@ -7,7 +7,7 @@ package com.jbidwatcher.auction.server.ebay;
  */
 
 import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.auction.AuctionServerInterface;
@@ -53,7 +53,7 @@ public class ebaySearches {
     int item_count = 0;
 
     if (allItemsOnPage == null) {
-      ErrorManagement.logDebug("No items on page!");
+      JConfig.log().logDebug("No items on page!");
     } else {
       for (ListIterator<String> it = allItemsOnPage.listIterator(); it.hasNext();) {
         String url = it.next();
@@ -145,7 +145,7 @@ public class ebaySearches {
     if (cj != null) userCookie = cj.toString();
 
     if (userId == null || userId.equals("default")) {
-      ErrorManagement.logMessage("Cannot load selling pages without at least a userid.");
+      JConfig.log().logMessage("Cannot load selling pages without at least a userid.");
       return;
     }
 
@@ -160,7 +160,7 @@ public class ebaySearches {
       int count = addAllItemsOnPage(htmlDocument, label, userId.equals(curUser));
       MQFactory.getConcrete("Swing").enqueue("Loaded " + count + " items for seller " + userId);
     } else {
-      ErrorManagement.logMessage("getSellingItems failed!");
+      JConfig.log().logMessage("getSellingItems failed!");
     }
   }
 
@@ -178,7 +178,7 @@ public class ebaySearches {
     if (cj != null) userCookie = cj.toString();
 
     if (curUser == null || curUser.equals("default")) {
-      ErrorManagement.logMessage("Cannot load My eBay pages without a userid and password.");
+      JConfig.log().logMessage("Cannot load My eBay pages without a userid and password.");
       return;
     }
 
@@ -190,19 +190,19 @@ public class ebaySearches {
       String watchingURL = Externalized.getString("ebayServer.bigWatchingURL1") + curUser +
           Externalized.getString("ebayServer.bigWatchingURL2") + page +
           Externalized.getString("ebayServer.bigWatchingURL3") + (page + 1);
-      ErrorManagement.logDebug("Loading page " + page + " of My eBay for user " + curUser);
-      ErrorManagement.logDebug("URL: " + watchingURL);
+      JConfig.log().logDebug("Loading page " + page + " of My eBay for user " + curUser);
+      JConfig.log().logDebug("URL: " + watchingURL);
 
       JHTML htmlDocument = new JHTML(watchingURL, userCookie, mCleaner);
       if(htmlDocument.getTitle().equals("eBay Message")) {
-        ErrorManagement.logDebug("eBay is presenting an interstitial 'eBay Message' page!");
+        JConfig.log().logDebug("eBay is presenting an interstitial 'eBay Message' page!");
         JHTML.Form f = htmlDocument.getFormWithInput("MfcISAPICommand");
         if(f != null) {
           try {
-            ErrorManagement.logDebug("Navigating to the 'Continue to My eBay' page.");
+            JConfig.log().logDebug("Navigating to the 'Continue to My eBay' page.");
             htmlDocument = new JHTML(f.getCGI(), userCookie, mCleaner);
           } catch(UnsupportedEncodingException uee) {
-            ErrorManagement.handleException("Failed to get the real My eBay page", uee);
+            JConfig.log().handleException("Failed to get the real My eBay page", uee);
           }
         }
       }
@@ -221,7 +221,7 @@ public class ebaySearches {
     while (!done_bidding) {
       //  Now load items the user is bidding on...
       String biddingURL = Externalized.getString("ebayServer.biddingURL");
-      ErrorManagement.logDebug("Loading page: " + biddingURL);
+      JConfig.log().logDebug("Loading page: " + biddingURL);
 
       JHTML htmlDocument = new JHTML(biddingURL, userCookie, mCleaner);
       addAllItemsOnPage(htmlDocument, label, true);
@@ -246,7 +246,7 @@ public class ebaySearches {
       encodedSearch = URLEncoder.encode(search, "UTF-8");
     } catch (UnsupportedEncodingException ignored) {
       encodedSearch = null;
-      ErrorManagement.logMessage("Failed to search because of encoding transformation failure.");
+      JConfig.log().logMessage("Failed to search because of encoding transformation failure.");
     }
     int allResults = 0;
 

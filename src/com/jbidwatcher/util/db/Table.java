@@ -1,6 +1,6 @@
 package com.jbidwatcher.util.db;
 
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Record;
 
 import java.math.BigDecimal;
@@ -66,7 +66,7 @@ public class Table
     try {
       mS.close();
     } catch (SQLException e) {
-      ErrorManagement.handleException("Can't shut down database.", e);
+      JConfig.log().handleException("Can't shut down database.", e);
     }
     mDB.commit();
     return mDB;
@@ -250,7 +250,7 @@ public class Table
       ResultSet rs = ps.executeQuery();
       oldRow = getFirstResult(rs);
     } catch (SQLException e) {
-      ErrorManagement.handleException("Can't get row" + (forUpdate? " for update":"") + " (" + columnKey + " = '" + value +"').", e);
+      JConfig.log().handleException("Can't get row" + (forUpdate? " for update":"") + " (" + columnKey + " = '" + value +"').", e);
     }
     return oldRow;
   }
@@ -266,14 +266,14 @@ public class Table
       for(String key: newRow.keySet()) {
         if(key.equals("id")) continue;
         if(!setColumn(ps, column++, key, newRow.get(key))) {
-          ErrorManagement.logDebug("Error from columns: (" + column + ", " + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
+          JConfig.log().logDebug("Error from columns: (" + column + ", " + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
         }
       }
       ps.execute();
       mDB.commit();
       return findKeys(ps);
     } catch (SQLException e) {
-      ErrorManagement.handleException("Can't store row in table.", e);
+      JConfig.log().handleException("Can't store row in table.", e);
     }
     return null;
   }
@@ -336,7 +336,7 @@ public class Table
       if (!(newVal == null && oldVal == null)) {
         if (newVal == null || oldVal == null || !newVal.equals(oldVal)) {
           if(!setColumn(ps, column++, key, newRow.get(key))) {
-            ErrorManagement.logMessage("Error from columns: (" + column + "," + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
+            JConfig.log().logMessage("Error from columns: (" + column + "," + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
             errors = true;
           }
         }
@@ -385,7 +385,7 @@ public class Table
           }
         }
       } else {
-        ErrorManagement.logDebug("WTF?!?!");
+        JConfig.log().logDebug("WTF?!?!");
       }
     } catch (SQLException e) {
       e.printStackTrace();
@@ -404,7 +404,7 @@ public class Table
         mColumnMap.put(key, new TypeColumn(value, i));
       }
     } catch (SQLException e) {
-      ErrorManagement.handleException("Can't load metadata for table " + mTableName + ".", e);
+      JConfig.log().handleException("Can't load metadata for table " + mTableName + ".", e);
     }
   }
 

@@ -7,7 +7,7 @@ package com.jbidwatcher.util;
 
 import java.io.*;
 import java.util.zip.*;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 public class ByteBuffer {
   private byte[] data;
@@ -44,7 +44,7 @@ public class ByteBuffer {
       fos.write(data, 0, length);
       fos.close();
     } catch(IOException ioe) {
-      ErrorManagement.handleException("Error writing " + fileName, ioe);
+      JConfig.log().handleException("Error writing " + fileName, ioe);
     }
   }
 }

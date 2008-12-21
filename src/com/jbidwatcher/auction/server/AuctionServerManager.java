@@ -8,10 +8,10 @@ package com.jbidwatcher.auction.server;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.search.SearchManager;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerialize;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.AuctionServerInterface;
 
@@ -26,7 +26,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   private final static AuctionServerManager mInstance;
   private static EntryManager sEntryManager = null;
   private AuctionServer mServer = null;
-  private AuctionServer mSecondary = null;
   private static SearchManager mSearcher;
 
   private static final boolean sUberDebug = false;
@@ -67,13 +66,13 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
               newServer = (AuctionServer) newClass.newInstance();
               newServer = setServer(newServer);
             } catch(ClassNotFoundException cnfe) {
-              ErrorManagement.handleException("Failed to load controller class for server " + serverName + '.', cnfe);
+              JConfig.log().handleException("Failed to load controller class for server " + serverName + '.', cnfe);
               throw new XMLParseException(inXML.getTagName(), "Failed to load controller class for server " + serverName + '.');
             } catch(InstantiationException ie) {
-              ErrorManagement.handleException("Failed to instantiate server " + serverName + '.', ie);
+              JConfig.log().handleException("Failed to instantiate server " + serverName + '.', ie);
               throw new XMLParseException(inXML.getTagName(), "Failed to instantiate server for " + serverName + '.');
             } catch(IllegalAccessException iae) {
-              ErrorManagement.handleException("Illegal access when instantiating server for " + serverName + '.', iae);
+              JConfig.log().handleException("Illegal access when instantiating server for " + serverName + '.', iae);
               throw new XMLParseException(inXML.getTagName(), "Illegal access when instantiating server for " + serverName + '.');
             }
           }
@@ -95,9 +94,9 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       ae.setServer(newServer);
 
       if (ae.getAuction() == null) {
-        ErrorManagement.logMessage("We lost the underlying auction for: " + ae.dumpRecord());
+        JConfig.log().logMessage("We lost the underlying auction for: " + ae.dumpRecord());
         if(ae.getIdentifier() != null) {
-          ErrorManagement.logMessage("Trying to reload auction via its auction identifier.");
+          JConfig.log().logMessage("Trying to reload auction via its auction identifier.");
           MQFactory.getConcrete("drop").enqueue(ae);
         } else {
           ae.delete();
@@ -135,7 +134,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         MQFactory.getConcrete("splash").enqueue("SET " + count++);
       }
     } catch(XMLParseException e) {
-      ErrorManagement.handleException("Parse exception: ", e);
+      JConfig.log().handleException("Parse exception: ", e);
     }
   }
 
@@ -170,7 +169,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       } catch(NoSuchElementException nsee) {
         //  Nothing really to do, this just means we cleaned out the
         //  list before finding a non-timecheck value.
-        if(sUberDebug) ErrorManagement.logDebug("No Such Element caught.");
+        if(sUberDebug) JConfig.log().logDebug("No Such Element caught.");
       }
     }
   }
@@ -197,9 +196,9 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         serverChild.addChild(ae.toXML());
       } catch (Exception e) {
         try {
-        ErrorManagement.handleException("Exception trying to save auction " + ae.getIdentifier() + " (" + ae.getTitle() + ") -- Not saving", e);
+        JConfig.log().handleException("Exception trying to save auction " + ae.getIdentifier() + " (" + ae.getTitle() + ") -- Not saving", e);
         } catch(Exception e2) {
-          ErrorManagement.handleException("Exception trying to save auction entry id " + ae.getId() + " -- Not saving", e);
+          JConfig.log().handleException("Exception trying to save auction entry id " + ae.getId() + " -- Not saving", e);
         }
       }
     }
@@ -218,7 +217,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     if(mServer != null) {
       //noinspection ThrowableInstanceNeverThrown
       RuntimeException here = new RuntimeException("Trying to add a server, when we've already got one!");
-      ErrorManagement.handleException("setServer error!", here);
+      JConfig.log().handleException("setServer error!", here);
       return mServer;
     }
     mServer = aucServ;

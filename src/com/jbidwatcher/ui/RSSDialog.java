@@ -9,7 +9,6 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.browser.BrowserLauncher;
 import com.jbidwatcher.auction.Category;
 
@@ -58,7 +57,7 @@ public class RSSDialog extends BasicDialog {
     try {
       thisIp = InetAddress.getLocalHost();
     } catch (UnknownHostException e) {
-      ErrorManagement.handleException("Local host is unknown?!?", e);
+      JConfig.log().handleException("Local host is unknown?!?", e);
       return "127.0.0.1";
     }
     return thisIp.getHostAddress();
@@ -69,7 +68,7 @@ public class RSSDialog extends BasicDialog {
     try {
       BrowserLauncher.openURL(url);
     } catch (IOException e) {
-      ErrorManagement.handleException("Can't browse to: " + url, e);
+      JConfig.log().handleException("Can't browse to: " + url, e);
     }
     onOK();
   }

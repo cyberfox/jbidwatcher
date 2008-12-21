@@ -10,12 +10,12 @@ package com.jbidwatcher.auction;
  * TODO - Create a 'Bid' equivalent of this class.
  */
 
-import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.util.UpdateBlocker;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
-import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.UpdateBlocker;
-import com.jbidwatcher.auction.server.*;
+import com.jbidwatcher.util.queue.MQFactory;
 
 public class Snipe {
   public final static int SUCCESSFUL=0;
@@ -71,7 +71,7 @@ public class Snipe {
     mEntry.setLastStatus(snipeResult);
 
     MQFactory.getConcrete("Swing").enqueue("NOTIFY " + snipeResult);
-    ErrorManagement.logDebug(snipeResult);
+    JConfig.log().logDebug(snipeResult);
 
     mEntry.snipeCompleted();
     UpdateBlocker.endBlocking();
@@ -87,7 +87,7 @@ public class Snipe {
       //  Alert somebody that we couldn't log in?
       mEntry.setLastStatus("Pre-snipe login failed.  Snipe will be retried, but is unlikely to fire.");
       MQFactory.getConcrete("Swing").enqueue("NOTIFY Pre-snipe login failed.");
-      ErrorManagement.logDebug("Pre-snipe login failed.");
+      JConfig.log().logDebug("Pre-snipe login failed.");
       UpdateBlocker.endBlocking();
       return RESNIPE;
     }
@@ -101,7 +101,7 @@ public class Snipe {
       String result = getSnipeResult(bbe.getResult(), mEntry.getTitle(), mEntry);
       mEntry.setLastStatus(result);
       MQFactory.getConcrete("Swing").enqueue("NOTIFY " + result);
-      ErrorManagement.logDebug(result);
+      JConfig.log().logDebug(result);
       presnipeResult = FAIL;
     }
     UpdateBlocker.endBlocking();

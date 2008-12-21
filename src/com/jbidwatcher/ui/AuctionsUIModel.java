@@ -183,7 +183,7 @@ public class AuctionsUIModel {
         inCurr = inCurr.add(ae.getUSCurBid().add(Currency.convertToUSD(ae.getUSCurBid(), ae.getCurBid(), ae.getShippingWithInsurance())));
       }
     } catch(Currency.CurrencyTypeException cte) {
-      ErrorManagement.handleException("This should have been cleaned up.", cte);
+      JConfig.log().handleException("This should have been cleaned up.", cte);
     }
     return inCurr;
   }
@@ -204,7 +204,7 @@ public class AuctionsUIModel {
         inCurr = inCurr.add(ae.getCurBid().add(ae.getShippingWithInsurance()));
       }
     } catch(Currency.CurrencyTypeException cte) {
-      ErrorManagement.handleException("This should have been cleaned up.", cte);
+      JConfig.log().handleException("This should have been cleaned up.", cte);
     }
 
     return inCurr;
@@ -257,13 +257,13 @@ public class AuctionsUIModel {
         }
       }
     } catch(Currency.CurrencyTypeException e) {
-      ErrorManagement.handleException("Sum currency exception!", e);
+      JConfig.log().handleException("Sum currency exception!", e);
       return null;
     } catch(ArrayIndexOutOfBoundsException ignored) {
-      ErrorManagement.logDebug("Selection of " + rowList.length + " items changed out from under 'sum'.");
+      JConfig.log().logDebug("Selection of " + rowList.length + " items changed out from under 'sum'.");
       return null;
     } catch(Exception e) {
-      ErrorManagement.handleException("Sum serious exception!", e);
+      JConfig.log().handleException("Sum serious exception!", e);
       return null;
     }
 
@@ -342,7 +342,7 @@ public class AuctionsUIModel {
   public void addEntry(AuctionEntry aeNew) {
     if (aeNew != null) {
       if (_tSort.insert(aeNew) == -1) {
-        ErrorManagement.logMessage("JBidWatch: Bad auction entry, cannot add!");
+        JConfig.log().logMessage("JBidWatch: Bad auction entry, cannot add!");
       }
     }
   }
@@ -415,7 +415,7 @@ public class AuctionsUIModel {
       try {
         ct = _table.getColumn(_table.getColumnName(j));
       } catch(IllegalArgumentException iae) {
-        ErrorManagement.logMessage("Column can't be retrieved from the table: " + _table.getColumnName(j));
+        JConfig.log().logMessage("Column can't be retrieved from the table: " + _table.getColumnName(j));
         ct = null;
       }
         //      ColumnProps cp = new ColumnProps(_dataModel.getColumnName(j), j, ct.getWidth());

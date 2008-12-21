@@ -6,7 +6,7 @@ package com.jbidwatcher.ui.util;
  */
 
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -30,7 +30,7 @@ public class Hyperactive implements HyperlinkListener {
         try {
           MQFactory.getConcrete("browse").enqueue(e.getDescription());
         } catch(Exception except) {
-          ErrorManagement.handleException("Launching URL " + e.getDescription() + " failed: " + except, except);
+          JConfig.log().handleException("Launching URL " + e.getDescription() + " failed: " + except, except);
           JOptionPane.showMessageDialog(null, "Failed to launch link.",
                                         "Link error", JOptionPane.PLAIN_MESSAGE);
         }

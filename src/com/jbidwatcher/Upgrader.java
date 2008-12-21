@@ -2,7 +2,6 @@ package com.jbidwatcher;
 
 import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.db.Table;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.HashBacked;
@@ -71,7 +70,7 @@ public class Upgrader {
         runFile(mS, "/jbidwatcher.sql");
         JConfig.setConfiguration("jbidwatcher.created_db", "true");
       } else {
-        ErrorManagement.logDebug("Auction information database already exists.");
+        JConfig.log().logDebug("Auction information database already exists.");
       }
       rs.close();
     } catch (SQLException se) {
@@ -90,8 +89,8 @@ public class Upgrader {
         mS.execute(statement);
       }
 
-      ErrorManagement.logDebug("Executed " + filename + ".");
-      ErrorManagement.logDebug("Created database and various tables.");
+      JConfig.log().logDebug("Executed " + filename + ".");
+      JConfig.log().logDebug("Created database and various tables.");
       return true;
     } else {
       return false;

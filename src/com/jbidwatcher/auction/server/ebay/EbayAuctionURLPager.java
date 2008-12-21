@@ -13,7 +13,7 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.html.AbstractURLPager;
 import com.jbidwatcher.util.html.URLPagerIterator;
 import com.jbidwatcher.util.http.CookieJar;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.LoginManager;
 
 public class EbayAuctionURLPager extends AbstractURLPager {
@@ -78,7 +78,7 @@ public class EbayAuctionURLPager extends AbstractURLPager {
     } else if (urlStyle == URLSTYLE_EBAY) {
       return urlString + "QQfrppZ" + getItemsPerPage() + "QQfrtsZ" + (pageNumber - 1) * getItemsPerPage();
     } else {
-      ErrorManagement.logMessage("Unknown URLSTYLE: " + urlStyle);
+      JConfig.log().logMessage("Unknown URLSTYLE: " + urlStyle);
       return null;
     }
   }
@@ -132,7 +132,7 @@ public class EbayAuctionURLPager extends AbstractURLPager {
       try {
         setItemCount(Integer.parseInt(count));
       } catch (NumberFormatException e) {
-        ErrorManagement.logMessage("Unable to find item count on page! URL: " + getPageURL(1));
+        JConfig.log().logMessage("Unable to find item count on page! URL: " + getPageURL(1));
       }
 
       // We set the flag regardless an error occurred.

@@ -8,7 +8,7 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.ui.table.TableColumnController;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.awt.event.*;
 import java.awt.*;
@@ -73,7 +73,7 @@ public class JTabPopupMenu extends JContext {
       customize.setEnabled(false);
       _deleteSubmenu.setEnabled(false);
       _print.setEnabled(false);
-      ErrorManagement.logDebug("Whoops!  Click-point not found!");
+      JConfig.log().logDebug("Whoops!  Click-point not found!");
     } else {
       _print.setEnabled(true);
 
@@ -219,7 +219,7 @@ public class JTabPopupMenu extends JContext {
 
     if(actionString.equals("Print")) {
       if(tabIndex == -1) {
-        ErrorManagement.logDebug("Can't print unknown tab, must prompt...");
+        JConfig.log().logDebug("Can't print unknown tab, must prompt...");
       } else {
         if(!ListManager.getInstance().printTab(tabName)) {
           JOptionPane.showMessageDialog(null, "Could not print tab [" + tabName + "].", "Print error", JOptionPane.PLAIN_MESSAGE);
@@ -237,9 +237,9 @@ public class JTabPopupMenu extends JContext {
     if(actionString.equals("Just Tab")) {
       //  If we couldn't have figured out which tab, prompt for delete.
       if(tabIndex == -1) {
-        ErrorManagement.logDebug("Prompting for Delete...\n");
+        JConfig.log().logDebug("Prompting for Delete...\n");
       } else {
-        ErrorManagement.logDebug("Deleting tab [" + tabName + "]...\n");
+        JConfig.log().logDebug("Deleting tab [" + tabName + "]...\n");
         Component removed = ListManager.getInstance().deleteTab(tabName, eraseEntries);
         if(removed == null) {
           JOptionPane.showMessageDialog(null, "Could not delete tab [" + tabName + "].", "Tab deletion error", JOptionPane.PLAIN_MESSAGE);

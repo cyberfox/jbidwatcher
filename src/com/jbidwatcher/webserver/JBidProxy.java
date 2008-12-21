@@ -7,7 +7,6 @@ package com.jbidwatcher.webserver;
 
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.Base64;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTMLDialog;
 import com.jbidwatcher.util.http.Http;
@@ -191,7 +190,7 @@ public class JBidProxy extends HTTPProxyClient {
     AuctionEntry ae = AuctionEntry.findByIdentifier(auctionId);
     Currency snipeValue = Currency.getCurrency(ae.getCurBid().fullCurrencyName(), snipeAmount);
 
-    ErrorManagement.logDebug("Remote-controlled snipe activated against auction " + auctionId + " for " + snipeValue);
+    JConfig.log().logDebug("Remote-controlled snipe activated against auction " + auctionId + " for " + snipeValue);
     ae.prepareSnipe(snipeValue);
 
     JHTMLOutput jho = new JHTMLOutput("Activated snipe!",
@@ -331,7 +330,7 @@ public class JBidProxy extends HTTPProxyClient {
       return new JHTMLOutput("Invalid event", "No such event available." + messageFinisher).getStringBuffer();
     }
     eventParam = eventParam.replaceAll("\\+", " ").replaceAll("%20", " ");
-    ErrorManagement.logMessage("Firing event to queue '" + eventName + "' with parameter '" + eventParam + "'");
+    JConfig.log().logMessage("Firing event to queue '" + eventName + "' with parameter '" + eventParam + "'");
     MQFactory.getConcrete(eventName).enqueue(eventParam);
     return new JHTMLOutput("Event posted", "Event has been submitted." + messageFinisher).getStringBuffer();
   }

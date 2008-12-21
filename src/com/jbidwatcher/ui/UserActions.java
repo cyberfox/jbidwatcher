@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -304,7 +303,7 @@ public class UserActions implements MessageQueue.Listener {
         Matcher digits = digitSearch.matcher(auctionId);
         if(digits.find()) auctionId = digits.group();
         if(auctionId == null) {
-          ErrorManagement.logDebug("Failed to paste auction id: " + original);
+          JConfig.log().logDebug("Failed to paste auction id: " + original);
         }
       }
     }
@@ -385,7 +384,7 @@ public class UserActions implements MessageQueue.Listener {
         }
         if (ae2.getCurBid().getCurrencyType() != Currency.US_DOLLAR) approx = true;
       } catch (Exception e) {
-        ErrorManagement.handleException("Sum currency exception!", e);
+        JConfig.log().handleException("Sum currency exception!", e);
         return "<unknown>";
       }
     }
@@ -775,7 +774,7 @@ public class UserActions implements MessageQueue.Listener {
                                     "Bad snipe value", JOptionPane.PLAIN_MESSAGE);
       return;
     } catch (Currency.CurrencyTypeException e) {
-      ErrorManagement.handleException("Couldn't subtract shipping from bid amount.", e);
+      JConfig.log().handleException("Couldn't subtract shipping from bid amount.", e);
       return;
     }
 
@@ -956,7 +955,7 @@ public class UserActions implements MessageQueue.Listener {
 
   private void DeleteComment(AuctionEntry ae) {
     if(ae == null) {
-      ErrorManagement.logMessage("Auction selected to delete comment from is null, unexpected error!");
+      JConfig.log().logMessage("Auction selected to delete comment from is null, unexpected error!");
       return;
     }
 
@@ -966,7 +965,7 @@ public class UserActions implements MessageQueue.Listener {
 
   private void DoComment(Component src, AuctionEntry inAuction) {
     if(inAuction == null) {
-      ErrorManagement.logMessage("Auction selected to comment on is null, unexpected error!");
+      JConfig.log().logMessage("Auction selected to comment on is null, unexpected error!");
       return;
     }
 
@@ -981,7 +980,7 @@ public class UserActions implements MessageQueue.Listener {
 
   private void ShowComment(Component src, AuctionEntry inAuction) {
     if(inAuction == null) {
-      ErrorManagement.logMessage("Can't show comments from menu items yet.");
+      JConfig.log().logMessage("Can't show comments from menu items yet.");
       return;
     }
 
@@ -1148,7 +1147,7 @@ public class UserActions implements MessageQueue.Listener {
 
       AuctionServerManager.getInstance().fromXML(xmlFile);
     } catch(IOException e) {
-      ErrorManagement.handleException("Error loading XML file with auctions: " + canonicalFName, e);
+      JConfig.log().handleException("Error loading XML file with auctions: " + canonicalFName, e);
     }
   }
 
@@ -1378,13 +1377,13 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Toolbar")) DoHideShowToolbar();
     else if(actionString.equals("Search")) DoSearch();
     else if(actionString.equals("Scripting")) DoScripting();
-    else if(actionString.equals("Dump")) ErrorManagement.logDebug("Dump requested.");
+    else if(actionString.equals("Dump")) JConfig.log().logDebug("Dump requested.");
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
     else if(actionString.equals("View Log")) DoViewLog();
     else if(actionString.equals("Mark as Won")) DoDebugWin(whichAuction);
     else if(actionString.equals("View Activity")) DoViewActivity();
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
-    else ErrorManagement.logDebug('[' + actionString + ']');
+    else JConfig.log().logDebug('[' + actionString + ']');
   }
 
   private void DoReportProblem(Component src, AuctionEntry auction) {

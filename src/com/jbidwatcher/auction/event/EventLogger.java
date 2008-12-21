@@ -5,12 +5,15 @@ package com.jbidwatcher.auction.event;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerialize;
-import com.jbidwatcher.util.config.ErrorManagement;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 /*!@class EventLogger
  *
@@ -134,7 +137,7 @@ public class EventLogger implements XMLSerialize {
         whatHappened.saveDB();
 
         mAllEvents.add(whatHappened);
-        ErrorManagement.logMessage(whatHappened.toString());
+        JConfig.log().logMessage(whatHappened.toString());
       }
     }
   }

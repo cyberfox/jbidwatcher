@@ -159,10 +159,10 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
       loadedPage = Http.receivePage(uc);
       if(loadedPage != null && loadedPage.length() == 0) loadedPage = null;
     } catch(FileNotFoundException fnfe) {
-      ErrorManagement.logDebug("Item not found: " + auctionURL.toString());
+      JConfig.log().logDebug("Item not found: " + auctionURL.toString());
       throw fnfe;
     } catch(IOException e) {
-      ErrorManagement.handleException("Error loading URL (" + auctionURL.toString() + ')', e);
+      JConfig.log().handleException("Error loading URL (" + auctionURL.toString() + ')', e);
       loadedPage = null;
     }
     return loadedPage;
@@ -215,7 +215,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
         try {
           curAuction = doParse(sb, ae, item_id);
         } catch (ReloadItemException e1) {
-          ErrorManagement.logMessage("Multiple failures attempting to load item " + item_id + ", giving up.");
+          JConfig.log().logMessage("Multiple failures attempting to load item " + item_id + ", giving up.");
         }
       }
     }
@@ -243,7 +243,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
       markAuctionDeleted(ae);
     } catch (Exception catchall) {
       if (JConfig.debugging()) {
-        ErrorManagement.handleException("Some unexpected error occurred during loading the auction.", catchall);
+        JConfig.log().handleException("Some unexpected error occurred during loading the auction.", catchall);
       }
     }
 
@@ -265,12 +265,12 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
         switch(result) {
           case WRONG_SITE: {
             String rightURL = curAuction.getURL();
-            ErrorManagement.logDebug("Need to redirect to: " + rightURL);
+            JConfig.log().logDebug("Need to redirect to: " + rightURL);
             AuctionServer realServer = getBackupServer();
             return (SpecificAuction) realServer.loadAuction(item_id, ae);
           }
           case CAPTCHA: {
-            ErrorManagement.logDebug("Failed to load (likely adult) item, captcha intervened.");
+            JConfig.log().logDebug("Failed to load (likely adult) item, captcha intervened.");
             if(ae != null) ae.setLastStatus("Couldn't access auction on server; captcha blocked.");
             break;
           }
@@ -280,7 +280,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
               getNecessaryCookie(true);
               throw new ReloadItemException();
             } else {
-              ErrorManagement.logDebug("Failed to load adult item, user possibly not marked for Mature Items access.  Check your eBay configuration.");
+              JConfig.log().logDebug("Failed to load adult item, user possibly not marked for Mature Items access.  Check your eBay configuration.");
             }
             break;
           }
@@ -303,7 +303,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
     } else error = "Bad pre-parse!";
 
     if(error != null) {
-      ErrorManagement.logMessage(error);
+      JConfig.log().logMessage(error);
       if(ae == null || !ae.isDeleted() && result != SpecificAuction.ParseErrors.SELLER_AWAY) checkLogError(ae);
       curAuction = null;
     }
@@ -323,7 +323,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   private void noteRetrieveError(AuctionEntry ae) {
     checkLogError(ae);
     //  Whoops!  Bad thing happened on the way to loading the auction!
-    ErrorManagement.logDebug("Failed to parse auction!  Bad return result from auction server.");
+    JConfig.log().logDebug("Failed to parse auction!  Bad return result from auction server.");
     //  Only retry the login cookie once every ten minutes of these errors.
     if ((sLastUpdated + Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
       sLastUpdated = System.currentTimeMillis();

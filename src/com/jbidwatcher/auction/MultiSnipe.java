@@ -5,14 +5,14 @@ package com.jbidwatcher.auction;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.db.*;
-import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.db.Table;
 
-import java.util.List;
+import java.awt.Color;
 import java.util.LinkedList;
-import java.awt.*;
+import java.util.List;
 
 /**
  *  MultiSnipe class
@@ -117,7 +117,7 @@ public class MultiSnipe extends ActiveRecord {
     auctionEntriesInThisGroup = new LinkedList<AuctionEntry>();
 
     for (AuctionEntry aeFromList : oldEntries) {
-      ErrorManagement.logDebug("Cancelling Snipe for: " + aeFromList.getTitle() + '(' + aeFromList.getIdentifier() + ')');
+      JConfig.log().logDebug("Cancelling Snipe for: " + aeFromList.getTitle() + '(' + aeFromList.getIdentifier() + ')');
       //  TODO --  Fix this up; this calls back into here, for the remove() function.  This needs to be seperated somehow.
       aeFromList.cancelSnipe(false);
     }

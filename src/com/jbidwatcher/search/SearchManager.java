@@ -12,7 +12,6 @@ import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.Constants;
 
 import java.io.*;
@@ -127,7 +126,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
       ps.println(saveData);
       ps.close();
     } catch(IOException e) {
-      ErrorManagement.handleException("Failed to save searches.", e);
+      JConfig.log().handleException("Failed to save searches.", e);
       saveDone = false;
     }
 
@@ -156,10 +155,10 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
         fromXML(xmlFile);
       }
     } catch(IOException ioe) {
-      ErrorManagement.logDebug("JBW: Failed to load saved searches, the search file is probably not there yet.");
-      ErrorManagement.logDebug("JBW: This is not an error, unless you are consistently getting it.");
+      JConfig.log().logDebug("JBW: Failed to load saved searches, the search file is probably not there yet.");
+      JConfig.log().logDebug("JBW: This is not an error, unless you are consistently getting it.");
     } catch(Exception e) {
-      ErrorManagement.handleException("JBW: Failed to load saved searches, file exists but can't be loaded!", e);
+      JConfig.log().handleException("JBW: Failed to load saved searches, file exists but can't be loaded!", e);
     }
   }
 
@@ -226,7 +225,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     } else if(type.equals("My Items")) {
       return new MyItemSearcher();
     } else {
-      ErrorManagement.logMessage("Failed to create searcher for: " + type);
+      JConfig.log().logMessage("Failed to create searcher for: " + type);
     }
 
     return null;

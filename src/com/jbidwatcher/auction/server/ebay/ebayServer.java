@@ -13,7 +13,6 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Externalized;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.auction.server.ServerMenu;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
@@ -288,10 +287,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     } else {
       if (ac.getData() instanceof String) {
         String acData = (String) ac.getData();
-        ErrorManagement.logMessage("Dequeue'd unexpected command or fell through: " + ac.getCommand() + ':' + acData);
+        JConfig.log().logMessage("Dequeue'd unexpected command or fell through: " + ac.getCommand() + ':' + acData);
       } else {
         //noinspection ObjectToString
-        ErrorManagement.logMessage("Can't recognize ebay-queued data: " + ac.getData());
+        JConfig.log().logMessage("Can't recognize ebay-queued data: " + ac.getData());
       }
     }
   }
@@ -434,7 +433,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
     }
 
-    ErrorManagement.logDebug("extractIdentifierFromURLString failed.");
+    JConfig.log().logDebug("extractIdentifierFromURLString failed.");
     return null;
   }
 
@@ -565,7 +564,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     String curName = htmlDocument.getNextContentAfterContent(T.s("ebayServer.bidListPrequel"));
 
     if(curName == null) {
-      ErrorManagement.logMessage("Problem with loaded page when getting bidder names for auction " + ae.getIdentifier());
+      JConfig.log().logMessage("Problem with loaded page when getting bidder names for auction " + ae.getIdentifier());
       return null;
     }
 
@@ -629,7 +628,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
               _etqm.add(deQ, mSnipeQueue, _etqm.getCurrentTime()+retry_wait);
             } else {
               //  If there are less than 3 seconds left, give up.
-              ErrorManagement.logDebug("Resnipes failed, and less than 3 seconds away.  Giving up.");
+              JConfig.log().logDebug("Resnipes failed, and less than 3 seconds away.  Giving up.");
               _etqm.erase(deQ);
             }
             break;
@@ -725,7 +724,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if (result == null || result.getDate() == null) {
       mPageRequestTime = 0;
       //  This is bad...
-      ErrorManagement.logMessage(getName() + ": Error, can't accurately set delta to server's official time.");
+      JConfig.log().logMessage(getName() + ": Error, can't accurately set delta to server's official time.");
       mOfficialServerTimeDelta = 0;
       return null;
     } else {

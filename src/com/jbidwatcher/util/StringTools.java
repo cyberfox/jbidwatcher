@@ -1,6 +1,6 @@
 package com.jbidwatcher.util;
 
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -64,7 +64,7 @@ public class StringTools {
     try {
       auctionURL = new URL(siteAddress);
     } catch(MalformedURLException e) {
-      ErrorManagement.handleException("getURLFromString failed on " + siteAddress, e);
+      JConfig.log().handleException("getURLFromString failed on " + siteAddress, e);
     }
 
     return auctionURL;
@@ -198,7 +198,7 @@ public class StringTools {
       tz = sdf.getCalendar().getTimeZone();
     } catch (java.text.ParseException e) {
       if(!ignore_badformat) {
-        ErrorManagement.handleException("Error parsing date (" + endTimeFmt + "), setting to completed.", e);
+        JConfig.log().handleException("Error parsing date (" + endTimeFmt + "), setting to completed.", e);
         endingDate = new Date();
       } else {
         endingDate = null;
@@ -215,12 +215,12 @@ public class StringTools {
       InputStream is = loadFrom.openStream();
       int bytes_read = is.read(buf);
       if(bytes_read == buf.length) {
-        ErrorManagement.logDebug("File to load is exactly 64K or larger than 64K.  This method does not support that.");
+        JConfig.log().logDebug("File to load is exactly 64K or larger than 64K.  This method does not support that.");
         return null;
       }
       return new String(buf, 0, bytes_read);
     } catch (IOException e) {
-      ErrorManagement.handleException("Failed to load " + loadFrom.toString(), e);
+      JConfig.log().handleException("Failed to load " + loadFrom.toString(), e);
     }
     return null;
   }
@@ -239,10 +239,10 @@ public class StringTools {
       buf[0] = new byte[(int)fp.length()];
       FileInputStream fis = new FileInputStream(fp);
       int read = fis.read(buf[0], 0, (int)fp.length());
-      if(read != fp.length()) ErrorManagement.logDebug("Couldn't read any data from " + fp.getName());
+      if(read != fp.length()) JConfig.log().logDebug("Couldn't read any data from " + fp.getName());
       fis.close();
     } catch(IOException e) {
-      ErrorManagement.handleException("Can't read file " + fp.getName(), e);
+      JConfig.log().handleException("Can't read file " + fp.getName(), e);
     }
   }
 

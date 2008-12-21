@@ -5,7 +5,7 @@ package com.jbidwatcher.util.http;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.net.*;
 import java.util.*;
@@ -110,7 +110,7 @@ public class CookieJar {
     } else {
       errmsg += pageName.substring(0,qLoc);
     }
-    ErrorManagement.handleException(errmsg, e);
+    JConfig.log().handleException(errmsg, e);
   }
 
   /**
@@ -147,7 +147,7 @@ public class CookieJar {
 
       if(redirect != null) {
         if (do_uber_debug) {
-          ErrorManagement.logDebug("Redirecting to: " + redirect);
+          JConfig.log().logDebug("Redirecting to: " + redirect);
         }
         return getAllCookiesFromPage(redirect, referer, post, pages);
       }
@@ -164,7 +164,7 @@ public class CookieJar {
       nextKey = uc.getHeaderFieldKey(i);
       if(nextKey != null) {
         if(do_uber_debug) {
-          ErrorManagement.logDebug(nextKey+": " + uc.getHeaderField(i));
+          JConfig.log().logDebug(nextKey+": " + uc.getHeaderField(i));
         }
         //  If we're redirected, shortcut to loading the new page.
         if(nextKey.startsWith("Location") ||

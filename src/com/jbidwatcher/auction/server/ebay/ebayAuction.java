@@ -163,9 +163,9 @@ class ebayAuction extends SpecificAuction {
       MQFactory.getConcrete("Swing").enqueue("LINK DOWN eBay (or the link to eBay) appears to be down.");
       MQFactory.getConcrete("Swing").enqueue("eBay (or the link to eBay) appears to be down for the moment.");
     } else if(title.indexOf(T.s("ebayServer.invalidItem")) != -1) {
-      ErrorManagement.logDebug("Found bad/deleted item.");
+      JConfig.log().logDebug("Found bad/deleted item.");
     } else {
-      ErrorManagement.logDebug("Failed to load auction title from header: \"" + title + '\"');
+      JConfig.log().logDebug("Failed to load auction title from header: \"" + title + '\"');
     }
   }
 
@@ -337,7 +337,7 @@ class ebayAuction extends SpecificAuction {
       loadPaypal(doc);
     } catch(Throwable t) {
       //  I don't actually CARE about any of this data, or any errors that occur on loading it, so don't mess things up on errors.
-      ErrorManagement.logDebug(t.getMessage());
+      JConfig.log().logDebug(t.getMessage());
     }
   }
 
@@ -409,7 +409,7 @@ class ebayAuction extends SpecificAuction {
     try {
       loadBuyNow();
     } catch(Exception e) {
-      ErrorManagement.handleException("Buy It Now Loading error", e);
+      JConfig.log().handleException("Buy It Now Loading error", e);
     }
 
     if (isFixedPrice()) {
@@ -428,7 +428,7 @@ class ebayAuction extends SpecificAuction {
       if(sample.isNull()) sample = getMinBid();
       loadShippingInsurance(sample);
     } catch(Exception e) {
-      ErrorManagement.handleException("Shipping / Insurance Loading Failed", e);
+      JConfig.log().handleException("Shipping / Insurance Loading Failed", e);
     }
 
     if (checkSeller(ae)) return ParseErrors.SELLER_AWAY;
@@ -611,7 +611,7 @@ class ebayAuction extends SpecificAuction {
               setEnd(Constants.FAR_FUTURE);
             }
           } else {
-            ErrorManagement.logMessage("Setting auction #" + getIdentifier() + " to be a 'Far Future' listing, as it has no date info.");
+            JConfig.log().logMessage("Setting auction #" + getIdentifier() + " to be a 'Far Future' listing, as it has no date info.");
             setEnd(Constants.FAR_FUTURE);
           }
         }
@@ -636,7 +636,7 @@ class ebayAuction extends SpecificAuction {
       try {
         if(!ae.isBidOn() || ae.getBid().less(maxBid)) ae.setBid(maxBid);
       } catch(Currency.CurrencyTypeException cte) {
-        ErrorManagement.handleException("eBay says my max bid is a different type of currency than I have stored!", cte);
+        JConfig.log().handleException("eBay says my max bid is a different type of currency than I have stored!", cte);
       }
     }
   }
@@ -726,7 +726,7 @@ class ebayAuction extends SpecificAuction {
         }
       }
     } catch(Exception e) {
-      ErrorManagement.handleException("Error handling thumbnail loading", e);
+      JConfig.log().handleException("Error handling thumbnail loading", e);
     }
   }
 

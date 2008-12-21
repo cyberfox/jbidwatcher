@@ -187,17 +187,17 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       try {
         loadXMLFromFile(loadFile, xmlFile);
       } catch(IOException ioe) {
-        ErrorManagement.handleException("A serious problem occurred trying to load from auctions.xml.", ioe);
+        JConfig.log().handleException("A serious problem occurred trying to load from auctions.xml.", ioe);
         MQFactory.getConcrete("Swing").enqueue("ERROR Failure to load your saved auctions.  Some or all items may be missing.");
       } catch(XMLParseException xme) {
-        ErrorManagement.handleException("Trying to load from auctions.xml.", xme);
+        JConfig.log().handleException("Trying to load from auctions.xml.", xme);
         MQFactory.getConcrete("Swing").enqueue("ERROR Failure to load your saved auctions.  Some or all items may be missing.");
       }
     } else {
       //  This is a common thing, and we don't want to frighten new
       //  users, who are most likely to see it.
-      ErrorManagement.logDebug("JBW: Failed to load saved auctions, the auctions file is probably not there yet.");
-      ErrorManagement.logDebug("JBW: This is not an error, unless you're constantly getting it.");
+      JConfig.log().logDebug("JBW: Failed to load saved auctions, the auctions file is probably not there yet.");
+      JConfig.log().logDebug("JBW: This is not an error, unless you're constantly getting it.");
     }
   }
 
@@ -307,7 +307,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       ps.println(buf);
       ps.close();
     } catch(IOException e) {
-      ErrorManagement.handleException("Failed to save auctions.", e);
+      JConfig.log().handleException("Failed to save auctions.", e);
       saveDone = false;
     }
 
@@ -382,13 +382,13 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
 
     File keepFile = new File(retainFilename);
     if(!oldFile.renameTo(keepFile)) {
-      ErrorManagement.logDebug("Renaming the old file (" + oldFile + ") to the retain file (" + keepFile + ") failed!");
+      JConfig.log().logDebug("Renaming the old file (" + oldFile + ") to the retain file (" + keepFile + ") failed!");
     }
     JConfig.setConfiguration("save.file.0", retainFilename);
 
     File standard = new File(filename);
     if(!saveFile.renameTo(standard)) {
-      ErrorManagement.logDebug("Renaming the new file (" + saveFile + ") to the standard filename (" + standard + ") failed!");
+      JConfig.log().logDebug("Renaming the new file (" + saveFile + ") to the standard filename (" + standard + ") failed!");
     }
   }
 
@@ -416,12 +416,12 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   private static String makeBackupFilename(String filename, String toInsert) {
     int lastSlash = filename.lastIndexOf(System.getProperty("file.separator"));
     if(lastSlash == -1) {
-      ErrorManagement.logDebug("Filename has no separators: " + filename);
+      JConfig.log().logDebug("Filename has no separators: " + filename);
       lastSlash = 0;
     }
     int firstDot = filename.indexOf('.', lastSlash);
     if(firstDot == -1) {
-      ErrorManagement.logDebug("Filename has no dot/extension: " + filename);
+      JConfig.log().logDebug("Filename has no dot/extension: " + filename);
       firstDot = filename.length();
     }
 

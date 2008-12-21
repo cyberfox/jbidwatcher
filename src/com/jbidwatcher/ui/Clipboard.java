@@ -1,7 +1,6 @@
 package com.jbidwatcher.ui;
 
-import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.ui.JDropListener;
+import com.jbidwatcher.util.config.JConfig;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
@@ -31,7 +30,7 @@ public class Clipboard {
     java.awt.datatransfer.Clipboard sysClip = Toolkit.getDefaultToolkit().getSystemClipboard();
     Transferable t = sysClip.getContents(null);
 
-    ErrorManagement.logDebug("Clipboard: " + sysClip.getName() + ", valid flavors: " + Arrays.toString(t.getTransferDataFlavors()));
+    JConfig.log().logDebug("Clipboard: " + sysClip.getName() + ", valid flavors: " + Arrays.toString(t.getTransferDataFlavors()));
 
     StringBuffer stBuff = sJDL.getTransferData(t);
     String clipString;

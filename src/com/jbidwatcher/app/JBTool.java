@@ -6,7 +6,6 @@ import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
@@ -48,7 +47,7 @@ public class JBTool implements ToolInterface {
       SimpleDateFormat sdf = new SimpleDateFormat(siteDateFormat, Locale.US);
       Date endingDate = sdf.parse(testTime);
       TimeZone tz = sdf.getCalendar().getTimeZone();
-      ErrorManagement.logMessage("EndingDate: " + endingDate + "\nTZ: " + tz);
+      JConfig.log().logMessage("EndingDate: " + endingDate + "\nTZ: " + tz);
     } catch (ParseException e) {
       e.printStackTrace();
     }
@@ -83,18 +82,18 @@ public class JBTool implements ToolInterface {
     try {
       StringBuffer auctionXML = AuctionEntry.retrieveAuctionXML(params.get(0));
       if(auctionXML != null) {
-        ErrorManagement.logMessage(auctionXML.toString());
+        JConfig.log().logMessage(auctionXML.toString());
         XMLElement xmlized = new XMLElement();
         xmlized.parseString(auctionXML.toString());
 
         if (JConfig.debugging()) {
           AuctionEntry ae2 = new AuctionEntry();
           ae2.fromXML(xmlized);
-          ErrorManagement.logDebug("ae2.quantity == " + ae2.getQuantity());
+          JConfig.log().logDebug("ae2.quantity == " + ae2.getQuantity());
         }
       }
     } catch(Exception dumpMe) {
-      ErrorManagement.handleException("Failure during serialization or deserialization of an auction", dumpMe);
+      JConfig.log().handleException("Failure during serialization or deserialization of an auction", dumpMe);
     }
   }
 
@@ -144,7 +143,7 @@ public class JBTool implements ToolInterface {
       if(option.equals("sandbox")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi.sandbox.ebay.com");
       if(option.startsWith("country=")) {
         mCountry = option.substring(8);
-        if(getSiteNumber(mCountry) == -1) ErrorManagement.logMessage("That country is not recognized by JBidwatcher's eBay Server.");
+        if(getSiteNumber(mCountry) == -1) JConfig.log().logMessage("That country is not recognized by JBidwatcher's eBay Server.");
       }
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
