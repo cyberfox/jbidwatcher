@@ -2,7 +2,6 @@ package com.jbidwatcher.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * An ArrayList that further guarantees that its iterator will traverse the set
@@ -18,8 +17,7 @@ import java.util.Iterator;
  *
  * @author Sean Connolly
  */
-public class SortedList<E> extends ArrayList<E> {
-
+public class SortedList<E extends Comparable<E>> extends ArrayList<E> {
     boolean duplicates = false;
 
     /**
@@ -65,7 +63,7 @@ public class SortedList<E> extends ArrayList<E> {
      * Comparable.
      */
     @Override
-    public boolean add(Object o) {
+    public boolean add(E o) {
         if (o == null) {
             return false;
         } else if (!(o instanceof Comparable)) {
@@ -80,33 +78,32 @@ public class SortedList<E> extends ArrayList<E> {
         } else if (this.isEmpty()) {
             // The ArrayList contains no other elements, order doesn't matter
             // yet.
-            return super.add((E) o);
+            return super.add(o);
         }
         // Find the index where this element belongs according to the natural
         // ordering of the objects.
         for (int i = 0; i < this.size(); ++i) {
-            Comparable front = (Comparable) this.get(i);
-            Comparable c = (Comparable) o;
-            if (i != this.size() - 1) {
-                Comparable back = (Comparable) this.get(i + 1);
-                if (c.compareTo(front) > 0 && c.compareTo(back) < 0) {
-                    this.add(i + 1, (E) o);
+            E front = this.get(i);
+          if (i != this.size() - 1) {
+                E back = this.get(i + 1);
+                if (o.compareTo(front) > 0 && o.compareTo(back) < 0) {
+                    this.add(i + 1, o);
                     return true;
-                } else if (duplicates && c.equals(front) && c.compareTo(back) < 0) {
-                    this.add(i + 1, (E) o);
+                } else if (duplicates && o.equals(front) && o.compareTo(back) < 0) {
+                    this.add(i + 1, o);
                     return true;
                 }
             } else {
                 // This index is the end of the ArrayList..
-                if (c.compareTo(front) < 0) {
+                if (o.compareTo(front) < 0) {
                     // Occurs when there is only one object in the ArrayList.
-                    this.add(i, (E) o);
+                    this.add(i, o);
                     return true;
-                } else if ((duplicates && c.compareTo(front) == 0) ||
-                        c.compareTo(front) > 0) {
+                } else if ((duplicates && o.compareTo(front) == 0) ||
+                        o.compareTo(front) > 0) {
                     // It is the greatest object yet, add it to the end of the
                     // list.
-                    return super.add((E) o);
+                    return super.add(o);
                 } else {
                     // Occurs when this object is a duplicate of the last object
                     // in the ArrayList and duplicates are not allowed.
@@ -131,12 +128,11 @@ public class SortedList<E> extends ArrayList<E> {
      */
     @Override
     public boolean addAll(Collection<? extends E> c) {
-        int sizePrior = this.size();
-        Iterator i = c.iterator();
-        while (i.hasNext()) {
-            this.add(i.next());
-        }
-        return this.size() != sizePrior;
+      int sizePrior = this.size();
+      for (E aC : c) {
+        this.add(aC);
+      }
+      return this.size() != sizePrior;
     }
 
     /**
