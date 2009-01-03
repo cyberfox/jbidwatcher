@@ -32,7 +32,10 @@ public class Seller extends ActiveRecord
       return "n/a";
     }
   }
-  public void setPositivePercentage(String positivePercentage) { setString("feedback_percentage", positivePercentage); saveDB(); }
+  public void setPositivePercentage(String positivePercentage) {
+    setString("feedback_percentage", positivePercentage.replaceAll(",", "."));
+    saveDB();
+  }
   public int getFeedback() { return getInteger("feedback", 0); }
   public void setFeedback(int feedback) { setInteger("feedback", feedback); saveDB(); }
 
