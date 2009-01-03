@@ -67,7 +67,7 @@ public class JBHelp {
     munge = munge.replaceAll("<%que ([0-9]+)%>", "<%que%><a name=\"Q$1\">").
         replaceAll("<%toc%>", Matcher.quoteReplacement(toc)).
         replaceAll("<%pname%>", Matcher.quoteReplacement(Constants.PROGRAM_NAME)).
-        replaceAll("<%ver%>", Matcher.quoteReplacement(Constants.PROGRAM_VERS)).
+        replaceAll("<%ver%>", Matcher.quoteReplacement(Constants.PROGRAM_VERS+"-"+Constants.SVN_REVISION)).
         replaceAll("<%title%>", Matcher.quoteReplacement(title)).
         replaceAll("<%donate%>", Matcher.quoteReplacement(paypalDonate)).
         replaceAll("<%head%>", Matcher.quoteReplacement(headImage)).
