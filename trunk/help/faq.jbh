@@ -1,0 +1,204 @@
+<html><head><title><%title%></title></head><body><a name="top"></a>
+<%pname%> (<%ver%>) - Frequently Asked Questions<br>
+<i>(Culled from emails to my users.)</i><br><br><u>Table of Contents</u><br>
+<%toc%>
+<hr>
+<%que 0%>How do I customize the tabs and columns?
+<%ans%>This is more of a hint than a FAQ.  Try right-clicking (or control-click
+on Mac OS X) on the tab name.  There's a whole set of controls for columns and
+tabs available, but they're not well exposed.
+<%end%>
+
+<%que 1%>I'm 'Not logged in...', why?
+<%ans%>Move your cursor over the 'Not logged in...' message, and a tooltip
+should appear, telling you why JBidwatcher couldn't log in.
+<%end%>
+
+<%que 2%><%pname%> failed to bid 'for an unknown reason', what's up?
+<%ans%>Pull up the context menu on the item that failed, while JBidwatcher
+is still running, and select 'Show Last Error'.  It will show the web page
+that JBidwatcher got instead of the bid success page.  It will give you some
+idea what went wrong.  You should also report it, and the information that
+was on the 'Last Error' page to <a href="mailto:cyberfox@gmail.com">cyberfox@gmail.com</a>.
+<%end%>
+
+<%que 3%>How does sniping work?
+<%ans%><%pname%> places a single bid at the snipe value, at the snipe timer's
+number of seconds before the end of the auction.  The amount sniped is the
+amount you entered, BUT because eBay is a 'High Bidder, Second Price' auction
+format, that won't necessarily be the amount you pay.
+<%end%>
+
+<%que 4%>If I enter a snipe amount at $100, would it bid $100 in the last 30 seconds?
+<%ans%>Yes, but that's not necessarily how much you'll end up paying
+for the item.  It is the maximum you could pay, however.  The person
+who is the highest bidder is the winner, but they only pay an amount
+based on the second highest bidder's price.  This means the price
+will be generally lower than your real bid.  See the next question.
+<%end%>
+
+<%que 5%>But the cost of the highest bidder is only $60...would jbidwatch bid $61 in the last few seconds or would it bid $100?
+<%ans%>JBidwatcher would place a bid with eBay for $100, eBay would
+look at the current high bid, see it's $60, and place you as the high
+bidder with a visible high bid of $61, and a hidden proxy bid of $100.
+If another user comes along and places a bid for, say, $75, they will
+NOT be the high bidder, you will be, with a visible high bid of $76,
+and a hidden proxy of $100 still.  Once <%pname%> places the bid,
+it doesn't need to be involved anymore.
+<%end%>
+
+<%que 6%>How do I select what currency to bid in?
+<%ans%>You don't.  All bids are in the currency of the item, so check
+that the amount is correct for that currency.
+<%end%>
+
+<%que 7%>What files does <%pname%> create, and where?
+<%ans%>There will be a directory in your home directory
+named .jbidwatcher.  On MacOSX, it's at:<pre>   /Users/{Username}/.jbidwatcher</pre>
+on Windows it's usually at:<pre>   C:\Documents and Settings\{username}\.jbidwatcher</pre>
+on Linux (and other unices), it's at:<pre>   ~/.jbidwatcher</pre>
+<br>
+In that directory would be a set of files:<ul>
+<li>auctions.xml - the XML version of your auctions you are monitoring.</li>
+<li>searches.xml - all the searches you've defined for it.</li>
+<li>JBidWatch.cfg - the configuration file for the program.</li>
+<li>display.cfg - Display-related configurations (windowsize, column widths, etc.)</li>
+<li>errors.##.log - Error logs of what happened during a given run of the program.</li></ul>
+There is also a 'auctionsave' directory, which contains a compressed
+copy of the HTML from the last successful update of all the auctions
+you are monitoring.  This lets you view an auction (through
+<%pname%>'s internal web server) long after it's been removed from
+eBay's own site.  This directory is only used for cached-views, and
+the files can be deleted regularly if you don't use that feature.
+<%end%>
+
+<%que 8%>What are dangerous multisnipes?
+<%ans%>Dangerous multi-snipes are ones where two or more items have
+an ending time too close to one another.  The basic problem is this:
+<blockquote>Item A ends at 5:27:10pm<br>
+Item B ends at 5:27:15pm<br>
+Your snipe time is 10 seconds.<br>
+At 5:27:00pm we snipe on item A.<br>
+At 5:27:05pm we don't know if you've won item A yet!<br>
+- Since Item B hasn't been cancelled yet, it fires.<br>
+At 5:27:05pm we snipe on item B.<br>
+<br>
+At 5:27:10pm, Item A ends with us as winner.<br>
+At 5:27:15pm, Item B ends...with us as winner.<br>
+<br>
+This is dangerous, and I try to warn the user about it.  With the
+advent of pre-set listing start times, it's become even more common.
+Basically, a user will set a multisnipe on two items of a seller's,
+but they were both listed to start at the same time.  This means
+they'll end at the same time, which makes it just not possible to
+multisnipe successfully.
+<%end%>
+
+<%que 9%>How do I save the auction data as a comma-seperated list, or load the historical auction data into Excel?
+<%ans%>The latest versions of Excel (after Excel 2000, I believe) can
+load XML files, as long as you have the DTD (document type) for it
+available.  The DTD for the auctions save data is kept on the
+www.jbidwatcher.com server, so as long as Excel has a net connection
+it should be able to load it.  All you need to do is drag
+<pre><%auctions_save%></pre>(your auctions save file) onto Excel, and
+drop it.  Excel should automatically load the XML into columns.<br>
+<br>The other option is to right-click (or control click under Mac OS X) on
+the tab name itself, and there should be an option 'Export', which will save
+all the information in the currently visible columns for all the rows in the
+current table out as a CSV file.
+<%end%>
+
+<%que 10%>Can I add searches that are more specific than <%pname%> lets me?
+<%ans%>Yes!  The <b><a href="/SEARCH">Search Manager</a></b> has a special feature named
+'URL Load', which lets you input a URL to load all the items from.<br>
+
+<br>How does this work?<br>
+
+<br>You could go to eBay, search for Zippy.  Wow, that's a lot of
+hits, lets add 'pinhead'.  There we go, but you only want comics.
+Click on the 'Comics' under Matching Categories on the left.  Now you
+have a very specific search for Zippy Pinhead under Comics.  You also
+want just the ones that accept PayPal, so you click the 'PayPal items'
+under Display.  There, that's the perfect search.<br>
+
+<br>Now, go to your browsers 'Location' bar, where there's a very
+complex URL.  Copy that URL into your platforms clipboard, and go to
+the <b><a href="/SEARCH">Search Manager</a></b>.  (The binoculars on the toolbar, or <b>Edit
+| Find</b>).  Click the <i>New</i> button.  Give the new search a name, and
+change the Search Type to <i>URL Load</i> from the dropdown, and paste the
+URL you copied before into the Search: field.  Enter in a tab for where this
+search is to store its results, either picking an existing one, or entering
+a new tab name.  Now click <i>OK</i> to save it.  There will now be a line in the
+Search Manager with the name you gave it.  You can just double-click that line, and
+it'll run that search.  You can go back in and change anything except the search
+type later.<br>
+
+<br><i>You're done, you've added a complex search into <%pname%></i>!
+<%end%>
+
+<%que 11%>What's the checkbox for "Registered Adult" for?
+<%ans%>eBay has a 'Mature Audiences' category which requires you to
+authenticate yourself as an adult with them.  If you haven't done
+that, then they don't allow you access to the Mature Audiences
+categories.  JBidwatcher needs to know whether you've registered with
+eBay as an adult in order to determine what type of login to do, so it
+can monitor and bid/snipe on adult items as well.
+<%end%>
+
+<%que 12%>How do I get items into JBidwatcher from my browser?
+<%ans%>Try dragging and dropping from the Firefox, IE, or Safari 'location' bar,
+or from any link to an auction onto the main display of JBidwatcher.  It should
+add the item into JBidwatcher's list of monitored auctions!<%end%>
+
+<%que 13%>How often does it update the items I'm watching or sniping on?
+<%ans%>About once every half hour, and then once a minute through the
+last half hour before closing.
+<%end%>
+
+<%que 14%>Can the 'Select Search' do anything other than titles?
+<%ans%>OH yeah...!  I added some super-special filtering trix0rs
+to the select box.  This allows searching for:<ul><li>just sellers (~s {pat})</li>
+<li>just buyers (~b {pat})</li>
+<li>just users (sellers or buyers) (~u {pat})</li>
+<li>just comments (~c {pat})</li>
+<li>just title (default)</li></ul>...or...<ul><li>EVERYTHING (~a {pat})</li></ul>
+Cool related feature note:
+<blockquote>Since comments and bidder search ONLY search
+if there is one at all, you can highlight all
+items with comments using:
+<pre>  ~c .</pre>
+and all items with bidders with:
+<pre>  ~b .</pre></blockquote>
+<b>Also, you can invert searches with:</b>
+<pre>~!{search}</pre>
+for example...  All items without buyers:
+<pre>~!~b .</pre>
+All items without 'anime' in their title:
+<pre>~!anime</pre>
+<b><i>ENJOY!</i></b>
+<%end%>
+
+<%que 15%>Why are my snipes failing?!?
+<%ans%>Some of the possible and probable answers are:<ul>
+<li>Communication problems to eBay (can't reach their site).</li>
+<li>Some problems trying to bid (bid price not accepted, mainly).</li>
+<li>eBay time synchronization problems could have caused it to
+snipe too late (how close was it sniping?).</li>
+<li>A process on your computer could have kicked in (backup, for
+example) that drew away too much CPU time and delayed the program from
+sniping for too long.</li>
+<li>You are running a computer with a 'sleep' mode, and it went to
+sleep before the snipe fired (especially common on Mac laptops, which
+sleep on lid close).</li>
+<li>eBay may have changed their format, making <%pname%> unable to
+place snipes.  Check the
+<a href="http://www.jbidwatcher.com"><%pname%> homepage</a> for new
+updates, and status of emergency fixes.</li><%end%>
+
+<%que 16%>I have a laptop/sleep-enabled computer.  What if it goes to sleep?
+<%ans%>When most computers go to sleep, they are not running any software,
+including JBidwatcher, until they wake up again.  Often they will shut down
+their network connections, too, until they wake.  This means JBidwatcher will
+<b><i>not</i></b> be able to snipe while the computer is asleep.  Make sure to
+disable sleep mode well in advance of any snipes you want JBidwatcher to fire.<%end%>
+</body></html>

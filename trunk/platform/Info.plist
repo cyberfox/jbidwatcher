@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+  <dict>
+    <key>CFBundleIconFile</key>
+    <string>jbidicon.icns</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleName</key>
+    <string>`appname`</string>
+
+    <key>CFBundleSignature</key>
+    <string>JBid</string>
+
+    <key>CFBundleExecutable</key>
+    <string>JavaApplicationStub</string>
+
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+
+    <key>CFBundleShortVersionString</key>
+    <string>`version`</string>
+
+    <key>CFBundleVersion</key>
+    <string>`version`</string>
+
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+
+    <key>Java</key>
+    <dict>
+      <key>JVMVersion</key>
+      <string>1.5+</string>
+
+      <key>ClassPath</key>
+      <string>$JAVAROOT/`binary`:$JAVAROOT/quaqua.jar:$JAVAROOT/apple.jar:$JAVAROOT/mp3codec.jar:$JAVAROOT/jdesktop.jar:$JAVAROOT/jruby.jar:$JAVAROOT/derby.jar</string>
+
+      <key>VMOptions</key>
+      <string>-Xms64m -Xmx512m</string>
+
+      <key>MainClass</key>
+      <string>com.jbidwatcher.app.JBidWatch</string>
+
+      <key>Properties</key>
+      <dict>
+	<key>apple.laf.useScreenMenuBar</key>
+	<string>true</string>
+
+	<key>apple.awt.graphics.useQuartz</key>
+	<string>true</string>
+
+	<key>apple.awt.showGrowBox</key>
+	<string>true</string>
+
+	<key>apple.awt.brushMetalLook</key>
+	<string>false</string>
+
+	<key>apple.awt.window.position.forceSafeCreation</key>
+	<string>true</string>
+
+	<key>apple.awt.window.position.forceSafeProgrammaticPositioning</key>
+	<string>true</string>
+
+	<key>apple.awt.window.position.forceSafeUserPositioning</key>
+	<string>true</string>
+      </dict>
+    </dict>
+  </dict>
+</plist>
