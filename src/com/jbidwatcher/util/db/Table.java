@@ -365,7 +365,15 @@ public class Table
         else ps.setString(column, val);
       } else if (type.equals("TIMESTAMP")) {
         if (val == null) ps.setNull(column, java.sql.Types.TIMESTAMP);
-        else ps.setTimestamp(column, Timestamp.valueOf(val));
+        else try {
+          ps.setTimestamp(column, Timestamp.valueOf(val));
+        } catch(SQLException e) {
+          JConfig.log().logMessage("Failing to insert \"" + val + "\" into column " + column + " of table " + mTableName);
+          throw e;
+        } catch(RuntimeException e) {
+          JConfig.log().logMessage("Failing to insert \"" + val + "\" into column " + key + " (" + column + ") of table " + mTableName);
+          throw e;
+        }
       } else if (type.equals("INTEGER")) {
         if (val == null) ps.setNull(column, java.sql.Types.INTEGER);
         else if(val.length()==0) {
