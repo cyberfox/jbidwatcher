@@ -39,6 +39,23 @@ public class Currency implements Comparable {
 
   private static Map<Integer,Double> sCurrencyMap = new HashMap<Integer,Double>();
 
+  /**
+   * Convert a non-US currency to USD, usually for sorting purposes.
+   *
+   * Takes two values (usd, non-usd) which are believed to be
+   * equivalent, and a currency amount to convert based off the
+   * ratio between the first two.  If the USD amount is null or $0,
+   * it looks in a table it keeps around for converting.  If that fails,
+   * it just returns the non-USD's value.
+   *
+   * @param usd - A sample US dollar amount.
+   * @param nonusd - A non-US dollar amount that is equivalent to the usd paramter.
+   * @param cvt - The non-USD amount to convert to USD.
+   *
+   * @return - 'cvt' converted by the ratio of usd:nonusd, or by an internal table if
+   * it couldn't figure out the ratio, or just the non-usd's amount as a USD amount if
+   * there wasn't even an entry in the table.
+   */
   public static Currency convertToUSD(Currency usd, Currency nonusd, Currency cvt) {
     if(cvt != null && !cvt.isNull() && cvt.getCurrencyType() != US_DOLLAR) {
       double multiple;
@@ -47,7 +64,8 @@ public class Currency implements Comparable {
         if(sCurrencyMap.containsKey(cvt.getCurrencyType())) {
           multiple = sCurrencyMap.get(cvt.getCurrencyType());
         } else {
-          multiple = 0.0;
+          //  If we have nothing else to go on, treat it as exactly equal to USD.
+          multiple = 1.0;
         }
       } else {
         multiple = usd.getValue() / nonusd.getValue();
