@@ -146,8 +146,14 @@ public class CookieJar {
       String redirect = handleRedirect(uc, pageName);
 
       if(redirect != null) {
-        if (do_uber_debug) {
-          JConfig.log().logDebug("Redirecting to: " + redirect);
+        if (JConfig.debugging()) {
+          JConfig.log().logMessage("Redirecting from: " + pageName);
+          JConfig.log().logMessage("Redirecting to: " + redirect);
+          try {
+            JConfig.log().logMessage("Content: " + uc.getContent().toString());
+          } catch (IOException ignored) {
+            //  If there's no content or it's an unrecognized type, ignore it.
+          }
         }
         return getAllCookiesFromPage(redirect, referer, post, pages);
       }
