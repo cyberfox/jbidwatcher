@@ -372,8 +372,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if(site == null) {
       T = new TT("ebay.com");
     } else if(StringTools.isNumberOnly(site)) {
-      String countrySite = Constants.SITE_CHOICES[Integer.parseInt(site)];
-      T = new TT(countrySite);
+      T = new TT("ebay.com");
+//      String countrySite = Constants.SITE_CHOICES[Integer.parseInt(site)];
+//      T = new TT(countrySite);
     } else {
       T = new TT(site);
     }
@@ -626,14 +627,14 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
               if(retry_wait < Constants.THREE_SECONDS) retry_wait = Constants.THREE_SECONDS;
 
               _etqm.add(deQ, mSnipeQueue, _etqm.getCurrentTime()+retry_wait);
-            } else {
-              //  If there are less than 3 seconds left, give up.
-              JConfig.log().logDebug("Resnipes failed, and less than 3 seconds away.  Giving up.");
-              _etqm.erase(deQ);
+              break;
             }
-            break;
+            //  If there are less than 3 seconds left, give up by falling through to FAIL and DONE.
+            JConfig.log().logDebug("Resnipes failed, and less than 3 seconds away.  Giving up.");
           case Snipe.FAIL:
             _etqm.erase(deQ);
+            JConfig.log().logDebug("Snipe appears to have failed; cancelling.");
+            snipe.getItem().snipeFailed();
             //  A failed snipe is a serious, hard error, and should fall through to being removed from the snipe map.
           case Snipe.DONE:
             snipeMap.remove(snipe.getItem().getIdentifier());
