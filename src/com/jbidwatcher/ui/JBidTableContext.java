@@ -28,6 +28,9 @@ public class JBidTableContext extends JBidContext {
   }
 
   protected void DoAction(Object src, String actionString, Object whichAuction) {
+    if(actionString.startsWith("BT-")) {
+      actionString = actionString.substring(3);
+    }
     MQFactory.getConcrete("user").enqueue(new ActionTriple(src, actionString, whichAuction));
   }
 
