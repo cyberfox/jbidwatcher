@@ -344,11 +344,19 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   /**
    * @brief Set the auction server for this entry.
    *
-   * This is solely used when serializing in.
+   * First, if there are any snipes in the 'old' server, cancel them.
+   * Then set the server to the passed in value.
+   * Then re-set up any snipes associated with the listing.
    *
    * @param newServer - The server to associate with this auction entry.
    */
-  public void setServer(AuctionServerInterface newServer) { mServer = newServer; }
+  public void setServer(AuctionServerInterface newServer) {
+    if(newServer != mServer) {
+      if(isSniped()) MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
+      mServer = newServer;
+      if(isSniped()) MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
+    }
+  }
 
   /**
    * @brief Query whether this entry has ever been loaded from the server.
