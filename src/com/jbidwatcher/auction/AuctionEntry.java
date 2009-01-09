@@ -74,6 +74,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     if(mSnipe == null) {
       if(get("snipe_id") != null) {
         mSnipe = AuctionSnipe.find(get("snipe_id"));
+        if(mSnipe == null) {
+          //  Couldn't find the snipe in the database.
+          setInteger("snipe_id", null);
+          saveDB();
+        }
       }
     }
     return mSnipe;
@@ -1125,6 +1130,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     getSnipe().delete();
     setInteger("snipe_id", null);
     mSnipe = null;
+    setDirty();
+    saveDB();
+  }
+
+  public void snipeFailed() {
+    cancelSnipe(true);
+    mNeedsUpdate = true;
     setDirty();
     saveDB();
   }
