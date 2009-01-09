@@ -819,7 +819,7 @@ class ebayAuction extends SpecificAuction {
     int bidCount = 0;
     if(rawBidCount != null) {
       if(rawBidCount.equals(T.s("ebayServer.purchasesBidCount")) ||
-         rawBidCount.endsWith(T.s("ebayServer.offerRecognition"))) {
+         rawBidCount.matches(T.s("ebayServer.offerRecognition"))) {
         setFixedPrice(true);
         bidCount = -1;
       } else {
