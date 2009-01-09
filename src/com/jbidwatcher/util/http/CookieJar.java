@@ -20,14 +20,6 @@ public class CookieJar {
     _cookies = new TreeMap<String, Cookie>();
   }
 
-  public void ignoreCookiesInRedirects() {
-    m_ignore_redirect_cookies = true;
-  }
-
-  public void catchCookiesInRedirects() {
-    m_ignore_redirect_cookies = false;
-  }
-
   public Cookie getCookie(String keyName) {
     return _cookies.get(keyName);
   }
@@ -225,7 +217,7 @@ public class CookieJar {
 
     if(_cookies.size() > 0) {
       if(post) {
-        uc = (HttpURLConnection) Http.postFormPage(sendRequest, cgi, this.toString(), referer, m_ignore_redirect_cookies);
+        uc = (HttpURLConnection)Http.postFormPage(sendRequest, cgi, this.toString(), referer, m_ignore_redirect_cookies);
       } else {
         uc = (HttpURLConnection)Http.getPage(sendRequest, this.toString(), referer, m_ignore_redirect_cookies);
       }
