@@ -267,8 +267,10 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
             String rightURL = curAuction.getURL();
             JConfig.log().logDebug("Need to redirect to: " + rightURL);
             AuctionServer realServer = getBackupServer();
-            ae.setServer(realServer);
-            return (SpecificAuction) realServer.loadAuction(item_id, ae);
+            if(ae != null) ae.setServer(realServer);
+            SpecificAuction ai = (SpecificAuction) realServer.loadAuction(item_id, ae);
+            if(ae == null) ai.setServer(realServer);
+            return ai;
           }
           case CAPTCHA: {
             JConfig.log().logDebug("Failed to load (likely adult) item, captcha intervened.");

@@ -250,6 +250,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
      * will never be added to the items list.
      */
     if (mLoaded) {
+      if(mAuction.getServer() != null) setServer((AuctionServerInterface)mAuction.getServer());
       setDefaultCurrency(mAuction.getCurBid());
       checkHighBidder(true);
       checkSeller();

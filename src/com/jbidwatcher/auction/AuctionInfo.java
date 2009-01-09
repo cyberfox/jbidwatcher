@@ -31,6 +31,7 @@ public class AuctionInfo extends ActiveRecord
 {
   private static Map<String, String> mKeys;
   private String mThumbnailPath;
+  private Object mServer = null; //  TODO --  This is a hack!
 
   private static void setupKeys() {
     mKeys = new HashMap<String, String>();
@@ -391,6 +392,9 @@ public class AuctionInfo extends ActiveRecord
     }
     return(sb);
   }
+
+  public Object getServer() { return mServer; }
+  public void setServer(Object server) { mServer = server; }
 
   public String getIdentifier() { return getString("identifier"); }
   public String getTitle() { return getString("title"); }
