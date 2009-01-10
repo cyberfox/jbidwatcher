@@ -354,7 +354,13 @@ public class Currency implements Comparable {
       if(valuePortion.length() != 0) {
         double actualValue;
         try {
-          actualValue = df.parse(valuePortion).doubleValue();
+          String cvt = valuePortion;
+          //  Convert [###.###.]###,## to [###,###,]###.##
+          if(cvt.length() > 2 && cvt.charAt(cvt.length()-3) == ',') {
+            cvt = cvt.substring(0, cvt.length()-3).replaceAll("\\.",",") + '.' + cvt.substring(cvt.length()-2);
+//            System.out.println("Converting '" + cvt + "': " + df.parse(cvt).doubleValue());
+          }
+          actualValue = df.parse(cvt).doubleValue();
         } catch(java.text.ParseException e) {
           JConfig.log().handleException("currency parse!", e);
           actualValue = 0.0;

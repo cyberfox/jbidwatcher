@@ -104,7 +104,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
    * @throws BadBidException - If there's some kind of an error on the bid confirmation page.
    */
   public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr, int inQuant) throws BadBidException {
-    String bidRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
+    String bidRequest = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
     String bidInfo = getBidInfoURL(inEntry, inCurr, inQuant);
     BidFormReturn rval = null;
 
@@ -320,7 +320,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
   }
 
   public int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, Currency inBid, int inQuantity) {
-    String bidRequest = Externalized.getString("ebayServer.protocol") + Externalized.getString("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
+    String bidRequest = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
     String bidInfo = Externalized.getString("ebayServer.bidCmd") + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() +
         Externalized.getString("ebayServer.quantCGI") + inQuantity +
         Externalized.getString("ebayServer.bidCGI") + inBid.getValue();

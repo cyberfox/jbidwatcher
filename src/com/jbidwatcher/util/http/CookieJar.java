@@ -20,14 +20,6 @@ public class CookieJar {
     _cookies = new TreeMap<String, Cookie>();
   }
 
-  public void ignoreCookiesInRedirects() {
-    m_ignore_redirect_cookies = true;
-  }
-
-  public void catchCookiesInRedirects() {
-    m_ignore_redirect_cookies = false;
-  }
-
   public Cookie getCookie(String keyName) {
     return _cookies.get(keyName);
   }
@@ -146,8 +138,14 @@ public class CookieJar {
       String redirect = handleRedirect(uc, pageName);
 
       if(redirect != null) {
-        if (do_uber_debug) {
-          JConfig.log().logDebug("Redirecting to: " + redirect);
+        if (JConfig.debugging()) {
+          JConfig.log().logMessage("Redirecting from: " + pageName);
+          JConfig.log().logMessage("Redirecting to: " + redirect);
+          try {
+            JConfig.log().logMessage("Content: " + uc.getContent().toString());
+          } catch (IOException ignored) {
+            //  If there's no content or it's an unrecognized type, ignore it.
+          }
         }
         return getAllCookiesFromPage(redirect, referer, post, pages);
       }
@@ -219,7 +217,7 @@ public class CookieJar {
 
     if(_cookies.size() > 0) {
       if(post) {
-        uc = (HttpURLConnection) Http.postFormPage(sendRequest, cgi, this.toString(), referer, m_ignore_redirect_cookies);
+        uc = (HttpURLConnection)Http.postFormPage(sendRequest, cgi, this.toString(), referer, m_ignore_redirect_cookies);
       } else {
         uc = (HttpURLConnection)Http.getPage(sendRequest, this.toString(), referer, m_ignore_redirect_cookies);
       }

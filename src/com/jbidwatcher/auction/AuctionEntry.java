@@ -74,6 +74,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     if(mSnipe == null) {
       if(get("snipe_id") != null) {
         mSnipe = AuctionSnipe.find(get("snipe_id"));
+        if(mSnipe == null) {
+          //  Couldn't find the snipe in the database.
+          setInteger("snipe_id", null);
+          saveDB();
+        }
       }
     }
     return mSnipe;
@@ -245,6 +250,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
      * will never be added to the items list.
      */
     if (mLoaded) {
+      if(mAuction.getServer() != null) setServer((AuctionServerInterface)mAuction.getServer());
       setDefaultCurrency(mAuction.getCurBid());
       checkHighBidder(true);
       checkSeller();
@@ -339,11 +345,19 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   /**
    * @brief Set the auction server for this entry.
    *
-   * This is solely used when serializing in.
+   * First, if there are any snipes in the 'old' server, cancel them.
+   * Then set the server to the passed in value.
+   * Then re-set up any snipes associated with the listing.
    *
    * @param newServer - The server to associate with this auction entry.
    */
-  public void setServer(AuctionServerInterface newServer) { mServer = newServer; }
+  public void setServer(AuctionServerInterface newServer) {
+    if(newServer != mServer) {
+      if(isSniped()) MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null));
+      mServer = newServer;
+      if(isSniped()) MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));
+    }
+  }
 
   /**
    * @brief Query whether this entry has ever been loaded from the server.
@@ -1125,6 +1139,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     getSnipe().delete();
     setInteger("snipe_id", null);
     mSnipe = null;
+    setDirty();
+    saveDB();
+  }
+
+  public void snipeFailed() {
+    cancelSnipe(true);
+    mNeedsUpdate = true;
     setDirty();
     saveDB();
   }
