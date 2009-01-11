@@ -25,7 +25,6 @@ public class Scripting {
   public static Ruby getRuntime() { return (Ruby)sRuby; }
 
   public static void initialize() throws ClassNotFoundException {
-//    System.err.println("Before: " + System.currentTimeMillis());
     //  Test for JRuby's presence
     Class.forName("org.jruby.RubyInstanceConfig", true, Thread.currentThread().getContextClassLoader());
 
@@ -39,9 +38,7 @@ public class Scripting {
     runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))));
     runtime.getLoadService().init(new ArrayList());
 
-//    System.err.println("Middle: " + System.currentTimeMillis());
-    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'jbidwatcher/utilities';");
-//    System.err.println("After : " + System.currentTimeMillis());
+    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'lib/jbidwatcher/utilities';");
 
     sRuby = runtime;
   }

@@ -11,6 +11,8 @@ import com.jbidwatcher.ui.AuctionsManager
 import com.jbidwatcher.ui.FilterManager
 import com.jbidwatcher.ui.table.TableColumnController
 
+puts "Loading JBidwatcher Ruby Utilities"
+
 class JBidwatcherUtilities
   MY_JBIDWATCHER_URL = "http://my.jbidwatcher.com:9876/advanced"
 

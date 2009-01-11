@@ -166,7 +166,7 @@
     <mkdir dir="/tmp/building/main" />
     <copy file="${INTERMEDIATE}" tofile="/tmp/building/main/main.jar" />
     <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
-      <fileset dir="${main.dir}/onejar" includes="com/**" />
+      <fileset dir="${main.dir}/onejar" includes="com/**.class" />
       <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
       <fileset dir="/tmp/building" includes="main/main.jar" />
       <fileset dir="${main.dir}" includes="lib/apple.jar" />
@@ -182,21 +182,23 @@
     <mkdir dir="/tmp/building/main" />
     <copy file="${INTERMEDIATE}" tofile="/tmp/building/main/main.jar" />
     <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
-      <fileset dir="${main.dir}/onejar" includes="com/**" />
+      <fileset dir="${main.dir}/onejar" includes="com/**/*.class" />
       <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
       <fileset dir="/tmp/building" includes="main/main.jar" />
       <fileset dir="${main.dir}" includes="lib/*.jar" />
-      <fileset dir="${main.dir}" includes="lib/ruby/**" />
+      <fileset dir="${main.dir}" includes="lib/jbidwatcher/**" />
     </jar>
+    <move file="${BINARY}" tofile="${BINARYSCRIPTING}" />
     <delete dir="/tmp/building/main" />
   </target>
 
   <property name="packaging" value="platform" />
 
   <target name="scripting" depends="scripting-jar">
-    <copy file="${BINARY}" tofile="${BINARYSCRIPTING}" />
-    <antcall target="exe-real" />
-    <move file="${EXEFILE}" tofile="${EXESCRIPTING}" />
+    <antcall target="osx-app-scripting" />
+    <move file="${APPFILE}" tofile="${APPSCRIPTING}" />
+<!--    <antcall target="exe-real" />
+    <move file="${EXEFILE}" tofile="${EXESCRIPTING}" /> -->
   </target>
 
   <target name="exe" depends="jar">
@@ -225,6 +227,8 @@
   </target>
 
   <target name="osx" depends="jar">
+    <antcall target="clean-osx-build" />
+    <antcall target="osx-distribution" />
     <antcall target="osx-app" />
   </target>
 
@@ -279,7 +283,7 @@
     </copy>
   </target>
 
-  <target name="osx-app" depends="osx-distribution">
+  <target name="osx-app">
     <tar destfile="${APPFILE}" compression="gzip">
       <tarfileset dir="${osx.app.path}" prefix="${app.name}.app" mode="755">
 	<include name="Contents/MacOS/JavaApplicationStub" />
@@ -295,6 +299,19 @@
 	<exclude name="Contents/Resources/Java/libquaqua.jnilib" />
       </tarfileset>
     </tar>
+  </target>
+
+  <target name="osx-app-scripting" depends="osx-distribution">
+    <copy todir="${osx.app.path}/Contents/Resources/Java">
+      <fileset dir="${lib.dir}" includes="jruby-complete.jar" />
+      <fileset dir="${main.dir}" includes="lib/jbidwatcher/**" />
+    </copy>
+    <antcall target="osx-app" />
+  </target>
+
+  <target name="clean-osx-build">
+    <delete dir="${osx.app.path}" />
+    <delete dir="${dest.dir}/${osx.app.name}" />
   </target>
 
   <target name="clean" description="Clean all build products.">
@@ -313,13 +330,12 @@
     <delete>
       <fileset dir="${build.dir}" includes="**/*.class" />
     </delete>
-    <delete dir="${osx.app.path}" />
+    <antcall target="clean-osx-build" />
     <!--  Delete intermediate files in case they still are around -->
     <delete file="/tmp/building/main/main.jar" />
     <delete file="/tmp/jbidwatcher-launch.xml"/>
     <delete file="/tmp/${BINARY}"/>
     <delete file="/tmp/jbidwatcher.ico"/>
-    <delete dir="${dest.dir}/${osx.app.name}" />
   </target>
 
   <target name="apps" depends="tar,osx,exe,dmg" />
