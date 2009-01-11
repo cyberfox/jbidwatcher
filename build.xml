@@ -52,7 +52,7 @@
     <pathelement path="${lib.dir}/derby.jar" />
     <pathelement path="${lib.dir}/jdesktop.jar" />
     <pathelement path="${lib.dir}/mp3codec.jar" />
-    <pathelement path="${lib.dir}/jruby.jar" />
+    <pathelement path="${lib.dir}/jruby-complete.jar" />
   </path>
 
   <target name="init" description="Prepare for build">
