@@ -10,7 +10,7 @@ import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
-import com.jbidwatcher.AudioPlayer;
+import com.jbidwatcher.util.AudioPlayer;
 import com.jbidwatcher.platform.Browser;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
