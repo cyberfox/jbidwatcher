@@ -10,6 +10,7 @@ import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
+import com.jbidwatcher.auction.EntryInterface;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
@@ -327,7 +328,7 @@ public class AuctionsUIModel {
    *
    * @param inEntry - The auction entry to delete.
    */
-  public void delEntry(AuctionEntry inEntry) {
+  public void delEntry(EntryInterface inEntry) {
     _tSort.delete(inEntry);
   }
 
@@ -339,7 +340,7 @@ public class AuctionsUIModel {
    * @param aeNew - The new auction entry to add to the tables.
    * @return - true if the auction was added, false if not.
    */
-  public void addEntry(AuctionEntry aeNew) {
+  public void addEntry(EntryInterface aeNew) {
     if (aeNew != null) {
       if (_tSort.insert(aeNew) == -1) {
         JConfig.log().logMessage("JBidWatch: Bad auction entry, cannot add!");

@@ -42,7 +42,7 @@ import java.net.UnknownHostException;
  * @see AuctionInfo
  * @see SpecificAuction
  */
-public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntry> {
+public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntry>, EntryInterface {
   private Category mCategory;
   private static Resolver sResolver = null;
 
@@ -628,34 +628,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     sDefaultSnipeAt = newSnipeAt;
   }
 
-  /**
-   * @brief How close prior to the end is this particular auction
-   * going to snipe?
-   *
-   * @return Number of milliseconds prior to auction close that a
-   * snipe will be fired.
-   */
   public long getSnipeTime() {
     return hasDefaultSnipeTime()? sDefaultSnipeAt : mSnipeAt;
   }
 
-  /**
-   * @brief Is this auction using the standard/default snipe time?
-   *
-   * @return False if the snipe time for this auction has been specially set.
-   */
   public boolean hasDefaultSnipeTime() {
     return(mSnipeAt == -1);
   }
 
-  /**
-   * @brief Force this auction to snipe at a non-default time prior to
-   * the auction end.
-   *
-   * @param newSnipeTime The new amount of time prior to the end of
-   * this auction to fire a snipe.  Value is in milliseconds.  If the
-   * value is set to -1, it will reinstate the default time.
-   */
   public void setSnipeTime(long newSnipeTime) {
     mSnipeAt = newSnipeTime;
   }
@@ -670,11 +650,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return mAddedRecently;
   }
 
-  /**
-   * @brief What is the auction's unique identifier on that server?
-   *
-   * @return The unique identifier for this auction.
-   */
   public String getIdentifier() {
     return getAuction() == null ? null : getAuction().getIdentifier();
   }
@@ -1113,15 +1088,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    */
   public int getCancelledSnipeQuantity() { return mCancelSnipeQuant; }
 
-  /**
-   * @brief Stop any snipe prepared on this auction.  If the auction is
-   * already completed, then the snipe information is transferred to the
-   * the 'cancelled' status.
-   *
-   * @param after_end - Is this auction already completed?
-   */
   public void cancelSnipe(boolean after_end) {
     if(isSniped()) {
+      JConfig.log().logDebug("Cancelling Snipe for: " + getTitle() + '(' + getIdentifier() + ')');
       setLastStatus("Cancelling snipe.");
       if(after_end) {
         mCancelSnipeBid = getSnipe().getAmount();

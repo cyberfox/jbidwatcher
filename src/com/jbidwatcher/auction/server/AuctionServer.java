@@ -56,7 +56,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   public abstract void addSearches(SearchManagerInterface searchManager);
 
   //  Exposed to AuctionEntry for checking high bidder status.
-  public abstract boolean isHighDutch(AuctionEntry inAE);
+  public abstract boolean isHighDutch(EntryInterface inAE);
   public abstract void updateHighBid(AuctionEntry ae);
 
   /**

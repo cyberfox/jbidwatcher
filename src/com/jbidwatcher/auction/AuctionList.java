@@ -4,9 +4,7 @@ import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.SortedList;
 
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.TreeSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,7 +18,7 @@ public class AuctionList {
 
   public int size() { synchronized(mList) { return mList.size(); } }
   public AuctionEntry get(int i) { synchronized (mList) { return mList.get(i); } }
-  public AuctionEntry remove(int i) { synchronized (mList) { return mList.remove(i); } }
+  public EntryInterface remove(int i) { synchronized (mList) { return mList.remove(i); } }
   public boolean add(AuctionEntry e) { synchronized (mList) { return mList.add(e); } }
 
   public AuctionEntry find(Comparison c) {

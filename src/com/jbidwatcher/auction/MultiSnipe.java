@@ -7,7 +7,6 @@ package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.xml.XMLElement;
-import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
 
@@ -21,7 +20,7 @@ import java.util.Date;
  */
 public class MultiSnipe extends ActiveRecord {
   private Color mBackground;
-  private LinkedList<AuctionEntry> auctionEntriesInThisGroup = new LinkedList<AuctionEntry>();
+  private LinkedList<Snipeable> mAuctionEntriesInThisGroup = new LinkedList<Snipeable>();
   private static final int HEX_BASE = 16;
 
   private void setValues(Color groupColor, Currency snipeValue, long id, boolean subtractShipping) {
@@ -98,12 +97,12 @@ public class MultiSnipe extends ActiveRecord {
     return Long.parseLong(getString("identifier", "0"));
   }
 
-  public void add(AuctionEntry aeNew) {
-    auctionEntriesInThisGroup.add(aeNew);
+  public void add(Snipeable aeNew) {
+    mAuctionEntriesInThisGroup.add(aeNew);
   }
 
-  public void remove(AuctionEntry aeOld) {
-    auctionEntriesInThisGroup.remove(aeOld);
+  public void remove(Snipeable aeOld) {
+    mAuctionEntriesInThisGroup.remove(aeOld);
   }
 
   /**
@@ -112,12 +111,11 @@ public class MultiSnipe extends ActiveRecord {
    *
    * param ae - The auction that was won.
    */
-  public void setWonAuction(/*AuctionEntry ae*/) {
-    List<AuctionEntry> oldEntries = auctionEntriesInThisGroup;
-    auctionEntriesInThisGroup = new LinkedList<AuctionEntry>();
+  public void setWonAuction(/*Snipeable ae*/) {
+    List<Snipeable> oldEntries = mAuctionEntriesInThisGroup;
+    mAuctionEntriesInThisGroup = new LinkedList<Snipeable>();
 
-    for (AuctionEntry aeFromList : oldEntries) {
-      JConfig.log().logDebug("Cancelling Snipe for: " + aeFromList.getTitle() + '(' + aeFromList.getIdentifier() + ')');
+    for (Snipeable aeFromList : oldEntries) {
       //  TODO --  Fix this up; this calls back into here, for the remove() function.  This needs to be seperated somehow.
       aeFromList.cancelSnipe(false);
     }
@@ -125,7 +123,7 @@ public class MultiSnipe extends ActiveRecord {
   }
 
   public boolean anyEarlier(Date firingDate) {
-    for (AuctionEntry ae : auctionEntriesInThisGroup) {
+    for (Snipeable ae : mAuctionEntriesInThisGroup) {
       //  If any auction entry in the list ends BEFORE the one we're
       //  checking, then we really don't want to do anything until
       //  it's no longer in the list.
@@ -135,7 +133,7 @@ public class MultiSnipe extends ActiveRecord {
     return false;
   }
 
-  public static boolean isSafeMultiSnipe(AuctionEntry ae1, AuctionEntry ae2) {
+  public static boolean isSafeMultiSnipe(Snipeable ae1, Snipeable ae2) {
     long end1 = ae1.getEndDate().getTime();
     long end2 = ae2.getEndDate().getTime();
     long snipe1 = end1 - ae1.getSnipeTime();
@@ -152,8 +150,8 @@ public class MultiSnipe extends ActiveRecord {
 
   }
 
-  public boolean isSafeToAdd(AuctionEntry ae) {
-    for (AuctionEntry fromList : auctionEntriesInThisGroup) {
+  public boolean isSafeToAdd(Snipeable ae) {
+    for (Snipeable fromList : mAuctionEntriesInThisGroup) {
       //  It's always safe to 'add' an entry that already exists,
       //  it'll just not get added.
       //noinspection ObjectEquality

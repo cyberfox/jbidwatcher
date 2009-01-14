@@ -1,6 +1,7 @@
 package com.jbidwatcher.auction.server;
 
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.EntryInterface;
 
 /**
  * Created by IntelliJ IDEA.
@@ -38,11 +39,11 @@ public class AuctionStats {
     return _nextSnipe;
   }
 
-  public AuctionEntry getNextEnd() {
+  public EntryInterface getNextEnd() {
     return _nextEnd;
   }
 
-  public AuctionEntry getNextUpdate() {
+  public EntryInterface getNextUpdate() {
     return _nextUpdate;
   }
 }

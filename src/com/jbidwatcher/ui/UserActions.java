@@ -50,7 +50,7 @@ public class UserActions implements MessageQueue.Listener {
   private static final String GET_SERVER_TIME="GETTIME";
   private static final String SEARCH="SEARCH";
 
-  private AuctionEntry addAuction(String auctionSource) {
+  private EntryInterface addAuction(String auctionSource) {
     AuctionEntry aeNew = AuctionEntry.construct(auctionSource);
     if(aeNew != null && aeNew.isLoaded()) {
       aeNew.clearNeedsUpdate();
@@ -108,7 +108,7 @@ public class UserActions implements MessageQueue.Listener {
 
     auctionSource = auctionSource.trim();
 
-    AuctionEntry aeNew = addAuction(auctionSource);
+    EntryInterface aeNew = addAuction(auctionSource);
     if(aeNew == null) {
       AuctionsManager am = AuctionsManager.getInstance();
       String id = AuctionServerManager.getInstance().getServer().stripId(auctionSource);
@@ -258,7 +258,7 @@ public class UserActions implements MessageQueue.Listener {
           } else {
             if(actionString.equals("Yes")) {
               //  Delete all those items...
-              for (AuctionEntry entry : mEntries) {
+              for (EntryInterface entry : mEntries) {
                 entry.cancelSnipe(false);
                 MQFactory.getConcrete("delete").enqueue(entry);
                 DeletedEntry.create(entry.getIdentifier());
@@ -428,7 +428,7 @@ public class UserActions implements MessageQueue.Listener {
     return(_oui.promptString(src, prePrompt, preTitle, preFill, postPrompt, postFill));
   }
 
-  private void CancelSnipe(Component src, AuctionEntry ae) {
+  private void CancelSnipe(Component src, Snipeable ae) {
     int[] rowList = mTabs.getPossibleRows();
     int len = rowList.length;
 
@@ -440,7 +440,7 @@ public class UserActions implements MessageQueue.Listener {
 
     if(len != 0) {
       for (int aRowList : rowList) {
-        AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
+        Snipeable tempEntry = (Snipeable) mTabs.getIndexedEntry(aRowList);
 
         tempEntry.cancelSnipe(false);
         MQFactory.getConcrete("redraw").enqueue(tempEntry);
@@ -471,7 +471,7 @@ public class UserActions implements MessageQueue.Listener {
     jdTime.setVisible(true);
   }
 
-  private void DoInformation(Component src, AuctionEntry ae) {
+  private void DoInformation(Component src, EntryInterface ae) {
     int[] rowList = mTabs.getPossibleRows();
 
     int len = rowList.length;

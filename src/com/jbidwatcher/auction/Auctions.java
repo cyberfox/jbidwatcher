@@ -57,11 +57,11 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * 
    * @return - The AuctionEntry, if it's found, or null if none was found.
    */
-  public AuctionEntry getEntry(final String whatIdentifier) {
+  public EntryInterface getEntry(final String whatIdentifier) {
     return mList.find(new Comparison() {
       public boolean match(Object o) {
-        if (o instanceof AuctionEntry) {
-          AuctionEntry ae = (AuctionEntry) o;
+        if (o instanceof EntryInterface) {
+          EntryInterface ae = (EntryInterface) o;
           if (whatIdentifier.equals(ae.getIdentifier())) {
             return true;
           }
@@ -86,7 +86,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * 
    * @return - true if the auction is okay to be added, false if not.
    */
-  public boolean allowAddEntry(AuctionEntry aeNew) {
+  public boolean allowAddEntry(EntryInterface aeNew) {
     return aeNew != null && !DeletedEntry.exists(aeNew.getIdentifier());
   }
 
@@ -98,7 +98,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * @return - true if the auction is in the list, false otherwise.
    */
   public boolean verifyEntry(String auctionId) {
-    AuctionEntry ae = getEntry(auctionId);
+    EntryInterface ae = getEntry(auctionId);
 
     return (ae != null);
   }
@@ -110,7 +110,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * 
    * @return - true if the auction is in the list, false otherwise.
    */
-  public boolean verifyEntry(final AuctionEntry ae) {
+  public boolean verifyEntry(final EntryInterface ae) {
     Object result = mList.find(new Comparison() {
       public boolean match(Object o) { //noinspection ObjectEquality
         return o == ae; }

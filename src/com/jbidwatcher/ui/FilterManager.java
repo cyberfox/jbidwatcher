@@ -11,6 +11,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.Category;
+import com.jbidwatcher.auction.EntryInterface;
 
 import java.util.*;
 import java.awt.Color;
@@ -31,7 +32,7 @@ public class FilterManager implements MessageQueue.Listener {
 
     MQFactory.getConcrete("delete").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
-        AuctionEntry ae = (AuctionEntry) deQ;
+        EntryInterface ae = (EntryInterface) deQ;
         deleteAuction(ae);
       }
     });
@@ -111,7 +112,7 @@ public class FilterManager implements MessageQueue.Listener {
    *
    * @param ae - The auction to delete.
    */
-  public void deleteAuction(AuctionEntry ae) {
+  public void deleteAuction(EntryInterface ae) {
     AuctionListHolder which = mAllOrderedAuctionEntries.get(ae);
     if(which != null) which.getUI().delEntry(ae);
 

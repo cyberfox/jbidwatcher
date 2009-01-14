@@ -132,7 +132,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *
    * @return - true if the user is one of the high bidders on a dutch item, false otherwise.
    */
-  public boolean isHighDutch(AuctionEntry inAE) {
+  public boolean isHighDutch(EntryInterface inAE) {
     String dutchWinners = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.dutchRequestHost") + Externalized.getString("ebayServer.V3WS3File") + Externalized.getString("ebayServer.viewDutch") + inAE.getIdentifier();
     CookieJar cj = mLogin.getNecessaryCookie(false);
     String userCookie = null;
@@ -332,7 +332,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   private void cancelSnipeMsg(AuctionQObject ac) {
-    AuctionEntry snipeCancel = (AuctionEntry)ac.getData();
+    EntryInterface snipeCancel = (EntryInterface)ac.getData();
     String id = snipeCancel.getIdentifier();
     AuctionQObject cancellable = snipeMap.get(id);
 
@@ -556,7 +556,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - A list containing strings with the names of each
    * user who was interested in the item enough to bid.
    */
-  public List<String> getBidderNames(AuctionEntry ae) {
+  public List<String> getBidderNames(EntryInterface ae) {
     CookieJar cj = mLogin.getNecessaryCookie(false);
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();

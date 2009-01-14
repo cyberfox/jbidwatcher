@@ -113,7 +113,7 @@ public interface AuctionServerInterface {
 
   boolean isCurrentUser(String checkUser);
 
-  boolean isHighDutch(AuctionEntry entry);
+  boolean isHighDutch(EntryInterface entry);
 
   void updateHighBid(AuctionEntry eEntry);
 

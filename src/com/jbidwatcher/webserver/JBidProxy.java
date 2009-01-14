@@ -20,6 +20,7 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.Snipeable;
 
 import java.net.*;
 import java.util.*;
@@ -202,7 +203,7 @@ public class JBidProxy extends HTTPProxyClient {
 
   private StringBuffer cancelSnipe(String cancelCGI) {
     String auctionId = extractField(cancelCGI, findIDString);
-    AuctionEntry ae = AuctionEntry.findByIdentifier(auctionId);
+    Snipeable ae = AuctionEntry.findByIdentifier(auctionId);
 
     if(ae != null) {
       ae.cancelSnipe(false);
