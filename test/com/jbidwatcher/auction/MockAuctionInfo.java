@@ -33,7 +33,7 @@ class MockAuctionInfo extends AuctionInfo {
     setEnd(new Date(truncThousands(System.currentTimeMillis() + 1000 * 60 * 60 * 24)));
     mSeller = Seller.makeSeller("cyberfox");
     mSeller.setFeedback(139);
-    mSeller.setPositivePercentage("99.6%");
+    mSeller.setPositivePercentage(String.valueOf(Double.parseDouble("99.6")));
     setHighBidder("test-jbidwatcher-bids");
     setTitle("A test auction.");
     setHighBidderEmail(null);

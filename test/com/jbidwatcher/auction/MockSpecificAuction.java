@@ -4,7 +4,6 @@ import com.jbidwatcher.util.ByteBuffer;
 import com.jbidwatcher.util.GZip;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.xml.XMLElement;
-import com.jbidwatcher.auction.server.AuctionServer;
 
 import java.util.Date;
 
@@ -21,8 +20,8 @@ class MockSpecificAuction extends SpecificAuction {
     mAI = mockAuctionInfo;
   }
 
-  public AuctionServer.ParseErrors parseAuction(AuctionEntry ae) {
-    return AuctionServer.ParseErrors.SUCCESS;
+  public ParseErrors parseAuction(AuctionEntry ae) {
+    return ParseErrors.SUCCESS;
   }
 
   public void cleanup(StringBuffer sb) {
@@ -48,10 +47,10 @@ class MockSpecificAuction extends SpecificAuction {
     return mAI.toXML();
   }
 
-  public void setThumbnail(ByteBuffer newThumb) {
-    ThumbnailManager.setThumbnail(mAI, newThumb);
-  }
-
+//  public void setThumbnail(ByteBuffer newThumb) {
+//    mAI.setThumbnail(Thumbnail.getValidImagePath(getIdentifier(), newThumb));
+//  }
+//
   public void save() {
     mAI.save();
   }

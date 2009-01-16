@@ -11,9 +11,7 @@ import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
 
 import java.awt.Color;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Date;
+import java.util.*;
 
 /**
  *  MultiSnipe class
@@ -22,6 +20,11 @@ public class MultiSnipe extends ActiveRecord {
   private Color mBackground;
   private LinkedList<Snipeable> mAuctionEntriesInThisGroup = new LinkedList<Snipeable>();
   private static final int HEX_BASE = 16;
+  private static Map<Integer, MultiSnipe> singleSource = new HashMap<Integer, MultiSnipe>();
+
+  public int activeEntries() {
+    return mAuctionEntriesInThisGroup.size();
+  }
 
   private void setValues(Color groupColor, Currency snipeValue, long id, boolean subtractShipping) {
     mBackground = groupColor;
@@ -31,7 +34,8 @@ public class MultiSnipe extends ActiveRecord {
     //  Basically, the identifier is a long value based on
     //  the time at which it's created.
     setString("identifier", Long.toString(id));
-    saveDB();
+    String myId = saveDB();
+    if(myId != null) singleSource.put(getId(), this);
   }
 
   /** @noinspection NonConstantStringShouldBeStringBuffer
@@ -182,17 +186,38 @@ public class MultiSnipe extends ActiveRecord {
     return sDB;
   }
 
+  private static MultiSnipe cacheResult(MultiSnipe rval) {
+    if(rval != null) {
+      if(singleSource.get(rval.getId()) != null) {
+        rval = singleSource.get(rval.getId());
+      } else {
+        singleSource.put(rval.getId(), rval);
+      }
+    }
+    return rval;
+  }
+
   public static MultiSnipe findFirstBy(String key, String value) {
-    return (MultiSnipe) ActiveRecord.findFirstBy(MultiSnipe.class, key, value);
+    MultiSnipe rval = (MultiSnipe) ActiveRecord.findFirstBy(MultiSnipe.class, key, value);
+    return cacheResult(rval);
   }
 
   public static MultiSnipe find(Integer id) {
-    return (MultiSnipe) ActiveRecord.findFirstBy(MultiSnipe.class, "id", Integer.toString(id));
+    MultiSnipe rval = singleSource.get(id);
+    if(rval == null) {
+      rval = (MultiSnipe) ActiveRecord.findFirstBy(MultiSnipe.class, "id", Integer.toString(id));
+      singleSource.put(id, rval);
+    }
+    return rval;
   }
 
   public static boolean deleteAll(List<MultiSnipe> toDelete) {
     if(toDelete.isEmpty()) return true;
     String multisnipes = makeCommaList(toDelete);
+
+    for(MultiSnipe ms : toDelete) {
+      singleSource.remove(ms.getId());
+    }
 
     return toDelete.get(0).getDatabase().deleteBy("id IN (" + multisnipes + ")");
   }

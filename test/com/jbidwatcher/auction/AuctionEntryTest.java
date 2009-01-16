@@ -27,15 +27,25 @@ public class AuctionEntryTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     mai = new MockAuctionInfo();
-    mAE = AuctionEntry.buildEntry(mai.getIdentifier());
+    AuctionEntry.setResolver(new Resolver() {
+      public AuctionServerInterface getServer() {
+        return new MockAuctionServerInterface(mai);
+      }
+    });
+    mAE = AuctionEntry.findByIdentifier(mai.getIdentifier());
+    if(mAE != null) mAE.delete();
+    mAE = AuctionEntry.construct(mai.getIdentifier());
   }
 
   public void tearDown() throws Exception {
+    mAE = AuctionEntry.findByIdentifier(mai.getIdentifier());
+    if(mAE != null) mAE.delete();
+    
     super.tearDown();
   }
 
   public void testSetGetServer() throws Exception {
-    assertEquals("testBay", mAE.getServer().getName());
+    assertEquals("mock", mAE.getServer().getName());
   }
 
   public void testSetGetBid() throws Exception {
@@ -53,7 +63,8 @@ public class AuctionEntryTest extends TestCase {
   }
 
   public void testGetSnipeQuantity() throws Exception {
-    assertEquals(1, mAE.getSnipeQuantity());
+    //  No snipe means 0 quantity.
+    assertEquals(0, mAE.getSnipeQuantity());
   }
 
   public void testSetGetMultiSnipe() throws Exception {
@@ -93,7 +104,7 @@ public class AuctionEntryTest extends TestCase {
     mAE.setLastStatus("Test Status-1");
     assertTrue(mAE.getLastStatus().indexOf("Test Status-1") != -1);
     mAE.setLastStatus("Test Status-2");
-    assertTrue(mAE.getLastStatus().indexOf("Test Status-1") != -1 && mAE.getLastStatus().indexOf("Test Status-2") != -1);
+    assertTrue(mAE.getLastStatus().indexOf("Test Status-2") != -1);
   }
 
   public void testSetGetShipping() throws Exception {
@@ -128,7 +139,8 @@ public class AuctionEntryTest extends TestCase {
   }
 
   public void testSetGetCategory() throws Exception {
-    assertNull(mAE.getCategory());
+    //  By default w/o a category (and not complete yet), it's in 'current'.
+    assertEquals("current", mAE.getCategory());
     mAE.setCategory("Test Category");
     assertEquals("Test Category", mAE.getCategory());
   }
