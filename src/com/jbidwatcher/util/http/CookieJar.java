@@ -139,8 +139,9 @@ public class CookieJar {
 
       if(redirect != null) {
         if (JConfig.debugging()) {
-          JConfig.log().logMessage("Redirecting from: " + pageName);
-          JConfig.log().logMessage("Redirecting to: " + redirect);
+          //  Don't log passwords in redirection messages.
+          if(!pageName.contains("pass")) JConfig.log().logMessage("Redirecting from: " + pageName);
+          if(!pageName.contains("pass")) JConfig.log().logMessage("Redirecting to: " + redirect);
           try {
             JConfig.log().logMessage("Content: " + uc.getContent().toString());
           } catch (IOException ignored) {
