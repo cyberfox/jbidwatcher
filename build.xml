@@ -166,7 +166,7 @@
     <mkdir dir="/tmp/building/main" />
     <copy file="${INTERMEDIATE}" tofile="/tmp/building/main/main.jar" />
     <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
-      <fileset dir="${main.dir}/onejar" includes="com/**.class" />
+      <fileset dir="${main.dir}/onejar" includes="com/**/*.class" />
       <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
       <fileset dir="/tmp/building" includes="main/main.jar" />
       <fileset dir="${main.dir}" includes="lib/apple.jar" />
