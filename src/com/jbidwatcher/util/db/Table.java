@@ -359,10 +359,10 @@ public class Table
         }
       } else if (type.equals("VARCHAR")) {
         if (val == null) ps.setNull(column, java.sql.Types.VARCHAR);
-        else ps.setString(column, val);
+        else ps.setString(column, val.substring(0, 255));
       } else if (type.equals("CHAR")) {
         if (val == null) ps.setNull(column, java.sql.Types.CHAR);
-        else ps.setString(column, val);
+        else ps.setString(column, val.substring(0, 255));
       } else if (type.equals("TIMESTAMP")) {
         if (val == null) ps.setNull(column, java.sql.Types.TIMESTAMP);
         else try {
