@@ -11,7 +11,6 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.Category;
-import com.jbidwatcher.auction.EntryInterface;
 
 import java.util.*;
 import java.awt.Color;
@@ -19,6 +18,7 @@ import java.awt.Color;
 public class FilterManager implements MessageQueue.Listener {
   private static FilterManager sInstance = null;
   private static final ListManager mList = ListManager.getInstance();
+  private Map<String, AuctionEntry> mIdentifierToAuction;
   private Map<AuctionEntry, AuctionListHolder> mAllOrderedAuctionEntries;
   private AuctionListHolder mMainTab = null;
   private AuctionListHolder mDefaultCompleteTab = null;
@@ -27,12 +27,13 @@ public class FilterManager implements MessageQueue.Listener {
   private FilterManager() {
     //  Sorted by the 'natural order' of AuctionEntries.
     mAllOrderedAuctionEntries = new TreeMap<AuctionEntry, AuctionListHolder>();
+    mIdentifierToAuction = new HashMap<String, AuctionEntry>();
 
     MQFactory.getConcrete("redraw").registerListener(this);
 
     MQFactory.getConcrete("delete").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
-        EntryInterface ae = (EntryInterface) deQ;
+        AuctionEntry ae = (AuctionEntry) deQ;
         deleteAuction(ae);
       }
     });
@@ -91,6 +92,7 @@ public class FilterManager implements MessageQueue.Listener {
   public void messageAction(Object deQ) {
     if(deQ instanceof AuctionEntry) {
       AuctionEntry ae = (AuctionEntry) deQ;
+      ae = dedupe(ae);
       AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
       AuctionListHolder newAuction = refilterAuction(ae);
       if (newAuction != null) {
@@ -101,8 +103,15 @@ public class FilterManager implements MessageQueue.Listener {
         JTabManager.getInstance().getCurrentTable().update(ae);
       }
     } else if(deQ instanceof String) {
-      AuctionListHolder toSort = mList.findCategory((String)deQ);
-      if(toSort != null) toSort.getUI().sort();
+      String item = (String)deQ;
+      AuctionListHolder toSort = mList.findCategory(item);
+      if(toSort != null) {
+        toSort.getUI().sort();
+      } else {
+        AuctionEntry ae = mIdentifierToAuction.get(item);
+        //  A little recursion never hurt anybody...
+        if(ae != null) messageAction(ae);
+      }
     } else if(deQ instanceof Color) {
       mList.setBackground((Color)deQ);
     }
@@ -112,10 +121,12 @@ public class FilterManager implements MessageQueue.Listener {
    *
    * @param ae - The auction to delete.
    */
-  public void deleteAuction(EntryInterface ae) {
+  public void deleteAuction(AuctionEntry ae) {
+    ae = dedupe(ae);
     AuctionListHolder which = mAllOrderedAuctionEntries.get(ae);
     if(which != null) which.getUI().delEntry(ae);
 
+    mIdentifierToAuction.remove(ae.getIdentifier());
     mAllOrderedAuctionEntries.remove(ae);
   }
 
@@ -126,6 +137,7 @@ public class FilterManager implements MessageQueue.Listener {
   * @param ae - The auction to add.
   */
   public void addAuction(AuctionEntry ae) {
+    ae = dedupe(ae);
     AuctionListHolder which = mAllOrderedAuctionEntries.get(ae);
 
     if(which != null) {
@@ -142,6 +154,7 @@ public class FilterManager implements MessageQueue.Listener {
         if (sendTo.getList().allowAddEntry(ae)) {
           sendTo.getUI().addEntry(ae);
           mAllOrderedAuctionEntries.put(ae, sendTo);
+          mIdentifierToAuction.put(ae.getIdentifier(), ae);
         }
       }
     }
@@ -191,12 +204,14 @@ public class FilterManager implements MessageQueue.Listener {
    * filter as it was before.
    */
   private AuctionListHolder refilterAuction(AuctionEntry ae) {
+    ae = dedupe(ae);
     AuctionListHolder sendTo = matchAuction(ae);
     AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
 
     if(old == null && ae.getCategory() != null) {
       old = mList.findCategory(ae.getCategory());
       if(old != null) mAllOrderedAuctionEntries.put(ae, old);
+      mIdentifierToAuction.put(ae.getIdentifier(), ae);
     }
 
     if(old != null) {
@@ -242,6 +257,16 @@ public class FilterManager implements MessageQueue.Listener {
     }
 
     mAllOrderedAuctionEntries.put(ae, sendTo);
+    mIdentifierToAuction.put(ae.getIdentifier(), ae);
     return sendTo;
+  }
+
+  private AuctionEntry dedupe(AuctionEntry ae) {
+    AuctionEntry existing = mIdentifierToAuction.get(ae.getIdentifier());
+    if (existing != null) {
+      ae = existing;
+      ae.reload();
+    }
+    return ae;
   }
 }

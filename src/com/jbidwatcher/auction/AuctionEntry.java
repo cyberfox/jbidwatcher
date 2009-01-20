@@ -1743,6 +1743,23 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return id;
   }
 
+  public void reload() {
+    try {
+      AuctionEntry ae = AuctionEntry.findFirstBy("id", get("id"));
+      if (ae != null) {
+        setBacking(ae.getBacking());
+        mAuction = ae.getAuction();
+        ae.getCategory();
+        mCategory = ae.mCategory;
+        mSnipe = ae.getSnipe();
+        mEntryEvents = ae.getEvents();
+      }
+    } catch (Exception e) {
+      //  Ignored - the semi-silently fails.
+      JConfig.log().logDebug("reload from the database failed for (" + getIdentifier() + ")");
+    }
+  }
+
   private static Table sDB = null;
   protected static String getTableName() { return "entries"; }
   protected Table getDatabase() {
