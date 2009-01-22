@@ -37,14 +37,12 @@ public class Http {
 
   public static URLConnection postFormPage(String urlToPost, String cgiData, String cookie, String referer, boolean follow_redirects) {
     URLConnection huc;
-    PrintStream obw;
-    URL authURL;
 
     try {
       if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
-        System.err.println("postFormPage: " + urlToPost);
+        JConfig.log().logDebug("postFormPage: " + urlToPost);
       }
-      authURL = new URL(urlToPost);
+      URL authURL = new URL(urlToPost);
 
       huc = authURL.openConnection();
       setConnectionProxyInfo(huc);
@@ -56,7 +54,7 @@ public class Http {
         if(!follow_redirects) conn.setInstanceFollowRedirects(false);
       }
       if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) {
-        dumpFormHeaders(cgiData, cookie);
+        dumpFormHeaders(System.err, cgiData, cookie);
       }
 
       huc.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -66,7 +64,7 @@ public class Http {
       if(cookie != null) {
         huc.setRequestProperty("Cookie", cookie);
       }
-      obw = new PrintStream(huc.getOutputStream());
+      PrintStream obw = new PrintStream(huc.getOutputStream());
       obw.println(cgiData);
       obw.close();
     } catch(ConnectException ce) {
@@ -79,24 +77,22 @@ public class Http {
     return(huc);
   }
 
-  private static void dumpFormHeaders(String cgiData, String cookie) {
+  private static void dumpFormHeaders(PrintStream out, String cgiData, String cookie) {
     if(cgiData != null) {
-      System.err.println("Content-Type: application/x-www-form-urlencoded");
-      System.err.println("Content-Length: " + Integer.toString(cgiData.length()));
-      System.err.println("User-Agent: " + Constants.FAKE_BROWSER);
-      System.err.println("Cookie: " + cookie);
+      out.println("Content-Type: application/x-www-form-urlencoded");
+      out.println("Content-Length: " + Integer.toString(cgiData.length()));
+      out.println("User-Agent: " + Constants.FAKE_BROWSER);
+      out.println("Cookie: " + cookie);
     } else {
-      System.err.println("CGI Data is null!");
+      out.println("CGI Data is null!");
     }
   }
 
   public static URLConnection makeRequest(URL source, String cookie) throws java.io.IOException {
-    URLConnection uc;
-
     if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
-      System.err.println("makeRequest: " + source.toString());
+      JConfig.log().logDebug("makeRequest: " + source.toString());
     }
-    uc = source.openConnection();
+    URLConnection uc = source.openConnection();
     if(JConfig.queryConfiguration("proxyfirewall", "none").equals("proxy")) {
       String proxyHost = JConfig.queryConfiguration("proxy.host", null);
       if(proxyHost != null) {
@@ -104,7 +100,7 @@ public class Http {
         String pass = JConfig.queryConfiguration("proxy.pass", null);
 
         if (user != null && pass != null) {
-          if(!user.equals("")) {
+          if(user.length() != 0) {
             String str = user + ':' + pass;
             String encoded = "Basic " + Base64.encodeString(str);
             uc.setRequestProperty("Proxy-Authorization", encoded);
@@ -186,9 +182,7 @@ public class Http {
   }
 
   public static StringBuffer receivePage(URLConnection uc) throws IOException {
-    ByteBuffer buff;
-
-    buff = receiveData(uc);
+    ByteBuffer buff = receiveData(uc);
 
     if(buff == null) return null;
     String charset = uc.getContentType();
@@ -214,7 +208,7 @@ public class Http {
 
     try {
       if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
-        System.err.println("getPage: " + urlToGet);
+        JConfig.log().logDebug("getPage: " + urlToGet);
       }
       URL authURL = new URL(urlToGet);
       URLConnection uc = authURL.openConnection();
