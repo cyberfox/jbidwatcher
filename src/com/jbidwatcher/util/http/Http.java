@@ -58,7 +58,7 @@ public class Http {
       }
 
       huc.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-      huc.setRequestProperty("Content-Length", Integer.toString(cgiData.length()));
+      huc.setRequestProperty("Content-Length", Integer.toString(cgiData.length()-1));
       huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
       if(referer != null) huc.setRequestProperty("Referer", referer);
       if(cookie != null) {

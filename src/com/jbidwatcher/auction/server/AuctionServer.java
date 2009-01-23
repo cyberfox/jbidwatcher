@@ -152,7 +152,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
       CookieJar curCook = getNecessaryCookie(false);
       URLConnection uc;
       if(curCook != null) {
-        uc = curCook.getAllCookiesFromPage(auctionURL.toString(), null, false, null);
+        uc = curCook.connect(auctionURL.toString());
       } else {
         uc = Http.makeRequest(auctionURL, null);
       }

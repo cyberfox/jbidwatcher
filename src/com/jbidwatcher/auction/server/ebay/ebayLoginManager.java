@@ -14,6 +14,7 @@ import java.net.URLEncoder;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Created by IntelliJ IDEA.
@@ -68,7 +69,7 @@ public class ebayLoginManager implements LoginManager {
     if(alertSuppressor != null) {
       if(alertSuppressor != null) {
         String url = redirectPage.getFormWithInput("hidUrl").getInputValue("hidUrl");
-        return cj.getAllCookiesFromPage(url, null, false);
+        return cj.connect(url);
       }
     }
 
@@ -94,7 +95,7 @@ public class ebayLoginManager implements LoginManager {
           }
         }
         //  Now get the actual page...
-        return cj.getAllCookiesFromPage(url, null, false);
+        return cj.connect(url);
       }
     }
 
@@ -118,7 +119,7 @@ public class ebayLoginManager implements LoginManager {
     boolean enqueued = false;
     for (JHTML.Form finalForm : confirm_forms) {
       if (finalForm.hasInput("MfcISAPICommand", "AdultSignIn")) {
-        uc_signin = cj.getAllCookiesFromPage(finalForm.getCGI(), null, false);
+        uc_signin = cj.connect(finalForm.getCGI());
         StringBuffer confirmed = Http.receivePage(uc_signin);
         JConfig.log().dump2File("sign_in-a3.html", confirmed);
         JHTML htdoc = new JHTML(confirmed);
@@ -162,7 +163,7 @@ public class ebayLoginManager implements LoginManager {
     JConfig.log().logDebug(msg);
     MQFactory.getConcrete("Swing").enqueue(msg);
 
-    CookieJar cj = getSignInCookie(old_cj, getUserId(), getPassword());
+    CookieJar cj = getSignInCookie(getUserId(), getPassword());
 
     String done_msg = (cj!=null)?"Done getting the sign in cookie.":"Did not successfully retrieve the sign in cookie.";
     MQFactory.getConcrete("Swing").enqueue(done_msg);
@@ -180,51 +181,24 @@ public class ebayLoginManager implements LoginManager {
   }
 
   // @noinspection TailRecursion
-  public CookieJar getSignInCookie(CookieJar oldCookie, String username, String password) {
+  public CookieJar getSignInCookie(String username, String password) {
     boolean isAdult = JConfig.queryConfiguration(mSiteName + ".adult", "false").equals("true");
-    CookieJar cj = (oldCookie == null) ? new CookieJar() : oldCookie;
     String startURL = T.s("ebayServer.signInPage");
+    CookieJar cj = new CookieJar();
 
     if (isAdult) startURL = Externalized.getString("ebayServer.adultPageLogin");
 
-    URLConnection uc_signin = cj.getAllCookiesFromPage(startURL, null, false);
+    URLConnection uc_signin = cj.connect(startURL);
+    if(JConfig.queryConfiguration("debug.auth", "false").equals("true")) {
+      JConfig.log().logDebug("GET " + startURL);
+      JConfig.log().logDebug(cj.dump());
+    }
     try {
       StringBuffer signin = Http.receivePage(uc_signin);
       JConfig.log().dump2File("sign_in-1.html", signin);
       JHTML htdoc = new JHTML(signin);
 
-      JHTML.Form curForm = htdoc.getFormWithInput("pass");
-      if (curForm != null) {
-        //  If it has a password field, this is the input form.
-        curForm.setText("userid", username);
-        curForm.setText("pass", password);
-        uc_signin = cj.getAllCookiesFromPage(curForm.getCGI(), null, false);
-        if (isAdult) {
-          if (getAdultRedirector(uc_signin, cj)) {
-            if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
-          } else {
-            return retryLoginWithoutAdult(cj, username, password);
-          }
-        } else {
-          StringBuffer confirm = Http.receivePage(uc_signin);
-          JConfig.log().dump2File("sign_in-2.html", confirm);
-          JHTML doc = new JHTML(confirm);
-          //  Check for CAPTCHA and bad passwords...
-          if (checkSecurityConfirmation(doc)) {
-            cj = null;
-            MQFactory.getConcrete("login").enqueue("FAILED Sign in information is not valid.");
-          } else {
-            JHTML.Form redirect_form = doc.getFormWithInput("hidUrl");
-            if(redirect_form != null && redirect_form.getInputValue("hidUrl").matches("^http://my\\.ebay\\.(com|co.uk)/ws/eBayISAPI.dll\\?My.*eBay.*$")) {
-              MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
-            } else {
-              JConfig.log().logFile("Security checks out, but no My eBay form link on final page...", confirm);
-              MQFactory.getConcrete("login").enqueue("NEUTRAL");
-            }
-            if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
-          }
-        }
-      }
+      cj = signInUsingPage(startURL, username, password, isAdult, cj, htdoc);
     } catch (IOException e) {
       //  We don't know how far we might have gotten...  The cookies
       //  may be valid, even!  We can't assume it, though.
@@ -243,10 +217,58 @@ public class ebayLoginManager implements LoginManager {
     return cj;
   }
 
+  private CookieJar signInUsingPage(String previousPage, String username, String password, boolean adult, CookieJar cj, JHTML htdoc) throws IOException, CaptchaException {
+    List<String> resultPages = new ArrayList<String>();
+    JHTML.Form curForm = htdoc.getFormWithInput("pass");
+    if (curForm != null) {
+      //  If it has a password field, this is the input form.
+      curForm.setText("userid", username);
+      curForm.setText("pass", password);
+      if(JConfig.queryConfiguration("debug.auth", "false").equals("true")) JConfig.log().logDebug("Cookies before posting form: \n" + cj.dump());
+      URLConnection uc_signin = cj.connect(curForm.getAction(), curForm.getFormData(), previousPage, true, resultPages);
+
+      if(JConfig.queryConfiguration("debug.auth", "false").equals("true")) {
+        JConfig.log().logDebug("POST " + curForm.getAction());
+        JConfig.log().logDebug("Data: " + curForm.getFormData());
+        for(String page : resultPages) {
+          JConfig.log().logDebug("Went to page: " + page);
+        }
+        JConfig.log().logDebug("Cookies after posting form: \n" + cj.dump());
+      }
+
+      if (adult) {
+        if (getAdultRedirector(uc_signin, cj)) {
+          if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
+        } else {
+          cj = retryLoginWithoutAdult(cj, username, password);
+        }
+      } else {
+        StringBuffer confirm = Http.receivePage(uc_signin);
+        JConfig.log().dump2File("sign_in-2.html", confirm);
+        JHTML doc = new JHTML(confirm);
+        //  Check for CAPTCHA and bad passwords...
+        if (checkSecurityConfirmation(doc)) {
+          cj = null;
+          MQFactory.getConcrete("login").enqueue("FAILED Sign in information is not valid.");
+        } else {
+          JHTML.Form redirect_form = doc.getFormWithInput("hidUrl");
+          if(redirect_form != null && redirect_form.getInputValue("hidUrl").matches("^http://my\\.ebay\\.(com|co.uk)/ws/eBayISAPI.dll\\?My.*eBay.*$")) {
+            MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
+          } else {
+            JConfig.log().logFile("Security checks out, but no My eBay form link on final page...", confirm);
+            MQFactory.getConcrete("login").enqueue("NEUTRAL");
+          }
+          if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
+        }
+      }
+    }
+    return cj;
+  }
+
   private CookieJar retryLoginWithoutAdult(CookieJar cj, String username, String password) {//  Disable adult mode and try again.
     JConfig.log().logMessage("Disabling 'adult' mode and retrying.");
     JConfig.setConfiguration(mSiteName + ".adult", "false");
-    cj = getSignInCookie(cj, username, password);
+    cj = getSignInCookie(username, password);
     //  Re-enable adult mode if logging in via non-adult mode still failed...
     JConfig.setConfiguration(mSiteName + ".adult", "true");
     return cj;

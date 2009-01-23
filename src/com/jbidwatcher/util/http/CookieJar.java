@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class CookieJar {
   private Map<String, Cookie> _cookies;
-  private boolean m_ignore_redirect_cookies = true;
+  private boolean m_ignore_redirect_cookies = false;
   private final static boolean do_uber_debug = false;
 
   public CookieJar() {
@@ -24,55 +24,33 @@ public class CookieJar {
     return _cookies.get(keyName);
   }
 
-  /**
-   * Get all the cookies and the page data itself, using post.
-   *
-   * @param pageName - The URL and CGI to retrieve (the CGI is seperated out and sent as the POST).
-   *
-   * @return - A StringBuffer containing the data at the provided URL, or returned from the POST operation.
-   *
-   * @throws com.jbidwatcher.util.http.CookieJar.CookieException - If the connection is refused.
-   */
-  public StringBuffer getAllCookiesAndPage(String pageName) throws CookieException {
-    return getAllCookiesAndPage(pageName, null, true);
+  public String dump() {
+    StringBuffer rval = new StringBuffer();
+    for(String cookieName : _cookies.keySet()) {
+      Cookie value = _cookies.get(cookieName);
+      rval.append(cookieName).append(": ").append(value.getValue()).append('\n');
+    }
+    return rval.toString();
   }
 
-  /**
-   * Get all the cookies and the page data itself, using post.
-   *
-   * @param pageName - The URL and CGI to retrieve (the CGI is seperated out and sent as the POST).
-   * @param referer - The URL that referred us to this page (can be null).
-   * @return - A StringBuffer containing the data at the provided URL, or returned from the POST operation.
-   *
-   * @throws com.jbidwatcher.util.http.CookieJar.CookieException - If the connection is refused.
-   */
-  public StringBuffer getAllCookiesAndPage(String pageName, String referer) throws CookieException {
-    return getAllCookiesAndPage(pageName, referer, true);
-  }
-
-  /**
-   * Get all the cookies and the page data itself, using post or get.
-   *
-   * @param pageName - The URL and CGI to retrieve.
-   * @param referer  - The URL that referred us to this page (can be null).
-   * @param doPost   - Whether or not to use POST to send any CGI associated with the pageName.
-   *
-   * @return - A StringBuffer containing the data at the provided URL, or returned from the POST operation.
-   *
-   * @throws com.jbidwatcher.util.http.CookieJar.CookieException - If the connection is refused.
-   */
-  public StringBuffer getAllCookiesAndPage(String pageName, String referer, boolean doPost) throws CookieException {
-    return getAllCookiesAndPage(pageName, referer, doPost, null);
-  }
-
-  public class CookieException extends Exception {
+  public static class CookieException extends Exception {
     public CookieException(String text, Throwable trigger) {
       super(text, trigger);
     }
   }
 
-  public StringBuffer getAllCookiesAndPage(String pageName, String referer, boolean doPost, List<String> pages) throws CookieException {
-    URLConnection uc = getAllCookiesFromPage(pageName, referer, doPost, pages);
+  /**
+   * Get all the cookies and the page data itself, using post or get.
+   *
+   * @param page     - The URL to retrieve.
+   * @param body     - The body of the POST to send, if we want to do a POST operation.
+   * @param referer  - The URL that referred us to this page (can be null).
+   * @return - A StringBuffer containing the data at the provided URL, or returned from the POST operation.
+   *
+   * @throws com.jbidwatcher.util.http.CookieJar.CookieException - If the connection is refused.
+   */
+  public StringBuffer getPage(String page, String body, String referer) throws CookieException {
+    URLConnection uc = connect(page, body, referer, body != null, null);
     if(uc == null) return null;
 
     StringBuffer sb = null;
@@ -80,12 +58,12 @@ public class CookieJar {
     try {
       sb = Http.receivePage(uc);
     } catch(ConnectException ce) {
-      logException(pageName, ce);
+      logException(page, ce);
       if(ce.toString().indexOf("Connection refused") != -1) {
         throw new CookieException("Connection refused", ce);
       }
     } catch(IOException e) {
-      logException(pageName, e);
+      logException(page, e);
       return null;
     }
 
@@ -93,10 +71,9 @@ public class CookieJar {
   }
 
   private void logException(String pageName, Exception e) {
-    String errmsg;
     int qLoc = pageName.indexOf('?');
 
-    errmsg = "Error loading page: ";
+    String errmsg = "Error loading page: ";
     if(qLoc == -1) {
       errmsg += pageName;
     } else {
@@ -109,46 +86,36 @@ public class CookieJar {
    * Retrieve any cookies from the provided page via GET or POST, but only return
    * the URLConnection letting the caller do what they want to with it.
    *
-   * @param pageName - The page to load.
-   * @param referer  - The page that referred us to this page, can be null.
-   * @param post     - Use 'post' or 'get' (true == use 'post').
+   * @param page - The page to load.
    * @return - A URLConnection connected to the response from the server for the given request.
    */
-  public URLConnection getAllCookiesFromPage(String pageName, String referer, boolean post) {
-    return getAllCookiesFromPage(pageName, referer, post, null);
+  public URLConnection connect(String page) {
+    return connect(page, null, null, false, null);
   }
-  public URLConnection getAllCookiesFromPage(String pageName, String referer, boolean post, List<String> pages) {
-    String sendRequest = pageName;
 
-    if(pages != null) pages.add(pageName);
-    String cgi = null;
-    if(post) {
-      int cgipos = pageName.indexOf("?");
-      if (cgipos >= 0) {
-        cgi = pageName.substring(cgipos + 1);
-        sendRequest = pageName.substring(0, cgipos);
-      } else {
-        post = false;
-      }
-    }
+  public URLConnection connect(String page, String body, String referer, boolean post, List<String> pages) {
+    if(pages != null) pages.add(page);
 
-    HttpURLConnection uc = initiateRequest(post, sendRequest, cgi, referer);
+    HttpURLConnection uc = initiateRequest(post, page, body, referer);
 
     if(uc != null) {
-      String redirect = handleRedirect(uc, pageName);
+      String redirect = handleRedirect(uc, page);
 
       if(redirect != null) {
         if (JConfig.debugging()) {
           //  Don't log passwords in redirection messages.
-          if(!pageName.contains("pass")) JConfig.log().logMessage("Redirecting from: " + pageName);
-          if(!pageName.contains("pass")) JConfig.log().logMessage("Redirecting to: " + redirect);
+          if(!page.contains("pass")) JConfig.log().logMessage("Redirecting from: " + page);
+          if(!page.contains("pass")) JConfig.log().logMessage("Redirecting to: " + redirect);
           try {
-            JConfig.log().logMessage("Content: " + uc.getContent().toString());
+            if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
+              JConfig.log().logMessage("Content: " + Http.receivePage(uc));
+            }
           } catch (IOException ignored) {
             //  If there's no content or it's an unrecognized type, ignore it.
           }
         }
-        return getAllCookiesFromPage(redirect, referer, post, pages);
+
+        return connect(redirect, body, referer, post, pages);
       }
     }
 
@@ -187,12 +154,12 @@ public class CookieJar {
   }
 
   private String fixRelativeRedirect(String pageName, String redirect) {
-    String prefix;
     String slash = "";
     int serverEnd = pageName.indexOf(".com/");
     if(!redirect.startsWith("/")) {
       slash = "/";
     }
+    String prefix;
     if(serverEnd == -1) {
       prefix = pageName;
     } else {
@@ -216,7 +183,7 @@ public class CookieJar {
   private HttpURLConnection initiateRequest(boolean post, String sendRequest, String cgi, String referer) {
     HttpURLConnection uc;
 
-    if(_cookies.size() > 0) {
+    if(!_cookies.isEmpty()) {
       if(post) {
         uc = (HttpURLConnection)Http.postFormPage(sendRequest, cgi, this.toString(), referer, m_ignore_redirect_cookies);
       } else {
@@ -235,20 +202,18 @@ public class CookieJar {
   public String toString() {
     boolean firstThrough = true;
     StringBuffer outBuf = null;
-    Cookie stepper;
 
     for (Cookie cookie : _cookies.values()) {
-      stepper = cookie;
-      if (!stepper.getValue().equals("")) {
+      if (cookie.getValue().length() != 0) {
         if (!firstThrough) {
           outBuf.append("; ");
         } else {
           firstThrough = false;
           outBuf = new StringBuffer();
         }
-        outBuf.append(stepper.getKey());
+        outBuf.append(cookie.getKey());
         outBuf.append("=");
-        outBuf.append(stepper.getValue());
+        outBuf.append(cookie.getValue());
       }
     }
 

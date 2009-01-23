@@ -217,7 +217,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
   }
 
   private BidFormReturn getBidFormInternal(String pageName, AuctionEntry inEntry, CookieJar cj) throws IOException {
-    URLConnection huc = cj.getAllCookiesFromPage(pageName, null, false);
+    URLConnection huc = cj.connect(pageName);
     StringBuffer loadedPage;
 
     //  If we failed to load, punt.  Treat it as success, but with a null form result.
@@ -268,19 +268,20 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
   }
 
   public int buy(AuctionEntry ae, int quantity) {
-    String buyRequest = "http://offer.ebay.com/ws/eBayISAPI.dll?MfcISAPICommand=BinConfirm&fb=1&co_partnerid=&item=" + ae.getIdentifier() + "&quantity=" + quantity;
+    String buyRequest = T.s("ebayServer.buyRequest");
+    buyRequest += "&item=" + ae.getIdentifier() + "&quantity=" + quantity;
 
     StringBuffer sb;
 
     try {
-      sb = mLogin.getNecessaryCookie(false).getAllCookiesAndPage(buyRequest, null, false);
+      CookieJar cj = mLogin.getNecessaryCookie(false);
+      sb = cj.getPage(buyRequest, null, null);
       JHTML doBuy = new JHTML(sb);
       JHTML.Form buyForm = doBuy.getFormWithInput("uiid");
 
       if (buyForm != null) {
         buyForm.delInput("BIN_button");
-        CookieJar cj = mLogin.getNecessaryCookie(false);
-        StringBuffer loadedPage = cj.getAllCookiesAndPage(buyForm.getCGI(), buyRequest, false);
+        StringBuffer loadedPage = cj.getPage(buyForm.getAction(), buyForm.getFormData(), buyRequest);
         if (loadedPage == null) return AuctionServerInterface.BID_ERROR_CONNECTION;
         return handlePostBidBuyPage(cj, loadedPage, buyForm, ae);
       }
@@ -299,17 +300,18 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     UpdateBlocker.startBlocking();
     if(JConfig.queryConfiguration("sound.enable", "false").equals("true")) MQFactory.getConcrete("sfx").enqueue("/audio/bid.mp3");
 
+    CookieJar cj = mLogin.getNecessaryCookie(false);
     JHTML.Form bidForm;
 
     try {
-      bidForm = getBidForm(mLogin.getNecessaryCookie(false), inEntry, inBid, inQuantity);
+      bidForm = getBidForm(cj, inEntry, inBid, inQuantity);
     } catch(BadBidException bbe) {
       UpdateBlocker.endBlocking();
       return bbe.getResult();
     }
 
     if (bidForm != null) {
-      int rval = placeFinalBid(mLogin.getNecessaryCookie(false), bidForm, inEntry, inBid, inQuantity);
+      int rval = placeFinalBid(cj, bidForm, inEntry, inBid, inQuantity);
       UpdateBlocker.endBlocking();
       return rval;
     }
@@ -329,10 +331,9 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     bidForm.delInput("BIN_button");
     StringBuffer loadedPage = null;
 
-    //  This SHOULD be POSTed, but only works if sent with GET.
     try {
       if (JConfig.debugging) inEntry.setLastStatus("Submitting bid form.");
-      loadedPage = cj.getAllCookiesAndPage(bidForm.getCGI(), bidURL, false);
+      loadedPage = cj.getPage(bidForm.getCGI(), null, bidURL);
       if (JConfig.debugging) inEntry.setLastStatus("Done submitting bid form.");
     } catch (UnsupportedEncodingException uee) {
       JConfig.log().handleException("UTF-8 not supported locally, can't URLEncode bid form.", uee);
@@ -360,7 +361,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
         //  this becomes...broken somehow, and adds an extra character, which
         //  does not work when bidding.
         cgi = cgi.replaceFirst("%[A-F][A-F0-9]%A0", "%A0");
-        URLConnection huc = cj.getAllCookiesFromPage(cgi, null, false);
+        URLConnection huc = cj.connect(cgi);
         //  We failed to load, entirely.  Punt.
         if (huc == null) return AuctionServerInterface.BID_ERROR_CONNECTION;
 

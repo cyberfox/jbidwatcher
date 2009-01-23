@@ -117,6 +117,20 @@ public class JHTML implements JHTMLListener {
     }
 
     public String getCGI() throws UnsupportedEncodingException {
+      String action = getAction();
+      String rval = getFormData();
+      if(action != null) {
+        if (action.indexOf('?') == -1) {
+          rval = action + '?' + rval;
+        } else {
+          rval = action + '&' + rval;
+        }
+      }
+
+      return rval;
+    }
+
+    public String getFormData() throws UnsupportedEncodingException {
       Iterator<XMLElement> it = allInputs.iterator();
       StringBuffer rval = new StringBuffer("");
       String seperator = "";
@@ -131,7 +145,7 @@ public class JHTML implements JHTMLListener {
         String type = curInput.getProperty("type", "text");
         String name = curInput.getProperty("name", "");
 
-        if(type.equals("text") || type.equals(FORM_HIDDEN) || type.equals(FORM_PASSWORD)) {
+        if(type.equals("text") || type.equalsIgnoreCase(FORM_HIDDEN) || type.equals(FORM_PASSWORD)) {
           //  Need to URL-Encode 'value'...
           rval.append(seperator).append(name).append('=').append(URLEncoder.encode(curInput.getProperty(FORM_VALUE, ""), "UTF-8"));
         } else if(type.equals(FORM_CHECKBOX) || type.equals(FORM_RADIO)) {
@@ -148,16 +162,11 @@ public class JHTML implements JHTMLListener {
         }
       }
 
-      String action = formTag.getProperty(JHTMLDialog.FORM_ACTION);
-      if(action != null) {
-        if (action.indexOf('?') == -1) {
-          return action + '?' + rval;
-        } else {
-          return action + '&' + rval;
-        }
-      } else {
-        return rval.toString();  //  If no action?!?
-      }
+      return rval.toString();
+    }
+
+    public String getAction() {
+      return formTag.getProperty(JHTMLDialog.FORM_ACTION);
     }
 
     private String createProperty(String property, XMLElement tag, String defValue) {
@@ -191,7 +200,7 @@ public class JHTML implements JHTMLListener {
           if (showInputs) JConfig.log().logDebug("T: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals(FORM_PASSWORD)) {
           if (showInputs) JConfig.log().logDebug("P: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
-        } else if (inputType.equals(FORM_HIDDEN)) {
+        } else if (inputType.equalsIgnoreCase(FORM_HIDDEN)) {
           if (showInputs) JConfig.log().logDebug("H: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals(FORM_CHECKBOX)) {
           if (showInputs) JConfig.log().logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
