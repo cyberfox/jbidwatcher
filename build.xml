@@ -13,7 +13,7 @@
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidwatcher" />
-  <property name="VER" value="2.0beta11" />
+  <property name="VER" value="2.0beta12" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
@@ -234,6 +234,7 @@
 
   <!---  IN DEVELOPMENT  -->
   <target name="dmg" depends="osx-distribution">
+    <symlink link="${osx.app.path}/../Applications" resource="/Applications" overwrite="true" />
     <exec executable="mkisofs">
       <arg line='-V JBidwatcher -r -apple -o ${DMGFILE} "${osx.app.path}/.."'/>
     </exec>
