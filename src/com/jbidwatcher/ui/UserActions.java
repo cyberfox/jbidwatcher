@@ -183,7 +183,6 @@ public class UserActions implements MessageQueue.Listener {
 
     _in_deleting = true;
 
-    ArrayList<AuctionEntry> deleteIds = new ArrayList<AuctionEntry>();
     StringBuffer wholeDelete = new StringBuffer();
     int[] rowList = mTabs.getPossibleRows();
 
@@ -193,6 +192,13 @@ public class UserActions implements MessageQueue.Listener {
       return;
     }
 
+    if(JConfig.queryConfiguration("prompt.hide_delete_confirm", "false").equals("true")) {
+      silentDelete(ae, rowList);
+      _in_deleting = false;      
+      return;
+    }
+
+    ArrayList<AuctionEntry> deleteIds = new ArrayList<AuctionEntry>();
     Dimension statusBox;
     if(rowList.length != 0 && rowList.length != 1) {
       wholeDelete.append("<table border=0 spacing=0 width=\"100%\">");
@@ -236,51 +242,72 @@ public class UserActions implements MessageQueue.Listener {
       statusBox = new Dimension(756, 45);
     }
 
-    if(JConfig.queryConfiguration("prompt.hide_delete_confirm", "false").equals("true")) {
-      for (AuctionEntry deleteId : deleteIds) {
-        AuctionsManager.getInstance().delEntry(deleteId);
+    List<String> buttons = new ArrayList<String>();
+    buttons.add("TEXT Are you sure you want to delete these auctions: ");
+    buttons.add("Yes");
+    buttons.add("TEXT    ");
+    buttons.add("No, Cancel");
+    buttons.add("CHECK Don't prompt in the future.");
+
+    MyActionListener al = new MyActionListener() {
+      boolean mDontPrompt = false;
+      public void actionPerformed(ActionEvent listen_ae) {
+        String actionString = listen_ae.getActionCommand();
+        if(actionString.equals("Don't prompt in the future.")) {
+          JCheckBox jch = (JCheckBox) listen_ae.getSource();
+          mDontPrompt = jch.isSelected();
+        } else {
+          if(actionString.equals("Yes")) {
+            //  Delete all those items...
+            for (EntryInterface entry : mEntries) {
+              entry.cancelSnipe(false);
+              MQFactory.getConcrete("delete").enqueue(entry);
+              DeletedEntry.create(entry.getIdentifier());
+            }
+            //  Just pass the list of ids down to a low-level 'delete multiple' method.
+            AuctionEntry.deleteAll(mEntries);
+            if(mDontPrompt) {
+              JConfig.setConfiguration("prompt.hide_delete_confirm", "true");
+            }
+          }
+          m_within.dispose();
+          m_within = null;
+        }
+      }
+    };
+
+    al.setEntries(deleteIds);
+
+    JFrame newFrame = _oui.showChoiceTextDisplay(new JHTMLOutput("Deleting", wholeDelete).getStringBuffer(), statusBox, "Deleting...", buttons, "Items to delete...", al);
+    al.setFrame(newFrame);
+
+    _in_deleting = false;
+  }
+
+  private void silentDelete(AuctionEntry ae, int[] rowList) {
+    final ArrayList<AuctionEntry> entries = new ArrayList<AuctionEntry>();
+    if(rowList.length != 0 && rowList.length != 1) {
+      for(int aRowList : rowList) {
+        AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
+        entries.add(tempEntry);
       }
     } else {
-      List<String> buttons = new ArrayList<String>();
-      buttons.add("TEXT Are you sure you want to delete these auctions: ");
-      buttons.add("Yes");
-      buttons.add("TEXT    ");
-      buttons.add("No, Cancel");
-      buttons.add("CHECK Don't prompt in the future.");
-
-      MyActionListener al = new MyActionListener() {
-        boolean mDontPrompt = false;
-        public void actionPerformed(ActionEvent listen_ae) {
-          String actionString = listen_ae.getActionCommand();
-          if(actionString.equals("Don't prompt in the future.")) {
-            JCheckBox jch = (JCheckBox) listen_ae.getSource();
-            mDontPrompt = jch.isSelected();
-          } else {
-            if(actionString.equals("Yes")) {
-              //  Delete all those items...
-              for (EntryInterface entry : mEntries) {
-                entry.cancelSnipe(false);
-                MQFactory.getConcrete("delete").enqueue(entry);
-                DeletedEntry.create(entry.getIdentifier());
-              }
-              //  Just pass the list of ids down to a low-level 'delete multiple' method.
-              AuctionEntry.deleteAll(mEntries);
-              if(mDontPrompt) {
-                JConfig.setConfiguration("prompt.hide_delete_confirm", "true");
-              }
-            }
-            m_within.dispose();
-            m_within = null;
-          }
-        }
-      };
-
-      al.setEntries(deleteIds);
-
-      JFrame newFrame = _oui.showChoiceTextDisplay(new JHTMLOutput("Deleting", wholeDelete).getStringBuffer(), statusBox, "Deleting...", buttons, "Items to delete...", al);
-      al.setFrame(newFrame);
+      if(rowList.length == 1) {
+        ae = (AuctionEntry) mTabs.getIndexedEntry(rowList[0]);
+      }
+      if(ae != null) entries.add(ae);
     }
-    _in_deleting = false;
+    Thread deleteThread = new Thread(new Runnable() {
+      public void run() {
+        String logMsg = "Deleting " + entries.size() + " entries";
+        JConfig.log().logDebug(logMsg);
+        Thread.currentThread().setName(logMsg);
+        for (AuctionEntry deleteId : entries) {
+          AuctionsManager.getInstance().delEntry(deleteId);
+        }
+      }
+    });
+    deleteThread.start();
   }
 
   private void DoConfigure() {

@@ -1755,7 +1755,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         mEntryEvents = ae.getEvents();
       }
     } catch (Exception e) {
-      //  Ignored - the semi-silently fails.
+      //  Ignored - the reload semi-silently fails.
       JConfig.log().logDebug("reload from the database failed for (" + getIdentifier() + ")");
     }
   }

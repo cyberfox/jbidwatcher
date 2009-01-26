@@ -263,6 +263,9 @@ public class AuctionsUIModel {
     } catch(ArrayIndexOutOfBoundsException ignored) {
       JConfig.log().logDebug("Selection of " + rowList.length + " items changed out from under 'sum'.");
       return null;
+    } catch(NullPointerException npe) {
+      JConfig.log().logDebug("sum got NPE - this is common during delete operations");
+      return null;
     } catch(Exception e) {
       JConfig.log().handleException("Sum serious exception!", e);
       return null;
