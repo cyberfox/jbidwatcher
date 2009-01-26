@@ -125,7 +125,7 @@ public class Table
   public Record findFirstBy(String query) {
     try {
       ResultSet rs = mS.executeQuery(query);
-      return getFirstResult(rs);
+      return rs == null ? null : getFirstResult(rs);
     } catch (SQLException e) {
       e.printStackTrace();
       return null;
