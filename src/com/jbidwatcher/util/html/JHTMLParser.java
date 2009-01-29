@@ -219,7 +219,7 @@ public class JHTMLParser {
   //  Endtags start with '/', i.e. </A>.
   //
   private boolean isEndTag(String checkTag) {
-    return(checkTag.charAt(0) == '/');
+    return(checkTag.length() != 0 && checkTag.charAt(0) == '/');
   }
 
   /**
@@ -231,7 +231,7 @@ public class JHTMLParser {
    * @return - true if the tag is considered a singleton, false otherwise.
    */
   private boolean isSingletonTag(String checkTag) {
-    return(checkTag.charAt(checkTag.length()-1)=='/');
+    return(checkTag.length() != 0 && checkTag.charAt(checkTag.length()-1)=='/');
   }
 
   private String clearBlankSpaceEscaped(String cleanupString) {
