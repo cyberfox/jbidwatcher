@@ -6,6 +6,7 @@ package com.jbidwatcher.webserver;
  */
 
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.app.ToolInterface;
 
 import java.net.*;
 import java.io.*;
@@ -108,7 +109,7 @@ public class SimpleProxy extends Thread {
           subProxyParamClasses = paramClasses;
           subProxyParamObjects = paramObjects;
         } else {
-          Class[] paramClasses = { acceptedSock.getClass(), mObjectToPass.getClass() };
+          Class[] paramClasses = { acceptedSock.getClass(), (mObjectToPass instanceof ToolInterface) ? ToolInterface.class : mObjectToPass.getClass() };
           Object[] paramObjects = { acceptedSock, mObjectToPass};
 
           subProxyParamClasses = paramClasses;
