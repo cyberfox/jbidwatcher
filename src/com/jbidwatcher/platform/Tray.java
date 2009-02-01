@@ -120,9 +120,9 @@ public class Tray implements ItemListener, MessageQueue.Listener {
       Method m = java6TrayClass.getMethod("getSystemTray");
       java6tray = m.invoke(null);
       java6TrayIconClass = Class.forName("java.awt.TrayIcon");
-      Constructor<?> tiConst = java6TrayIconClass.getConstructor(ImageIcon.class, String.class, PopupMenu.class);
+      Constructor<?> tiConst = java6TrayIconClass.getConstructor(Image.class, String.class, PopupMenu.class);
       java6icon = tiConst.newInstance(jbw_icon, "JBidwatcher", null);
-      Method aAML = java6TrayIconClass.getMethod("addMouseListener", MouseAdapter.class);
+      Method aAML = java6TrayIconClass.getMethod("addMouseListener", MouseListener.class);
       aAML.invoke(java6icon, new MouseAdapter() {
         public void mouseReleased(MouseEvent e) {
             if (e.isPopupTrigger()) {
@@ -140,12 +140,12 @@ public class Tray implements ItemListener, MessageQueue.Listener {
           MQFactory.getConcrete("Swing").enqueue("VISIBILITY");
         }
       });
-      Method aBAL = java6TrayIconClass.getMethod("addBalloonActionListener", ActionListener.class);
-      aBAL.invoke(java6icon, new ActionListener(){
-        public void actionPerformed(ActionEvent e) {
-          //  Balloon message has been clicked?
-        }
-      });
+//      Method aBAL = java6TrayIconClass.getMethod("addBalloonActionListener", ActionListener.class);
+//      aBAL.invoke(java6icon, new ActionListener(){
+//        public void actionPerformed(ActionEvent e) {
+//          //  Balloon message has been clicked?
+//        }
+//      });
       return true;
     } catch (Exception e) {
       JConfig.log().handleException("Failed to get system tray!", e);
