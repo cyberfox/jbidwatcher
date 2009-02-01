@@ -9,6 +9,7 @@ import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.*;
 import java.io.*;
+import java.lang.reflect.Method;
 
 public class Platform {
   private static boolean _trayEnabled=false;
@@ -165,5 +166,20 @@ public class Platform {
 
   public static boolean isTrayEnabled() {
     return _trayEnabled;
+  }
+
+  public static boolean supportsTray() {
+    if(isWindows()) return true;
+
+    try {
+      Class java6TrayClass = Class.forName("java.awt.SystemTray");
+      Method m = java6TrayClass.getMethod("getSystemTray");
+      Object java6tray = m.invoke(null);
+      Method isSupported = java6TrayClass.getMethod("isSupported");
+      Object rval = isSupported.invoke(java6tray);
+      return rval instanceof Boolean && (Boolean) rval;
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

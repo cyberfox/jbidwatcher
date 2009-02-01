@@ -604,7 +604,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     mainFrame.setVisible(true);
 
     //  Construct the tray object, so that we can interact with the system tray.
-    if(Platform.isWindows()) {
+    if(Platform.supportsTray()) {
       Tray.start();
       if(JConfig.queryConfiguration("windows.tray", "true").equals("true")) {
         MQFactory.getConcrete("tray").enqueue("TRAY on");

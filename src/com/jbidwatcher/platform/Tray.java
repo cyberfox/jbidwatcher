@@ -23,6 +23,8 @@ import org.jdesktop.jdic.tray.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.net.URL;
+import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
 
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
@@ -30,10 +32,13 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Constants;
 
 public class Tray implements ItemListener, MessageQueue.Listener {
+  private JMenuItem hideRestore;
   //  This creates a new Thread (currently named Thread 9).
   private SystemTray tray = SystemTray.getDefaultSystemTray();
-  private JMenuItem hideRestore;
   private TrayIcon ti;
+  Class java6TrayClass;
+  Class java6TrayIconClass;
+  private Object java6tray=null, java6icon=null;
 
   private class TrayMenuAction implements ActionListener {
     public void actionPerformed(ActionEvent e) {
@@ -58,8 +63,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
 
   private Tray() {
     TrayMenuAction tma = new TrayMenuAction();
-    if( Integer.parseInt(System.getProperty("java.version").substring(2,3)) >=5 )
-        System.setProperty("javax.swing.adjustPopupLocationToFit", "false");
+    System.setProperty("javax.swing.adjustPopupLocationToFit", "false");
     JPopupMenu menu = new JPopupMenu("JBidwatcher Tray Menu");
 
     // a group of JMenuItems
@@ -91,20 +95,51 @@ public class Tray implements ItemListener, MessageQueue.Listener {
     URL iconURL = JConfig.getResource(JConfig.queryConfiguration("icon", "/jbidwatch64.jpg"));
     ImageIcon jbw_icon = new ImageIcon(iconURL);
 
-    ti = new TrayIcon(jbw_icon, "JBidwatcher", menu);
-    ti.setIconAutoSize(true);
+    try {
+      tryJava6Tray(menu, jbw_icon);
+    } catch (ClassNotFoundException e) {
+      ti = new TrayIcon(jbw_icon, "JBidwatcher", menu);
+      ti.setIconAutoSize(true);
 
-    ti.addActionListener(new ActionListener() {
+      ti.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            MQFactory.getConcrete("Swing").enqueue("VISIBILITY");
+          }
+      });
+
+      ti.addBalloonActionListener(new ActionListener(){
+          public void actionPerformed(ActionEvent e) {
+            //  Balloon message has been clicked?
+          }
+      });
+    }
+  }
+
+  private void tryJava6Tray(JPopupMenu menu, ImageIcon jbw_icon) throws ClassNotFoundException {
+    java6TrayClass = Class.forName("java.awt.SystemTray");
+    try {
+      Method m = java6TrayClass.getMethod("getSystemTray");
+      java6tray = m.invoke(null);
+      java6TrayIconClass = Class.forName("java.awt.TrayIcon");
+      Constructor<?> tiConst = java6TrayIconClass.getConstructor(ImageIcon.class, String.class, JPopupMenu.class);
+      java6icon = tiConst.newInstance(jbw_icon, "JBidwatcher", menu);
+      Method sIAS = java6TrayIconClass.getMethod("setIconAutoSize", Boolean.class);
+      sIAS.invoke(java6icon, true);
+      Method aAL = java6TrayIconClass.getMethod("addActionListener", ActionListener.class);
+      aAL.invoke(java6icon, new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           MQFactory.getConcrete("Swing").enqueue("VISIBILITY");
         }
-    });
-
-    ti.addBalloonActionListener(new ActionListener(){
+      });
+      Method aBAL = java6TrayIconClass.getMethod("addBalloonActionListener", ActionListener.class);
+      aBAL.invoke(java6icon, new ActionListener(){
         public void actionPerformed(ActionEvent e) {
           //  Balloon message has been clicked?
         }
-    });
+      });
+    } catch (Exception e) {
+      JConfig.log().logMessage("Failed to get system tray!");
+    }
   }
 
   // Returns just the class name -- no package info.
@@ -133,9 +168,28 @@ public class Tray implements ItemListener, MessageQueue.Listener {
   public void messageAction(Object deQ) {
     String msg = (String)deQ;
     if(msg.startsWith("TOOLTIP ")) {
-      ti.setToolTip(Constants.PROGRAM_NAME + ' ' + Constants.PROGRAM_VERS + '\n' + msg.substring(8));
+      String msgText = Constants.PROGRAM_NAME + ' ' + Constants.PROGRAM_VERS + '\n' + msg.substring(8);
+      if(java6icon != null) {
+        try {
+          Method setTT = java6TrayIconClass.getMethod("setToolTip", String.class);
+          setTT.invoke(java6icon, msgText);
+        } catch (Exception e) {
+          JConfig.log().logMessage("Failed to set tool tip using java6 methods!");
+        }
+      } else {
+        ti.setToolTip(msgText);
+      }
     } else if(msg.startsWith("NOTIFY ")) {
-      ti.displayMessage("JBidwatcher Alert", msg.substring(7), TrayIcon.INFO_MESSAGE_TYPE);
+      if(java6icon != null) {
+        try {
+          Method display = java6TrayIconClass.getMethod("displayMessage", String.class, String.class, Integer.class);
+          display.invoke(java6icon, "JBidwatcer Alert", msg.substring(7), 0);
+        } catch (Exception e) {
+          JConfig.log().logMessage("Failed to display notification using java6 methods!");
+        }
+      } else {
+        ti.displayMessage("JBidwatcher Alert", msg.substring(7), TrayIcon.INFO_MESSAGE_TYPE);
+      }
     } else if(msg.startsWith("HIDDEN")) {
       hideRestore.setText("Restore");
       hideRestore.setActionCommand("RESTORE");
@@ -145,9 +199,27 @@ public class Tray implements ItemListener, MessageQueue.Listener {
     } else if(msg.startsWith("TRAY")) {
       String onOff = msg.substring(5);
       if(onOff.equals("on")) {
-        tray.addTrayIcon(ti);
+        if(java6tray != null) {
+          try {
+            Method addTrayIcon = java6TrayClass.getMethod("addTrayIcon", java6TrayIconClass);
+            addTrayIcon.invoke(java6tray, java6icon);
+          } catch (Exception e) {
+            JConfig.log().logMessage("Failed to set the tray icon using the java6 method!");
+          }
+        } else {
+          tray.addTrayIcon(ti);
+        }
       } else {
-        tray.removeTrayIcon(ti);
+        if(java6tray != null) {
+          try {
+            Method removeTrayIcon = java6TrayClass.getMethod("removeTrayIcon", java6TrayIconClass);
+            removeTrayIcon.invoke(java6tray, java6icon);
+          } catch (Exception e) {
+            JConfig.log().logMessage("Failed to remove the tray icon using the java6 method!");
+          }
+        } else {
+          tray.removeTrayIcon(ti);
+        }
       }
     }
   }
