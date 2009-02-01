@@ -417,14 +417,16 @@ public class Table
   }
 
   public int count() {
-    Record rm = findFirst("SELECT COUNT(*) AS count FROM " + mTableName);
-    String count = rm.get("count");
-    return Integer.parseInt(count);
+    return countBySQL("SELECT COUNT(*) AS count FROM " + mTableName);
   }
 
   public int countBy(String condition) {
-    Record rm = findFirst("SELECT COUNT(*) AS count FROM " + mTableName + " WHERE " + condition);
-    String count = rm.get("count");
+    return countBySQL("SELECT COUNT(*) AS count FROM " + mTableName + " WHERE " + condition);
+  }
+
+  public int countBySQL(String sql) {
+    Record rm = findFirst(sql);
+    String count = (String) (rm.values().toArray()[0]);
     return Integer.parseInt(count);
   }
 
