@@ -133,7 +133,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     timeStart("findAll");
     List<AuctionEntry> entries = AuctionEntry.findAll();
     timeStop("findAll");
-    JConfig.log().logMessage("Done with the initial load");
+    JConfig.log().logMessage("Done with the initial load (got " + entries.size() + " entries)");
     int count = 0;
 
     for(AuctionEntry ae : entries) {

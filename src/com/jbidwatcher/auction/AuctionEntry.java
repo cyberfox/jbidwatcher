@@ -1784,7 +1784,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findAll() {
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT * FROM " + getTableName());
+    String nonDupeQuery = "SELECT * FROM entries WHERE id in (SELECT MIN(id) FROM entries WHERE auction_id IN (SELECT MAX(auction_id) FROM entries GROUP BY identifier) group by auction_id)";
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, nonDupeQuery);
   }
 
   public static int count() {
