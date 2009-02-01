@@ -96,9 +96,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
     URL iconURL = JConfig.getResource(JConfig.queryConfiguration("icon", "/jbidwatch64.jpg"));
     ImageIcon jbw_icon = new ImageIcon(iconURL);
 
-    try {
-      tryJava6Tray(menu, jbw_icon);
-    } catch (ClassNotFoundException e) {
+    if(!tryJava6Tray(menu, jbw_icon)) {
       ti = new TrayIcon(jbw_icon, "JBidwatcher", menu);
       ti.setIconAutoSize(true);
 
@@ -116,9 +114,9 @@ public class Tray implements ItemListener, MessageQueue.Listener {
     }
   }
 
-  private void tryJava6Tray(final JPopupMenu menu, ImageIcon jbw_icon) throws ClassNotFoundException {
-    java6TrayClass = Class.forName("java.awt.SystemTray");
+  private boolean tryJava6Tray(final JPopupMenu menu, ImageIcon jbw_icon) {
     try {
+      java6TrayClass = Class.forName("java.awt.SystemTray");
       Method m = java6TrayClass.getMethod("getSystemTray");
       java6tray = m.invoke(null);
       java6TrayIconClass = Class.forName("java.awt.TrayIcon");
@@ -148,8 +146,10 @@ public class Tray implements ItemListener, MessageQueue.Listener {
           //  Balloon message has been clicked?
         }
       });
+      return true;
     } catch (Exception e) {
-      JConfig.log().logMessage("Failed to get system tray!");
+      JConfig.log().handleException("Failed to get system tray!", e);
+      return false;
     }
   }
 
