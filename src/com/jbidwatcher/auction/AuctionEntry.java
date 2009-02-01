@@ -1795,6 +1795,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return getRealDatabase().countBy("ended = 1");
   }
 
+  public static int uniqueCount() {
+    return getRealDatabase().countBySQL("SELECT COUNT(DISTINCT(identifier)) FROM entries WHERE identifier IS NOT NULL");
+  }
+
   private static final String snipeFinder = "(snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL) AND ended != 1";
 
   public static int snipedCount() {

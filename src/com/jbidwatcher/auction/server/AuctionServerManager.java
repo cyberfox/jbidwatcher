@@ -125,10 +125,11 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     timeStart("counts");
     int entryCount = AuctionEntry.count();
     int auctionCount = AuctionInfo.count();
+    int uniqueEntries = AuctionEntry.uniqueCount();
     int uniqueCount = AuctionInfo.uniqueCount();
     timeStop("counts");
 
-    JConfig.log().logMessage("Loading auctions from the database (" + entryCount + " entries, " + uniqueCount + "/" + auctionCount + " auctions)");
+    JConfig.log().logMessage("Loading auctions from the database (" + uniqueEntries + "/" + entryCount + " entries, " + uniqueCount + "/" + auctionCount + " auctions)");
     timeStart("findAll");
     List<AuctionEntry> entries = AuctionEntry.findAll();
     timeStop("findAll");
