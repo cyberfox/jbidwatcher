@@ -70,7 +70,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     addWindowListener(new WindowAdapter() {
       public void windowIconified(WindowEvent we) {
         super.windowIconified(we);
-        if (Platform.isWindows() &&
+        if (Platform.supportsTray() &&
             Platform.isTrayEnabled() &&
             JConfig.queryConfiguration("windows.tray", "true").equals("true") &&
             JConfig.queryConfiguration("windows.minimize", "true").equals("true")) {

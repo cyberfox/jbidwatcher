@@ -122,7 +122,7 @@ public class JConfigGeneralTab extends JConfigTab {
       }
     }
 
-    if(Platform.isWindows()) {
+    if(Platform.supportsTray()) {
       String oldCfg = JConfig.queryConfiguration("windows.tray");
       JConfig.setConfiguration("windows.tray", winTrayBox.isSelected()?"true":"false");
       Platform.setTrayEnabled(winTrayBox.isSelected());
@@ -165,7 +165,7 @@ public class JConfigGeneralTab extends JConfigTab {
     allowArchival.setSelected(doArchival.equals("true"));
     timeSyncBox.setSelected(doTimeSync.equals("true"));
     disableThumbnailBox.setSelected(doDisableThumbnails.equals("true"));
-    if(Platform.isWindows() && winTrayBox != null) {
+    if(Platform.supportsTray() && winTrayBox != null) {
       winTrayBox.setSelected(doWinTray.equals("true"));
       minimizeTrayBox.setEnabled(doWinTray.equals("true"));
       minimizeTrayBox.setSelected(doMinimize.equals("true"));
@@ -277,7 +277,7 @@ public class JConfigGeneralTab extends JConfigTab {
       tp.add(macMetalBox);
     }
 
-    if(Platform.isWindows()) {
+    if(Platform.supportsTray()) {
       winTrayBox = new JCheckBox("Use Windows System Tray");
       winTrayBox.setToolTipText("Allow JBidwatcher to put an icon in the system tray with some statistics on hover and some messages will use balloon-style popups.");
       tp.add(winTrayBox);

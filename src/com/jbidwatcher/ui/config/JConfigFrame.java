@@ -191,7 +191,7 @@ public class JConfigFrame implements ActionListener {
 
     public void windowIconified(WindowEvent we) {
       super.windowIconified(we);
-      if(Platform.isWindows() && Platform.isTrayEnabled()) {
+      if(Platform.supportsTray() && Platform.isTrayEnabled()) {
         if(JConfig.queryConfiguration("windows.tray", "true").equals("true") &&
            JConfig.queryConfiguration("windows.minimize", "true").equals("true")) {
           _window.setVisible(false);
@@ -201,7 +201,7 @@ public class JConfigFrame implements ActionListener {
 
     public void windowDeiconified(WindowEvent we) {
       super.windowDeiconified(we);
-      if(Platform.isWindows() && Platform.isTrayEnabled()) {
+      if(Platform.supportsTray() && Platform.isTrayEnabled()) {
         if(JConfig.queryConfiguration("windows.tray", "true").equals("true") &&
            JConfig.queryConfiguration("windows.minimize", "true").equals("true")) {
           _window.setState(Frame.NORMAL);
