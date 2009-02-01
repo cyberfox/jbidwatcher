@@ -12,6 +12,9 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerialize;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.db.Table;
+import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.AuctionServerInterface;
 
@@ -85,35 +88,96 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     }
   }
 
+  private Map<String, Long> timingLog = new HashMap<String, Long>();
+  private Map<String, Long> startLog = new HashMap<String, Long>();
+  private Map<String, Long> countLog = new HashMap<String, Long>();
+  private Map<String, LinkedList<Long>> last10Log = new HashMap<String, LinkedList<Long>>();
+  private void timeStart(String blockName) {
+    startLog.put(blockName, System.currentTimeMillis());
+  }
+  private void timeStop(String blockName) {
+    long now = System.currentTimeMillis();
+    long started = startLog.get(blockName);
+    startLog.remove(blockName);
+    long accum = timingLog.containsKey(blockName) ? timingLog.get(blockName) : 0;
+    accum += (now - started);
+    LinkedList<Long> last10 = last10Log.get(blockName);
+    if(last10 == null) last10 = new LinkedList<Long>();
+    last10.add(now - started);
+    if(last10.size() > 10) last10.removeFirst();
+    last10Log.put(blockName, last10);
+    timingLog.put(blockName, accum);
+    countLog.put(blockName, (countLog.containsKey(blockName) ? countLog.get(blockName)+1 : 1));
+  }
+  private void timeDump(String last10From) {
+    for(Map.Entry<String,Long> segment : timingLog.entrySet()) {
+      long accum = segment.getValue();
+      long count = countLog.get(segment.getKey());
+      Double avg  = (accum*1.0) / (count*1.0);
+      JConfig.log().logDebug(segment.getKey() + ": " + avg + " x " + count + "(" + segment.getValue() + ")");
+    }
+    JConfig.log().logDebug("Last 10 from " + last10From + ": " + StringTools.comma(last10Log.get(last10From)));
+  }
+
   public void loadAuctionsFromDB(AuctionServer newServer) {
     MQFactory.getConcrete("splash").enqueue("SET 0");
+
+    timeStart("counts");
+    int entryCount = AuctionEntry.count();
+    int auctionCount = AuctionInfo.count();
+    int uniqueCount = AuctionInfo.uniqueCount();
+    timeStop("counts");
+
+    JConfig.log().logMessage("Loading auctions from the database (" + entryCount + " entries, " + uniqueCount + "/" + auctionCount + " auctions)");
+    timeStart("findAll");
+    List<AuctionEntry> entries = AuctionEntry.findAll();
+    timeStop("findAll");
+    JConfig.log().logMessage("Done with the initial load");
     int count = 0;
 
-    List<AuctionEntry> entries = AuctionEntry.findAll();
     for(AuctionEntry ae : entries) {
+      timeStart("setServer");
       ae.setServer(newServer);
+      timeStop("setServer");
 
-      if (ae.getAuction() == null) {
+      timeStart("getAuction");
+      AuctionInfo result = ae.getAuction();
+      timeStop("getAuction");
+      if (result == null) {
         JConfig.log().logMessage("We lost the underlying auction for: " + ae.dumpRecord());
         if(ae.getIdentifier() != null) {
           JConfig.log().logMessage("Trying to reload auction via its auction identifier.");
           MQFactory.getConcrete("drop").enqueue(ae);
         } else {
+          timeStart("delete");
           ae.delete();
+          timeStop("delete");
         }
       } else {
+        timeStart("addEntry");
+        timeStart("addEntry-" + ae.getCategory());
         sEntryManager.addEntry(ae);
+        timeStop("addEntry-" + ae.getCategory());
+        timeStop("addEntry");
       }
+      timeStart("splash");
       MQFactory.getConcrete("splash").enqueue("SET " + count++);
+      timeStop("splash");
     }
 
+    JConfig.log().logDebug("Auction Entries loaded");
     List<AuctionEntry> sniped = AuctionEntry.findAllSniped();
+    JConfig.log().logDebug("Snipes loaded");
     for(AuctionEntry snipable:sniped) {
+      timeStart("snipeSetup");
       if(!snipable.isComplete()) {
         snipable.setServer(newServer);
         snipable.refreshSnipe();
       }
+      timeStop("snipeSetup");
     }
+    JConfig.log().logDebug("Snipes processed");
+    timeDump("addEntry");
   }
 
   private void getServerAuctionEntries(AuctionServer newServer, XMLElement perServer) {
