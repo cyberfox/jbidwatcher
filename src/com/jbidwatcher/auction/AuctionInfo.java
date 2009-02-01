@@ -533,6 +533,18 @@ public class AuctionInfo extends ActiveRecord
     return (AuctionInfo) ActiveRecord.findFirstBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE id IN (SELECT Max(id) FROM auctions WHERE identifier = '" + identifier + "')");
   }
 
+  public static int count() {
+    return ActiveRecord.count(AuctionInfo.class);
+  }
+
+  public static int uniqueCount() {
+    if (sDB == null) {
+      sDB = openDB(getTableName());
+    }
+
+    return sDB.countBySQL("SELECT COUNT(DISTINCT(identifier)) FROM auctions WHERE identifier IS NOT NULL");
+  }
+
   public static boolean deleteAll(List<AuctionInfo> toDelete) {
     if(toDelete.isEmpty()) return true;
     String auctions = makeCommaList(toDelete);
