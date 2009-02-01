@@ -22,6 +22,7 @@ package com.jbidwatcher.platform;
 import org.jdesktop.jdic.tray.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.awt.*;
 import java.net.URL;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
@@ -115,15 +116,25 @@ public class Tray implements ItemListener, MessageQueue.Listener {
     }
   }
 
-  private void tryJava6Tray(JPopupMenu menu, ImageIcon jbw_icon) throws ClassNotFoundException {
+  private void tryJava6Tray(final JPopupMenu menu, ImageIcon jbw_icon) throws ClassNotFoundException {
     java6TrayClass = Class.forName("java.awt.SystemTray");
     try {
       Method m = java6TrayClass.getMethod("getSystemTray");
       java6tray = m.invoke(null);
       java6TrayIconClass = Class.forName("java.awt.TrayIcon");
-      Constructor<?> tiConst = java6TrayIconClass.getConstructor(ImageIcon.class, String.class, JPopupMenu.class);
-      java6icon = tiConst.newInstance(jbw_icon, "JBidwatcher", menu);
-      Method sIAS = java6TrayIconClass.getMethod("setIconAutoSize", Boolean.class);
+      Constructor<?> tiConst = java6TrayIconClass.getConstructor(ImageIcon.class, String.class, PopupMenu.class);
+      java6icon = tiConst.newInstance(jbw_icon, "JBidwatcher", null);
+      Method aAML = java6TrayIconClass.getMethod("addMouseListener", MouseAdapter.class);
+      aAML.invoke(java6icon, new MouseAdapter() {
+        public void mouseReleased(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+                menu.setLocation(e.getX(), e.getY());
+                menu.setInvoker(menu);
+                menu.setVisible(true);
+            }
+        }
+      });
+      Method sIAS = java6TrayIconClass.getMethod("setImageAutoSize", Boolean.class);
       sIAS.invoke(java6icon, true);
       Method aAL = java6TrayIconClass.getMethod("addActionListener", ActionListener.class);
       aAL.invoke(java6icon, new ActionListener() {
@@ -183,7 +194,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
       if(java6icon != null) {
         try {
           Method display = java6TrayIconClass.getMethod("displayMessage", String.class, String.class, Integer.class);
-          display.invoke(java6icon, "JBidwatcer Alert", msg.substring(7), 0);
+          display.invoke(java6icon, "JBidwatcher Alert", msg.substring(7), 0);
         } catch (Exception e) {
           JConfig.log().logMessage("Failed to display notification using java6 methods!");
         }
@@ -201,7 +212,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
       if(onOff.equals("on")) {
         if(java6tray != null) {
           try {
-            Method addTrayIcon = java6TrayClass.getMethod("addTrayIcon", java6TrayIconClass);
+            Method addTrayIcon = java6TrayClass.getMethod("add", java6TrayIconClass);
             addTrayIcon.invoke(java6tray, java6icon);
           } catch (Exception e) {
             JConfig.log().logMessage("Failed to set the tray icon using the java6 method!");
@@ -212,7 +223,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
       } else {
         if(java6tray != null) {
           try {
-            Method removeTrayIcon = java6TrayClass.getMethod("removeTrayIcon", java6TrayIconClass);
+            Method removeTrayIcon = java6TrayClass.getMethod("remove", java6TrayIconClass);
             removeTrayIcon.invoke(java6tray, java6icon);
           } catch (Exception e) {
             JConfig.log().logMessage("Failed to remove the tray icon using the java6 method!");

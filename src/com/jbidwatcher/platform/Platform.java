@@ -173,10 +173,10 @@ public class Platform {
 
     try {
       Class java6TrayClass = Class.forName("java.awt.SystemTray");
-      Method m = java6TrayClass.getMethod("getSystemTray");
-      Object java6tray = m.invoke(null);
+//      Method m = java6TrayClass.getMethod("getSystemTray");
+//      Object java6tray = m.invoke(null);
       Method isSupported = java6TrayClass.getMethod("isSupported");
-      Object rval = isSupported.invoke(java6tray);
+      Object rval = isSupported.invoke(null);
       return rval instanceof Boolean && (Boolean) rval;
     } catch (Exception e) {
       return false;
