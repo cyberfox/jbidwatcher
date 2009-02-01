@@ -246,10 +246,10 @@ public class StringTools {
     }
   }
 
-  public static String comma(Object[] list) {
-    boolean first = true;
+  public static String comma(List<?> list) {
     String rval = "";
-    if (list == null || list.length == 0) return rval;
+    if (list == null || list.isEmpty()) return rval;
+    boolean first = true;
     for (Object o : list) {
       if (!first) rval += ", ";
       else first = false;
@@ -257,6 +257,10 @@ public class StringTools {
     }
 
     return rval;
+  }
+
+  public static String comma(Object[] list) {
+    return(comma(Arrays.asList(list)));
   }
 
   public static boolean startsWithIgnoreCase(String base, String match) {
