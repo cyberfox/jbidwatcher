@@ -37,9 +37,10 @@ public class Tray implements ItemListener, MessageQueue.Listener {
   //  This creates a new Thread (currently named Thread 9).
   private SystemTray tray = SystemTray.getDefaultSystemTray();
   private TrayIcon ti;
-  Class java6TrayClass;
-  Class java6TrayIconClass;
+  private Class java6TrayClass, java6TrayIconClass;
   private Object java6tray=null, java6icon=null;
+  private Object infoMessageType = null;
+  private Class trayMessageTypeClass = null;
 
   private class TrayMenuAction implements ActionListener {
     public void actionPerformed(ActionEvent e) {
@@ -121,7 +122,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
       java6tray = m.invoke(null);
       java6TrayIconClass = Class.forName("java.awt.TrayIcon");
       Constructor<?> tiConst = java6TrayIconClass.getConstructor(Image.class, String.class, PopupMenu.class);
-      java6icon = tiConst.newInstance(jbw_icon, "JBidwatcher", null);
+      java6icon = tiConst.newInstance(jbw_icon.getImage(), "JBidwatcher", null);
       Method aAML = java6TrayIconClass.getMethod("addMouseListener", MouseListener.class);
       aAML.invoke(java6icon, new MouseAdapter() {
         public void mouseReleased(MouseEvent e) {
@@ -132,7 +133,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
             }
         }
       });
-      Method sIAS = java6TrayIconClass.getMethod("setImageAutoSize", Boolean.class);
+      Method sIAS = java6TrayIconClass.getMethod("setImageAutoSize", Boolean.TYPE);
       sIAS.invoke(java6icon, true);
       Method aAL = java6TrayIconClass.getMethod("addActionListener", ActionListener.class);
       aAL.invoke(java6icon, new ActionListener() {
@@ -140,17 +141,27 @@ public class Tray implements ItemListener, MessageQueue.Listener {
           MQFactory.getConcrete("Swing").enqueue("VISIBILITY");
         }
       });
+      Class[] trayIconClasses = java6TrayIconClass.getClasses();
+      for(Class checkForTypes : trayIconClasses) {
+        if(checkForTypes.getName().contains("MessageType")) {
+          trayMessageTypeClass = checkForTypes;
+        }
+      }
+      if(trayMessageTypeClass != null) {
+        Method valueOf = trayMessageTypeClass.getMethod("valueOf", String.class);
+        infoMessageType = valueOf.invoke(null, "INFO");
 //      Method aBAL = java6TrayIconClass.getMethod("addBalloonActionListener", ActionListener.class);
 //      aBAL.invoke(java6icon, new ActionListener(){
 //        public void actionPerformed(ActionEvent e) {
 //          //  Balloon message has been clicked?
 //        }
 //      });
-      return true;
+        return true;
+      }
     } catch (Exception e) {
       JConfig.log().handleException("Failed to get system tray!", e);
-      return false;
     }
+    return false;
   }
 
   // Returns just the class name -- no package info.
@@ -193,10 +204,10 @@ public class Tray implements ItemListener, MessageQueue.Listener {
     } else if(msg.startsWith("NOTIFY ")) {
       if(java6icon != null) {
         try {
-          Method display = java6TrayIconClass.getMethod("displayMessage", String.class, String.class, Integer.class);
-          display.invoke(java6icon, "JBidwatcher Alert", msg.substring(7), 0);
+          Method display = java6TrayIconClass.getMethod("displayMessage", String.class, String.class, trayMessageTypeClass);
+          display.invoke(java6icon, "JBidwatcher Alert", msg.substring(7), infoMessageType);
         } catch (Exception e) {
-          JConfig.log().logMessage("Failed to display notification using java6 methods!");
+          JConfig.log().handleException("Failed to display notification using java6 methods!", e);
         }
       } else {
         ti.displayMessage("JBidwatcher Alert", msg.substring(7), TrayIcon.INFO_MESSAGE_TYPE);
