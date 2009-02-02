@@ -964,13 +964,8 @@ public class XMLElement implements XMLSerialize {
       offset++;
     }
 
-    if ((offset == end) || (offset == begin)) {
-      return null;
-    } else {
-      return new String(input, begin, offset - begin);
-    }
+    return offset == begin ? null : new String(input, begin, offset - begin);
   }
-
 
   /**
    * Scans one attribute of an object.
@@ -986,7 +981,7 @@ public class XMLElement implements XMLSerialize {
     String key = scanIdentifier(input, offset, end);
 
     if (key == null) {
-      throw syntaxError("an attribute key", lineNr[0]);
+      throw syntaxError("an attribute key (" + new String(input) + ")", lineNr[0]);
     }
 
     offset = skipWhitespace(input, offset + key.length(), end, lineNr);
@@ -999,7 +994,7 @@ public class XMLElement implements XMLSerialize {
       value = scanString(input, offset, end, lineNr);
 
       if (value == null) {
-        throw syntaxError("an attribute value", lineNr[0]);
+        throw syntaxError("an attribute value (" + new String(input) + ")", lineNr[0]);
       }
 
       if (value.charAt(0) == '"') {

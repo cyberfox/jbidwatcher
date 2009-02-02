@@ -302,12 +302,10 @@ public class JHTML implements JHTMLListener {
 
   private void handleForms(htmlToken newToken) {
     if(newToken.getToken().toLowerCase().startsWith("form")) {
-      if(m_curForm == null) {
-        m_curForm = new Form(newToken.getToken());
-      } else {
+      if (m_curForm != null) {
         m_formList.add(m_curForm);
-        m_curForm = new Form(newToken.getToken());
       }
+      m_curForm = new Form(newToken.getToken());
     } else if(newToken.getToken().toLowerCase().startsWith("/form")) {
       if(m_curForm != null) m_formList.add(m_curForm);
       m_curForm = null;
