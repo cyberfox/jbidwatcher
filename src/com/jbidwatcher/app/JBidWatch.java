@@ -396,6 +396,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
     setUI(null, null, UIManager.getInstalledLookAndFeels());
 
+    JConfig.log().logDebug(Constants.PROGRAM_NAME + " " + Constants.PROGRAM_VERS + "-" + Constants.SVN_REVISION);
+    JConfig.log().logDebug(System.getProperty("java.vendor") + " Java, version " + System.getProperty("java.version") + " on " + System.getProperty("os.name"));
+
     try {
       boolean creatingDB = JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("false");
       Upgrader.upgrade();
