@@ -39,6 +39,7 @@ public class UserActions implements MessageQueue.Listener {
   private static StringBuffer _colorHelp = null;
   private static StringBuffer _aboutText = null;
   private static StringBuffer _faqText = null;
+  private static StringBuffer _needHelp = null;
 
   private boolean _in_deleting = false;
   private ScriptManager mScriptFrame;
@@ -1092,6 +1093,7 @@ public class UserActions implements MessageQueue.Listener {
     MQFactory.getConcrete("user").enqueue(GET_SERVER_TIME);
   }
 
+  private final static StringBuffer badHelpData = new StringBuffer("Error loading About text!  (D'oh!)  Email <a href=\"mailto:cyberfox@users.sourceforge.net\">me</a>!");
   private final static StringBuffer badAbout = new StringBuffer("Error loading About text!  (D'oh!)  Email <a href=\"mailto:cyberfox@users.sourceforge.net\">me</a>!");
   private final static StringBuffer badFAQ = new StringBuffer("Error loading FAQ text!  (D'oh!)  Email <a href=\"mailto:cyberfox@users.sourceforge.net\">me</a>!");
 
@@ -1107,6 +1109,23 @@ public class UserActions implements MessageQueue.Listener {
       aboutFrame = _oui.showTextDisplay(_aboutText!=null?_aboutText:badAbout, aboutBoxSize, "About " + Constants.PROGRAM_NAME);
     } else {
       aboutFrame.setVisible(true);
+    }
+  }
+
+  static private JFrame needHelpFrame = null;
+  private void DoNeedHelp() {
+    if(needHelpFrame == null) {
+      Dimension boxSize = new Dimension(495, 245);
+
+      if(_needHelp == null) {
+        _needHelp = JBHelp.loadHelp("/help/need_help.jbh", "A Message from the JBidwatcher Author");
+      }
+
+      if(_needHelp != null) {
+        needHelpFrame = _oui.showTextDisplay(_needHelp, boxSize, "A Message from Morgan Schweers");
+      }
+    } else {
+      needHelpFrame.setVisible(true);
     }
   }
 
@@ -1393,6 +1412,7 @@ public class UserActions implements MessageQueue.Listener {
 
     else if(actionString.equals("About " + Constants.PROGRAM_NAME)) DoAbout();
     else if(actionString.equals("About")) DoAbout();
+    else if(actionString.equals("Need Help")) DoNeedHelp();
     else if(actionString.equals("FAQ")) DoFAQ();
 
     else if(actionString.equals("Cancel Snipe")) CancelSnipe(c_src, whichAuction);
