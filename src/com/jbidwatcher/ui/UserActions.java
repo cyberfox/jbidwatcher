@@ -1412,7 +1412,7 @@ public class UserActions implements MessageQueue.Listener {
 
     else if(actionString.equals("About " + Constants.PROGRAM_NAME)) DoAbout();
     else if(actionString.equals("About")) DoAbout();
-    else if(actionString.equals("Need Help")) DoNeedHelp();
+    else if(actionString.equals("Donate")) DoNeedHelp();
     else if(actionString.equals("FAQ")) DoFAQ();
 
     else if(actionString.equals("Cancel Snipe")) CancelSnipe(c_src, whichAuction);
