@@ -24,6 +24,7 @@
   <property name="APPSCRIPTING" value="${app.name}-${VER}-script.app.tar.gz" />
   <property name="APPFILE" value="${app.name}-${VER}.app.tar.gz" />
   <property name="osx.app.name" value="${app.name}-${VER}.app" />
+  <property name="build.path" value="/tmp/building" />
   <property name="osx.app.path" value="/tmp/building/${osx.app.name}" />
   <property name="DMGFILE" value="${app.name}-${VER}.dmg" />
   <property name="EXESCRIPTING" value="${app.name}-${VER}-script.exe" />
@@ -163,33 +164,33 @@
 
   <target name="jar" depends="jar-real">
     <echo level="info" message="Building the top-level .jar file." />
-    <mkdir dir="/tmp/building/main" />
-    <copy file="${INTERMEDIATE}" tofile="/tmp/building/main/main.jar" />
+    <mkdir dir="${build.path}/main" />
+    <copy file="${INTERMEDIATE}" tofile="${build.path}/main/main.jar" />
     <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
       <fileset dir="${main.dir}/onejar" includes="com/**/*.class" />
       <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
-      <fileset dir="/tmp/building" includes="main/main.jar" />
+      <fileset dir="${build.path}" includes="main/main.jar" />
       <fileset dir="${main.dir}" includes="lib/apple.jar" />
       <fileset dir="${main.dir}" includes="lib/derby.jar" />
       <fileset dir="${main.dir}" includes="lib/jdesktop.jar" />
       <fileset dir="${main.dir}" includes="lib/mp3codec.jar" />
     </jar>
-    <delete dir="/tmp/building/main" />
+    <delete dir="${build.path}/main" />
   </target>
 
   <target name="scripting-jar" depends="jar-real">
     <echo level="info" message="Building the top-level .jar file." />
-    <mkdir dir="/tmp/building/main" />
-    <copy file="${INTERMEDIATE}" tofile="/tmp/building/main/main.jar" />
+    <mkdir dir="${build.path}/main" />
+    <copy file="${INTERMEDIATE}" tofile="${build.path}/main/main.jar" />
     <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
       <fileset dir="${main.dir}/onejar" includes="com/**/*.class" />
       <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
-      <fileset dir="/tmp/building" includes="main/main.jar" />
+      <fileset dir="${build.path}" includes="main/main.jar" />
       <fileset dir="${main.dir}" includes="lib/*.jar" />
       <fileset dir="${main.dir}" includes="lib/jbidwatcher/**" />
     </jar>
     <move file="${BINARY}" tofile="${BINARYSCRIPTING}" />
-    <delete dir="/tmp/building/main" />
+    <delete dir="${build.path}/main" />
   </target>
 
   <property name="packaging" value="platform" />
@@ -333,7 +334,7 @@
     </delete>
     <antcall target="clean-osx-build" />
     <!--  Delete intermediate files in case they still are around -->
-    <delete file="/tmp/building/main/main.jar" />
+    <delete file="${build.path}/main/main.jar" />
     <delete file="/tmp/jbidwatcher-launch.xml"/>
     <delete file="/tmp/${BINARY}"/>
     <delete file="/tmp/jbidwatcher.ico"/>
