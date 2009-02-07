@@ -4,8 +4,12 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.db.Database;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
+import com.jbidwatcher.Upgrader;
 
 import java.util.Date;
 
@@ -26,6 +30,9 @@ public class AuctionEntryTest extends TestCase {
 
   public void setUp() throws Exception {
     super.setUp();
+    JConfig.setLogger(new ErrorManagement());
+    JConfig.setConfiguration("db.user", "test1");
+    Upgrader.upgrade();
     mai = new MockAuctionInfo();
     AuctionEntry.setResolver(new Resolver() {
       public AuctionServerInterface getServer() {
