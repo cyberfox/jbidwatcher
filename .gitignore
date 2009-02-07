@@ -1,3 +1,8 @@
 out
 *~
 JBidwatcher-g.iws
+classes
+*.app.tar.gz
+*.exe
+JBid*.jar
+jbidwatcher*.tar.gz
