@@ -56,7 +56,9 @@ public class ErrorManagement implements LoggerInterface {
 
     System.err.println(log_time + ": " + msg);
 
-    String logMsg = log_time + ": " + msg;
+    String logMsg = log_time + ": ";
+    //  This should stop the annoying time duplication in log messages.
+    if(msg.startsWith(logMsg)) logMsg = msg; else logMsg += msg;
     for(ErrorHandler handler : sHandlers) {
       handler.addLog(logMsg);
     }
