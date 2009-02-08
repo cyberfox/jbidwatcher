@@ -48,8 +48,8 @@ public class AuctionsUIModel {
   /**
    * @brief Construct a new UI model for a provided auction list.
    * @param newAuctionList - The auction list to use as a 'backing
-   * store' for displaying lists of auctions.
-   *@param tableContextMenu - The context menu to present for this table.
+   *        store' for displaying lists of auctions.
+   * @param tableContextMenu - The context menu to present for this table.
    * @param frameContextMenu - The context menu to present for whitespace outside the table.
    * @param cornerButtonListener - The button to sit above the scrollbar.
    */

@@ -6,6 +6,7 @@ package com.jbidwatcher.ui;
  */
 
 import javax.swing.*;
+import java.awt.event.MouseEvent;
 
 public class JBidFrameMouse extends JBidTableContext {
   private JPopupMenu constructFramePopup() {
@@ -20,6 +21,10 @@ public class JBidFrameMouse extends JBidTableContext {
     myPopup.add(makeMenuItem("Exit")).addActionListener(this);
 
     return myPopup;
+  }
+
+  protected void internalDoubleClick(MouseEvent e) {
+    JTabManager.getInstance().deselect();
   }
 
   public JBidFrameMouse() {

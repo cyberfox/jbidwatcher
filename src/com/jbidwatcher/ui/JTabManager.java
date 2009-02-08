@@ -71,6 +71,18 @@ public class JTabManager extends JMouseAdapter {
     return(getCurrentTable().getSelectedRows());
   }
 
+  public void deselect() {
+    TableSorter curTable = getCurrentTable();
+    curTable.select(new ClearSelector());
+  }
+
+  private static class ClearSelector implements Selector {
+    public boolean select(JTable inTable) {
+      inTable.clearSelection();
+      return true;
+    }
+  }
+
   private class mySelector implements Selector
   {
     private String _search;
@@ -81,10 +93,7 @@ public class JTabManager extends JMouseAdapter {
 
     public boolean select(JTable inTable) {
       String trueSearch = _search;
-      boolean foundOne = false;
-      boolean match, invert = false;
-      boolean comment_t = false, seller_t = false, buyer_t = false, all_t = false;
-      AuctionEntry ae;
+      boolean invert = false;
 
       if (trueSearch.startsWith("~!")) {
         invert = true;
@@ -92,6 +101,10 @@ public class JTabManager extends JMouseAdapter {
         if (trueSearch.startsWith(" ")) trueSearch = trueSearch.substring(1);
       }
 
+      boolean comment_t = false;
+      boolean seller_t = false;
+      boolean buyer_t = false;
+      boolean all_t = false;
       if (trueSearch.startsWith("~")) {
         if (trueSearch.startsWith("~a")) {
           comment_t = true;
@@ -115,9 +128,10 @@ public class JTabManager extends JMouseAdapter {
 
       inTable.clearSelection();
 
+      boolean foundOne = false;
       for (int i = 0; i < inTable.getRowCount(); i++) {
-        match = false;
-        ae = (AuctionEntry) inTable.getValueAt(i, -1);
+        boolean match = false;
+        AuctionEntry ae = (AuctionEntry) inTable.getValueAt(i, -1);
 
         if (          seller_t) match = ae.getSeller().matches(trueSearch);
         if (!match && buyer_t && ae.getHighBidder() != null) match = ae.getHighBidder().matches(trueSearch);
