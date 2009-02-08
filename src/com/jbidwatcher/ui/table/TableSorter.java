@@ -220,8 +220,10 @@ public class TableSorter extends Transformation implements TableModelListener {
     if (myRow != -1) {
       SwingUtilities.invokeLater(new Runnable() {
         public void run() {
+          Selection save = new Selection(_table, _sorted);
           int row = m_tm.findRow(updated);
           _table.tableChanged(new TableModelEvent(sorter, row));
+          restoreSelection(save);
         }
       });
     }

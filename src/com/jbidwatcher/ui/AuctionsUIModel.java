@@ -22,6 +22,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
@@ -131,20 +132,29 @@ public class AuctionsUIModel {
     jp2.add(ButtonMaker.makeButton("icons/xml.png", "Show RSS feed information", "RSS", tableContextMenu, true), BorderLayout.WEST);
     _table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent event) {
-        int[] rowList = _table.getSelectedRows();
-        if(rowList.length == 0) {
-          _prices.setText(" ");
-        } else {
-          String total = sum(rowList);
-          if(total != null) {
-            _prices.setText(rowList.length + " items, price total: " + total);
-          } else {
-            _prices.setText(" ");
-          }
-        }
+        updateSum();
+      }
+    });
+    _tSort.addTableModelListener(new TableModelListener() {
+      public void tableChanged(TableModelEvent tableModelEvent) {
+        updateSum();
       }
     });
     return jp2;
+  }
+
+  private void updateSum() {
+    int[] rowList = _table.getSelectedRows();
+    if(rowList.length == 0) {
+      _prices.setText(" ");
+    } else {
+      String total = sum(rowList);
+      if(total != null) {
+        _prices.setText(rowList.length + " items, price total: " + total);
+      } else {
+        _prices.setText(" ");
+      }
+    }
   }
 
   /**
