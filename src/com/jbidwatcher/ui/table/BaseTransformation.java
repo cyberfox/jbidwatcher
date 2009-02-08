@@ -180,8 +180,8 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
   }
 
   private static int compareString(Object o1, Object o2) {
-    String s1 = (String) o1;
-    String s2 = (String) o2;
+    String s1 = o1.toString();
+    String s2 = o2.toString();
     int result = s1.compareToIgnoreCase(s2);
 
     return (result < 0) ? -1 : ((result > 0) ? 1 : 0);
