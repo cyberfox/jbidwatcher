@@ -38,13 +38,13 @@ public class JConfigFilePathTab extends JConfigTab {
 
     filePath = new JTextField();
     filePath.addMouseListener(JPasteListener.getInstance());
-	filePath.setToolTipText("Full path and filename to load auctions save file from.");
+    filePath.setToolTipText("Full path and filename to load auctions save file from.");
 
     updateValues();
 
     filePath.setEditable(true);
     filePath.getAccessibleContext().setAccessibleName("Full path and filename to load auctions save file from.");
-	tp.add(jl, BorderLayout.NORTH);
+    tp.add(jl, BorderLayout.NORTH);
 
     JPanel qp = new JPanel();
     JButton browseButton = new JButton("Browse...");

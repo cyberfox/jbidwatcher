@@ -165,6 +165,7 @@ public class SearchInfoDialog extends BasicDialog {
 
     final JLabel label1 = new JLabel("Search Name: ");
     searchNameField = new JTextField(12);
+    searchNameField.addMouseListener(JPasteListener.getInstance());
 
     final JLabel label2 = new JLabel(" Search Type: ");
     searchTypeBox = new JComboBox(_search_types);
@@ -180,6 +181,7 @@ public class SearchInfoDialog extends BasicDialog {
 
     final JLabel searchLabel = new JLabel("Search: ");
     searchField = new JTextField(40);
+    searchField.addMouseListener(JPasteListener.getInstance());
 
     final JLabel tabLabel = new JLabel("Destination Tab: ");
 
