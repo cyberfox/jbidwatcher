@@ -1698,10 +1698,26 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * or the seller removed the listing themselves.
    */
   public void setDeleted() {
-    setBoolean("deleted", true);
-    clearInvalid();
-    setComplete(true);
+    if(!isDeleted()) {
+      setBoolean("deleted", true);
+      clearInvalid();
+    } else {
+      setComplete(true);
+    }
     saveDB();
+  }
+
+  /**
+   * Mark the auction as NOT having been deleted by the auction server.
+   *
+   * It's possible we mistakenly saw a server-error as a 404 (or they
+   * presented it as such), so we need to be able to clear the deleted status.
+   */
+  public void clearDeleted() {
+    if(isDeleted()) {
+      setBoolean("deleted", false);
+      saveDB();
+    }
   }
 
   /**

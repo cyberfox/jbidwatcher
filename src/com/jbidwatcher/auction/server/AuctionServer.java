@@ -235,6 +235,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
 
     try {
       sb = getAuction(item_id);
+      if(sb != null && ae != null) ae.clearDeleted();
     } catch (FileNotFoundException ignored) {
       //  Just get out.  The item no longer exists on the auction
       //  server, so we shouldn't be trying any of the rest.  The
