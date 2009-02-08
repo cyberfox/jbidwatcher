@@ -638,7 +638,7 @@ public class UserActions implements MessageQueue.Listener {
                                       "currencies in a multi-snipe group.  It's a really\n" +
                                       " bad idea, because the snipe value may mean different\n" +
                                       "values in each currency.  Click cancel to go back and\n" +
-                                      "only choose auctions to multisnipe that are in one currency\n." +
+                                      "only choose auctions to multisnipe that are in one currency.\n" +
                                       "If you click OK, you are responsible for handling the\n" +
                                       "currency conversion factors by yourself.",
                                       "Problem setting multisnipe", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);

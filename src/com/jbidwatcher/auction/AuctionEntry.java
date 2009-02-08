@@ -388,7 +388,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     try {
       nextBid = getCurBid().add(minIncrement);
 
-      if(!getSnipe().getAmount().less(nextBid)) {
+      if(nextBid == null || getSnipe().getAmount().getValue() >= nextBid.getValue()) {
         rval = true;
       }
     } catch(Currency.CurrencyTypeException cte) {
