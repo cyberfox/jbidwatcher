@@ -206,6 +206,13 @@ public class ebaySearches {
           }
         }
       }
+      //  If there's a link with content '200', then it's the new My eBay
+      //  page, and the 200 is to show that many watched items on the page.
+      String biggestLink = htmlDocument.getLinkForContent("200");
+      if(biggestLink != null) {
+        JConfig.log().logDebug("Navigating to the '200 at a time' watching page: " + biggestLink);
+        htmlDocument = new JHTML(biggestLink, userCookie, mCleaner);
+      }
       addAllItemsOnPage(htmlDocument, label, true);
       String ofX = htmlDocument.getNextContentAfterRegex("Page " + (page + 1));
       if (ofX == null || !ofX.startsWith("of ")) done_watching = true;
