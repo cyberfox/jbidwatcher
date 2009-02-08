@@ -88,12 +88,13 @@ public class JConfig {
   }
 
   public static void fixupPaths() {
-    String[][] s = { { "auctions.savepath", "/auctionsave" },
-        { "platform.path", "/platform" },
-        {  "savefile", "/auctions.xml" },
-        {  "search.savefile", "/searches.xml" } };
+    String[][] s = { { "auctions.savepath", "auctionsave" },
+        { "platform.path", "platform" },
+        {  "savefile", "auctions.xml" },
+        {  "search.savefile", "searches.xml" } };
+    String sep = System.getProperty("file.separator");
     for(String[] pair : s) {
-      JConfig.setConfiguration(pair[0], getHomeDirectory("jbidwatcher") + pair[1]);
+      JConfig.setConfiguration(pair[0], getHomeDirectory("jbidwatcher") + sep + pair[1]);
     }
   }
 
