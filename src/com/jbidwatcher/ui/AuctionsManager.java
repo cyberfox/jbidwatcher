@@ -282,6 +282,9 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     String saveFilename = JConfig.getCanonicalFile(JConfig.queryConfiguration("savefile", "auctions.xml"), "jbidwatcher", false);
     String newSave=saveFilename;
 
+    //  If there's no data to save, then pretend we did it.
+    if(auctionsData == null) return true;
+
     ensureDirectories(saveFilename);
 
     boolean swapFiles = needSwapSaves(saveFilename);
