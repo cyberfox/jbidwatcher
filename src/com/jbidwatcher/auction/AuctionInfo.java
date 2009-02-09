@@ -212,7 +212,7 @@ public class AuctionInfo extends ActiveRecord
 
     addStringChild(xmlResult, "title");
 
-    if(mSeller != null) {
+    if(!getSellerName().equals("(unknown)") && mSeller != null) {
       XMLElement xseller = mSeller.toXML();
       xmlResult.addChild(xseller);
     }
