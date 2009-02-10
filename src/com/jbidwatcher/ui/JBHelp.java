@@ -16,7 +16,7 @@ import com.jbidwatcher.util.Constants;
 
 public class JBHelp {
   private static final String paypalDonate =
-    "https://www.paypal.com/xclick/business=cyberfox%40users.sourceforge.net&item_name=JBidWatcher+Software&no_shipping=1&return=http%3A//jbidwatcher.sourceforge.net/donation_thanks.html";
+    "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=cyberfox%40jbidwatcher.com&item_name=JBidwatcher+Software&cn=Personal+message+to+Morgan&no_shipping=1&return=http%3A//www.jbidwatcher.com/donation_thanks.html";
   private static final String c_gr = "<font color=\"green\">";
   private static final String c_bl = "<font color=\"blue\">";
   private static final String c_rd = "<font color=\"red\">";
