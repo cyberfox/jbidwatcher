@@ -1886,6 +1886,16 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     super.delete(AuctionEntry.class);
   }
 
+  @SuppressWarnings({"unchecked"})
+  public static List<AuctionEntry> findActive() {
+    String nonDupeQuery = "SELECT * FROM entries" +
+                          " WHERE id in (SELECT MIN(id) FROM entries" +
+                                        " WHERE auction_id IN (SELECT MAX(auction_id) FROM entries GROUP BY identifier)" +
+                                        " GROUP BY auction_id)" +
+                          "   AND ended != 1";
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, nonDupeQuery);
+  }
+
   public static final String newRow = "<tr><td>";
   public static final String newCol = "</td><td>";
   public static final String endRow = "</td></tr>";
