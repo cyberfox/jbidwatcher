@@ -20,29 +20,32 @@ import java.awt.event.ActionEvent;
 */
 class TabStatusPanel extends JPanel {
   private JLabel mStatus;
-  private JButton mCloseButton;
   private JProgressBar mLoadProgress;
 
   public TabStatusPanel(String tabName) {
     super(new BorderLayout());
     setBorder(LineBorder.createBlackLineBorder());
+
     mStatus = new JLabel("Status area");
     mStatus.setHorizontalAlignment(JLabel.CENTER);
-    mCloseButton = new JButton("x");
-    Insets i = mCloseButton.getMargin();
-    System.err.println("(" + i.left + ", " + i.top + ") - (" + i.right + ", " + i.bottom + ")");
-    i = new Insets(0, 0, 0, 0);
-    mCloseButton.setMargin(i);
-    mCloseButton.addActionListener(new ActionListener() {
+
+    JButton closeButton = new JButton("x");
+    closeButton.setOpaque(false);
+    closeButton.setBorderPainted(false);
+    closeButton.setFocusable(false);
+    closeButton.setMargin(new Insets(0, 0, 0, 0));
+    closeButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
+
     mLoadProgress = new JProgressBar(0, 99);
     mLoadProgress.setVisible(false);
+
     add(mLoadProgress, BorderLayout.WEST);
     add(mStatus, BorderLayout.CENTER);
-    add(mCloseButton, BorderLayout.EAST);
+    add(closeButton, BorderLayout.EAST);
     setBackground(Color.decode("0xEDD400"));
     setVisible(false);
     String queueName = tabName + " Tab";
