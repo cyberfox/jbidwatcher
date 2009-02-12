@@ -118,6 +118,8 @@ public class AuctionsUIModel {
     mPanel.add(_scroller, BorderLayout.CENTER);
     JPanel jp2 = buildBottomPanel(tableContextMenu);
     mPanel.add(jp2, BorderLayout.SOUTH);
+    JPanel statusPanel = new TabStatusPanel(_dataModel.getName());
+    mPanel.add(statusPanel, BorderLayout.NORTH);
   }
 
   public JPanel getPanel() {
