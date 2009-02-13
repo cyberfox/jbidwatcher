@@ -19,7 +19,11 @@ public class ErrorManagement implements LoggerInterface {
     sHandlers.add(eh);
   }
 
-  public ErrorManagement() {
+  public ErrorManagement() { }
+
+  private void initLog() {
+    if(mLogWriter != null) return;
+
     String sep = System.getProperty("file.separator");
     String home = JConfig.getHomeDirectory("jbidwatcher");
 
@@ -52,6 +56,7 @@ public class ErrorManagement implements LoggerInterface {
   }
 
   public void logMessage(String msg) {
+    initLog();
     Date log_time = new Date();
 
     System.err.println(log_time + ": " + msg);
@@ -115,6 +120,7 @@ public class ErrorManagement implements LoggerInterface {
   }
 
   public void handleException(String sError, Throwable e) {
+    initLog();
     Date log_time = new Date();
 
     if(sError == null || sError.length() == 0) {
@@ -149,6 +155,7 @@ public class ErrorManagement implements LoggerInterface {
   }
 
   public void logFile(String msgtop, StringBuffer dumpsb) {
+    initLog();
     String doLogging = JConfig.queryConfiguration("logging", "true");
     if(doLogging.equals("true")) {
       if(JConfig.debugging) {
