@@ -170,6 +170,7 @@ public class Platform {
 
   public static boolean supportsTray() {
     if(isWindows()) return true;
+    if(isLinux() && !JConfig.queryConfiguration("tray.override", "false").equals("true")) return false;
 
     try {
       Class java6TrayClass = Class.forName("java.awt.SystemTray");
