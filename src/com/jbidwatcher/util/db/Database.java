@@ -74,6 +74,7 @@ public class Database {
       JConfig.log().logDebug("Connected to " + (mNew?"and created ":"") + "database jbdb (JBidwatcher DataBase)");
     }
 
+    mConn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
     boolean autoCommit = JConfig.queryConfiguration("db.autocommit", "true").equals("true");
     mConn.setAutoCommit(autoCommit);
     sFirst = false;

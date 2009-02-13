@@ -176,6 +176,7 @@ public class Table
         }
       }
     }
+    rs.close();
     return rval;
   }
 
@@ -191,6 +192,7 @@ public class Table
         rval.add(row);
       }
     }
+    rs.close();
     return rval;
   }
 
