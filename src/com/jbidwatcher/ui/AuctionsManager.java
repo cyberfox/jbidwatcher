@@ -202,26 +202,28 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   }
 
   public int loadAuctionsFromDatabase() {
-    int count = AuctionInfo.count(AuctionInfo.class);
-    if (count == 0) return count;
+    int totalCount = AuctionInfo.count(AuctionInfo.class);
+    int activeCount = AuctionEntry.activeCount();
 
-    MQFactory.getConcrete("splash").enqueue("WIDTH " + count);
+    MQFactory.getConcrete("splash").enqueue("WIDTH " + activeCount);
     MQFactory.getConcrete("splash").enqueue("SET 0");
 
     AuctionServer newServer = AuctionServerManager.getInstance().getServer();
     AuctionServerManager.setEntryManager(this);
+    if (totalCount == 0) return totalCount;
+
     AuctionServerManager.getInstance().loadAuctionsFromDB(newServer);
     AuctionStats as = AuctionServerManager.getInstance().getStats();
 
     //  TODO -- Do something more valuable than just notify, when the auction counts are off.
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if (as != null) {
-      if (as.getCount() != count || (savedCount != -1 && as.getCount() != savedCount)) {
+      if (as.getCount() != activeCount || (savedCount != -1 && as.getCount() != savedCount)) {
         MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions.");
       }
     }
 
-    return count;
+    return activeCount;
   }
 
   private void loadXMLFromFile(String loadFile, XMLElement xmlFile) throws IOException {

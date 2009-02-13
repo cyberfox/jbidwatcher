@@ -12,8 +12,6 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerialize;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.db.Table;
-import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.AuctionServerInterface;
@@ -93,47 +91,114 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   private Map<String, Long> countLog = new HashMap<String, Long>();
   private Map<String, LinkedList<Long>> last10Log = new HashMap<String, LinkedList<Long>>();
   private void timeStart(String blockName) {
-    startLog.put(blockName, System.currentTimeMillis());
+    synchronized(startLog) {
+      startLog.put(blockName, System.currentTimeMillis());
+    }
   }
   private void timeStop(String blockName) {
-    long now = System.currentTimeMillis();
-    long started = startLog.get(blockName);
-    startLog.remove(blockName);
-    long accum = timingLog.containsKey(blockName) ? timingLog.get(blockName) : 0;
-    accum += (now - started);
-    LinkedList<Long> last10 = last10Log.get(blockName);
-    if(last10 == null) last10 = new LinkedList<Long>();
-    last10.add(now - started);
-    if(last10.size() > 10) last10.removeFirst();
-    last10Log.put(blockName, last10);
-    timingLog.put(blockName, accum);
-    countLog.put(blockName, (countLog.containsKey(blockName) ? countLog.get(blockName)+1 : 1));
-  }
-  private void timeDump(String last10From) {
-    for(Map.Entry<String,Long> segment : timingLog.entrySet()) {
-      long accum = segment.getValue();
-      long count = countLog.get(segment.getKey());
-      Double avg  = (accum*1.0) / (count*1.0);
-      JConfig.log().logDebug(segment.getKey() + ": " + avg + " x " + count + "(" + segment.getValue() + ")");
+    synchronized (startLog) {
+      long now = System.currentTimeMillis();
+      long started = startLog.get(blockName);
+      startLog.remove(blockName);
+      long accum = timingLog.containsKey(blockName) ? timingLog.get(blockName) : 0;
+      accum += (now - started);
+      LinkedList<Long> last10 = last10Log.get(blockName);
+      if (last10 == null) last10 = new LinkedList<Long>();
+      last10.add(now - started);
+      if (last10.size() > 10) last10.removeFirst();
+      last10Log.put(blockName, last10);
+      timingLog.put(blockName, accum);
+      countLog.put(blockName, (countLog.containsKey(blockName) ? countLog.get(blockName) + 1 : 1));
     }
-    JConfig.log().logDebug("Last 10 from " + last10From + ": " + StringTools.comma(last10Log.get(last10From)));
   }
 
-  public void loadAuctionsFromDB(AuctionServer newServer) {
+  private void timeDump(String last10From) {
+    synchronized(startLog) {
+      for (Map.Entry<String, Long> segment : timingLog.entrySet()) {
+        long accum = segment.getValue();
+        long count = countLog.get(segment.getKey());
+        Double avg = (accum * 1.0) / (count * 1.0);
+        JConfig.log().logDebug(segment.getKey() + ": " + avg + " x " + count + "(" + segment.getValue() + ")");
+      }
+      JConfig.log().logDebug("Last 10 from " + last10From + ": " + StringTools.comma(last10Log.get(last10From)));
+    }
+  }
+
+  private abstract class Report {
+    public abstract void report(int count);
+  }
+
+  public void loadAuctionsFromDB(final AuctionServer newServer) {
     MQFactory.getConcrete("splash").enqueue("SET 0");
 
     timeStart("counts");
     int entryCount = AuctionEntry.count();
     int auctionCount = AuctionInfo.count();
     int uniqueEntries = AuctionEntry.uniqueCount();
+    int activeEntries = AuctionEntry.activeCount();
     int uniqueCount = AuctionInfo.uniqueCount();
     timeStop("counts");
 
-    JConfig.log().logMessage("Loading auctions from the database (" + uniqueEntries + "/" + entryCount + " entries, " + uniqueCount + "/" + auctionCount + " auctions)");
+    JConfig.log().logMessage("Loading listings from the database (" + activeEntries + "/" + uniqueEntries + "/" + entryCount + " entries, " + uniqueCount + "/" + auctionCount + " auctions)");
     timeStart("findAll");
-    List<AuctionEntry> entries = AuctionEntry.findAll();
+    List<AuctionEntry> entries = AuctionEntry.findActive();
     timeStop("findAll");
-    JConfig.log().logMessage("Done with the initial load (got " + entries.size() + " entries)");
+    JConfig.log().logMessage("Done with the initial load (got " + entries.size() + " active entries)");
+    importListingsToUI(newServer, entries, new Report() {
+      public void report(int count) {
+        timeStart("splash");
+        MQFactory.getConcrete("splash").enqueue("SET " + count);
+        timeStop("splash");
+      }
+    });
+
+    Thread completedHandler = new Thread() {
+      public void run() {
+        final MessageQueue tabQ = MQFactory.getConcrete("complete Tab");
+        tabQ.enqueue("SHOW");
+
+        timeStart("findEnded");
+        List<AuctionEntry> entries = AuctionEntry.findEnded();
+        timeStop("findEnded");
+
+        int endedCount = entries.size();
+        final double percentStep = ((double)endedCount) / 100.0;
+        final double percentMultiple = 100.0 / ((double)endedCount);
+        tabQ.enqueue("PROGRESS");
+        importListingsToUI(newServer, entries, new Report() {
+          public void report(int count) {
+            if(percentStep < 1.0) {
+              tabQ.enqueue("PROGRESS " + Math.round(count * percentMultiple));
+            } else {
+              if(count % (Math.round(percentStep)) == 0) {
+                tabQ.enqueue("PROGRESS " + Math.round(count / percentStep));
+              }
+            }
+            try { Thread.sleep(50); } catch(InterruptedException ie) { /* ignore */ }
+          }
+        });
+        tabQ.enqueue("HIDE");
+        AuctionEntry.getRealDatabase().commit();
+      }
+    };
+    completedHandler.start();
+
+    JConfig.log().logDebug("Auction Entries loaded");
+    List<AuctionEntry> sniped = AuctionEntry.findAllSniped();
+    JConfig.log().logDebug("Snipes loaded");
+    for(AuctionEntry snipable:sniped) {
+      timeStart("snipeSetup");
+      if(!snipable.isComplete()) {
+        snipable.setServer(newServer);
+        snipable.refreshSnipe();
+      }
+      timeStop("snipeSetup");
+    }
+    JConfig.log().logDebug("Snipes processed");
+    timeDump("addEntry");
+  }
+
+  private void importListingsToUI(AuctionServer newServer, List<AuctionEntry> entries, Report r) {
     int count = 0;
 
     for(AuctionEntry ae : entries) {
@@ -161,24 +226,8 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         timeStop("addEntry-" + ae.getCategory());
         timeStop("addEntry");
       }
-      timeStart("splash");
-      MQFactory.getConcrete("splash").enqueue("SET " + count++);
-      timeStop("splash");
+      r.report(count++);
     }
-
-    JConfig.log().logDebug("Auction Entries loaded");
-    List<AuctionEntry> sniped = AuctionEntry.findAllSniped();
-    JConfig.log().logDebug("Snipes loaded");
-    for(AuctionEntry snipable:sniped) {
-      timeStart("snipeSetup");
-      if(!snipable.isComplete()) {
-        snipable.setServer(newServer);
-        snipable.refreshSnipe();
-      }
-      timeStop("snipeSetup");
-    }
-    JConfig.log().logDebug("Snipes processed");
-    timeDump("addEntry");
   }
 
   private void getServerAuctionEntries(AuctionServer newServer, XMLElement perServer) {

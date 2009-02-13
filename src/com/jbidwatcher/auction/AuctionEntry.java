@@ -1776,21 +1776,42 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     }
   }
 
-  private static Table sDB = null;
+//  private static Table sDB = null;
   protected static String getTableName() { return "entries"; }
   protected Table getDatabase() {
     return getRealDatabase();
   }
 
-  private static Table getRealDatabase() {
-    if(sDB == null) {
-      sDB = openDB(getTableName());
+  private static ThreadLocal<Table> tDB = new ThreadLocal<Table>() {
+    protected synchronized Table initialValue() {
+      return openDB(getTableName());
     }
-    return sDB;
+  };
+
+  public static Table getRealDatabase() {
+    return tDB.get();
   }
 
   public static AuctionEntry findFirstBy(String key, String value) {
     return (AuctionEntry) ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
+  }
+
+  static final String baseNonDupeQuery = "FROM entries" +
+      " WHERE id in (SELECT MIN(id) FROM entries" +
+      " WHERE auction_id IN (SELECT MAX(auction_id) FROM entries GROUP BY identifier)" +
+      " GROUP BY auction_id)";
+  static final String nonDupeQuery = "SELECT * " + baseNonDupeQuery;
+
+  @SuppressWarnings({"unchecked"})
+  public static List<AuctionEntry> findActive() {
+    String notEndedQuery = nonDupeQuery + " AND ended != 1";
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, notEndedQuery);
+  }
+
+  @SuppressWarnings({"unchecked"})
+  public static List<AuctionEntry> findEnded() {
+    String endedQuery = nonDupeQuery + " AND ended = 1";
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, endedQuery);
   }
 
   @SuppressWarnings({"unchecked"})
@@ -1800,12 +1821,19 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findAll() {
-    String nonDupeQuery = "SELECT * FROM entries WHERE id in (SELECT MIN(id) FROM entries WHERE auction_id IN (SELECT MAX(auction_id) FROM entries GROUP BY identifier) group by auction_id)";
     return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, nonDupeQuery);
   }
 
   public static int count() {
     return count(AuctionEntry.class);
+  }
+
+  public static int activeCount() {
+    return getRealDatabase().countBySQL("SELECT count(*) " + baseNonDupeQuery + " AND ended != 1");
+  }
+
+  public static int inactiveCount() {
+    return getRealDatabase().countBySQL("SELECT count(*) " + baseNonDupeQuery + " AND ended = 1");
   }
 
   public static int completedCount() {
@@ -1884,16 +1912,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     if(getAuction() != null) getAuction().delete();
     if(getSnipe() != null) getSnipe().delete();
     super.delete(AuctionEntry.class);
-  }
-
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findActive() {
-    String nonDupeQuery = "SELECT * FROM entries" +
-                          " WHERE id in (SELECT MIN(id) FROM entries" +
-                                        " WHERE auction_id IN (SELECT MAX(auction_id) FROM entries GROUP BY identifier)" +
-                                        " GROUP BY auction_id)" +
-                          "   AND ended != 1";
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, nonDupeQuery);
   }
 
   public static final String newRow = "<tr><td>";
