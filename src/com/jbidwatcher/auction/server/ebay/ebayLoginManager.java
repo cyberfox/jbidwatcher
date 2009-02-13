@@ -134,8 +134,8 @@ public class ebayLoginManager implements LoginManager {
         } else if(htdoc.grep(T.s("your.information.has.been.verified"))!=null) {
           MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
         } else if(htdoc.grep(T.s("mature.audiences.disallowed.outside.the.us")) != null) {
-          MQFactory.getConcrete("login").enqueue("NEUTRAL Turn off 'Registered Adult', it's not valid for non-US users.");
-          JConfig.setConfiguration("ebay.adult", "false");
+          MQFactory.getConcrete("login").enqueue("NEUTRAL Turn off 'Mature Audiences' in JBidwatcher configuration; it's not valid for non-US users.");
+          JConfig.setConfiguration("ebay.mature", "false");
           JConfig.setConfiguration("ebay.international", "true");
         } else {
           JConfig.log().logFile("Neutral login result...", confirmed);
@@ -182,7 +182,7 @@ public class ebayLoginManager implements LoginManager {
 
   // @noinspection TailRecursion
   public CookieJar getSignInCookie(String username, String password) {
-    boolean isAdult = JConfig.queryConfiguration(mSiteName + ".adult", "false").equals("true");
+    boolean isAdult = JConfig.queryConfiguration(mSiteName + ".mature", "false").equals("true");
     String startURL = T.s("ebayServer.signInPage");
     CookieJar cj = new CookieJar();
 
@@ -266,11 +266,11 @@ public class ebayLoginManager implements LoginManager {
   }
 
   private CookieJar retryLoginWithoutAdult(CookieJar cj, String username, String password) {//  Disable adult mode and try again.
-    JConfig.log().logMessage("Disabling 'adult' mode and retrying.");
-    JConfig.setConfiguration(mSiteName + ".adult", "false");
+    JConfig.log().logMessage("Disabling 'mature audiences' mode and retrying.");
+    JConfig.setConfiguration(mSiteName + ".mature", "false");
     cj = getSignInCookie(username, password);
     //  Re-enable adult mode if logging in via non-adult mode still failed...
-    JConfig.setConfiguration(mSiteName + ".adult", "true");
+    JConfig.setConfiguration(mSiteName + ".mature", "true");
     return cj;
   }
 

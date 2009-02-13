@@ -136,13 +136,17 @@ type later.<br>
 <br><i>You're done, you've added a complex search into <%pname%></i>!
 <%end%>
 
-<%que 11%>What's the checkbox for "Registered Adult" for?
+<%que 11%>What's the checkbox for "Mature Audiences" for?
 <%ans%>eBay has a 'Mature Audiences' category which requires you to
 authenticate yourself as an adult with them.  If you haven't done
 that, then they don't allow you access to the Mature Audiences
-categories.  JBidwatcher needs to know whether you've registered with
-eBay as an adult in order to determine what type of login to do, so it
-can monitor and bid/snipe on adult items as well.
+categories.  They also don't allow access to the Mature Audiences
+category from non-US accounts, so you'll get login failures if you
+have it checked.  JBidwatcher needs to know whether you've registered
+with eBay as an adult in order to determine what type of login to do,
+so it can monitor and bid/snipe on adult items as well.<br>
+<br>
+Don't check this unless you have to.
 <%end%>
 
 <%que 12%>How do I get items into JBidwatcher from my browser?

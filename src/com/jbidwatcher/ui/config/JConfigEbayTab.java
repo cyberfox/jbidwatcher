@@ -87,9 +87,9 @@ public class JConfigEbayTab extends JConfigTab
   public boolean apply() {
     int selectedSite = siteSelect.getSelectedIndex();
 
-    String old_adult = JConfig.queryConfiguration(mSitename + ".adult");
-    JConfig.setConfiguration(mSitename + ".adult", adultBox.isSelected()?"true":"false");
-    String new_adult = JConfig.queryConfiguration(mSitename + ".adult");
+    String old_adult = JConfig.queryConfiguration(mSitename + ".mature");
+    JConfig.setConfiguration(mSitename + ".mature", adultBox.isSelected()?"true":"false");
+    String new_adult = JConfig.queryConfiguration(mSitename + ".mature");
 
     String old_user = JConfig.queryConfiguration(mSitename + ".user");
     JConfig.setConfiguration(mSitename + ".user", username.getText());
@@ -101,7 +101,7 @@ public class JConfigEbayTab extends JConfigTab
 
     if(selectedSite != -1) {
       JConfig.setConfiguration(mSitename + ".browse.site", Integer.toString(selectedSite));
-      String selected = (String)siteSelect.getSelectedItem();
+//      String selected = (String)siteSelect.getSelectedItem();
 //      if(!TT.setCountrySite(selected)) {
 //        JOptionPane.showMessageDialog(null, "No site bundle exists; JBidwatcher will operate against ebay.com.", "Country Site Bundle", JOptionPane.INFORMATION_MESSAGE);
 //      }
@@ -116,7 +116,7 @@ public class JConfigEbayTab extends JConfigTab
   }
 
   public void updateValues() {
-    String isAdult = JConfig.queryConfiguration(mSitename + ".adult", "false");
+    String isAdult = JConfig.queryConfiguration(mSitename + ".mature", "false");
     adultBox.setSelected(isAdult.equals("true"));
 
     username.setText(JConfig.queryConfiguration(mSitename + ".user", "default"));
@@ -154,7 +154,7 @@ public class JConfigEbayTab extends JConfigTab
   }
 
   private JPanel buildCheckboxPanel() {
-    String isAdult = JConfig.queryConfiguration(mSitename + ".adult", "false");
+    String isAdult = JConfig.queryConfiguration(mSitename + ".mature", "false");
     JPanel tp = new JPanel();
 
     tp.setBorder(BorderFactory.createTitledBorder("General eBay Options"));
@@ -163,12 +163,15 @@ public class JConfigEbayTab extends JConfigTab
 
     JPanel adultPane = new JPanel();
     adultPane.setLayout(new BorderLayout(0, 0));
-    adultBox = new JCheckBox("Registered adult");
+    adultBox = new JCheckBox("I plan to watch and bid on Mature Audiences items on ebay.com");
     adultBox.setSelected(isAdult.equals("true"));
+    adultBox.setToolTipText("<html><body>The Mature Audiences portion of eBay is not available to non-US users,<br>" +
+                            "and causes the login process to be much more complex and error prone.<br>" +
+                            "Do not enable this unless you have to.</body></html>");
     adultPane.add(adultBox, BorderLayout.WEST);
     tp.add(adultPane);
 
-    String searchNotice = "<html><body><div style=\"margin-left: 20px; font-size: 0.96em;\"><i>To have JBidwatcher regularly retrieve auctions listed on your My eBay<br>" +
+    String searchNotice = "<html><body><div style=\"margin-left: 10px; font-size: 0.96em;\"><i>To have JBidwatcher regularly retrieve auctions listed on your My eBay<br>" +
                           "page, go to the <a href=\"/SEARCH\">Search Manager</a> and enable the search also named 'My eBay'.</i></div></body></html>";
     JBEditorPane jep = OptionUI.getHTMLLabel(searchNotice);
     tp.add(jep);
@@ -193,7 +196,7 @@ public class JConfigEbayTab extends JConfigTab
     siteSelect.setSelectedIndex(realCurrentSite);
     tp.add(makeLine(new JLabel("Country site: "), siteSelect), BorderLayout.NORTH);
 
-    JLabel bidWarning = new JLabel("Note: Bidding is not entirely supported yet on non-ebay.com sites");
+    JLabel bidWarning = new JLabel("Bidding is done on ebay.com or ebay.co.uk, not your local site.");
     bidWarning.setFont(bidWarning.getFont().deriveFont(Font.ITALIC));
     tp.add(bidWarning, BorderLayout.EAST);
     return tp;

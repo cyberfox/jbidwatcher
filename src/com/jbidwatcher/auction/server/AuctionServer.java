@@ -279,7 +279,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
             break;
           }
           case NOT_ADULT: {
-            boolean isAdult = JConfig.queryConfiguration(getName() + ".adult", "false").equals("true");
+            boolean isAdult = JConfig.queryConfiguration(getName() + ".mature", "false").equals("true");
             if (isAdult) {
               getNecessaryCookie(true);
               throw new ReloadItemException();
