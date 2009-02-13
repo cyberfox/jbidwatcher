@@ -155,6 +155,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     Thread completedHandler = new Thread() {
       public void run() {
         final MessageQueue tabQ = MQFactory.getConcrete("complete Tab");
+        tabQ.enqueue("REPORT Importing completed listings");
         tabQ.enqueue("SHOW");
 
         timeStart("findEnded");
@@ -165,6 +166,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         final double percentStep = ((double)endedCount) / 100.0;
         final double percentMultiple = 100.0 / ((double)endedCount);
         tabQ.enqueue("PROGRESS");
+        tabQ.enqueue("PROGRESS Loading...");
         importListingsToUI(newServer, entries, new Report() {
           public void report(int count) {
             if(percentStep < 1.0) {
