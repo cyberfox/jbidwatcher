@@ -28,27 +28,19 @@ public class Browser extends JConfig implements MessageQueue.Listener {
     if(osName.equalsIgnoreCase("windows")) {
       return WindowsBrowserLauncher.getBrowser("http");
     } else {
-      return "netscape";
+      return "firefox";
     }
   }
 
   public static boolean launchBrowser(String url) {
-    String rawOSName = System.getProperty("os.name");
-    int spaceIndex = rawOSName.indexOf(' ');
-    String osName;
-
-    if (spaceIndex == -1) {
-      osName = rawOSName;
-    } else {
-      osName = rawOSName.substring(0, spaceIndex);
-    }
+    String osName = getOS();
 
     String launchCommand = JConfig.queryConfiguration("browser.launch." + osName);
 
     if(launchCommand == null) {
       launchCommand = JConfig.queryConfiguration("browser.launch");
       if(launchCommand == null) {
-        launchCommand = "netscape";
+        launchCommand = "firefox";
       }
     }
 

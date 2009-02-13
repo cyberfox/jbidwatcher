@@ -6,6 +6,8 @@ package com.jbidwatcher.ui.config;
  */
 
 import com.jbidwatcher.ui.util.JPasteListener;
+import com.jbidwatcher.ui.util.JBEditorPane;
+import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.platform.Browser;
 import com.jbidwatcher.util.config.JConfig;
 
@@ -32,7 +34,7 @@ public class JConfigBrowserTab extends JConfigTab {
   public void updateValues() {
     String overrideOn = JConfig.queryConfiguration("browser.override", "false");
 
-    linuxBrowserLaunchCommand.setText(JConfig.queryConfiguration("browser.launch.Linux", "netscape"));
+    linuxBrowserLaunchCommand.setText(JConfig.queryConfiguration("browser.launch.Linux", "firefox"));
     windowsBrowserLaunchCommand.setText(JConfig.queryConfiguration("browser.launch.Windows", "start netscape"));
     overrideDefault.setSelected(overrideOn.equals("true"));
   }
@@ -60,6 +62,12 @@ public class JConfigBrowserTab extends JConfigTab {
     tp.add(linuxBrowserLaunchCommand);
     tp.add(new JLabel("Windows command:"));
     tp.add(windowsBrowserLaunchCommand);
+    if(!JConfig.getOS().equals("Linux") && !JConfig.getOS().equals("Windows")) {
+      String otherPlatformNotice = "<html><body><div style=\"margin-left: 10px; font-size: 0.96em;\"><i>To set the browser for other platforms, go to the Advanced tab, and set<br>" +
+          "a key of: </i><code>browser.launch." + JConfig.getOS() + "</code><i> to a value of whatever the path to your browser is.</i></div></body></html>";
+      JBEditorPane jep = OptionUI.getHTMLLabel(otherPlatformNotice);
+      tp.add(jep);
+    }
     return(tp);
   }
 
