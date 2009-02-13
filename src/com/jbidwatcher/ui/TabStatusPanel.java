@@ -28,6 +28,7 @@ class TabStatusPanel extends JPanel {
 
     mStatus = new JLabel("Status area");
     mStatus.setHorizontalAlignment(JLabel.CENTER);
+    mStatus.setBackground(Color.decode("0xEDD400"));
 
     JButton closeButton = new JButton("x");
     closeButton.setOpaque(false);
@@ -47,6 +48,7 @@ class TabStatusPanel extends JPanel {
     add(mStatus, BorderLayout.CENTER);
     add(closeButton, BorderLayout.EAST);
     setBackground(Color.decode("0xEDD400"));
+    setOpaque(true);
     setVisible(false);
     String queueName = tabName + " Tab";
     MQFactory.addQueue(queueName, new SwingMessageQueue());
