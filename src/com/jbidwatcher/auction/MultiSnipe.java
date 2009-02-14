@@ -22,7 +22,18 @@ public class MultiSnipe extends ActiveRecord {
   private static final int HEX_BASE = 16;
   private static Map<Integer, MultiSnipe> singleSource = new HashMap<Integer, MultiSnipe>();
 
-  public int activeEntries() {
+  private synchronized void sanitize() {
+    for (Iterator<Snipeable> it = mAuctionEntriesInThisGroup.iterator(); it.hasNext();) {
+      Snipeable s = it.next();
+      boolean reloaded = s.reload();
+      if (!reloaded || s.getMultiSnipe() != this) {
+        it.remove();
+      }
+    }
+  }
+
+  public synchronized int activeEntries() {
+    sanitize();
     return mAuctionEntriesInThisGroup.size();
   }
 
@@ -101,12 +112,23 @@ public class MultiSnipe extends ActiveRecord {
     return Long.parseLong(getString("identifier", "0"));
   }
 
-  public void add(Snipeable aeNew) {
-    mAuctionEntriesInThisGroup.add(aeNew);
+  public synchronized void add(Snipeable aeNew) {
+    boolean ignore = false;
+    for (Snipeable s : mAuctionEntriesInThisGroup) {
+      if (s.getIdentifier().equals(aeNew.getIdentifier())) {
+        ignore = true;
+      }
+    }
+    if (!ignore) mAuctionEntriesInThisGroup.add(aeNew);
   }
 
-  public void remove(Snipeable aeOld) {
-    mAuctionEntriesInThisGroup.remove(aeOld);
+  public synchronized void remove(Snipeable aeOld) {
+    for (Iterator<Snipeable> it = mAuctionEntriesInThisGroup.iterator(); it.hasNext();) {
+      Snipeable s = it.next();
+      if (s.getIdentifier().equals(aeOld.getIdentifier())) {
+        it.remove();
+      }
+    }
   }
 
   /**
@@ -115,7 +137,8 @@ public class MultiSnipe extends ActiveRecord {
    *
    * param ae - The auction that was won.
    */
-  public void setWonAuction(/*Snipeable ae*/) {
+  public synchronized void setWonAuction(/*Snipeable ae*/) {
+    sanitize();
     List<Snipeable> oldEntries = mAuctionEntriesInThisGroup;
     mAuctionEntriesInThisGroup = new LinkedList<Snipeable>();
 
@@ -126,7 +149,9 @@ public class MultiSnipe extends ActiveRecord {
     oldEntries.clear();
   }
 
-  public boolean anyEarlier(Date firingDate) {
+  public synchronized boolean anyEarlier(Date firingDate) {
+    sanitize();
+
     for (Snipeable ae : mAuctionEntriesInThisGroup) {
       //  If any auction entry in the list ends BEFORE the one we're
       //  checking, then we really don't want to do anything until
@@ -154,12 +179,13 @@ public class MultiSnipe extends ActiveRecord {
 
   }
 
-  public boolean isSafeToAdd(Snipeable ae) {
+  public synchronized boolean isSafeToAdd(Snipeable ae) {
+    sanitize();
+
     for (Snipeable fromList : mAuctionEntriesInThisGroup) {
       //  It's always safe to 'add' an entry that already exists,
-      //  it'll just not get added.
-      //noinspection ObjectEquality
-      if (fromList != ae) {
+      //  it'll just be reloaded.
+      if (!fromList.getIdentifier().equals(ae.getIdentifier())) {
         if (!isSafeMultiSnipe(fromList, ae)) return false;
       }
     }

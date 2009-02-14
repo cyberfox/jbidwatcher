@@ -47,4 +47,10 @@ public interface Snipeable {
    * @return False if the snipe time for this auction has been specially set.
    */
   boolean hasDefaultSnipeTime();
+
+  MultiSnipe getMultiSnipe();
+
+  public String getIdentifier();
+
+  public boolean reload();
 }

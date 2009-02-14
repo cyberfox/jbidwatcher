@@ -38,11 +38,13 @@ public class MultiSnipeTest extends TestCase {
     private Date mEndDate;
     private long mSnipeTime = 30L * 1000L;
     private boolean mCancelled;
+    private String mIdentifier;
 
-    public MockSnipeable(Integer msId, long hours_out) {
+    public MockSnipeable(Integer msId, long hours_out, String ident) {
       mGroup = MultiSnipe.find(msId);
       mGroup.add(this);
       mEndDate = new Date(System.currentTimeMillis() + hours_out * 60L * 60L * 1000L);
+      mIdentifier = ident;
     }
 
     public void win() {
@@ -74,25 +76,33 @@ public class MultiSnipeTest extends TestCase {
       return mSnipeTime == 30L * 1000L;
     }
 
-    public MultiSnipe getGroup() {
+    public MultiSnipe getMultiSnipe() {
       return mGroup;
+    }
+
+    public String getIdentifier() {
+      return mIdentifier;
+    }
+
+    public boolean reload() {
+      return true;
     }
   }
 
   public void testWinAuction() throws Exception {
     MultiSnipe ms = new MultiSnipe("a0c0c0", Currency.getCurrency("$1.23"), 75, false);
-    MockSnipeable toWin = new MockSnipeable(ms.getId(), 1);
+    MockSnipeable toWin = new MockSnipeable(ms.getId(), 1, "12345");
     MockSnipeable[] entries = new MockSnipeable[10];
     entries[0] = toWin;
 
     for(int i=2; i <= 10; i++) {
-      entries[i-1] = new MockSnipeable(ms.getId(), i);
+      entries[i-1] = new MockSnipeable(ms.getId(), i, Integer.toString(12344+i));
     }
-    assertEquals("There should be 10 active entries in the multisnipe after the setup", 10, toWin.getGroup().activeEntries());
+    assertEquals("There should be 10 active entries in the multisnipe after the setup", 10, toWin.getMultiSnipe().activeEntries());
     toWin.win();
     for (MockSnipeable entry : entries) {
       assertTrue("Each entry should have been cancelled but " + entry + " wasn't", entry.isCancelled());
-      assertEquals("Each entry's multisnipe should have 0 active entries", 0, entry.getGroup().activeEntries());
+      assertEquals("Each entry's multisnipe should have 0 active entries", 0, entry.getMultiSnipe().activeEntries());
     }
   }
 }

@@ -1759,7 +1759,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return id;
   }
 
-  public void reload() {
+  public boolean reload() {
     try {
       AuctionEntry ae = AuctionEntry.findFirstBy("id", get("id"));
       if (ae != null) {
@@ -1769,11 +1769,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         mCategory = ae.mCategory;
         mSnipe = ae.getSnipe();
         mEntryEvents = ae.getEvents();
+        mMultiSnipe = ae.getMultiSnipe();
+        return true;
       }
     } catch (Exception e) {
       //  Ignored - the reload semi-silently fails.
       JConfig.log().logDebug("reload from the database failed for (" + getIdentifier() + ")");
     }
+    return false;
   }
 
 //  private static Table sDB = null;
