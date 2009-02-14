@@ -219,7 +219,7 @@ public class JHTML implements JHTMLListener {
           isError = true;
         }
       } else {
-        JConfig.log().logDebug("Bad input tag: " + newTag);
+        JConfig.log().logDebug("Bad input tag (ignoring): " + newTag);
       }
 
       if(!isError) {
