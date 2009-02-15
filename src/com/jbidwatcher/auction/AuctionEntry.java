@@ -292,7 +292,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       AuctionEntry ae = new AuctionEntry(strippedId, server);
       if(ae.isLoaded()) {
         String id = ae.saveDB();
-        if (id != null) return ae;
+        if (id != null) {
+          JConfig.increment("stats.auctions");
+          return ae;
+        }
       }
     }
     return null;
@@ -1147,13 +1150,17 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       //  multisnipe group, let's check if it's been won.  If it has,
       //  tell the MultiSnipe object that one has been won, so it can
       //  clear out the others!
+      boolean won = isHighBidder() && (!isReserve() || isReserveMet());
       if (isMultiSniped()) {
         MultiSnipe ms = getMultiSnipe();
-        if (isHighBidder() && (!isReserve() || isReserveMet())) {
+        if (won) {
           ms.setWonAuction(/* this */);
         } else {
           ms.remove(this);
         }
+      }
+      if(won) {
+        JConfig.increment("stats.won");
       }
       if (isSniped()) {
         setLastStatus("Cancelling snipe, auction is reported as ended.");

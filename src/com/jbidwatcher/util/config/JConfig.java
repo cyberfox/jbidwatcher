@@ -249,7 +249,13 @@ public class JConfig {
     return sHomeDirectory;
   }
 
-  /** 
+  public static String getMacHomeDirectory(String dirname) {
+    String sep = System.getProperty("file.separator");
+    if (dirname.equals("jbidwatcher")) dirname = "JBidwatcher";
+    return getHome() + sep + "Library" + sep + "Preferences" + sep + dirname;
+  }
+
+  /**
    * @brief Gets a path to the 'optimal' place to put application-specific files.
    *
    * @param dirname - The directory to add to the app-specific location.
@@ -261,8 +267,7 @@ public class JConfig {
     String homePath;
 
     if(queryConfiguration("mac", "false").equals("true")) {
-      if(dirname.equals("jbidwatcher")) dirname = "JBidwatcher";
-      homePath = getHome() + sep + "Library" + sep + "Preferences" + sep + dirname;
+      homePath = getMacHomeDirectory(dirname);
     } else {
       homePath = getHome() + sep + '.' + dirname;
     }
@@ -312,7 +317,7 @@ public class JConfig {
     try {
       String dispFile = getCanonicalFile("display.cfg", "jbidwatcher", false);
       File fd = new File(dispFile);
-      if(fd.canWrite()) {
+      if(fd.canWrite() || !fd.exists()) {
         FileOutputStream fos = new FileOutputStream(fd);
         displayProps.store(fos, "Display information.  Do not modify while running.");
         if(auxProps != null) {
@@ -601,5 +606,16 @@ public class JConfig {
 
   public static LoggerInterface log() {
     return mLogger;
+  }
+
+  public static void increment(String key) {
+    long count;
+    try {
+      count = Integer.parseInt(queryConfiguration(key, "0"));
+    } catch (NumberFormatException e) {
+      count = 0;
+    }
+    count++;
+    setConfiguration(key, Long.toString(count));
   }
 }

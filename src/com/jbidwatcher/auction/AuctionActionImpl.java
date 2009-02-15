@@ -7,6 +7,7 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.server.AuctionServer;
 
 /**
@@ -40,6 +41,7 @@ public abstract class AuctionActionImpl implements AuctionAction {
   }
 
   public String activate() {
+    JConfig.increment("stats.bid");
     if(mEntry == null) {
       mEntry = AuctionEntry.findByIdentifier(mIdentifier);
       if(mEntry == null) {
@@ -71,56 +73,73 @@ public abstract class AuctionActionImpl implements AuctionAction {
     switch (bidResult) {
       case AuctionServerInterface.BID_ERROR_UNKNOWN:
         bidResultString = "Bidding " + bidAmount + " apparently failed for an unknown reason.  Check the auction in the browser, to see if the bid went through anyway.";
+        JConfig.increment("stats.bid.unknown_error");
         break;
       case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_ENDED:
       case AuctionServerInterface.BID_ERROR_CANNOT:
         bidResultString = "Bidding apparently failed, as the auction cannot be bid on anymore (probably ended)!";
+        JConfig.increment("stats.bid.too_late");
         break;
       case com.jbidwatcher.auction.AuctionServerInterface.BID_DUTCH_CONFIRMED:
         bidResultString = "Your dutch bid was confirmed, and you are in the list of high bidders!";
+        JConfig.increment("stats.bid.success");
         break;
       case AuctionServerInterface.BID_ERROR_BANNED:
         bidResultString = "Your bid failed, as you are disallowed from bidding on this seller's items.";
+        JConfig.increment("stats.bid.banned");
         break;
       case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_TOO_LOW:
         bidResultString = "Your bid was too low, and was not accepted.";
+        JConfig.increment("stats.bid.too_low");
         break;
       case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_TOO_LOW_SELF:
-          bidResultString = "Your bid was below or equal to your previous high bid, and was not accepted.";
-          break;
+        bidResultString = "Your bid was below or equal to your previous high bid, and was not accepted.";
+        JConfig.increment("stats.bid.too_low");
+        break;
       case AuctionServerInterface.BID_ERROR_RESERVE_NOT_MET:
         bidResultString = "Your bid was successful, but it did not meet the reserve price.";
+        JConfig.increment("stats.bid.too_low");
         break;
       case AuctionServerInterface.BID_ERROR_AMOUNT:
         bidResultString = "Bidding apparently failed, because of an an invalid amount (" + bidAmount + ").";
+        JConfig.increment("stats.bid.too_low");
         break;
       case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_OUTBID:
         bidResultString = "Your bid for " + bidAmount + " was submitted, but someone else's bid is still higher.";
+        JConfig.increment("stats.bid.outbid");
         break;
       case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_CONNECTION:
         bidResultString = "Bid failed due to connection problem.  Probably a timeout trying to reach eBay.";
+        JConfig.increment("stats.bid.connection_error");
         break;
       case AuctionServer.BID_ERROR_AUCTION_GONE:
         bidResultString = "Your bid failed because the item was removed from JBidwatcher before the bid executed.";
+        JConfig.increment("stats.bid.removed");
         break;
       case AuctionServerInterface.BID_WINNING:
       case AuctionServerInterface.BID_SELFWIN:
         bidResultString = "Congratulations!  You have the high bid with " + bidAmount + '.';
+        JConfig.increment("stats.bid.success");
         break;
       case AuctionServer.BID_ERROR_ACCOUNT_SUSPENDED:
         bidResultString = "You cannot interact with any auctions, your account has been suspended.";
+        JConfig.increment("stats.bid.suspended");
         break;
       case AuctionServer.BID_ERROR_CANT_SIGN_IN:
         bidResultString = "Sign in failed repeatedly during bid.  Check your username and password information in the Configuration Manager.";
+        JConfig.increment("stats.bid.sign_in");
         break;
       case AuctionServer.BID_ERROR_WONT_SHIP:
         bidResultString = "You are registered in a country to which the seller doesn't ship.";
+        JConfig.increment("stats.bid.wont_ship");
         break;
       case AuctionServer.BID_ERROR_REQUIREMENTS_NOT_MET:
         bidResultString = "You don't meet some requirement the seller has set for the item.  Check the item details for more information.";
+        JConfig.increment("stats.bid.requirement_not_met");
         break;
       default:
         bidResultString = "Something VERY wrong has happened, and I don't know what it is.  Check the auction to see if your bid went through.";
+        JConfig.increment("stats.bid.really_bad");
         break;
     }
     return (bidResultString);

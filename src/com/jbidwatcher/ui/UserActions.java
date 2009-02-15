@@ -97,6 +97,8 @@ public class UserActions implements MessageQueue.Listener {
       DoAbout();
     } else if(commandStr.equals("FAQ")) {
       DoFAQ();
+    } else if(commandStr.equals("Donate")) {
+      DoNeedHelp();
     } else if(commandStr.equals("Configure")) {
       DoConfigure();
     }
@@ -583,6 +585,7 @@ public class UserActions implements MessageQueue.Listener {
     //  same currency, and other similar requirements.
     MultiSnipe aeMS = null;
     int i;
+    boolean seenCurrencyWarning = false;
     for(i=0; i<rowList.length; i++) {
       AuctionEntry tempAE = (AuctionEntry) mTabs.getIndexedEntry(rowList[i]);
       Currency curBid = tempAE.getCurBid();
@@ -630,19 +633,22 @@ public class UserActions implements MessageQueue.Listener {
           baseAllBid = curBid;
         }
       } catch(Currency.CurrencyTypeException cte) {
-        // THIS is a failure, because it means that some of the
-        // auctions selected have a different currency than each
-        // other.  VERY bad.
-        int rval = JOptionPane.showConfirmDialog(src,
-                                      "You really should not include auctions in different\n" +
-                                      "currencies in a multi-snipe group.  It's a really\n" +
-                                      " bad idea, because the snipe value may mean different\n" +
-                                      "values in each currency.  Click cancel to go back and\n" +
-                                      "only choose auctions to multisnipe that are in one currency.\n" +
-                                      "If you click OK, you are responsible for handling the\n" +
-                                      "currency conversion factors by yourself.",
-                                      "Problem setting multisnipe", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if(rval == JOptionPane.CANCEL_OPTION || rval == JOptionPane.CLOSED_OPTION) return;
+        if(!seenCurrencyWarning) {
+          // THIS is a failure, because it means that some of the
+          // auctions selected have a different currency than each
+          // other.  VERY bad.
+          int rval = JOptionPane.showConfirmDialog(src,
+              "You really should not include auctions in different\n" +
+                  "currencies in a multi-snipe group.  It's a really\n" +
+                  " bad idea, because the snipe value may mean different\n" +
+                  "values in each currency.  Click cancel to go back and\n" +
+                  "only choose auctions to multisnipe that are in one currency.\n" +
+                  "If you click OK, you are responsible for handling the\n" +
+                  "currency conversion factors by yourself.",
+              "Problem setting multisnipe", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+          if (rval == JOptionPane.CANCEL_OPTION || rval == JOptionPane.CLOSED_OPTION) return;
+        }
+        seenCurrencyWarning = true;
       }
       //  IF one of the auctions we're adding is already multi-sniped,
       //  then we're adding this auction into that one's list.

@@ -67,6 +67,7 @@ public class Snipe {
     mEntry.setLastStatus("Firing actual snipe.");
 
     int rval = mBidder.placeFinalBid(mCJ, mBidForm, mEntry, mEntry.getSnipeAmount(), mEntry.getSnipeQuantity());
+    JConfig.increment("stats.sniped");
     String snipeResult = getSnipeResult(rval, mEntry.getTitle(), mEntry);
     mEntry.setLastStatus(snipeResult);
 
@@ -96,6 +97,7 @@ public class Snipe {
 
     //  Get Bid Key/Form
     try {
+      JConfig.increment("stats.presniped");
       mBidForm = mBidder.getBidForm(mCJ, mEntry, mEntry.getSnipeAmount(), mEntry.getSnipeQuantity());
     } catch (BadBidException bbe) {
       String result = getSnipeResult(bbe.getResult(), mEntry.getTitle(), mEntry);
@@ -113,58 +115,76 @@ public class Snipe {
     String snipeOutput;
     if(snipeResult == AuctionServerInterface.BID_WINNING || snipeResult == AuctionServerInterface.BID_SELFWIN) {
       snipeOutput = "Successfully sniped a high bid on " + aucTitle + '!';
+      JConfig.increment("stats.sniped.success");
     } else if(snipeResult == AuctionServerInterface.BID_DUTCH_CONFIRMED) {
       snipeOutput = "Successfully sniped a high dutch bid on " + aucTitle + '!';
+      JConfig.increment("stats.sniped.success");
     } else {
       switch(snipeResult) {
         case AuctionServerInterface.BID_ERROR_UNKNOWN:
           snipeOutput = "Unknown error sniping on " + aucTitle;
+          JConfig.increment("stats.sniped.unknown_error");
           break;
         case AuctionServerInterface.BID_ERROR_ENDED:
         case AuctionServerInterface.BID_ERROR_CANNOT:
           snipeOutput = "Snipe apparently failed, as the auction cannot be bid on anymore: " + aucTitle;
+          JConfig.increment("stats.sniped.too_late");
           break;
         case AuctionServerInterface.BID_ERROR_BANNED:
           snipeOutput = "Snipe failed, as you are disallowed from bidding on " + aeFire.getSeller() + "'s items.";
+          JConfig.increment("stats.sniped.banned");
           break;
         case AuctionServerInterface.BID_ERROR_TOO_LOW:
           snipeOutput = "Snipe was too low, and was not accepted.";
+          JConfig.increment("stats.sniped.too_low");
           break;
         case AuctionServerInterface.BID_ERROR_TOO_LOW_SELF:
           snipeOutput = "Your bid was below or equal to your previous high bid, and was not accepted.";
+          JConfig.increment("stats.sniped.too_low");
           break;
         case AuctionServerInterface.BID_ERROR_RESERVE_NOT_MET:
           snipeOutput = "Your snipe was successful, but it did not meet the reserve price.";
+          JConfig.increment("stats.sniped.too_low");
           break;
         case AuctionServerInterface.BID_ERROR_AMOUNT:
           snipeOutput = "There is an error with the amount for the snipe on " + aucTitle + " (Probably snipe too low vs. current bids).";
+          JConfig.increment("stats.sniped.too_low");
           break;
         case AuctionServerInterface.BID_ERROR_OUTBID:
           snipeOutput = "You have been outbid in your snipe on " + aucTitle;
+          JConfig.increment("stats.sniped.outbid");
           break;
         case AuctionServerInterface.BID_ERROR_CONNECTION:
           snipeOutput = "Snipe failed due to connection problem.  Probably a timeout trying to reach eBay.";
+          JConfig.increment("stats.sniped.connection_error");
           break;
         case AuctionServer.BID_ERROR_AUCTION_GONE:
           snipeOutput = "Your snipe failed because the item was removed from JBidwatcher before the bid executed.";
+          JConfig.increment("stats.sniped.removed");
           break;
         case AuctionServer.BID_ERROR_ACCOUNT_SUSPENDED:
           snipeOutput = "You cannot interact with any auctions, your account has been suspended.";
+          JConfig.increment("stats.sniped.suspended");
           break;
         case AuctionServer.BID_ERROR_CANT_SIGN_IN:
           snipeOutput = "Sign in failed repeatedly during bid.  Check your username and password information in the Configuration Manager.";
+          JConfig.increment("stats.sniped.sign_in");
           break;
         case AuctionServer.BID_ERROR_WONT_SHIP:
           snipeOutput = "You are registered in a country to which the seller doesn't ship.";
+          JConfig.increment("stats.sniped.wont_ship");
           break;
         case AuctionServer.BID_ERROR_REQUIREMENTS_NOT_MET:
           snipeOutput = "You don't meet some requirement the seller has set for the item.  Check the item details for more information.";
+          JConfig.increment("stats.sniped.requirement_not_met");
           break;
         case AuctionServerInterface.BID_ERROR_MULTI:
           snipeOutput = "There is a problem with the multisnipe, an earlier entry hasn't finished updating.  Trying again shortly.";
+          JConfig.increment("stats.sniped.multisnipe_problem");
           break;
         default:
           snipeOutput = "Something really bad happened, and I don't know what.";
+          JConfig.increment("stats.sniped.really_bad");
           break;
       }
     }

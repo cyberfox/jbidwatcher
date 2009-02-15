@@ -210,7 +210,10 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
 
     AuctionServer newServer = AuctionServerManager.getInstance().getServer();
     AuctionServerManager.setEntryManager(this);
-    if (totalCount == 0) return totalCount;
+    if (totalCount == 0) {
+      if(JConfig.queryConfiguration("stats.auctions") == null) JConfig.setConfiguration("stats.auctions", "0");
+      return totalCount;
+    }
 
     AuctionServerManager.getInstance().loadAuctionsFromDB(newServer);
     AuctionStats as = AuctionServerManager.getInstance().getStats();

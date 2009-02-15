@@ -360,6 +360,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     ErrorMonitor.getInstance();
     cfgLoad = JConfig.getCanonicalFile(cfgLoad, "jbidwatcher", false);
+    cfgLoad = lookForNewerMacConfig(cfgLoad);
     boolean ebayLoaded = false;
     InputStream configStream = checkConfig(cfgLoad);
     boolean needUserSetup = (configStream == null);
@@ -396,6 +397,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     JConfig.log().logDebug(Constants.PROGRAM_NAME + " " + Constants.PROGRAM_VERS + "-" + Constants.SVN_REVISION);
     JConfig.log().logDebug(System.getProperty("java.vendor") + " Java, version " + System.getProperty("java.version") + " on " + System.getProperty("os.name"));
+    if(JConfig.queryConfiguration("mac", "false").equals("true")) {
+      JConfig.setConfiguration("temp.cfg.load", JConfig.getCanonicalFile("JBidWatch.cfg", "jbidwatcher", false));
+    }
 
     try {
       boolean creatingDB = JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("false");
@@ -450,6 +454,18 @@ public final class JBidWatch implements JConfig.ConfigListener {
     } catch(Exception e) {
       JConfig.log().handleException("JBidwatcher: " + e, e);
     }
+  }
+
+  private static String lookForNewerMacConfig(String cfgLoad) {
+    if (System.getProperty("mrj.version") != null) {
+      String sep = System.getProperty("file.separator");
+      String macHome = JConfig.getMacHomeDirectory("jbidwatcher");
+      String macCfg = macHome + sep + "JBidWatch.cfg";
+      File mac = new File(macCfg);
+      File cfg = new File(cfgLoad);
+      if(mac.lastModified() > cfg.lastModified()) cfgLoad = macCfg;
+    }
+    return cfgLoad;
   }
 
   private static void eBayServerSetup() {
