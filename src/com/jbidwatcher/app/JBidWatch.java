@@ -668,7 +668,11 @@ public final class JBidWatch implements JConfig.ConfigListener {
       q.preQueue("TIMECHECK", "auction_manager", now + (Constants.ONE_SECOND * 2), Constants.THIRTY_MINUTES);
     }
     q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), now + Constants.ONE_SECOND * 3, 481 * Constants.ONE_MINUTE + Constants.ONE_SECOND * 17);
-    q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 2 * 10));
+    q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 20));
+    if(JConfig.queryConfiguration("seen.need_help") == null) {
+      q.preQueue("Donate", "user", now + (Constants.ONE_SECOND * 15));
+      JConfig.setConfiguration("seen.need_help", "true");
+    }
 
     //  Other interesting examples...
     //q.preQueue("This is a message for the display!", "Swing", System.currentTimeMillis()+Constants.ONE_MINUTE);
