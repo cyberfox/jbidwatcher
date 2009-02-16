@@ -65,6 +65,10 @@ public class JBidToolBar {
     mBidBarPanel.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
 
     mBidBarPanel.setVisible(JConfig.queryConfiguration("display.toolbar", "true").equals("true"));
+    if (!mBidBarPanel.isVisible() && !Platform.isMac()) {
+      if (mHeaderStatus != null) setStatusIcon();
+      mBidMenu.add(mHeaderStatus);
+    }
 
     return mBidBarPanel;
   }
