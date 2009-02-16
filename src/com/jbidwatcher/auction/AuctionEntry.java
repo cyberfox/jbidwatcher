@@ -1807,14 +1807,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   static final String baseNonDupeQuery = "FROM entries" +
-      " WHERE id in (SELECT MIN(id) FROM entries" +
+      " WHERE id IN (SELECT MIN(id) FROM entries" +
       " WHERE auction_id IN (SELECT MAX(auction_id) FROM entries GROUP BY identifier)" +
       " GROUP BY auction_id)";
   static final String nonDupeQuery = "SELECT * " + baseNonDupeQuery;
 
   @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findActive() {
-    String notEndedQuery = nonDupeQuery + " AND ended != 1";
+    String notEndedQuery = nonDupeQuery + " AND (ended != 1 OR ended IS NULL)";
     return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, notEndedQuery);
   }
 
@@ -1839,7 +1839,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   public static int activeCount() {
-    return getRealDatabase().countBySQL("SELECT count(*) " + baseNonDupeQuery + " AND ended != 1");
+    return getRealDatabase().countBySQL("SELECT count(*) " + baseNonDupeQuery + " AND (ended != 1 OR ended IS NULL)");
   }
 
   public static int inactiveCount() {
@@ -1854,7 +1854,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return getRealDatabase().countBySQL("SELECT COUNT(DISTINCT(identifier)) FROM entries WHERE identifier IS NOT NULL");
   }
 
-  private static final String snipeFinder = "(snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL) AND ended != 1";
+  private static final String snipeFinder = "(snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL) AND (ended != 1 OR ended IS NULL)";
 
   public static int snipedCount() {
     return getRealDatabase().countBy(snipeFinder);
