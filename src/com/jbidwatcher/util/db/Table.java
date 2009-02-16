@@ -61,6 +61,7 @@ public class Table
 
   /**
    * Close the statement, commit any last outstanding data (!?) and shut down the database.
+   * @return The database that was shut down.
    */
   public Database shutdown() {
     try {
@@ -111,7 +112,7 @@ public class Table
   public Record findFirst(String query) {
     try {
       ResultSet rs = mS.executeQuery(query);
-      return getFirstResult(rs);
+      return rs == null ? null : getFirstResult(rs);
     } catch (SQLException e) {
       e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
       return null;
