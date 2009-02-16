@@ -78,7 +78,7 @@ public class ErrorManagement implements LoggerInterface {
   }
 
   public void logDebug(String msg) {
-    if(JConfig.debugging) logMessage(msg);
+    if(JConfig.debugging && msg != null) logMessage(msg);
   }
 
   public void logVerboseDebug(String msg) {
@@ -147,7 +147,7 @@ public class ErrorManagement implements LoggerInterface {
     if(doLogging.equals("true")) {
       if(mLogWriter != null) {
         mLogWriter.println(logMsg);
-        mLogWriter.println(e.getMessage());
+        if(e.getMessage() != null) mLogWriter.println(e.getMessage());
         e.printStackTrace(mLogWriter);
         mLogWriter.flush();
       }

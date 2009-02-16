@@ -83,6 +83,7 @@ public class MyJBidwatcher {
       public void addLog(String s) { /* ignored */}
 
       public void exception(String log, String message, String trace) {
+        if(message == null) message = "(no message)";
         if(JConfig.queryConfiguration("my.jbidwatcher.id") != null &&
            JConfig.queryConfiguration("logging.remote", "false").equals("true")) {
           reportException(log + "\n" + message + "\n" + trace);

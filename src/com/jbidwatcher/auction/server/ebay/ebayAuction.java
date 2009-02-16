@@ -337,7 +337,12 @@ class ebayAuction extends SpecificAuction {
       loadPaypal(doc);
     } catch(Throwable t) {
       //  I don't actually CARE about any of this data, or any errors that occur on loading it, so don't mess things up on errors.
-      JConfig.log().logDebug(t.getMessage());
+      String msg = t.getMessage();
+      if(msg != null) {
+        JConfig.log().logDebug(msg);
+      } else {
+        JConfig.log().handleException("A weird error occurred", t);
+      }
     }
   }
 
