@@ -39,6 +39,9 @@ public class Database {
     if(base == null) base = JConfig.getHomeDirectory("jbidwatcher");
     System.setProperty("derby.system.home", base);
     System.setProperty("derby.storage.pageCacheSize", "500");
+    System.setProperty("derby.locks.monitor", "true");
+    System.setProperty("derby.locks.deadlockTrace", "true");
+    System.setProperty("derby.language.logStatementText", "true");
     setup();
   }
 
