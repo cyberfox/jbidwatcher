@@ -552,6 +552,11 @@ public class AuctionInfo extends ActiveRecord
     return toDelete.get(0).getDatabase().deleteBy("id IN (" + auctions + ")");
   }
 
+  @SuppressWarnings({"unchecked"})
+  public static List<AuctionInfo> findLostAuctions() {
+    return (List<AuctionInfo>)findAllBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE identifier NOT IN (SELECT DISTINCT(identifier) FROM user1.entries)");
+  }
+
   public void delete() {
     super.delete(AuctionInfo.class);
   }

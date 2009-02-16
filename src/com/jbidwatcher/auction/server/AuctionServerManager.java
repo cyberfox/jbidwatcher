@@ -87,7 +87,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   private Map<String, Long> timingLog = new HashMap<String, Long>();
-  private Map<String, Long> startLog = new HashMap<String, Long>();
+  private final Map<String, Long> startLog = new HashMap<String, Long>();
   private Map<String, Long> countLog = new HashMap<String, Long>();
   private Map<String, LinkedList<Long>> last10Log = new HashMap<String, LinkedList<Long>>();
   private void timeStart(String blockName) {
@@ -183,6 +183,21 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         });
         tabQ.enqueue("HIDE");
         AuctionEntry.getRealDatabase().commit();
+
+        List<AuctionInfo> lostAuctions = AuctionInfo.findLostAuctions();
+        if(!lostAuctions.isEmpty()) {
+          JConfig.log().logMessage("Recovering " + lostAuctions.size() + " listings.");
+          for (AuctionInfo ai : lostAuctions) {
+            AuctionEntry ae = new AuctionEntry();
+            ae.setAuctionInfo(ai);
+            ae.setCategory("recovered");
+            ae.setSticky(true);
+            ae.setNeedsUpdate();
+            sEntryManager.addEntry(ae);
+          }
+          MQFactory.getConcrete("recovered Tab").enqueue("REPORT These auctions had lost their settings.");
+          MQFactory.getConcrete("recovered Tab").enqueue("SHOW");
+        }
       }
     };
     completedHandler.start();
@@ -230,7 +245,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         timeStop("addEntry-" + ae.getCategory());
         timeStop("addEntry");
       }
-      r.report(count++);
+      if(r != null) r.report(count++);
     }
   }
 
