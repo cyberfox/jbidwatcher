@@ -125,7 +125,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   }
 
   private abstract class Report {
-    public abstract void report(int count);
+    public abstract void report(AuctionEntry ae, int count);
   }
 
   public void loadAuctionsFromDB(final AuctionServer newServer) {
@@ -145,15 +145,33 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     timeStart("findAll");
     List<AuctionEntry> entries = AuctionEntry.findActive();
     timeStop("findAll");
+    final List<AuctionEntry> sniped = new ArrayList<AuctionEntry>();
     JConfig.log().logMessage("Done with the initial load (got " + entries.size() + " active entries)");
     importListingsToUI(newServer, entries, new Report() {
-      public void report(int count) {
-        timeStart("splash");
+      public void report(AuctionEntry ae, int count) {
         MQFactory.getConcrete("splash").enqueue("SET " + count);
-        timeStop("splash");
+        if (!ae.isComplete() && ae.isSniped()) {
+          sniped.add(ae);
+        }
       }
     });
+    JConfig.log().logDebug("Auction Entries loaded");
 
+    spinOffCompletedLoader(newServer);
+
+    JConfig.log().logDebug("Completed loader spun off");
+    for(AuctionEntry snipable:sniped) {
+      timeStart("snipeSetup");
+      if(!snipable.isComplete()) {
+        snipable.refreshSnipe();
+      }
+      timeStop("snipeSetup");
+    }
+    JConfig.log().logDebug("Snipes processed");
+    timeDump("addEntry");
+  }
+
+  private void spinOffCompletedLoader(final AuctionServer newServer) {
     Thread completedHandler = new Thread() {
       public void run() {
         final MessageQueue tabQ = MQFactory.getConcrete("complete Tab");
@@ -170,7 +188,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         tabQ.enqueue("PROGRESS");
         tabQ.enqueue("PROGRESS Loading...");
         importListingsToUI(newServer, entries, new Report() {
-          public void report(int count) {
+          public void report(AuctionEntry ae, int count) {
             if(percentStep < 1.0) {
               tabQ.enqueue("PROGRESS " + Math.round(count * percentMultiple));
             } else {
@@ -201,20 +219,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       }
     };
     completedHandler.start();
-
-    JConfig.log().logDebug("Auction Entries loaded");
-    List<AuctionEntry> sniped = AuctionEntry.findAllSniped();
-    JConfig.log().logDebug("Snipes loaded");
-    for(AuctionEntry snipable:sniped) {
-      timeStart("snipeSetup");
-      if(!snipable.isComplete()) {
-        snipable.setServer(newServer);
-        snipable.refreshSnipe();
-      }
-      timeStop("snipeSetup");
-    }
-    JConfig.log().logDebug("Snipes processed");
-    timeDump("addEntry");
   }
 
   private void importListingsToUI(AuctionServer newServer, List<AuctionEntry> entries, Report r) {
@@ -245,7 +249,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         timeStop("addEntry-" + ae.getCategory());
         timeStop("addEntry");
       }
-      if(r != null) r.report(count++);
+      if(r != null) r.report(ae, count++);
     }
   }
 
