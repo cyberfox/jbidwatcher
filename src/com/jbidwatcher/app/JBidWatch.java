@@ -395,8 +395,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
     setUI(null, null, UIManager.getInstalledLookAndFeels());
 
-    JConfig.log().logDebug(Constants.PROGRAM_NAME + " " + Constants.PROGRAM_VERS + "-" + Constants.SVN_REVISION);
-    JConfig.log().logDebug(System.getProperty("java.vendor") + " Java, version " + System.getProperty("java.version") + " on " + System.getProperty("os.name"));
+    JConfig.log().logMessage(Constants.PROGRAM_NAME + " " + Constants.PROGRAM_VERS + "-" + Constants.SVN_REVISION);
+    JConfig.log().logMessage(System.getProperty("java.vendor") + " Java, version " + System.getProperty("java.version") + " on " + System.getProperty("os.name"));
     if(JConfig.queryConfiguration("mac", "false").equals("true")) {
       JConfig.setConfiguration("temp.cfg.load", JConfig.getCanonicalFile("JBidWatch.cfg", "jbidwatcher", false));
     }
