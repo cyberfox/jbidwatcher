@@ -62,27 +62,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private ebayCleaner mCleaner;
   private Bidder mBidder;
 
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    ebayServer that = (ebayServer) o;
-
-    return T.equals(that.T) && mLogin.equals(that.mLogin);
-  }
-
-  public int hashCode() {
-    String user = mLogin.getUserId();
-    String pass = mLogin.getPassword();
-
-    int result = Constants.EBAY_SERVER_NAME.hashCode();
-    result = 31 * result + (user != null ? user.hashCode() : 0);
-    result = 31 * result + (pass != null ? pass.hashCode() : 0);
-    result = 31 * result + T.hashCode();
-
-    return result;
-  }
-
   public Currency getMinimumBidIncrement(Currency currentBid, int bidCount) {
     return sCurrencies.getMinimumBidIncrement(currentBid, bidCount);
   }
