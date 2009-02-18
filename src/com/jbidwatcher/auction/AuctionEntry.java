@@ -1806,22 +1806,15 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return (AuctionEntry) ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
   }
 
-  static final String baseNonDupeQuery = "FROM entries" +
-      " WHERE id IN (SELECT MIN(id) FROM entries" +
-      " WHERE auction_id IN (SELECT MAX(auction_id) FROM entries GROUP BY identifier)" +
-      " GROUP BY auction_id)";
-  static final String nonDupeQuery = "SELECT * " + baseNonDupeQuery;
-
   @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findActive() {
-    String notEndedQuery = nonDupeQuery + " AND (ended != 1 OR ended IS NULL)";
+    String notEndedQuery = "SELECT * FROM entries WHERE (ended != 1 OR ended IS NULL)";
     return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, notEndedQuery);
   }
 
   @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findEnded() {
-    String endedQuery = nonDupeQuery + " AND ended = 1";
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, endedQuery);
+    return (List<AuctionEntry>) findAllBy(AuctionEntry.class, "ended", "1");
   }
 
   @SuppressWarnings({"unchecked"})
@@ -1831,7 +1824,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findAll() {
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, nonDupeQuery);
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT * FROM entries");
   }
 
   public static int count() {
@@ -1839,11 +1832,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   public static int activeCount() {
-    return getRealDatabase().countBySQL("SELECT count(*) " + baseNonDupeQuery + " AND (ended != 1 OR ended IS NULL)");
-  }
-
-  public static int inactiveCount() {
-    return getRealDatabase().countBySQL("SELECT count(*) " + baseNonDupeQuery + " AND ended = 1");
+    return getRealDatabase().countBy("(ended != 1 OR ended IS NULL)");
   }
 
   public static int completedCount() {
