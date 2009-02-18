@@ -120,11 +120,11 @@ public abstract class ActiveRecord extends HashBacked {
     return id;
   }
 
-  protected static List<ActiveRecord> findAllBy(Class klass, String key, String value) {
+  protected static List<? extends ActiveRecord> findAllBy(Class klass, String key, String value) {
     return findAllBy(klass, key, value, null);
   }
 
-  protected static List<ActiveRecord> findAllBy(Class klass, String key, String value, String order) {
+  protected static List<? extends ActiveRecord> findAllBy(Class klass, String key, String value, String order) {
     if(sDBDisabled) return new LinkedList<ActiveRecord>();
     ActiveRecord found = getExemplar(klass);
     List<Record> results = getTable(found).findAll(key, value, order);

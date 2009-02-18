@@ -84,7 +84,7 @@ public class DeletedEntry extends ActiveRecord {
    * @param identifier - The auction identifier to 'undelete', effectively.
    */
   public static void remove(String identifier) {
-    List<ActiveRecord> found = findAllBy(DeletedEntry.class, "identifier", identifier);
+    List<ActiveRecord> found = (List<ActiveRecord>) findAllBy(DeletedEntry.class, "identifier", identifier);
     if(found != null) {
       for(ActiveRecord entry : found) {
         entry.delete(DeletedEntry.class);
