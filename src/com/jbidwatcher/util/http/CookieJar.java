@@ -39,6 +39,12 @@ public class CookieJar {
     }
   }
 
+  public static class CookieRedirectException extends RuntimeException {
+    public CookieRedirectException(String text, Throwable trigger) {
+      super(text, trigger);
+    }
+  }
+
   /**
    * Get all the cookies and the page data itself, using post or get.
    *
@@ -93,7 +99,19 @@ public class CookieJar {
     return connect(page, null, null, false, null);
   }
 
+  private Map<String, Integer> mRedirections;
+
   public URLConnection connect(String page, String body, String referer, boolean post, List<String> pages) {
+    URLConnection rval;
+    mRedirections = new HashMap<String, Integer>();
+    rval = internal_connect(page, body, referer, post, pages);
+    mRedirections = null;
+    return rval;
+  }
+
+  private URLConnection internal_connect(String page, String body, String referer, boolean post, List<String> pages) {
+    handleInfiniteRedirection(page);
+
     if(pages != null) pages.add(page);
 
     HttpURLConnection uc = initiateRequest(post, page, body, referer);
@@ -115,11 +133,18 @@ public class CookieJar {
           }
         }
 
-        return connect(redirect, body, referer, post, pages);
+        return internal_connect(redirect, body, referer, post, pages);
       }
     }
 
     return uc;
+  }
+
+  private void handleInfiniteRedirection(String page) {
+    Integer pageCount = mRedirections.get(page);
+    if(pageCount == null) pageCount = 0;
+    if(pageCount == 2) throw new CookieRedirectException("Looped redirect to " + page, null);
+    mRedirections.put(page, pageCount+1);
   }
 
   private String handleRedirect(HttpURLConnection uc, String pageName) {

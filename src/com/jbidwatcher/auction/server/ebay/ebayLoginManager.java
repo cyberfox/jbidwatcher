@@ -212,6 +212,11 @@ public class ebayLoginManager implements LoginManager {
       notifySecurityIssue();
       JConfig.log().handleException("Couldn't sign in, captcha interference!", ce);
       cj = null;
+    } catch(CookieJar.CookieRedirectException cre) {
+      MQFactory.getConcrete("login").enqueue("CAPTCHA");
+      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN The login page is redirecting to itself infinitely; this probably means eBay's increased security monitoring has been triggered and JBidwatcher cannot log in for a while.");
+      notifySecurityIssue();
+      JConfig.log().handleException("Couldn't sign in, endless redirection; probably captcha interference!", cre);
     }
 
     return cj;
