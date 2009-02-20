@@ -27,11 +27,11 @@ public class JBHelp {
   }
 
   public static StringBuffer loadHelp(String helpPath, String title) {
-    StringBuffer outSB;
+    StringBuffer outSB = null;
 
     try {
       URL resource = JConfig.getResource(helpPath);
-      outSB = new StringBuffer(preprocess(Http.receivePage(resource.openConnection()), title));
+      if(resource != null) outSB = new StringBuffer(preprocess(Http.receivePage(resource.openConnection()), title));
     } catch(IOException ignored) {
       outSB = null;
     }

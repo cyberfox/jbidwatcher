@@ -38,6 +38,7 @@ public class UserActions implements MessageQueue.Listener {
   private RSSDialog _rssDialog = null;
   private static StringBuffer _colorHelp = null;
   private static StringBuffer _aboutText = null;
+  private static StringBuffer _licenseText = null;
   private static StringBuffer _faqText = null;
   private static StringBuffer _needHelp = null;
 
@@ -1104,6 +1105,7 @@ public class UserActions implements MessageQueue.Listener {
 
   private final static StringBuffer badHelpData = new StringBuffer("Error loading About text!  (D'oh!)  Email <a href=\"mailto:cyberfox@users.sourceforge.net\">me</a>!");
   private final static StringBuffer badAbout = new StringBuffer("Error loading About text!  (D'oh!)  Email <a href=\"mailto:cyberfox@users.sourceforge.net\">me</a>!");
+  private final static StringBuffer badLicense = new StringBuffer("Error loading License text!  Please visit <a href=\"http://www.jbidwatcher.com/by-nc-sa-amended.shtml\">http://http://www.jbidwatcher.com/by-nc-sa-amended.shtml</a>!");
   private final static StringBuffer badFAQ = new StringBuffer("Error loading FAQ text!  (D'oh!)  Email <a href=\"mailto:cyberfox@users.sourceforge.net\">me</a>!");
 
   static private JFrame aboutFrame = null;
@@ -1118,6 +1120,21 @@ public class UserActions implements MessageQueue.Listener {
       aboutFrame = _oui.showTextDisplay(_aboutText!=null?_aboutText:badAbout, aboutBoxSize, "About " + Constants.PROGRAM_NAME);
     } else {
       aboutFrame.setVisible(true);
+    }
+  }
+
+  static private JFrame licenseFrame = null;
+  private void DoLicense() {
+    if(licenseFrame == null) {
+      Dimension licenseBoxSize = new Dimension(600, 245);
+
+      if(_licenseText == null) {
+        _licenseText = JBHelp.loadHelp("/help/COPYING.html", "License for " + Constants.PROGRAM_NAME + "...");
+      }
+
+      licenseFrame = _oui.showTextDisplay(_licenseText!=null?_licenseText:badLicense, licenseBoxSize, "License for " + Constants.PROGRAM_NAME);
+    } else {
+      licenseFrame.setVisible(true);
     }
   }
 
@@ -1423,6 +1440,7 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("About")) DoAbout();
     else if(actionString.equals("Donate")) DoNeedHelp();
     else if(actionString.equals("FAQ")) DoFAQ();
+    else if(actionString.equals("License")) DoLicense();
 
     else if(actionString.equals("Cancel Snipe")) CancelSnipe(c_src, whichAuction);
     else if(actionString.equals("Add Comment")) DoComment(c_src, whichAuction);

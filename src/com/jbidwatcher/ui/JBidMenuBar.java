@@ -229,6 +229,7 @@ public class JBidMenuBar extends JMenuBar {
     makeMenuItem(inMenu, "Explain Colors And Icons", 'E');
     makeMenuItem(inMenu, "FAQ", 'F', KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
     makeMenuItem(inMenu, "Donate", 'D');
+    makeMenuItem(inMenu, "License Details", "License", 'D');
     inMenu.add(new JSeparator());
     makeMenuItem(inMenu, "About " + Constants.PROGRAM_NAME, 'A');
   }
