@@ -75,52 +75,52 @@ select 'View Comment' to see the comment.  Using 'View Information'
 will give it as well.  If your windowing system suppors tooltips, the
 comment will also show up in the tooltip for that item.
 </li>
-<li>Pinned Note <img src="<%jar%>icons/note3.gif"><br>
+<li>Pinned Note <img src="<%jar%>/icons/note3.gif"><br>
 This means the same as Bold on an auction identifier, above.  There is
 a comment on the auction.
 </li>
-<li>'B' with speed lines <img src="<%jar%>icons/bin_item.gif"><br>
+<li>'B' with speed lines <img src="<%jar%>/icons/bin_item.gif"><br>
 This item has Buy It Now enabled.  Items which have the Buy It Now
 logo alone, without the white ball, are 'Fixed Price'.  You can only
 use B.I.N. to purchase them.  (You should also see '(FP)' in the
 current price column.)
 </li>
-<li>The single-character PayPal logo <img src="<%jar%>icons/paypal16x16.gif"><br>
+<li>The single-character PayPal logo <img src="<%jar%>/icons/paypal16x16.gif"><br>
 This item supports payment via PayPal.
 </li>
-<li>Camera <img src="<%jar%>icons/camera.gif"><br>
+<li>Camera <img src="<%jar%>/icons/camera.gif"><br>
 This means that there is a thumbnail image available.  You can hover
 your cursor over the item, and it will show it in a moment, or you can
 right-click (Ctrl-Click for MacOSX) and choose 'Show Information' and
 it will show the thumbnail along with the item information.
 </li>
-<li>Red 'R' bar sinister <img src="<%jar%>icons/unmet_reserve.gif"><br>
+<li>Red 'R' bar sinister <img src="<%jar%>/icons/unmet_reserve.gif"><br>
 Simply means that there is a reserve, and it has not yet been met.
 </li>
-<li>Blue 'R' in a circle <img src="<%jar%>icons/met_reserve.gif"><br>
+<li>Blue 'R' in a circle <img src="<%jar%>/icons/met_reserve.gif"><br>
 There is a reserve on this item, but the current price is above that
 reserve price.
 </li>
-<li>Winning <img src="<%jar%>icons/winning.gif"><br>
+<li>Winning <img src="<%jar%>/icons/winning.gif"><br>
 This means that you are the current high bidder, and above the reserve
 if any, on this item.
 </li>
-<li>Green ball <img src="<%jar%>icons/green_ball.gif"><br>
+<li>Green ball <img src="<%jar%>/icons/green_ball.gif"><br>
 This only shows up on your 'selling' page, and it meeans that your
 item has a bid that is above the reserve, if any, and will sell
 barring bid cancellations.
 </li>
-<li>Invalid Item <img src="<%jar%>icons/invalid.png"><br>
+<li>Invalid Item <img src="<%jar%>/icons/invalid.png"><br>
 This indicates that JBidwatcher could not successfully read the item from
 eBay the last time it tried.  It could be because of a communications
 failure, because it's in a section you don't have access to, or because
 the item has been deleted from eBay.
 </li>
-<li>Deleted Item <img src="<%jar%>icons/deleted.png"><br>
+<li>Deleted Item <img src="<%jar%>/icons/deleted.png"><br>
 This indicates that JBidwatcher has determined the item has been removed
 from eBay.
 </li>
-<li>Feed Icon <img src="<%jar%>icons/feed.gif"><br>
+<li>Feed Icon <img src="<%jar%>/icons/feed.gif"><br>
 This links to a dialog that lets you copy the URLs to the JBidwatcher
 RSS feeds.  It also allows you to launch the feed:// urls, if you have
 an application which understands the feed:// protocol.  (Mac OS X, and
