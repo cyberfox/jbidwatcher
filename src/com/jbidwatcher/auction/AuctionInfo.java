@@ -505,7 +505,8 @@ public class AuctionInfo extends ActiveRecord
 
   private static Table sDB = null;
   protected static String getTableName() { return "auctions"; }
-  protected Table getDatabase() {
+  protected Table getDatabase() { return getRealDatabase(); }
+  private static Table getRealDatabase() {
     if (sDB == null) {
       sDB = openDB(getTableName());
     }
@@ -538,11 +539,7 @@ public class AuctionInfo extends ActiveRecord
   }
 
   public static int uniqueCount() {
-    if (sDB == null) {
-      sDB = openDB(getTableName());
-    }
-
-    return sDB.countBySQL("SELECT COUNT(DISTINCT(identifier)) FROM auctions WHERE identifier IS NOT NULL");
+    return getRealDatabase().countBySQL("SELECT COUNT(DISTINCT(identifier)) FROM auctions WHERE identifier IS NOT NULL");
   }
 
   public static boolean deleteAll(List<AuctionInfo> toDelete) {
