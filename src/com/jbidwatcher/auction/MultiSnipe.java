@@ -162,6 +162,15 @@ public class MultiSnipe extends ActiveRecord {
     return false;
   }
 
+  /**
+   * Determine if the two items listed constitute a safe multisnipe; i.e.
+   * it's unlikely that the two will conflict.
+   *
+   * @param ae1 - The first snipeable item to check.
+   * @param ae2 - The second snipeable item to check.
+   * @return - true if the two auctions are far enough apart, false if it
+   * could be dangerous to include both items in the same multisnipe group.
+   */
   public static boolean isSafeMultiSnipe(Snipeable ae1, Snipeable ae2) {
     long end1 = ae1.getEndDate().getTime();
     long end2 = ae2.getEndDate().getTime();
