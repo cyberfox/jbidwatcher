@@ -64,7 +64,7 @@ public class JBHelp {
     String headImage = JConfig.getResource(HEAD_LOC).toString();
     String basicLocation = headImage.substring(0, headImage.length() - HEAD_LOC.length());
     if(basicLocation.endsWith("/")) basicLocation = basicLocation.substring(0, basicLocation.length()-1);
-    JConfig.log().logDebug(basicLocation);
+    JConfig.log().logDebug(headImage);
     munge = munge.replaceAll("<%que ([0-9]+)%>", "<%que%><a name=\"Q$1\">").
         replaceAll("<%toc%>", Matcher.quoteReplacement(toc)).
         replaceAll("<%pname%>", Matcher.quoteReplacement(Constants.PROGRAM_NAME)).
