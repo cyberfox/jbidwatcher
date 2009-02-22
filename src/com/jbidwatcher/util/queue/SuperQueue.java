@@ -22,13 +22,16 @@ public class SuperQueue {
 
   public TimeQueueManager getQueue() { return mTQM; }
 
-  public void preQueue(Object payload, String queueName, long when)
-  {
+  public void preQueue(Object payload, String queueName, long when) {
     mTQM.add(payload, queueName, when);
   }
 
   public void preQueue(Object payload, Object queueName, long when, long repeat) {
     mTQM.add(payload, queueName, when, repeat);
+  }
+
+  public void remove(Object payload) {
+    mTQM.erase(payload);
   }
 
   public TimerHandler start() {
