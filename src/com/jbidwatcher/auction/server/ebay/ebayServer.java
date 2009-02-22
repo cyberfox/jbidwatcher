@@ -299,6 +299,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     //  If we already have a snipe set for it, first cancel the old one, and then set up the new.
     if(currentlyExists != null) {
       _etqm.erase(currentlyExists);
+      _etqm.erase(snipeOn);
       snipeMap.remove(snipeOn.getIdentifier());
     }
 
@@ -307,16 +308,23 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime())-two_minutes);
     _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime()));
+    if (snipeOn.getEndDate() != null && snipeOn.getEndDate() != Constants.FAR_FUTURE) {
+      _etqm.add(snipeOn, "drop", snipeOn.getEndDate().getTime() + 30 * Constants.ONE_SECOND);
+    }
     snipeMap.put(snipeOn.getIdentifier(), payload);
   }
 
   private void cancelSnipeMsg(AuctionQObject ac) {
     EntryInterface snipeCancel = (EntryInterface)ac.getData();
-    String id = snipeCancel.getIdentifier();
-    AuctionQObject cancellable = snipeMap.get(id);
+    String identifier = snipeCancel.getIdentifier();
+    AuctionQObject cancellable = snipeMap.get(identifier);
 
+    //  Erase the pending snipe
     _etqm.erase(cancellable);
-    snipeMap.remove(id);
+    //  Erase the 30 seconds post-completion update
+    _etqm.erase(snipeCancel);
+
+    snipeMap.remove(identifier);
   }
 
   public ebayServer(String site, String username, String password) {
