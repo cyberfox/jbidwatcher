@@ -17,8 +17,8 @@
       <all-permissions/>
   </security>
   <resources>
-    <j2se version="1.2+"/>
-    <jar href="http://prdownloads.sourceforge.net/jbidwatcher/JBidWatch-0.8pre4.jar"/>
+    <j2se version="1.5+"/>
+    <jar href="http://www.jbidwatcher.com/download/JBidwatcher-2.0.jar" />
   </resources>
-  <application-desc main-class="JBidWatch"/>
+  <application-desc main-class="com.simontuffs.onejar.Boot"/>
 </jnlp>

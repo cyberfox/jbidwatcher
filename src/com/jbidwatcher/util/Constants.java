@@ -14,8 +14,8 @@ public class Constants {
  * in just one place.
  */
   public static final String PROGRAM_NAME = "JBidwatcher";
-  public static final String PROGRAM_VERS = "2.0";
-  public static final String SVN_REVISION = "800";
+  public static final String PROGRAM_VERS = "2.0.1";
+  public static final String SVN_REVISION = "825";
 /** The clock format to use everywhere, when referring to remote times.
  */
   public static final SimpleDateFormat remoteClockFormat = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss z");
