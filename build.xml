@@ -20,7 +20,7 @@
   <property name="BINARYSCRIPTING" value="${app.name}-${VER}-script.jar" />
   <property name="OPT_BIN" value="${app.name}-${VER}_o.jar" />
   <property name="UNOPT_BIN" value="${app.name}-${VER}_u.jar" />
-  <property name="TARFILE" value="${TARSRC}.tar.gz" />
+  <property name="TARFILE" value="${TARSRC}.tar.bz2" />
   <property name="APPSCRIPTING" value="${app.name}-${VER}-script.app.tar.gz" />
   <property name="APPFILE" value="${app.name}-${VER}.app.tar.gz" />
   <property name="osx.app.name" value="${app.name}-${VER}.app" />
@@ -114,7 +114,7 @@
   </target>
 
   <target name="tar" description="Building source .tar file.">
-    <tar destfile="${TARFILE}" compression="gzip">
+    <tar destfile="${TARFILE}" compression="bzip2">
       <tarfileset prefix="${TARSRC}" dir="${src.dir}" includes="*.java" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.sql" />
@@ -123,7 +123,7 @@
       <tarfileset prefix="${TARSRC}" dir="${user.home}/.jbidwatcher" includes="display.cfg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="auctions.dtd" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="TODO" />
-      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="Makefile" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="COPYING.html" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="build.xml" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="platform/jbidwatcher.jnlp" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="${MANIFEST}" />
@@ -141,7 +141,9 @@
   </target>
 
   <target name="jar-real" depends="compile">
-    <echo level="info" message="Building executable .jar file." />
+    <echo level="info" message="Building primary .jar file." />
+    <copy todir="help/" file="COPYING.html" />
+
     <jar jarfile="${INTERMEDIATE}" manifest="${MANIFEST}" index="true">
       <fileset dir="${main.dir}" includes="*.jpg" />
       <fileset dir="${main.dir}" includes="*.sql" />
@@ -156,14 +158,16 @@
       <fileset dir="${main.dir}" includes="db/*.sql" />
       <fileset dir="${main.dir}" includes="help/*.jpg" />
       <fileset dir="${main.dir}" includes="help/*.jbh" />
+      <fileset dir="${main.dir}" includes="help/*.html" />
       <fileset dir="${main.dir}" includes="platform/tray.dll" />
       <fileset dir="${main.dir}" includes="jbidwatcher.properties" />
       <fileset dir="${main.dir}" includes="ebay_*.properties" />
     </jar>
+    <delete file="help/COPYING.html" />
   </target>
 
   <target name="jar" depends="jar-real">
-    <echo level="info" message="Building the top-level .jar file." />
+    <echo level="info" message="Building envelope .jar file." />
     <mkdir dir="${build.path}/main" />
     <copy file="${INTERMEDIATE}" tofile="${build.path}/main/main.jar" />
     <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
@@ -233,11 +237,22 @@
     <antcall target="osx-app" />
   </target>
 
-  <!---  IN DEVELOPMENT  -->
   <target name="dmg" depends="osx-distribution">
-    <symlink link="${osx.app.path}/../Applications" resource="/Applications" overwrite="true" />
+    <exec executable="ln">
+      <arg value="-s" />
+      <arg value="/Applications" />
+      <arg value="${osx.app.path}/../Applications" />
+    </exec>
+    <copy todir="${osx.app.path}/../" file="COPYING.html" />
+
     <exec executable="mkisofs">
       <arg line='-V JBidwatcher -r -apple -o ${DMGFILE} "${osx.app.path}/.."'/>
+    </exec>
+
+    <delete file="${osx.app.path}/../COPYING.html"/>
+    <!-- This has to be calling 'rm' because the 'delete' task doesn't handle symlinks right. -->
+    <exec executable="rm">
+      <arg value="${osx.app.path}/../Applications" />
     </exec>
   </target>
 
@@ -276,7 +291,7 @@
     <chmod file="${osx.app.path}/Contents/Resources/Java/libquaqua.jnilib" perm="755" />
     <chmod file="${osx.app.path}/Contents/Resources/Java/libquaqua64.jnilib" perm="755" />
     <copy file="${dest.dir}/${INTERMEDIATE}" todir="${osx.app.path}/Contents/Resources/Java" />
-    <!--- Testing the possibility of putting all the libraries in the resources directory -->
+    <!--- Put all the libraries in the resources directory -->
     <copy todir="${osx.app.path}/Contents/Resources/Java">
       <fileset dir="${lib.dir}" includes="apple.jar" />
       <fileset dir="${lib.dir}" includes="derby.jar" />
