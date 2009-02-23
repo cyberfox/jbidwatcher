@@ -62,9 +62,6 @@ public class JBHelp {
 
     String toc = genTOC(helpBuf);
     String headImage = JConfig.getResource(HEAD_LOC).toString();
-    String basicLocation = headImage.substring(0, headImage.length() - HEAD_LOC.length());
-    if(basicLocation.endsWith("/")) basicLocation = basicLocation.substring(0, basicLocation.length()-1);
-    JConfig.log().logDebug(headImage);
     munge = munge.replaceAll("<%que ([0-9]+)%>", "<%que%><a name=\"Q$1\">").
         replaceAll("<%toc%>", Matcher.quoteReplacement(toc)).
         replaceAll("<%pname%>", Matcher.quoteReplacement(Constants.PROGRAM_NAME)).
@@ -72,16 +69,21 @@ public class JBHelp {
         replaceAll("<%title%>", Matcher.quoteReplacement(title)).
         replaceAll("<%donate%>", Matcher.quoteReplacement(paypalDonate)).
         replaceAll("<%head%>", Matcher.quoteReplacement(headImage)).
-        replaceAll("<%jar%>", Matcher.quoteReplacement(basicLocation)).
         replaceAll("<%c_gr%>", Matcher.quoteReplacement(c_gr)).
         replaceAll("<%c_bl%>", Matcher.quoteReplacement(c_bl)).
         replaceAll("<%c_rd%>", Matcher.quoteReplacement(c_rd)).
         replaceAll("<%cend%>", Matcher.quoteReplacement(c_end)).
-        replaceAll("<%que%>", "<li><B><u>Q.</u> ").
-        replaceAll("<%ans%>", "<br><u>A.</u></B> ").
+        replaceAll("<%que%>", "<li><b><u>Q.</u> ").
+        replaceAll("<%ans%>", "<br><u>A.</u></b> ").
         replaceAll("<%end%>", "<br><a href=\"#top\">Top</a></li>").
         replaceAll("<%jay%>", Matcher.quoteReplacement(JConfig.getResource("/jbidwatch64.jpg").toString())).
         replaceAll("<%auctions_save%>", Matcher.quoteReplacement(JConfig.queryConfiguration("savefile")));
+
+    Matcher m = Pattern.compile("<%res:([^%]+)%>").matcher(munge);
+    while(m.find()) {
+      munge = munge.replaceAll(m.group(), JConfig.getResource(m.group(1)).toString());
+      m.reset(munge);
+    }
 
     return munge;
   }
