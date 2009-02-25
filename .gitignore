@@ -4,5 +4,7 @@ JBidwatcher-g.iws
 classes
 *.app.tar.gz
 *.exe
+*.dmg
 JBid*.jar
 jbidwatcher*.tar.gz
+jbidwatcher*.tar.bz2
