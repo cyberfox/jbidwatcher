@@ -715,7 +715,10 @@ class ebayAuction extends SpecificAuction {
         finish();
         return true;
       } else {
-        sellerName = "(unknown)";
+        if(ae == null)
+          sellerName = "(unknown)";
+        else
+          sellerName = ae.getSeller();
       }
     }
     setSellerName(sellerName);
