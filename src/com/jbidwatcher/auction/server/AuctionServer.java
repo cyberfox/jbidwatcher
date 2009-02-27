@@ -121,6 +121,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   public void reloadTime() {
     if (getOfficialTime() != null) {
       MQFactory.getConcrete("Swing").enqueue("Successfully synchronized time with " + getName() + '.');
+      JConfig.log().logMessage("Time delta with " + getName() + " is " + getServerTimeDelta());
     } else {
       MQFactory.getConcrete("Swing").enqueue("Failed to synchronize time with " + getName() + '!');
     }
