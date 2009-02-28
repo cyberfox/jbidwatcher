@@ -451,7 +451,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *
    * This should eventually handle multiple users per server, so that
    * users can have multiple identities per auction site.
-   * FUTURE FEATURE -- mrs: 02-January-2003 01:25
    *
    * @return Whether the current user is the high bidder.
    */
