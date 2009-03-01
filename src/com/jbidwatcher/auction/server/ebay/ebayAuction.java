@@ -422,7 +422,7 @@ class ebayAuction extends SpecificAuction {
     } else {
       Currency maxBid = establishCurrentBid(ae);
       setOutbid(mDocument.grep(T.s("ebayServer.outbid")) != null);
-      setMaxBidFromServer(ae, maxBid);
+//      setMaxBidFromServer(ae, maxBid);
     }
 
     if(getMinBid() == null && getBuyNow() != null && !getBuyNow().isNull()) {
