@@ -100,3 +100,8 @@ and close to the end of the auction).
 
 ----------------------------------------------------------------------
 * After payment, dutch auctions subtract out from the 'available' list, and the user seems to no longer have won the listing.
+
+* Add to watch list:
+  http://cgi1.ebay.com/ws/eBayISAPI.dll?ViewItemMakeTrack&item=6047388445
+  http://cgi1.ebay.com/ws/eBayISAPI.dll?ViewItemMakeTrack&item=5104953681
+  Returns: onWatch([{"watcherCount":1,"watchcount":21,"item":"5104953681","showBidManagerLink":false,"signin":1,"result":1}])
