@@ -163,7 +163,16 @@ public class JBTool implements ToolInterface {
 
   private void testJSON() {
     try {
-      JSONObject js = new JSONObject("{\"watcherCount\":1,\"watchcount\":21,\"item\":\"5104953681\",\"showBidManagerLink\":false,\"signin\":1,\"result\":1}");
+      String foo = "onWatch([{\"watcherCount\":1,\"watchcount\":21,\"item\":\"5104953681\",\"showBidManagerLink\":false,\"signin\":1,\"result\":1}])";
+      if(foo.indexOf('{') != -1) {
+        foo = foo.substring(foo.indexOf('{'));
+        int lastBrace = foo.lastIndexOf('}');
+        if(lastBrace != -1) {
+          foo = foo.substring(0, lastBrace+1);
+        }
+      }
+      System.err.println("foo == " + foo);
+      JSONObject js = new JSONObject(foo);
       System.err.println("watchcount == " + js.get("watchcount"));
     } catch(org.json.JSONException e) {
       System.err.println("e == " + e);
