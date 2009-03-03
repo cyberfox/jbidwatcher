@@ -117,6 +117,8 @@ public class Tray implements ItemListener, MessageQueue.Listener {
   }
 
   private boolean tryJava6Tray(final JPopupMenu menu, ImageIcon jbw_icon) {
+    if(JConfig.queryConfiguration("tray.java6", "false").equals("false")) return false;
+
     try {
       java6TrayClass = Class.forName("java.awt.SystemTray");
       Method m = java6TrayClass.getMethod("getSystemTray");
