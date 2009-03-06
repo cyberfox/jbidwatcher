@@ -34,48 +34,42 @@ public class JBidMenuBar extends JMenuBar {
   protected JMenu _helpMenu;
   protected ActionListener _actionDirector;
 
-  protected void makeMenuItem(
+  protected JMenuItem makeMenuItem(
         JMenu inMenu,
         String inName,
         String inActionCommand,
         int mnemonic,
         KeyStroke accelerator) {
-    makeMenuItem(inMenu, inName, inActionCommand, mnemonic, accelerator, true);
+    return makeMenuItem(inMenu, inName, inActionCommand, mnemonic, accelerator, true);
   }
 
-  protected void makeMenuItem(
-        JMenu inMenu,
-        String inName,
-        String inActionCommand,
-        int mnemonic,
-        KeyStroke accelerator,
-        boolean add) {
+  protected JMenuItem makeMenuItem(JMenu inMenu, String inName, String inActionCommand, int mnemonic, KeyStroke accelerator, boolean add) {
+    JMenuItem constructItem = new JMenuItem();
 
-        JMenuItem constructItem = new JMenuItem();
+    constructItem.setText(inName);
+    constructItem.setActionCommand(inActionCommand);
+    constructItem.addActionListener(_actionDirector);
+    constructItem.setMnemonic(mnemonic);
 
-        constructItem.setText(inName);
-        constructItem.setActionCommand(inActionCommand);
-        constructItem.addActionListener(_actionDirector);
-        constructItem.setMnemonic(mnemonic);
+    if (accelerator != null) {
+      constructItem.setAccelerator(accelerator);
+    } // end of if (accelerator != null)
 
-        if (accelerator != null) {
-            constructItem.setAccelerator(accelerator);
-        } // end of if (accelerator != null)
+    if (add) inMenu.add(constructItem);
+    return constructItem;
+  }
 
-        if(add) inMenu.add(constructItem);
-    }
-
-  protected void makeMenuItem(
+  protected JMenuItem makeMenuItem(
         JMenu inMenu,
         String inName,
         int mnemonic,
         KeyStroke accelerator) {
 
-        makeMenuItem(inMenu, inName, inName, mnemonic, accelerator, true);
+        return makeMenuItem(inMenu, inName, inName, mnemonic, accelerator, true);
     }
 
 
-  protected void makeMenuItem(JMenu inMenu, String inName, String inActionCommand, char mnemonic) {
+  protected JMenuItem makeMenuItem(JMenu inMenu, String inName, String inActionCommand, char mnemonic) {
     JMenuItem constructItem = new JMenuItem();
 
     constructItem.setText(inName);
@@ -84,19 +78,20 @@ public class JBidMenuBar extends JMenuBar {
     constructItem.setMnemonic(mnemonic);
 
     inMenu.add(constructItem);
+    return constructItem;
   }
 
-  protected void makeMenuItem(JMenu inMenu, String inName, char mnemonic) {
-    makeMenuItem(inMenu, inName, inName, mnemonic);
+  protected JMenuItem makeMenuItem(JMenu inMenu, String inName, char mnemonic) {
+    return makeMenuItem(inMenu, inName, inName, mnemonic);
   }
 
-  protected void makeMenuItem(JMenu inMenu, String inName, int mnemonic) {
-      makeMenuItem(inMenu, inName, inName, mnemonic, null);
+  protected JMenuItem makeMenuItem(JMenu inMenu, String inName, int mnemonic) {
+      return makeMenuItem(inMenu, inName, inName, mnemonic, null);
   }
 
 
-  protected void makeMenuItem(JMenu inMenu, String inName) {
-    makeMenuItem(inMenu, inName, inName, '\0');
+  protected JMenuItem makeMenuItem(JMenu inMenu, String inName) {
+    return makeMenuItem(inMenu, inName, inName, '\0');
   }
 
   protected void establishFileMenu(JMenu inMenu) {
@@ -186,13 +181,16 @@ public class JBidMenuBar extends JMenuBar {
     //  The mac doesn't have an 'INSERT' key.  I suppose 'Overwrite'
     //  mode is too complex?  Frustration abounds, as CMD-A is 'select
     //  all'.  We're going with CMD-I to mirror 'Insert'.
+    JMenuItem add;
     if(Platform.isMac()) {
-      makeMenuItem(inMenu, "Add", KeyEvent.VK_A,
-                   KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+      add = makeMenuItem(inMenu, "Add", KeyEvent.VK_A,
+                         KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     } else {
-      makeMenuItem(inMenu, "Add", KeyEvent.VK_A,
-                   KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0));
+      add = makeMenuItem(inMenu, "Add", KeyEvent.VK_A,
+                         KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0));
     }
+    add.registerKeyboardAction(_actionDirector, "Add", KeyStroke.getKeyStroke(KeyEvent.VK_ADD, 0), WHEN_IN_FOCUSED_WINDOW);
+    add.registerKeyboardAction(_actionDirector, "Add", KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, KeyEvent.SHIFT_DOWN_MASK), WHEN_IN_FOCUSED_WINDOW);
 
     //  Require 'CMD-Del' for the Mac, because otherwise it catches
     //  the 'Del' operation in the middle of text entry.  (D'oh!)
