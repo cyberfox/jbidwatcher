@@ -778,7 +778,9 @@ public class UserActions implements MessageQueue.Listener {
     String prompt = genBidSnipeHTML(ae, minimumNextBid);
     prompt += "</body></html>";
 
-    SnipeDialog sd = new SnipeDialog();
+    String previous = "";
+    if(ae.isSniped()) previous = ae.getSnipeAmount().getValueString();
+    SnipeDialog sd = new SnipeDialog(previous);
     sd.clear();
     sd.setPrompt(prompt);
     if(ae.isDutch()) {

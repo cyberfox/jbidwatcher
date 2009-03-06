@@ -18,10 +18,20 @@ public class SnipeDialog extends BasicDialog {
   private JCheckBox subtractShipping;
   private JLabel auctionInfo;
   private JLabel quantityLabel;
+  String mInitialValue="";
+
+  public SnipeDialog(String initial) {
+    super(null, "Sniping", true, JMouseAdapter.getCurrentGraphicsConfiguration());
+    if(initial != null && initial.length() != 0) mInitialValue = initial;
+    construct();
+  }
 
   public SnipeDialog() {
     super(null, "Sniping", true, JMouseAdapter.getCurrentGraphicsConfiguration());
+    construct();
+  }
 
+  private void construct() {
     setBasicContentPane(new JPanel(new SpringLayout()));
 
     addBehavior();
@@ -57,7 +67,7 @@ public class SnipeDialog extends BasicDialog {
   public void clear() {
     getRootPane().setDefaultButton(getButtonOK());
     quantityField.setText("1");
-    snipeAmount.setText("");
+    snipeAmount.setText(mInitialValue);
   }
 
   private void setupUI() {
@@ -70,7 +80,7 @@ public class SnipeDialog extends BasicDialog {
     inputPane.setLayout(new BoxLayout(inputPane, BoxLayout.Y_AXIS));
 
     snipeAmount = new JTextField(10);
-    snipeAmount.setText("");
+    snipeAmount.setText(mInitialValue);
 
     quantityField = new JTextField(10);
     quantityField.setEnabled(false);
@@ -89,10 +99,6 @@ public class SnipeDialog extends BasicDialog {
     quantityLabel.setLabelFor(quantityField);
     promptPane.add(quantityField);
     SpringUtilities.makeCompactGrid(promptPane, 2, 2, 6, 6, 6, 3);
-    //inputPane.add(JConfigTab.makeLine(new JLabel("How much do you wish to snipe?"), snipeAmount));
-    //inputPane.add(JConfigTab.makeLine(quantityLabel = new JLabel("Quantity?"), quantityField));
-    //inputPane.add(subtractShipping);
-    //basicContentPane.add(JConfigTab.panelPack(inputPane));
     getBasicContentPane().add(promptPane);
     getBasicContentPane().add(subtractShipping);
 
