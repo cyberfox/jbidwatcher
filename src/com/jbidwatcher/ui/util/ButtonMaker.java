@@ -37,6 +37,7 @@ public class ButtonMaker {
       newButton.putClientProperty("Quaqua.Button.style", "toolBarRollover");
     }
 
+    newButton.setFocusable(false);
     jtb.add(newButton);
   }
 
