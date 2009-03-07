@@ -157,7 +157,7 @@ public class JBidMenuBar extends JMenuBar {
 
   protected void establishServerMenu(JMenu inMenu) {
     String doTimeSync = JConfig.queryConfiguration("timesync.enabled", "true");
-    
+
     makeMenuItem(inMenu, "Update Auctions", "UpdateAll", 'U');
     makeMenuItem(inMenu, "Stop Activity", "StopUpdating", KeyEvent.VK_S,
                  KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -183,8 +183,8 @@ public class JBidMenuBar extends JMenuBar {
     //  all'.  We're going with CMD-I to mirror 'Insert'.
     JMenuItem add;
     if(Platform.isMac()) {
-      add = makeMenuItem(inMenu, "Add", KeyEvent.VK_A,
-                         KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+      add = makeMenuItem(inMenu, "Add New", KeyEvent.VK_A,
+                         KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     } else {
       add = makeMenuItem(inMenu, "Add", KeyEvent.VK_A,
                          KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0));
@@ -211,7 +211,11 @@ public class JBidMenuBar extends JMenuBar {
     makeMenuItem(inMenu, "Buy", 'y');
     inMenu.add(new JSeparator());
     makeMenuItem(inMenu, "Update", 'U');
-    makeMenuItem(inMenu, "Show Information", "Information", 'I');
+    if(Platform.isMac()) {
+      makeMenuItem(inMenu, "Show Information", "Information", 'I', KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+    } else {
+      makeMenuItem(inMenu, "Show Information", "Information", 'I');
+    }
 //    makeMenuItem(inMenu, "Show Last Error Page", "ShowError", 'l');
     makeMenuItem(inMenu, "Show In Browser", "Browse", 'b', KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 //    makeMenuItem(inMenu, "Show status", "Status", 't');
