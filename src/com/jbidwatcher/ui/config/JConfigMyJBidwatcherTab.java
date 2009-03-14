@@ -7,7 +7,9 @@ package com.jbidwatcher.ui.config;
 
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.SpringUtilities;
+import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.my.MyJBidwatcher;
 
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -88,7 +90,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     innerPanel.add(mPassword);
 
     innerPanel.add(new JLabel(""));
-    final JLabel mWarningMessage = new JLabel("This must not be the same as your eBay password!", JLabel.RIGHT);
+    final JLabel mWarningMessage = new JLabel("This should not be the same as your eBay password!", JLabel.RIGHT);
     mWarningMessage.setFont(mWarningMessage.getFont().deriveFont(Font.ITALIC | Font.BOLD));
     Box button = Box.createHorizontalBox();
     mCreateOrUpdate = new JButton("");
@@ -152,11 +154,37 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
   }
 
   private void updateUser() {
-    //To change body of created methods use File | Settings | File Templates.
+    final String email = mEmail.getText();
+    final String password = new String(mPassword.getPassword());
+
+    boolean success = MyJBidwatcher.getInstance().updateAccount(email, password);
+    final String message = success ? "Account updated to:\nEmail: " + email + "\nPassword: " + password : "Account update failed.";
+
+    final JPanel panel = this;
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        OptionUI oui = new OptionUI();
+        oui.promptWithCheckbox(panel, message, "My JBidwatcher Account Update", "prompt.account_updated");
+      }
+    });
   }
 
   private void createNewUser() {
-    //To change body of created methods use File | Settings | File Templates.
+    String email = mEmail.getText();
+    String password = new String(mPassword.getPassword());
+    final boolean success = MyJBidwatcher.getInstance().createAccount(email, password);
+
+    final JPanel panel = this;
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        OptionUI oui = new OptionUI();
+        if(success) {
+          oui.promptString(panel, "Account created.  Check your email for a verification link.", "My JBidwatcher Account");
+        } else {
+          oui.promptString(panel, "Account creation failed.\n\nGo to http://my.jbidwatcher.com and create an account.", "My JBidwatcher Account");
+        }
+      }
+    });
   }
 
   public JConfigMyJBidwatcherTab() {

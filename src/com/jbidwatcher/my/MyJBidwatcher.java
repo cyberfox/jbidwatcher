@@ -91,4 +91,12 @@ public class MyJBidwatcher {
       }
     });
   }
+
+  public boolean createAccount(String email, String password) {
+    return false;  //To change body of created methods use File | Settings | File Templates.
+  }
+
+  public boolean updateAccount(String email, String password) {
+    return false;  //To change body of created methods use File | Settings | File Templates.
+  }
 }
