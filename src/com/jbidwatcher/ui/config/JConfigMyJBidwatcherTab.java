@@ -8,6 +8,7 @@ package com.jbidwatcher.ui.config;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.SpringUtilities;
 import com.jbidwatcher.ui.util.OptionUI;
+import com.jbidwatcher.ui.util.JBEditorPane;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.my.MyJBidwatcher;
 
@@ -22,6 +23,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
   private JPasswordField mPassword;
   private JTextField mUserId;
   private JButton mCreateOrUpdate;
+  private final OptionUI mOui = new OptionUI();
 
   public String getTabName() { return "My JBidwatcher"; }
   public void cancel() { }
@@ -48,7 +50,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     mPassword.setText(pass);
     mEnable.setSelected(enabled);
 
-    if(id != null) {
+    if(id != null && id.length() != 0) {
       mUserId.setText(id);
       mCreateOrUpdate.setText("Update");
     } else {
@@ -157,14 +159,13 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     final String email = mEmail.getText();
     final String password = new String(mPassword.getPassword());
 
-    boolean success = MyJBidwatcher.getInstance().updateAccount(email, password);
+    final boolean success = MyJBidwatcher.getInstance().updateAccount(email, password);
     final String message = success ? "Account updated to:\nEmail: " + email + "\nPassword: " + password : "Account update failed.";
 
     final JPanel panel = this;
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        OptionUI oui = new OptionUI();
-        oui.promptWithCheckbox(panel, message, "My JBidwatcher Account Update", "prompt.account_updated");
+        mOui.promptWithCheckbox(panel, message, "My JBidwatcher Account Update", "prompt.account_updated." + (success ? "success" : "failure"));
       }
     });
   }
@@ -177,12 +178,13 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     final JPanel panel = this;
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        OptionUI oui = new OptionUI();
+        JBEditorPane jep;
         if(success) {
-          oui.promptString(panel, "Account created.  Check your email for a verification link.", "My JBidwatcher Account");
+          jep = OptionUI.getHTMLLabel("<html><body>Account created.  Check your email for a verification link.</body></html>");
         } else {
-          oui.promptString(panel, "Account creation failed.\n\nGo to http://my.jbidwatcher.com and create an account.", "My JBidwatcher Account");
+          jep = OptionUI.getHTMLLabel("<html><body>Account creation failed.<br><br>Go to <a href=\"http://my.jbidwatcher.com\">My JBidwatcher</a> (http://my.jbidwatcher.com)<br>and create an account.</body></html>");
         }
+        JOptionPane.showMessageDialog(panel, jep, "My JBidwatcher Account", success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
       }
     });
   }
