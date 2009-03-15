@@ -33,9 +33,15 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     JConfig.setConfiguration("my.jbidwatcher.enabled", Boolean.toString(enabled));
 
     String email = mEmail.getText();
-    if(email != null) JConfig.setConfiguration("my.jbidwatcher.email", email);
-    char[] password = mPassword.getPassword();
-    if(password != null) JConfig.setConfiguration("my.jbidwatcher.password", new String(password));
+    char[] rawPassword = mPassword.getPassword();
+
+    if(email != null && rawPassword != null) {
+      String password = new String(rawPassword);
+      if(MyJBidwatcher.getInstance().login(email, password)) {
+        JConfig.setConfiguration("my.jbidwatcher.email", email);
+        JConfig.setConfiguration("my.jbidwatcher.password", password);
+      }
+    }
 
     return true;
   }

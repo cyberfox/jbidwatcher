@@ -93,10 +93,28 @@ public class MyJBidwatcher {
   }
 
   public boolean createAccount(String email, String password) {
-    return false;  //To change body of created methods use File | Settings | File Templates.
+    //  TODO - GET http://my.jbidwatcher.com/users/new
+    //  POST http://my.jbidwatcher.com/users with user[email]={email}&user[password]={password}&user[password_confirmation]={password}
+    //  If 200 OK, the body contains the my.jbidwatcher.id
+    return false;
   }
 
   public boolean updateAccount(String email, String password) {
-    return false;  //To change body of created methods use File | Settings | File Templates.
+    //  TODO - Must be logged in first?
+    String acct_key = JConfig.queryConfiguration("my.jbidwatcher.id");
+    if(acct_key == null) return false;
+
+    String old_password = JConfig.queryConfiguration("my.jbidwatcher.password");
+    //  TODO - PUT (!) http://my.jbidwatcher.com/users/update with user[email]={email}&user[password]={password}&old_password={old_password}
+    //  TODO - Write server side for update.
+
+    return false;
+  }
+
+  public boolean login(String email, String password) {
+    //  TODO - GET http://my.jbidwatcher.com/login
+    //  Fill in email and password & submit
+    //  Get back a session key/cookie?
+    return false;
   }
 }
