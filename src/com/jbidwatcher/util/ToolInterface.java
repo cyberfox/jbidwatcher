@@ -1,4 +1,4 @@
-package com.jbidwatcher.app;
+package com.jbidwatcher.util;
 
 /**
  * Created by IntelliJ IDEA.

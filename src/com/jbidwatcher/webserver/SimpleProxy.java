@@ -6,7 +6,7 @@ package com.jbidwatcher.webserver;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.app.ToolInterface;
+import com.jbidwatcher.util.ToolInterface;
 
 import java.net.*;
 import java.io.*;

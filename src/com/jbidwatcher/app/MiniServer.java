@@ -2,6 +2,7 @@ package com.jbidwatcher.app;
 
 import com.jbidwatcher.webserver.HTTPProxyClient;
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.ToolInterface;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.*;
 

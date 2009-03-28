@@ -12,6 +12,7 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.ToolInterface;
 import com.jbidwatcher.webserver.SimpleProxy;
 
 import java.util.*;
