@@ -47,6 +47,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       mResultHash = new HashMap<String, Integer>();
       mResultHash.put("you('re| are) not permitted to bid on their listings.", AuctionServer.BID_ERROR_BANNED);
       mResultHash.put("the item is no longer available because the auction has ended.", AuctionServer.BID_ERROR_ENDED);
+      mResultHash.put("bidding has ended for this item", AuctionServer.BID_ERROR_ENDED);
       mResultHash.put("cannot proceed", AuctionServer.BID_ERROR_CANNOT);
       mResultHash.put("problem with bid amount", AuctionServer.BID_ERROR_AMOUNT);
       mResultHash.put("your bid must be at least ", AuctionServer.BID_ERROR_TOO_LOW);
