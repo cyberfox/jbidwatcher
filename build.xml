@@ -54,6 +54,7 @@
     <pathelement path="${lib.dir}/jdesktop.jar" />
     <pathelement path="${lib.dir}/mp3codec.jar" />
     <pathelement path="${lib.dir}/jruby-complete.jar" />
+    <pathelement path="${lib.dir}/mysql-connector-java-5.1.7-bin.jar" />
   </path>
 
   <target name="init" description="Prepare for build">
@@ -115,7 +116,7 @@
 
   <target name="tar" description="Building source .tar file.">
     <tar destfile="${TARFILE}" compression="bzip2">
-      <tarfileset prefix="${TARSRC}" dir="${src.dir}" includes="*.java" />
+      <tarfileset prefix="${TARSRC}" dir="${src.dir}" includes="**/*.java" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.sql" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.ser" />
@@ -178,6 +179,7 @@
       <fileset dir="${main.dir}" includes="lib/derby.jar" />
       <fileset dir="${main.dir}" includes="lib/jdesktop.jar" />
       <fileset dir="${main.dir}" includes="lib/mp3codec.jar" />
+      <fileset dir="${main.dir}" includes="lib/mysql-connector-java-5.1.7-bin.jar" />
     </jar>
     <delete dir="${build.path}/main" />
   </target>
@@ -297,6 +299,7 @@
       <fileset dir="${lib.dir}" includes="derby.jar" />
       <fileset dir="${lib.dir}" includes="jdesktop.jar" />
       <fileset dir="${lib.dir}" includes="mp3codec.jar" />
+      <fileset dir="${lib.dir}" includes="mysql-connector-java-5.1.7-bin.jar" />
     </copy>
   </target>
 
