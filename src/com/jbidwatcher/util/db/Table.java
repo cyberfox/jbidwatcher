@@ -165,6 +165,7 @@ public class Table
         } else {
           statement.append(comparisons[i]);
         }
+        statement.append('?');
         start = false;
       }
     }
