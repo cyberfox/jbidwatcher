@@ -19,8 +19,6 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 
-import org.json.JSONObject;
-
 /**
  * This provides a command-line interface to JBidwatcher, loading an individual auction
  * and returning the XML for it.
@@ -142,7 +140,6 @@ public class JBTool implements ToolInterface {
       if(option.equals("logging")) JConfig.setConfiguration("logging", "true");
       if(option.equals("debug")) JConfig.setConfiguration("debugging", "true");
       if(option.equals("timetest")) testDateFormatting();
-      if(option.equals("json")) testJSON();
       if(option.equals("logconfig")) JConfig.setConfiguration("config.logging", "true");
       if(option.equals("logurls")) JConfig.setConfiguration("debug.urls", "true");
       if(option.equals("myebay")) mJustMyeBay = true;
@@ -160,25 +157,6 @@ public class JBTool implements ToolInterface {
       mPassword = mUsername = "default";
     }
     return params;
-  }
-
-  private void testJSON() {
-    try {
-      String foo = "onWatch([{\"watcherCount\":1,\"watchcount\":21,\"item\":\"5104953681\",\"showBidManagerLink\":false,\"signin\":1,\"result\":1}])";
-      if(foo.indexOf('{') != -1) {
-        foo = foo.substring(foo.indexOf('{'));
-        int lastBrace = foo.lastIndexOf('}');
-        if(lastBrace != -1) {
-          foo = foo.substring(0, lastBrace+1);
-        }
-      }
-      System.err.println("foo == " + foo);
-      JSONObject js = new JSONObject(foo);
-      System.err.println("watchcount == " + js.get("watchcount"));
-    } catch(org.json.JSONException e) {
-      System.err.println("e == " + e);
-    }
-    System.exit(1);
   }
 
   public static int getSiteNumber(String site) {
