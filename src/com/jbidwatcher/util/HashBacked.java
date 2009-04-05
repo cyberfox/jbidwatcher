@@ -18,7 +18,8 @@ import java.text.SimpleDateFormat;
 public class HashBacked extends XMLSerializeSimple {
   private static final Record EMPTY = new Record();
   private Record mBacking = EMPTY;
-  private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+  private static String DB_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+  private SimpleDateFormat mDateFormat = new SimpleDateFormat(DB_DATE_FORMAT);
   private Map<String, String> mTranslationTable;
   private String mDefaultCurrency;
   private boolean mDirty = false;
@@ -33,6 +34,12 @@ public class HashBacked extends XMLSerializeSimple {
     mBacking = data;
     if(get("currency") == null) mDefaultCurrency = ONE_DOLLAR.fullCurrencyName();
     else mDefaultCurrency = get("currency");
+  }
+
+  protected static String formatDate(Date input) {
+    SimpleDateFormat fmt = new SimpleDateFormat(DB_DATE_FORMAT);
+    fmt.setTimeZone(TimeZone.getDefault());
+    return fmt.format(input);
   }
 
   public void setTranslationTable(Map<String, String> table) { if(mTranslationTable == null) mTranslationTable = table; }
