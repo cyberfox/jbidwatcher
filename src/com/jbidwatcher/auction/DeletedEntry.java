@@ -87,7 +87,7 @@ public class DeletedEntry extends ActiveRecord {
     List<ActiveRecord> found = (List<ActiveRecord>) findAllBy(DeletedEntry.class, "identifier", identifier);
     if(found != null) {
       for(ActiveRecord entry : found) {
-        entry.delete(DeletedEntry.class);
+        entry.delete();
       }
     }
   }

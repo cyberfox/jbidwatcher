@@ -184,7 +184,7 @@ public abstract class ActiveRecord extends HashBacked {
     return ids.toString();
   }
 
-  public boolean delete(Class klass) {
+  public boolean delete() {
     if(sDBDisabled) return false;
     String id = get("id");
     return id != null && getDatabase().delete(Integer.parseInt(id));

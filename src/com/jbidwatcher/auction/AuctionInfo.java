@@ -573,8 +573,4 @@ public class AuctionInfo extends ActiveRecord
     }
     return resultSet;
   }
-
-  public void delete() {
-    super.delete(AuctionInfo.class);
-  }
 }

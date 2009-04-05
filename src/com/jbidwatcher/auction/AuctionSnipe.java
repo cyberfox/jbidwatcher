@@ -88,8 +88,4 @@ public class AuctionSnipe extends ActiveRecord
 
     return toDelete.get(0).getDatabase().deleteBy("id IN (" + snipes + ")");
   }
-
-  public void delete() {
-    super.delete(AuctionSnipe.class);
-  }
 }
