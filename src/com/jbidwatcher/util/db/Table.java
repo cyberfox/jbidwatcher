@@ -6,6 +6,9 @@ import com.jbidwatcher.util.Record;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 /**
  * Wrap the auction information up in a database.
@@ -38,6 +41,7 @@ public class Table
   private Statement mS;
   private Map<String, TypeColumn> mColumnMap;
   private String mTableName;
+  private DateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
   /**
    * Create or open a database for storing auction information.
@@ -52,6 +56,7 @@ public class Table
   public Table(String tablename) throws SQLException, IllegalAccessException, InstantiationException, ClassNotFoundException {
     mDB = new Database(null);
     mTableName = tablename;
+    mDateFormat.setTimeZone(TimeZone.getDefault());
 
     PreparedStatement query = mDB.prepare("SELECT * FROM " + mTableName);
 
@@ -209,9 +214,17 @@ public class Table
       oldRow = getRow(tableName, columnKey, value, true);
     }
     if(value == null || oldRow == null) {
+      //  Magic columns; created_at automatically gets set.
+      if (mColumnMap.containsKey("created_at")) {
+        newRow.put("created_at", mDateFormat.format(new Date()));
+      }
       return storeMap(newRow);
     }
 
+    //  Magic columns; updated_at automatically gets set.
+    if(mColumnMap.containsKey("updated_at")) {
+      newRow.put("updated_at", mDateFormat.format(new Date()));
+    }
     String sql = createPreparedUpdate(tableName, oldRow, newRow);
     if(sql == null) return null;
 
@@ -261,6 +274,7 @@ public class Table
   public String storeMap(Record newRow) {
     String sql = createPreparedInsert(mTableName, newRow);
     if(sql == null) return null;
+    StringBuffer values = new StringBuffer();
 
     try {
       PreparedStatement ps = mDB.prepare(sql);
@@ -268,14 +282,18 @@ public class Table
       int column = 1;
       for(String key: newRow.keySet()) {
         if(key.equals("id")) continue;
+        if(values.length() != 0) values.append(", ");
         if(!setColumn(ps, column++, key, newRow.get(key))) {
           JConfig.log().logDebug("Error from columns: (" + column + ", " + key + ", " + mColumnMap.get(key).getType() + ", " + newRow.get(key) + ")");
         }
+        values.append(newRow.get(key));
       }
       ps.execute();
       mDB.commit();
       return findKeys(ps);
     } catch (SQLException e) {
+      System.err.println("Command: " + sql);
+      System.err.println("Values:  " + values);
       JConfig.log().handleException("Can't store row in table.", e);
     }
     return null;
@@ -285,7 +303,13 @@ public class Table
     ResultSet rs = ps.getGeneratedKeys();
     if(rs != null) {
       Record insertMap = getFirstResult(rs);
-      if (insertMap.containsKey("1")) return insertMap.get("1");
+      if (insertMap.containsKey("1")) {
+        return insertMap.get("1");
+      } else if(insertMap.containsKey("generated_key")) {
+        return insertMap.get("generated_key");
+      } else if(insertMap.values().size() == 1) {
+        return insertMap.values().toArray()[0].toString();
+      }
     }
     return "";
   }
@@ -322,7 +346,7 @@ public class Table
           if (anyKeys) {
             update.append(',');
           }
-          update.append(key).append('=').append('?');
+          update.append(key).append("=?");
           anyKeys = true;
         }
       }
@@ -366,7 +390,7 @@ public class Table
       } else if (type.equals("CHAR")) {
         if (val == null) ps.setNull(column, java.sql.Types.CHAR);
         else ps.setString(column, val.substring(0, Math.min(val.length(), 255)));
-      } else if (type.equals("TIMESTAMP")) {
+      } else if (type.equals("TIMESTAMP") || type.equals("DATETIME")) {
         if (val == null) ps.setNull(column, java.sql.Types.TIMESTAMP);
         else try {
           ps.setTimestamp(column, Timestamp.valueOf(val));
@@ -377,7 +401,7 @@ public class Table
           JConfig.log().logMessage("Failing to insert \"" + val + "\" into column " + key + " (" + column + ") of table " + mTableName);
           throw e;
         }
-      } else if (type.equals("INTEGER")) {
+      } else if (type.equals("INTEGER") || type.equals("INT")) {
         if (val == null) ps.setNull(column, java.sql.Types.INTEGER);
         else if(val.length()==0) {
           ps.setInt(column, -1);
@@ -396,7 +420,7 @@ public class Table
           }
         }
       } else {
-        JConfig.log().logDebug("WTF?!?!");
+        JConfig.log().logDebug("WTF?!?! (" + type + ", " + key + ", " + val + ")");
       }
     } catch (SQLException e) {
       e.printStackTrace();
