@@ -18,6 +18,9 @@ public class Database {
   private String protocol;
   private Connection mConn;
   private boolean mNew;
+  private boolean mysql = false;
+
+  public boolean isMySQL() { return mysql; }
 
   public static void main(String[] args) {
     try {
@@ -35,6 +38,7 @@ public class Database {
     framework = JConfig.queryConfiguration("db.framework", "embedded");
     driver = JConfig.queryConfiguration("db.driver", "org.apache.derby.jdbc.EmbeddedDriver");
     protocol = JConfig.queryConfiguration("db.protocol", "jdbc:derby:");
+    mysql = driver.toLowerCase().contains("mysql");
 
     if(base == null) base = JConfig.getHomeDirectory("jbidwatcher");
     System.setProperty("derby.system.home", base);
@@ -69,10 +73,22 @@ public class Database {
        directory if derby.system.home is not set.
      */
     try {
-      mConn = DriverManager.getConnection(protocol + "jbdb", props);
+      if(isMySQL()) {
+        mConn = DriverManager.getConnection(protocol + "jbidwatcher", props);
+      } else {
+        mConn = DriverManager.getConnection(protocol + "jbdb", props);
+      }
       mNew = false;
     } catch(SQLException se) {
-      mConn = DriverManager.getConnection(protocol + "jbdb;create=true", props);
+      if(isMySQL()) {
+        mConn = DriverManager.getConnection(protocol + "mysql", props);
+        Statement s = mConn.createStatement();
+        s.executeUpdate("CREATE DATABASE jbidwatcher");
+        mConn.close();
+        mConn = DriverManager.getConnection(protocol + "jbidwatcher", props);
+      } else {
+        mConn = DriverManager.getConnection(protocol + "jbdb;create=true", props);
+      }
       mNew = true;
     }
     if(sFirst) {
@@ -98,6 +114,8 @@ public class Database {
   }
 
   public void commit() {
+    if(isMySQL()) return;
+
     try {
       mConn.commit();
     } catch(SQLException squee) {

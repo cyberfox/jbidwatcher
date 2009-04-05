@@ -551,7 +551,13 @@ public class AuctionInfo extends ActiveRecord
 
   @SuppressWarnings({"unchecked"})
   public static List<AuctionInfo> findLostAuctions() {
-    return (List<AuctionInfo>)findAllBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE identifier NOT IN (SELECT DISTINCT(identifier) FROM user1.entries)");
+    List<AuctionInfo> resultSet = null;
+    try {
+      resultSet = (List<AuctionInfo>) findAllBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE identifier NOT IN (SELECT DISTINCT(identifier) FROM user1.entries)");
+    } catch(Exception e) {
+      JConfig.log().logDebug("Failed to find lost auctions; probably bad query for the database type.");
+    }
+    return resultSet;
   }
 
   public void delete() {

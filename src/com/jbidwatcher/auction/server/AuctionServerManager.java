@@ -203,7 +203,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         AuctionEntry.getRealDatabase().commit();
 
         List<AuctionInfo> lostAuctions = AuctionInfo.findLostAuctions();
-        if(!lostAuctions.isEmpty()) {
+        if(lostAuctions != null && !lostAuctions.isEmpty()) {
           JConfig.log().logMessage("Recovering " + lostAuctions.size() + " listings.");
           for (AuctionInfo ai : lostAuctions) {
             AuctionEntry ae = new AuctionEntry();
