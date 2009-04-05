@@ -10,7 +10,6 @@ import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
-import com.jbidwatcher.util.AudioPlayer;
 import com.jbidwatcher.platform.Browser;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
@@ -23,7 +22,7 @@ import com.jbidwatcher.ui.util.JBidFrame;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.RuntimeInfo;
 import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.util.ActivityMonitor;
+import com.jbidwatcher.util.services.ActivityMonitor;
 import com.jbidwatcher.util.ErrorMonitor;
 import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.util.queue.*;
@@ -646,7 +645,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     updateTimer.setName("VersionChecker");
     updateTimer.start();
 
-    AudioPlayer.start();
+    com.jbidwatcher.util.services.AudioPlayer.start();
 
     synchronized(memInfoSynch) { if(_rti == null && JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo(); }
     try {

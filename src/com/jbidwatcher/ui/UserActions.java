@@ -1175,7 +1175,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private void DoViewActivity() {
-    StringBuffer logText = ActivityMonitor.getInstance().getLog();
+    StringBuffer logText = com.jbidwatcher.util.services.ActivityMonitor.getInstance().getLog();
     showLog(logText, "Activity Log");
   }
 

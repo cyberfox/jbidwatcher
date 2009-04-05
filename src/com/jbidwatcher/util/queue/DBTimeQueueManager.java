@@ -1,5 +1,7 @@
 package com.jbidwatcher.util.queue;
 
+import com.jbidwatcher.util.db.DBTimeQueue;
+
 import java.util.List;
 
 /**

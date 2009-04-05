@@ -1,7 +1,4 @@
-package com.jbidwatcher.util.queue;
-
-import com.jbidwatcher.util.db.ActiveRecord;
-import com.jbidwatcher.util.db.Table;
+package com.jbidwatcher.util.db;
 
 import java.util.List;
 import java.util.Date;
@@ -15,7 +12,7 @@ import java.util.Date;
  *
  */
 @SuppressWarnings({"unchecked"})
-class DBTimeQueue extends ActiveRecord {
+public class DBTimeQueue extends ActiveRecord {
   private void setRepeatCount(int howMany) { setInteger("repeat_count", howMany); }
   public int getRepeatCount() { return getInteger("repeat_count"); }
   private void setInterval(int repeat) { setInteger("repeat_interval", repeat); }
