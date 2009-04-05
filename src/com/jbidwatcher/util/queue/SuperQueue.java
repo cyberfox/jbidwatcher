@@ -31,7 +31,7 @@ public class SuperQueue {
   }
 
   public void remove(Object payload) {
-    mTQM.erase(payload);
+    mTQM.erase(null, payload);
   }
 
   public TimerHandler start() {

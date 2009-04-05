@@ -298,8 +298,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     AuctionQObject currentlyExists = snipeMap.get(snipeOn.getIdentifier());
     //  If we already have a snipe set for it, first cancel the old one, and then set up the new.
     if(currentlyExists != null) {
-      _etqm.erase(currentlyExists);
-      _etqm.erase(snipeOn);
+      _etqm.erase(null, currentlyExists);
+      _etqm.erase(null, snipeOn);
       snipeMap.remove(snipeOn.getIdentifier());
     }
 
@@ -320,9 +320,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     AuctionQObject cancellable = snipeMap.get(identifier);
 
     //  Erase the pending snipe
-    _etqm.erase(cancellable);
+    _etqm.erase(null, cancellable);
     //  Erase the 30 seconds post-completion update
-    _etqm.erase(snipeCancel);
+    _etqm.erase(null, snipeCancel);
 
     snipeMap.remove(identifier);
   }
@@ -619,7 +619,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
             //  If there are less than 3 seconds left, give up by falling through to FAIL and DONE.
             JConfig.log().logDebug("Resnipes failed, and less than 3 seconds away.  Giving up.");
           case Snipe.FAIL:
-            _etqm.erase(deQ);
+            _etqm.erase(null, deQ);
             JConfig.log().logDebug("Snipe appears to have failed; cancelling.");
             snipe.getItem().snipeFailed();
             //  A failed snipe is a serious, hard error, and should fall through to being removed from the snipe map.
