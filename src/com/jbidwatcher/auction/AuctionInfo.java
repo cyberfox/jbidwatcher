@@ -434,17 +434,31 @@ public class AuctionInfo extends ActiveRecord
   protected boolean hasNoThumbnail() { return getBoolean("noThumbnail"); }
 
   public String getSellerName() {
-    if (mSeller == null) {
-      String seller_id = get("seller_id");
-      if(seller_id != null) mSeller = Seller.findFirstBy("id", seller_id);
-    }
-
+    refreshSeller();
     return mSeller != null ? (mSeller.getSeller()) : "(unknown)";
   }
 
-  public Seller getSeller() { return mSeller; }
-  public String getPositiveFeedbackPercentage() { if (mSeller != null) return mSeller.getPositivePercentage(); else return "n/a"; }
-  int getFeedbackScore() { if(mSeller != null) return mSeller.getFeedback(); else return 0; }
+  private void refreshSeller() {
+    if (mSeller == null) {
+      String seller_id = get("seller_id");
+      if (seller_id != null) mSeller = Seller.findFirstBy("id", seller_id);
+    }
+  }
+
+  public Seller getSeller() {
+    refreshSeller();
+    return mSeller;
+  }
+  public String getPositiveFeedbackPercentage() {
+    refreshSeller();
+    if (mSeller != null) return mSeller.getPositivePercentage();
+    return "n/a";
+  }
+  int getFeedbackScore() {
+    refreshSeller();
+    if (mSeller != null) return mSeller.getFeedback();
+    return 0;
+  }
 
   protected void setSellerName(String sellerName) {
     if(sellerName == null || sellerName.length() == 0) return;
