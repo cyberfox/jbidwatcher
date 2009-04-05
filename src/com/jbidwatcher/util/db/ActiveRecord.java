@@ -124,6 +124,20 @@ public abstract class ActiveRecord extends HashBacked {
     return findAllBy(klass, key, value, null);
   }
 
+  protected static List<? extends ActiveRecord> findAllMulti(Class klass, String[] keys, String[] values, String order) {
+    if (sDBDisabled) return new LinkedList<ActiveRecord>();
+    ActiveRecord found = getExemplar(klass);
+    List<Record> results = getTable(found).findAllMulti(keys, values, order);
+    return convertResultsToList(klass, results);
+  }
+
+  protected static List<? extends ActiveRecord> findAllComparator(Class klass, String key, String comparator, String value, String order) {
+    if (sDBDisabled) return new LinkedList<ActiveRecord>();
+    ActiveRecord found = getExemplar(klass);
+    List<Record> results = getTable(found).findAllComparator(key, comparator, value, order);
+    return convertResultsToList(klass, results);
+  }
+
   protected static List<? extends ActiveRecord> findAllBy(Class klass, String key, String value, String order) {
     if(sDBDisabled) return new LinkedList<ActiveRecord>();
     ActiveRecord found = getExemplar(klass);

@@ -138,17 +138,47 @@ public class Table
     }
   }
 
-  public List<Record> findAll(String key, String value, String order) {
-    String statement = "SELECT * FROM " + mTableName;
-    statement += " WHERE " + key + " = ?";
+  public List<Record> findAllMulti(String[] keys, String[] values, String order) {
+    return findAllMulti(keys, values, null, order);
+  }
 
-    if(order != null) {
-      statement += " ORDER BY " + order;
+  public List<Record> findAllMulti(String[] keys, String[] values, String[] comparisons, String order) {
+    if(keys != null && keys.length != values.length) {
+      JConfig.log().logMessage("Multi-find with varying key and value lengths!");
+      return null;
+    }
+    if(keys != null && comparisons != null && keys.length != comparisons.length) {
+      JConfig.log().logMessage("Multi-find with varying key and comparisons lengths!");
     }
 
+    StringBuffer statement = new StringBuffer("SELECT * FROM " + mTableName);
+    if(keys != null && keys.length != 0) {
+      statement.append(" WHERE ");
+      boolean start = true;
+      for (int i = 0; i < keys.length; i++) {
+        String key = keys[i];
+
+        if(!start) statement.append(" AND ");
+        statement.append(key);
+        if(comparisons == null) {
+          statement.append('=');
+        } else {
+          statement.append(comparisons[i]);
+        }
+        start = false;
+      }
+    }
+
+    if(order != null) statement.append(" ORDER BY ").append(order);
+
     try {
-      PreparedStatement ps = mDB.prepare(statement);
-      setColumn(ps, 1, key, value);
+      PreparedStatement ps = mDB.prepare(statement.toString());
+      if(keys != null && keys.length != 0) {
+        int colnum = 1;
+        for(int i=0; i<values.length; i++) {
+          setColumn(ps, colnum, keys[i], values[i]);
+        }
+      }
       ResultSet rs = ps.executeQuery();
       return getAllResults(rs);
     } catch (SQLException e) {
@@ -156,6 +186,20 @@ public class Table
     }
 
     return null;
+  }
+
+  public List<Record> findAll(String key, String value, String order) {
+    String[] keys = {key};
+    String[] values = {value};
+
+    return findAllMulti(keys, values, order);
+  }
+
+  public List<Record> findAllComparator(String key, String comparison, String value, String order) {
+    String[] keys = {key};
+    String[] values = {value};
+    String[] comparisons = {comparison};
+    return findAllMulti(keys, values, comparisons, order);
   }
 
   public List<Record> findAll() {
