@@ -11,7 +11,7 @@ package com.jbidwatcher.util.queue;
  * The backbone of the message/event based architecture of JBidwatcher.
  */
 public class SuperQueue {
-  private TimeQueueManager mTQM = new TimeQueueManager();
+  private TimeQueueManager mTQM = new DBTimeQueueManager();
   private static SuperQueue mInstance = null;
 
   public static SuperQueue getInstance() {
