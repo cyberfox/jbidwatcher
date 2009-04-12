@@ -1144,6 +1144,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       JConfig.log().handleException("Unexpected exception during high bidder check.", e);
     }
     checkSeller();
+    //  TODO Move all this to 'setComplete' on 'true'...
     if (isComplete()) {
       //  If the auction is really completed now, and it was part of a
       //  multisnipe group, let's check if it's been won.  If it has,
