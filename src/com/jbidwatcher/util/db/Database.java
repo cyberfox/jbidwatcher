@@ -41,12 +41,14 @@ public class Database {
     mysql = driver.toLowerCase().contains("mysql");
 
     if(base == null) base = JConfig.getHomeDirectory("jbidwatcher");
-    System.setProperty("derby.system.home", base);
-    System.setProperty("derby.storage.pageCacheSize", "500");
-    if(JConfig.debugging) {
-      System.setProperty("derby.locks.monitor", "true");
-      System.setProperty("derby.locks.deadlockTrace", "true");
-      System.setProperty("derby.language.logStatementText", "true");
+    if(!mysql) {
+      System.setProperty("derby.system.home", base);
+      System.setProperty("derby.storage.pageCacheSize", "500");
+      if (JConfig.debugging) {
+        System.setProperty("derby.locks.monitor", "true");
+        System.setProperty("derby.locks.deadlockTrace", "true");
+        System.setProperty("derby.language.logStatementText", "true");
+      }
     }
     setup();
   }
