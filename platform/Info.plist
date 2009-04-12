@@ -15,7 +15,7 @@
     <string>JBid</string>
 
     <key>CFBundleExecutable</key>
-    <string>JavaApplicationStub</string>
+    <string>JBidLauncher</string>
 
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>

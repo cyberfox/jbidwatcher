@@ -1459,7 +1459,19 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Mark as Won")) DoDebugWin(whichAuction);
     else if(actionString.equals("View Activity")) DoViewActivity();
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
+    else if (actionString.equals("Restart")) DoRestart();
     else JConfig.log().logDebug('[' + actionString + ']');
+  }
+
+  private void DoRestart() {
+    String launcher = System.getenv("JBIDWATCHER_LAUNCHER");
+
+    if(JConfig.debugging && launcher != null) {
+      //  TODO -- Make this more graceful
+      System.exit(100);
+    } else {
+      JOptionPane.showMessageDialog(null, "Restart does not work without being run from the JBidLauncher script.", "Restart Failed", JOptionPane.PLAIN_MESSAGE);
+    }
   }
 
   private void DoReportProblem(Component src, AuctionEntry auction) {

@@ -128,6 +128,10 @@ public class JBidMenuBar extends JMenuBar {
         "Exit",
         KeyEvent.VK_X,
         KeyStroke.getKeyStroke(KeyEvent.VK_Q, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), !Platform.isMac());
+    String launcher = System.getenv("JBIDWATCHER_LAUNCHER");
+    if(launcher != null && JConfig.debugging()) {
+      makeMenuItem(inMenu, "Restart", "Restart", 'R');
+    }
   }
 
   protected void establishDebugMenu(JMenu inMenu) {

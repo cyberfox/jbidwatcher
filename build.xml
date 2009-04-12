@@ -284,6 +284,8 @@
 
     <copy file="${packaging}/JavaApplicationStub" todir="${osx.app.path}/Contents/MacOS" />
     <chmod file="${osx.app.path}/Contents/MacOS/JavaApplicationStub" perm="755" />
+    <copy file="${packaging}/JBidLauncher" todir="${osx.app.path}/Contents/MacOS" />
+    <chmod file="${osx.app.path}/Contents/MacOS/JBidLauncher" perm="755" />
     <copy file="${packaging}/Info.plist" todir="${osx.app.path}/Contents" />
     <copy file="${packaging}/PkgInfo" todir="${osx.app.path}/Contents" />
     <copy file="${packaging}/jbidicon.icns" todir="${osx.app.path}/Contents/Resources" />
