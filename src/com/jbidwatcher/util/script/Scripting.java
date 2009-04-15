@@ -8,6 +8,7 @@ import org.jruby.javasupport.JavaEmbedUtils;
 import org.jruby.runtime.builtin.IRubyObject;
 
 import java.util.ArrayList;
+import java.io.*;
 
 /**
  * User: Morgan
@@ -19,16 +20,61 @@ import java.util.ArrayList;
 public class Scripting {
   private static Object sRuby = null;
   private static Object sJBidwatcher = null;
+  private static FauxOutputStream sOutput;
+  private static FauxInputStream sInput;
+
+  private static class FauxOutputStream extends OutputStream {
+    private OutputStream mOut = System.out;
+
+    public void write(int b) throws IOException { mOut.write(b); }
+    public void write(byte[] bs) throws IOException { mOut.write(bs); }
+    public void write(byte[] bs, int offset, int length) throws IOException { mOut.write(bs, offset, length); }
+
+    public OutputStream setOutput(OutputStream newOutput) {
+      OutputStream old = mOut;
+      mOut = newOutput;
+//      try { mOut.write("This is a test\n".getBytes());} catch(Exception e) {
+//        System.err.println("Error: " + e);
+//      }
+      return old;
+    }
+  }
+
+  private static class FauxInputStream extends InputStream {
+    private InputStream mIn = System.in;
+
+    public int read() throws IOException {
+      return mIn.read();
+    }
+
+    public InputStream setInput(InputStream newInput) {
+      InputStream old = mIn;
+      mIn = newInput;
+      return old;
+    }
+  }
 
   private Scripting() { }
 
   public static Ruby getRuntime() { return (Ruby)sRuby; }
 
+  public static void setOutput(OutputStream stream) { sOutput.setOutput(stream); }
+  public static void setInput(InputStream stream) { sInput.setInput(stream); }
+
   public static void initialize() throws ClassNotFoundException {
     //  Test for JRuby's presence
     Class.forName("org.jruby.RubyInstanceConfig", true, Thread.currentThread().getContextClassLoader());
 
-    final RubyInstanceConfig config = new RubyInstanceConfig();
+    sOutput = new FauxOutputStream();
+    sInput = new FauxInputStream();
+    final RubyInstanceConfig config = new RubyInstanceConfig() {
+      {
+        setInput(sInput);
+        setOutput(new PrintStream(sOutput));
+        setError(new PrintStream(sOutput));
+      }
+    };
+
     final Ruby runtime = Ruby.newInstance(config);
 
     String[] args = new String[0];

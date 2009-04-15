@@ -7,14 +7,35 @@ import com.jbidwatcher.util.script.Scripting;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
+import java.io.PrintStream;
 
 import org.jruby.demo.TextAreaReadline;
 import org.jruby.Ruby;
+import org.jruby.RubyInstanceConfig;
+import org.jruby.internal.runtime.GlobalVariables;
 
 public class ScriptManager implements MessageQueue.Listener
 {
   private JFrame mFrame = null;
+  private Thread t2;
+
   private static final String EXECUTE = "EXECUTE ";
+
+  public static void main(String[] args) {
+    try {
+      Scripting.initialize();
+      ScriptManager sm = new ScriptManager();
+      sm.prepFrame();
+      sm.show();
+    } catch(ClassNotFoundException e) {
+      System.err.println("Failed to initialize scripting.");
+    }
+  }
+
+  public void show() {
+    mFrame.setVisible(true);
+    try { t2.join(); } catch(InterruptedException e) { /* ignore */ }
+  }
 
   public ScriptManager() {
     MQFactory.getConcrete("scripting").registerListener(this);
@@ -44,9 +65,13 @@ public class ScriptManager implements MessageQueue.Listener
     final TextAreaReadline tar = new TextAreaReadline(text, " Welcome to the JBidwatcher IRB Scripting Console \n\n");
 
     final Ruby runtime = Scripting.getRuntime();
-    tar.hookIntoRuntimeWithStreams(runtime);
+    RubyInstanceConfig config = runtime.getInstanceConfig();
+    config.setObjectSpaceEnabled(true);
+    Scripting.setOutput(tar.getOutputStream());
+    Scripting.setInput(tar.getInputStream());
+    tar.hookIntoRuntime(runtime);
 
-    Thread t2 = new Thread() {
+    t2 = new Thread() {
       public void run() {
         console.setVisible(true);
         runtime.evalScriptlet("require 'irb'; require 'irb/completion'; IRB.start");
