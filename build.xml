@@ -308,6 +308,7 @@
   <target name="osx-app">
     <tar destfile="${APPFILE}" compression="gzip">
       <tarfileset dir="${osx.app.path}" prefix="${app.name}.app" mode="755">
+	<include name="Contents/MacOS/JBidLauncher" />
 	<include name="Contents/MacOS/JavaApplicationStub" />
 	<include name="Contents/Resources/Java/libquaqua.jnilib" />
       </tarfileset>
@@ -317,6 +318,7 @@
 	<exclude name="Contents/MacOS" />
 	<exclude name="Contents/Resources" />
 	<exclude name="Contents/Resources/Java" />
+	<exclude name="Contents/MacOS/JBidLauncher" />
 	<exclude name="Contents/MacOS/JavaApplicationStub" />
 	<exclude name="Contents/Resources/Java/libquaqua.jnilib" />
       </tarfileset>
