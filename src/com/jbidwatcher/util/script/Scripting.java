@@ -3,9 +3,7 @@ package com.jbidwatcher.util.script;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.Ruby;
 import org.jruby.internal.runtime.ValueAccessor;
-import org.jruby.javasupport.JavaUtil;
 import org.jruby.javasupport.JavaEmbedUtils;
-import org.jruby.runtime.builtin.IRubyObject;
 
 import java.util.ArrayList;
 import java.io.*;
@@ -33,9 +31,6 @@ public class Scripting {
     public OutputStream setOutput(OutputStream newOutput) {
       OutputStream old = mOut;
       mOut = newOutput;
-//      try { mOut.write("This is a test\n".getBytes());} catch(Exception e) {
-//        System.err.println("Error: " + e);
-//      }
       return old;
     }
   }
@@ -69,18 +64,16 @@ public class Scripting {
     sInput = new FauxInputStream();
     final RubyInstanceConfig config = new RubyInstanceConfig() {
       {
+        String[] args = new String[0];
         setInput(sInput);
         setOutput(new PrintStream(sOutput));
         setError(new PrintStream(sOutput));
+        setArgv(args);
       }
     };
 
     final Ruby runtime = Ruby.newInstance(config);
 
-    String[] args = new String[0];
-    IRubyObject argumentArray = runtime.newArrayNoCopy(JavaUtil.convertJavaArrayToRuby(runtime, args));
-    runtime.defineGlobalConstant("ARGV", argumentArray);
-    runtime.getGlobalVariables().defineReadonly("$*", new ValueAccessor(argumentArray));
     runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))));
     runtime.getLoadService().init(new ArrayList());
 
@@ -98,13 +91,9 @@ public class Scripting {
   }
 
   public static Object rubyMethod(String method, Object... method_params) {
-    if (sRuby == null) {
-      return null;
-    }
+    if (sRuby == null) return null;
 
-    if (sJBidwatcher == null) {
-      sJBidwatcher = ruby("JBidwatcher");
-    }
+    if (sJBidwatcher == null) sJBidwatcher = ruby("JBidwatcher");
 
     return JavaEmbedUtils.invokeMethod((Ruby)sRuby, sJBidwatcher, method, method_params, Object.class);
   }
