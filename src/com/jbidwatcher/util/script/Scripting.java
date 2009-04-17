@@ -64,7 +64,10 @@ public class Scripting {
     sInput = new FauxInputStream();
     final RubyInstanceConfig config = new RubyInstanceConfig() {
       {
-        String[] args = new String[0];
+        String[] args = new String[3];
+        args[0] = "--readline";
+        args[1] = "--prompt-mode";
+        args[2] = "default";
         setInput(sInput);
         setOutput(new PrintStream(sOutput));
         setError(new PrintStream(sOutput));
