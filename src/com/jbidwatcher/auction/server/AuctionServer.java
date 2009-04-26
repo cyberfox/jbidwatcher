@@ -252,6 +252,10 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
     return sb;
   }
 
+  public SpecificAuction doParse(StringBuffer sb) throws ReloadItemException {
+    return doParse(sb, null, null);
+  }
+
   private SpecificAuction doParse(StringBuffer sb, AuctionEntry ae, String item_id) throws ReloadItemException {
     SpecificAuction curAuction = getNewSpecificAuction();
 

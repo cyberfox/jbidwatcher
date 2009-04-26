@@ -3,6 +3,7 @@ package com.jbidwatcher.app;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Resolver;
 import com.jbidwatcher.auction.AuctionServerInterface;
+import com.jbidwatcher.auction.AuctionInfo;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.JConfig;
@@ -13,6 +14,7 @@ import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.ToolInterface;
+import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.webserver.SimpleProxy;
 
 import java.util.*;
@@ -30,6 +32,7 @@ import java.text.ParseException;
 @SuppressWarnings({"UtilityClass", "UtilityClassWithoutPrivateConstructor"})
 public class JBTool implements ToolInterface {
   private boolean mLogin = false;
+  private boolean mTestQuantity = false;
   private String mUsername = null;
   private String mPassword = null;
   private SimpleProxy mServer = null;
@@ -41,6 +44,7 @@ public class JBTool implements ToolInterface {
   private ebayServer mEbay;
   private String mCountry = "ebay.com";
   private ebayServer mEbayUK;
+  private String mParseFile = null;
 
   private void testDateFormatting() {
     try {
@@ -63,6 +67,8 @@ public class JBTool implements ToolInterface {
     } else if(mJustMyeBay) {
       MQFactory.getConcrete(mEbay).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
       try { Thread.sleep(120000); } catch(Exception ignored) { }
+    } else if(mParseFile != null) {
+      buildAuctionEntryFromFile(mParseFile);
     } else {
       retrieveAndVerifyAuctions(mParams);
     }
@@ -81,18 +87,39 @@ public class JBTool implements ToolInterface {
     System.exit(0);
   }
 
+  private void buildAuctionEntryFromFile(String fname) {
+    StringBuffer sb = new StringBuffer(StringTools.cat(fname));
+    try {
+      AuctionInfo ai = mEbay.doParse(sb);
+      AuctionEntry ae = new AuctionEntry();
+      ae.setAuctionInfo(ai);
+      JConfig.log().logMessage(ae.toXML().toString());
+    } catch (Exception e) {
+      JConfig.log().handleException("Failed to load auction from file: " + fname, e);
+    }
+  }
+
   private void retrieveAndVerifyAuctions(List<String> params) {
     try {
-      StringBuffer auctionXML = AuctionEntry.retrieveAuctionXML(params.get(0));
-      if(auctionXML != null) {
-        JConfig.log().logMessage(auctionXML.toString());
-        XMLElement xmlized = new XMLElement();
-        xmlized.parseString(auctionXML.toString());
+      if(params.size() > 1) {
+        XMLElement auctionList = new XMLElement("auctions");
+        for(String id : params) {
+          XMLElement xmlized = AuctionEntry.retrieveAuctionXML(id);
+          if(xmlized != null) auctionList.addChild(xmlized);
+        }
+        JConfig.log().logMessage(auctionList.toString());
+      } else {
+        StringBuffer auctionXML = AuctionEntry.retrieveAuctionXMLString(params.get(0));
+        if (auctionXML != null) {
+          JConfig.log().logMessage(auctionXML.toString());
+          XMLElement xmlized = new XMLElement();
+          xmlized.parseString(auctionXML.toString());
 
-        if (JConfig.debugging()) {
-          AuctionEntry ae2 = new AuctionEntry();
-          ae2.fromXML(xmlized);
-          JConfig.log().logDebug("ae2.quantity == " + ae2.getQuantity());
+          if (JConfig.debugging() && mTestQuantity) {
+            AuctionEntry ae2 = new AuctionEntry();
+            ae2.fromXML(xmlized);
+            JConfig.log().logDebug("ae2.quantity == " + ae2.getQuantity());
+          }
         }
       }
     } catch(Exception dumpMe) {
@@ -151,6 +178,7 @@ public class JBTool implements ToolInterface {
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
+      if(option.startsWith("file=")) mParseFile = option.substring(5);
     }
 
     if(!mLogin) {

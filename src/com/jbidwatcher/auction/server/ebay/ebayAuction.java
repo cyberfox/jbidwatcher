@@ -402,6 +402,10 @@ class ebayAuction extends SpecificAuction {
       return ParseErrors.BAD_TITLE;
     }
 
+    if(getIdentifier() == null && (ae == null || ae.getIdentifier() == null)) {
+      parseIdentifier();
+    }
+
     Integer quant = getNumberFromLabel(mDocument, T.s("ebayServer.quantity"), T.s("ebayServer.postTitleIgnore"));
 
     //  Get the integer values (Quantity, Bidcount)
@@ -449,6 +453,22 @@ class ebayAuction extends SpecificAuction {
     finish();
     this.saveDB();
     return ParseErrors.SUCCESS;
+  }
+
+  private void parseIdentifier() {
+    String itemNumberContent = mDocument.grep(T.s("ebayServer.itemNumber"));
+    if(itemNumberContent != null) {
+      Pattern p = Pattern.compile(T.s("ebayServer.itemNumber"));
+      Matcher m = p.matcher(itemNumberContent);
+      if (m.matches()) {
+        setIdentifier(m.group(1));
+      }
+    } else {
+      itemNumberContent = mDocument.getNextContentAfterRegex("(?i).*item.number.*");
+      if(itemNumberContent != null && StringTools.isNumberOnly(itemNumberContent)) {
+        setIdentifier(itemNumberContent);
+      }
+    }
   }
 
   private static class ParseException extends Exception {
