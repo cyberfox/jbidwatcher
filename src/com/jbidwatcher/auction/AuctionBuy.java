@@ -8,7 +8,6 @@ package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.auction.AuctionServerInterface;
 
 public class AuctionBuy extends AuctionActionImpl {
   public AuctionBuy(String id, Currency amount, int quantity) {
@@ -16,7 +15,7 @@ public class AuctionBuy extends AuctionActionImpl {
   }
 
   public AuctionBuy(AuctionEntry ae, Currency amount, int quantity) {
-    super(ae, amount, quantity);
+    super(ae.getIdentifier(), amount, quantity);
   }
 
   protected int execute(AuctionEntry ae, Currency curr, int quant) {

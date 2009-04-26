@@ -21,39 +21,32 @@ import com.jbidwatcher.auction.server.AuctionServer;
  */
 public abstract class AuctionActionImpl implements AuctionAction {
   protected String mIdentifier;
-  protected AuctionEntry mEntry;
   protected Currency mAmount;
   protected int mQuantity;
   int mResult = -1;
 
   protected AuctionActionImpl(String id, Currency amount, int quantity) {
     mIdentifier = id;
-    mEntry = null;
-    mAmount = amount;
-    mQuantity = quantity;
-  }
-
-  protected AuctionActionImpl(AuctionEntry ae, Currency amount, int quantity) {
-    mEntry = ae;
-    mIdentifier = ae.getIdentifier();
     mAmount = amount;
     mQuantity = quantity;
   }
 
   public String activate() {
     JConfig.increment("stats.bid");
-    if(mEntry == null) {
-      mEntry = AuctionEntry.findByIdentifier(mIdentifier);
-      if(mEntry == null) {
+    AuctionEntry entry = EntryCorral.getInstance().takeForWrite(mIdentifier);
+    try {
+      if (entry == null) {
         mResult = AuctionServer.BID_ERROR_AUCTION_GONE;
         return getBidResult(mAmount, mResult);
       }
+      mResult = execute(entry, mAmount, mQuantity);
+      String bidResultString = getBidResult(mAmount, mResult);
+      entry.setLastStatus(bidResultString);
+      entry.update();
+      return bidResultString;
+    } finally {
+      EntryCorral.getInstance().release(mIdentifier);
     }
-    mResult = execute(mEntry, mAmount, mQuantity);
-    String bidResultString = getBidResult(mAmount, mResult);
-    mEntry.setLastStatus(bidResultString);
-    mEntry.update();
-    return bidResultString;
   }
 
   protected abstract int execute(AuctionEntry ae, Currency curr, int quant);

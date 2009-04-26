@@ -2,6 +2,7 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.Task;
 import com.jbidwatcher.auction.AuctionEntry;
 
 import java.util.*;
@@ -77,16 +78,19 @@ public class ListManager {
     return null;
   }
 
-  private void removeAuctionsFromTab(boolean deleteFirst, AuctionListHolder holder) {
-    List<AuctionEntry> auctionList = holder.getList().getAuctions();
-    for (AuctionEntry ae : auctionList) {
-      if (deleteFirst) {
-        holder.getUI().delEntry(ae);
-      } else {
-        ae.setCategory(null);
-        MQFactory.getConcrete("redraw").enqueue(ae);
+  private void removeAuctionsFromTab(final boolean deleteFirst, final AuctionListHolder holder) {
+    holder.getList().each(new Task() {
+      public void execute(Object o) {
+        AuctionEntry ae = (AuctionEntry) o;
+
+        if (deleteFirst) {
+          holder.getUI().delEntry(ae);
+        } else {
+          ae.setCategory(null);
+          MQFactory.getConcrete("redraw").enqueue(ae);
+        }
       }
-    }
+    });
   }
 
   public Properties extractProperties(Properties outProps) {
