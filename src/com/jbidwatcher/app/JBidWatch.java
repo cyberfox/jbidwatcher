@@ -666,7 +666,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
       q.preQueue("TIMECHECK", "auction_manager", now + (Constants.ONE_SECOND * 2), Constants.THIRTY_MINUTES);
     }
+    //  TODO mrs - This is where things start to suck. Can this become a single VERB+NOUN operation?
     q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), now + Constants.ONE_SECOND * 3, 481 * Constants.ONE_MINUTE + Constants.ONE_SECOND * 17);
+
     q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 20));
     if(JConfig.queryConfiguration("seen.need_help") == null) {
       q.preQueue("Donate", "user", now + (Constants.ONE_SECOND * 15));
