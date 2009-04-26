@@ -2051,15 +2051,20 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     sResolver = resolver;
   }
 
-  public static StringBuffer retrieveAuctionXML(String identifier) {
+  public static XMLElement retrieveAuctionXML(String identifier) {
     AuctionEntry ae = AuctionEntry.construct(identifier);
-    if(ae != null) {
+    if (ae != null) {
       if (ae.isDutch()) ae.checkDutchHighBidder();
-      XMLElement auctionXML = ae.toXML();
-      return auctionXML.toStringBuffer();
+      return ae.toXML();
     }
 
     return null;
+  }
+
+  public static StringBuffer retrieveAuctionXMLString(String identifier) {
+    XMLElement xe = retrieveAuctionXML(identifier);
+
+    return xe != null ? xe.toStringBuffer() : null;
   }
 
   //  Debugging method, to test multisnipe cancelling.

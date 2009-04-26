@@ -62,7 +62,7 @@ public class MiniServer extends HTTPProxyClient {
 
   public StringBuffer showItem(String identifier) {
     JConfig.log().logDebug("Retrieving auction: " + identifier);
-    return AuctionEntry.retrieveAuctionXML(identifier);
+    return AuctionEntry.retrieveAuctionXMLString(identifier);
   }
 
   public StringBuffer buy(String identifier, String howMany) {
