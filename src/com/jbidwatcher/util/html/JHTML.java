@@ -192,7 +192,7 @@ public class JHTML implements JHTMLListener {
         inputTag = tempTag;
       }
 
-      boolean showInputs = JConfig.queryConfiguration("debug.showInputs", "false").equals("true");
+      boolean showInputs = JConfig.queryConfiguration("debug.showInputs", "true").equals("true");
 
       boolean isError = inputType == null;
       if(!isError) {
@@ -214,6 +214,8 @@ public class JHTML implements JHTMLListener {
           if (showInputs) JConfig.log().logDebug("B: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals("reset")) {
           if (showInputs) JConfig.log().logDebug("RST: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
+        } else if(inputType.equals("file")) {
+          if (showInputs) JConfig.log().logDebug("File: Name: " + inputTag.getProperty("name"));
         } else {
           JConfig.log().logDebug("Unknown input type: " + inputType);
           isError = true;
@@ -250,6 +252,16 @@ public class JHTML implements JHTMLListener {
       }
 
       return null;
+    }
+
+    public Map<String, Object> getCGIMap() {
+      LinkedHashMap<String, Object> rval = new LinkedHashMap<String, Object>();
+      for(XMLElement input : allInputs) {
+        String name = input.getProperty("name");
+        String value = input.getProperty("value");
+        rval.put(name, value);
+      }
+      return rval;
     }
   }
 

@@ -14,7 +14,8 @@ public class AuctionBid extends AuctionActionImpl {
   }
 
   public AuctionBid(AuctionEntry ae, Currency amount, int quantity) {
-    super(ae, amount, quantity);
+    super(ae.getIdentifier(), amount, quantity);
+    EntryCorral.getInstance().put(ae);
   }
 
   protected int execute(AuctionEntry ae, Currency curr, int quant) {

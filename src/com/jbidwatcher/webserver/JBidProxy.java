@@ -193,7 +193,7 @@ public class JBidProxy extends HTTPProxyClient {
 
     JConfig.log().logDebug("Remote-controlled snipe activated against auction " + auctionId + " for " + snipeValue);
     ae.prepareSnipe(snipeValue);
-    MQFactory.getConcrete("redraw").enqueue(ae);
+    MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
 
     JHTMLOutput jho = new JHTMLOutput("Activated snipe!",
                                       "Remote-controlled snipe activated on: " +
@@ -208,7 +208,7 @@ public class JBidProxy extends HTTPProxyClient {
 
     if(ae != null) {
       ae.cancelSnipe(false);
-      MQFactory.getConcrete("redraw").enqueue(ae);
+      MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
       return new JHTMLOutput("Snipe canceled!", "Cancellation of snipe successful." +
                              messageFinisher).getStringBuffer();
     }

@@ -3,12 +3,21 @@ package com.jbidwatcher.my;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorHandler;
 import com.jbidwatcher.util.Parameters;
+import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.xml.XMLSerialize;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.http.Http;
+import com.jbidwatcher.util.http.ClientHttpRequest;
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.EntryCorral;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.IOException;
+import java.net.URL;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,6 +29,42 @@ import com.jbidwatcher.auction.AuctionEntry;
  */
 public class MyJBidwatcher {
   private static MyJBidwatcher sInstance = null;
+  private static final String LOG_UPLOAD_URL = "http://my.jbidwatcher.com/upload/log";
+
+  public boolean sendLogFile() {
+    File fp = JConfig.log().closeLog();
+    if(fp != null) return uploadFile(fp, LOG_UPLOAD_URL);
+    return false;
+  }
+
+  public boolean sendLogFile(String filename) {
+    File f = new File(filename);
+    String feedForm = LOG_UPLOAD_URL;
+    return uploadFile(f, feedForm);
+  }
+
+  private boolean uploadFile(File f, String feedForm) {
+    try {
+      String sample = StringTools.cat(new URL(feedForm));
+      JHTML jh = new JHTML(new StringBuffer(sample));
+      JHTML.Form form = jh.getFormWithInput("AWSAccessKeyId");
+      if (form != null) {
+        form.delInput("upload");
+        String url = form.getAction();
+        ClientHttpRequest chr = new ClientHttpRequest(url);
+        chr.setParameters(form.getCGIMap());
+        chr.setParameter("file", f);
+        InputStream resp = chr.post();
+        String result = StringTools.cat(resp);
+        System.out.println(result);
+        resp.close();
+      }
+    } catch (IOException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      return false;
+    }
+    return true;
+  }
 
   public String recognizeBidpage(String identifier, StringBuffer page) {
     Parameters p = new Parameters();
@@ -58,7 +103,7 @@ public class MyJBidwatcher {
     MQFactory.getConcrete("upload").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
         if(JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-          postAuction((XMLSerialize)deQ);
+          postAuction(EntryCorral.getInstance().takeForRead(deQ.toString()));
         }
       }
     });

@@ -7,6 +7,7 @@ import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.EntryCorral;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
@@ -418,14 +419,14 @@ public final class UIBackbone implements MessageQueue.Listener {
     Date now = new Date();
     String status = "We appear to be waking from sleep; networking may not be up yet.";
     JConfig.log().logDebug(status);
-    List<AuctionEntry> sniped = AuctionEntry.findAllSniped();
+    List<AuctionEntry> sniped = EntryCorral.getInstance().findAllSniped();
     if (sniped != null && !sniped.isEmpty()) {
       boolean foundSnipe = false;
       for (AuctionEntry entry : sniped) {
         entry.setLastStatus(status);
         if (now.after(entry.getEndDate())) {
           entry.setLastStatus("The computer may have slept through the snipe time!");
-          if (!foundSnipe) foundSnipe = true;
+          foundSnipe = true;
         }
       }
       if (foundSnipe) status += "  One or more snipes may not have been fired.";

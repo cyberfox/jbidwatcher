@@ -750,7 +750,7 @@ class ebayAuction extends SpecificAuction {
     try {
       if(JConfig.queryConfiguration("show.images", "true").equals("true")) {
         if(!hasNoThumbnail() && !hasThumbnail()) {
-          MQFactory.getConcrete("thumbnail").enqueue(this);
+          MQFactory.getConcrete("thumbnail").enqueue(this); // NONSTRING Queue Object
         }
       }
     } catch(Exception e) {

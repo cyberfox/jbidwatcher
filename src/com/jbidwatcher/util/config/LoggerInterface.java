@@ -1,5 +1,7 @@
 package com.jbidwatcher.util.config;
 
+import java.io.File;
+
 /**
  * Created by IntelliJ IDEA.
  * User: Morgan
@@ -22,7 +24,7 @@ public interface LoggerInterface {
 
   void dump2File(String fname, StringBuffer sb);
 
-  public void closeLog();
+  public File closeLog();
 
   public void addHandler(ErrorHandler eh);
 }

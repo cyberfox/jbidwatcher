@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public class ErrorManagement implements LoggerInterface {
   private static PrintWriter mLogWriter = null;
   private List<ErrorHandler> sHandlers = new ArrayList<ErrorHandler>();
+  private File mFP;
 
   public void addHandler(ErrorHandler eh) {
     sHandlers.add(eh);
@@ -38,7 +39,7 @@ public class ErrorManagement implements LoggerInterface {
             fp = new File(home + sep + "errors" + increment + ".log");
             increment = "." + stepper++;
           } while(fp.exists());
-
+          mFP = fp;
           mLogWriter = new PrintWriter(new FileOutputStream(fp));
         } catch(IOException ioe) {
           System.err.println("FAILED TO OPEN AN ERROR LOG.");
@@ -48,11 +49,15 @@ public class ErrorManagement implements LoggerInterface {
     }
   }
 
-  public void closeLog() {
+  public File closeLog() {
     if(mLogWriter != null) {
       mLogWriter.close();
       mLogWriter = null;
+      File oldFP = mFP;
+      mFP = null;
+      return oldFP;
     }
+    return null;
   }
 
   public void logMessage(String msg) {

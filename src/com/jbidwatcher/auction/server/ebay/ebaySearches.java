@@ -89,7 +89,7 @@ public class ebaySearches {
           String hasId = aucServ.extractIdentifierFromURLString(url);
 
           if (hasId != null) {
-            MQFactory.getConcrete("drop").enqueue(new DropQObject(url.trim(), category, interactive));
+            MQFactory.getConcrete("drop").enqueue(new DropQObject(url.trim(), category, interactive)); // NONSTRING Queue Object
             item_count++;
           }
         }

@@ -210,19 +210,27 @@ public class StringTools {
 
   public static String cat(URL loadFrom) {
     if(loadFrom == null) return null;
-    byte[] buf = new byte[65536];
     try {
       InputStream is = loadFrom.openStream();
-      int bytes_read = is.read(buf);
-      if(bytes_read == buf.length) {
-        JConfig.log().logDebug("File to load is exactly 64K or larger than 64K.  This method does not support that.");
-        return null;
-      }
-      return new String(buf, 0, bytes_read);
+      return cat(is);
     } catch (IOException e) {
       JConfig.log().handleException("Failed to load " + loadFrom.toString(), e);
     }
     return null;
+  }
+
+  public static String cat(InputStream is) throws IOException {
+    byte[] buf = new byte[65536];
+    int offset = 0;
+    int bytes_read;
+    while( (bytes_read = is.read(buf, offset, 8192)) != -1) {
+      offset += bytes_read;
+    }
+    if(bytes_read == buf.length) {
+      JConfig.log().logDebug("File to load is exactly 64K or larger than 64K.  This method does not support that.");
+      return null;
+    }
+    return new String(buf, 0, offset);
   }
 
   public static String cat(String filename) {

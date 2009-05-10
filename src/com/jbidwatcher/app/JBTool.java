@@ -15,11 +15,18 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.ToolInterface;
 import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.util.html.JHTML;
+import com.jbidwatcher.util.http.ClientHttpRequest;
 import com.jbidwatcher.webserver.SimpleProxy;
+import com.jbidwatcher.my.MyJBidwatcher;
 
 import java.util.*;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 /**
  * This provides a command-line interface to JBidwatcher, loading an individual auction
@@ -65,7 +72,7 @@ public class JBTool implements ToolInterface {
     if(mRunServer) {
       spawnServer();
     } else if(mJustMyeBay) {
-      MQFactory.getConcrete(mEbay).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
+      MQFactory.getConcrete(mEbay).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); // NONSTRING Queue Object
       try { Thread.sleep(120000); } catch(Exception ignored) { }
     } else if(mParseFile != null) {
       buildAuctionEntryFromFile(mParseFile);
@@ -100,6 +107,7 @@ public class JBTool implements ToolInterface {
   }
 
   private void retrieveAndVerifyAuctions(List<String> params) {
+    if(params.size() == 0) return;
     try {
       if(params.size() > 1) {
         XMLElement auctionList = new XMLElement("auctions");
@@ -179,6 +187,7 @@ public class JBTool implements ToolInterface {
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
       if(option.startsWith("file=")) mParseFile = option.substring(5);
+      if(option.startsWith("upload=")) MyJBidwatcher.getInstance().sendLogFile(option.substring(7));
     }
 
     if(!mLogin) {

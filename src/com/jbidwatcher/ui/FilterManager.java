@@ -8,9 +8,11 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.Category;
+import com.jbidwatcher.auction.EntryCorral;
 
 import java.util.*;
 import java.awt.Color;
@@ -33,7 +35,8 @@ public class FilterManager implements MessageQueue.Listener {
 
     MQFactory.getConcrete("delete").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
-        AuctionEntry ae = (AuctionEntry) deQ;
+        AuctionEntry ae = EntryCorral.getInstance().takeForWrite(deQ.toString());  //  Lock the item
+        EntryCorral.getInstance().erase(ae.getIdentifier());  //  Remove and unlock it
         deleteAuction(ae);
       }
     });
@@ -90,30 +93,32 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   public void messageAction(Object deQ) {
-    if(deQ instanceof AuctionEntry) {
-      AuctionEntry ae = (AuctionEntry) deQ;
-      ae = dedupe(ae);
-      AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
-      AuctionListHolder newAuction = refilterAuction(ae);
-      if (newAuction != null) {
-        MQFactory.getConcrete("Swing").enqueue("Moved to " + newAuction.getList().getName() + " " + Auctions.getTitleAndComment(ae));
-        if(old != null) old.getUI().redrawAll();
-        newAuction.getUI().redrawAll();
-      } else {
-        JTabManager.getInstance().getCurrentTable().update(ae);
+    String cmd = deQ.toString();
+    if(StringTools.isNumberOnly(cmd)) {
+      AuctionEntry ae = EntryCorral.getInstance().takeForRead(cmd);
+      if(ae != null) {
+        ae = dedupe(ae); //  TODO - This may not be necessary anymore
+        AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
+        AuctionListHolder newAuction = refilterAuction(ae);
+        if (newAuction != null) {
+          MQFactory.getConcrete("Swing").enqueue("Moved to " + newAuction.getList().getName() + " " + Auctions.getTitleAndComment(ae));
+          if (old != null) old.getUI().redrawAll();
+          newAuction.getUI().redrawAll();
+        } else {
+          JTabManager.getInstance().getCurrentTable().update(ae);
+        }
+        return;
       }
-    } else if(deQ instanceof String) {
-      String item = (String)deQ;
-      AuctionListHolder toSort = mList.findCategory(item);
+    }
+
+    // Starting with #, and 6 hex digits long it's a color
+    if(cmd.startsWith("#") && cmd.length() == 7) {
+      mList.setBackground(Color.decode(cmd));
+    } else {
+      AuctionListHolder toSort = mList.findCategory(cmd);
       if(toSort != null) {
         toSort.getUI().sort();
-      } else {
-        AuctionEntry ae = mIdentifierToAuction.get(item);
-        //  A little recursion never hurt anybody...
-        if(ae != null) messageAction(ae);
       }
-    } else if(deQ instanceof Color) {
-      mList.setBackground((Color)deQ);
     }
   }
 

@@ -1,5 +1,7 @@
 package com.jbidwatcher.util.config;
 
+import java.io.File;
+
 /**
  * Created by IntelliJ IDEA.
 * User: Morgan
@@ -15,6 +17,6 @@ class NullLogger implements LoggerInterface {
   public void handleDebugException(String sError, Throwable e) { }
   public void logFile(String msgtop, StringBuffer dumpsb) { }
   public void dump2File(String fname, StringBuffer sb) { }
-  public void closeLog() { }
+  public File closeLog() { return null; }
   public void addHandler(ErrorHandler eh) { }
 }

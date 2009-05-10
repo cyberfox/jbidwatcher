@@ -10,10 +10,8 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.UpdateBlocker;
+import com.jbidwatcher.util.Task;
 import com.jbidwatcher.util.xml.XMLElement;
-
-import java.util.List;
-import java.util.LinkedList;
 
 /**
  *  This class shouldn't have a 'TableSorter', it should defer to some
@@ -69,13 +67,6 @@ public class Auctions implements TimerHandler.WakeupProcess {
         return false;
       }
     });
-  }
-
-  public List<AuctionEntry> getAuctions() {
-    List<AuctionEntry> gotList = mList.getList();
-    synchronized (gotList) {
-      return new LinkedList<AuctionEntry>(gotList);
-    }
   }
 
   /**
@@ -152,18 +143,18 @@ public class Auctions implements TimerHandler.WakeupProcess {
     if(!ae.isComplete() || ae.isUpdateForced()) {
       MQFactory.getConcrete("Swing").enqueue("Updating " + titleWithComment);
       ae.setUpdating();
-      MQFactory.getConcrete("redraw").enqueue(ae);
+      MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
       Thread.yield();
       XMLElement before = ae.toXML();
       ae.update();
       XMLElement after = ae.toXML();
       ae.clearUpdating();
       if (!(after.toString().equals(before.toString()))) {
-        MQFactory.getConcrete("upload").enqueue(ae);
+        MQFactory.getConcrete("upload").enqueue(ae.getIdentifier());
         String category = ae.getCategory();
         MQFactory.getConcrete("redraw").enqueue(category);
       }
-      MQFactory.getConcrete("redraw").enqueue(ae);
+      MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
       MQFactory.getConcrete("Swing").enqueue("Done updating " + Auctions.getTitleAndComment(ae));
     }
     return false;
@@ -208,5 +199,9 @@ public class Auctions implements TimerHandler.WakeupProcess {
   public boolean check() {
     //  Don't allow updates to interfere with sniping.
     return !(UpdateBlocker.isBlocked() || !doNextUpdate());
+  }
+
+  public void each(Task task) {
+    mList.each(task);
   }
 }

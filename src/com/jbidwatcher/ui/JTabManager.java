@@ -187,7 +187,7 @@ public class JTabManager extends JMouseAdapter {
       }
     }
 
-    MQFactory.getConcrete("user").enqueue(new ActionTriple(event.getSource(), actionString, whichAuction));
+    MQFactory.getConcrete("user").enqueue(new ActionTriple(event.getSource(), actionString, whichAuction)); // NONSTRING Queue Object
   }
 
   public void sortDefault() {

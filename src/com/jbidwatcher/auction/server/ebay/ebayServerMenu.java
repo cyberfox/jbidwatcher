@@ -30,7 +30,7 @@ class ebayServerMenu extends ServerMenu {
 
     //  Handle stuff which is redirected to the search manager.
     if(actionString.equals("Search eBay")) MQFactory.getConcrete("user").enqueue("SEARCH");
-    else MQFactory.getConcrete(mQueueServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null));
+    else MQFactory.getConcrete(mQueueServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null)); // NONSTRING Queue Object
   }
 
   protected ebayServerMenu(Object qServer, String serverName, char ch) {

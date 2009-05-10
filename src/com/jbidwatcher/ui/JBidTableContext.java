@@ -31,7 +31,7 @@ public class JBidTableContext extends JBidContext {
     if(actionString.startsWith("BT-")) {
       actionString = actionString.substring(3);
     }
-    MQFactory.getConcrete("user").enqueue(new ActionTriple(src, actionString, whichAuction));
+    MQFactory.getConcrete("user").enqueue(new ActionTriple(src, actionString, whichAuction)); // NONSTRING Queue Object
   }
 
   protected void buildMenu(JPopupMenu menu) {
@@ -223,7 +223,7 @@ public class JBidTableContext extends JBidContext {
     //  Now move all entries in the temporary table to the new tab.
     for (AuctionEntry moveEntry : tempTable) {
       moveEntry.setCategory(tab);
-      MQFactory.getConcrete("redraw").enqueue(moveEntry);
+      MQFactory.getConcrete("redraw").enqueue(moveEntry.getIdentifier());
     }
   }
 }

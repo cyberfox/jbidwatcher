@@ -236,7 +236,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         JConfig.log().logMessage("We lost the underlying auction for: " + ae.dumpRecord());
         if(ae.getIdentifier() != null) {
           JConfig.log().logMessage("Trying to reload auction via its auction identifier.");
-          MQFactory.getConcrete("drop").enqueue(ae);
+          MQFactory.getConcrete("drop").enqueue(ae); // NONSTRING Queue Object (AuctionEntry)
         } else {
           timeStart("delete");
           ae.delete();

@@ -105,3 +105,11 @@ and close to the end of the auction).
   http://cgi1.ebay.com/ws/eBayISAPI.dll?ViewItemMakeTrack&item=6047388445
   http://cgi1.ebay.com/ws/eBayISAPI.dll?ViewItemMakeTrack&item=5104953681
   Returns: onWatch([{"watcherCount":1,"watchcount":21,"item":"5104953681","showBidManagerLink":false,"signin":1,"result":1}])
+
+--
+Replace AuctionEntry usage with the identifier when enqueing for redraw, upload, drop, delete, and report.
+13 redraw
+ 1 upload
+ 1 drop
+ 1 delete
+ 1 report

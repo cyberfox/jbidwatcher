@@ -84,7 +84,6 @@ public class MiniServer extends HTTPProxyClient {
   public StringBuffer bid(String identifier, String howMuch, String howMany) {
     int quantity = getQuantity(howMany);
     AuctionEntry ae = AuctionEntry.construct(identifier);
-
     AuctionBid ab = new AuctionBid(ae, Currency.getCurrency(ae.getCurBid().getCurrencySymbol(), howMuch), quantity);
     return fireAction(ae, ab);
   }

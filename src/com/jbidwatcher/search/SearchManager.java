@@ -49,27 +49,27 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
 
   private class StringSearcher extends Searcher {
     public String getTypeName() { return "Text"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_SEARCH, this, getCategory())); }
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_SEARCH, this, getCategory())); } // NONSTRING Queue Object
   }
 
   private class TitleSearcher extends Searcher {
     public String getTypeName() { return "Title"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_TITLE, this, getCategory())); }
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_TITLE, this, getCategory())); } // NONSTRING Queue Object
   }
 
   private class SellerSearcher extends Searcher {
     public String getTypeName() { return "Seller"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_SELLER, this, getCategory())); }
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_SELLER, this, getCategory())); } // NONSTRING Queue Object
   }
 
   private class URLSearcher extends Searcher {
     public String getTypeName() { return "URL"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_URL, this, getCategory())); }
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_URL, this, getCategory())); } // NONSTRING Queue Object
   }
 
   private class MyItemSearcher extends Searcher {
     public String getTypeName() { return "My Items"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); }
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); } // NONSTRING Queue Object
   }
 
   public Searcher getSearchByIndex(int i) { if(i < _searches.size()) return _searches.get(i); else return null; }
