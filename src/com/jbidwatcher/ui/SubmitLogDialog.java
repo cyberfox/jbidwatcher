@@ -1,6 +1,8 @@
 package com.jbidwatcher.ui;
 
 import com.jbidwatcher.my.MyJBidwatcher;
+import com.jbidwatcher.platform.Platform;
+import com.jbidwatcher.ui.util.JBidFrame;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -18,6 +20,7 @@ public class SubmitLogDialog extends JDialog {
 
   public SubmitLogDialog() {
     setContentPane(contentPane);
+    if (JBidFrame.getDefaultMenuBar() != null) setJMenuBar(JBidFrame.getDefaultMenuBar());
     setModal(true);
     getRootPane().setDefaultButton(buttonOK);
 
@@ -29,7 +32,7 @@ public class SubmitLogDialog extends JDialog {
       public void actionPerformed(ActionEvent e) {onCancel();}
     });
 
-// call onCancel() when cross is clicked
+    // call onCancel() when cross is clicked
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
@@ -37,7 +40,7 @@ public class SubmitLogDialog extends JDialog {
       }
     });
 
-// call onCancel() on ESCAPE
+    // call onCancel() on ESCAPE
     contentPane.registerKeyboardAction(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         onCancel();
@@ -45,19 +48,28 @@ public class SubmitLogDialog extends JDialog {
     }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
   }
 
+  public void showDialog() {
+    pack();
+    mProblemTextArea.setText("");
+    String email = mEmailAddressTextField.getText();
+    setVisible(true);
+    if (email != null && email.length() != 0) {
+      mProblemTextArea.requestFocusInWindow();
+    }
+  }
+
   private void onOK() {
-    MyJBidwatcher.getInstance().sendLogFile();
+    MyJBidwatcher.getInstance().sendLogFile(mEmailAddressTextField.getText(), mProblemTextArea.getText());
     dispose();
   }
 
   private void onCancel() {
-// add your code here if necessary
+    // add your code here if necessary
     dispose();
   }
 
   public static void main(String[] args) {
     SubmitLogDialog dialog = new SubmitLogDialog();
-    dialog.setMinimumSize(new Dimension(442, 338));
     dialog.pack();
     dialog.setVisible(true);
     System.exit(0);
@@ -166,6 +178,8 @@ public class SubmitLogDialog extends JDialog {
     gbc.fill = GridBagConstraints.BOTH;
     panel3.add(scrollPane1, gbc);
     mProblemTextArea = new JTextArea();
+    mProblemTextArea.setColumns(28);
+    mProblemTextArea.setRows(10);
     scrollPane1.setViewportView(mProblemTextArea);
     label1.setLabelFor(mEmailAddressTextField);
     label2.setLabelFor(mProblemTextArea);

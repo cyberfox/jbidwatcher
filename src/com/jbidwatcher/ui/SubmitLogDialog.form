@@ -92,7 +92,10 @@
             <children>
               <component id="1f5ae" class="javax.swing.JTextArea" binding="mProblemTextArea">
                 <constraints/>
-                <properties/>
+                <properties>
+                  <columns value="28"/>
+                  <rows value="10"/>
+                </properties>
               </component>
             </children>
           </scrollpane>
