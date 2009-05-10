@@ -1459,8 +1459,22 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Mark as Won")) DoDebugWin(whichAuction);
     else if(actionString.equals("View Activity")) DoViewActivity();
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
+    else if(actionString.equals("Submit Log File")) DoSubmitLogFile();
     else if (actionString.equals("Restart")) DoRestart();
     else JConfig.log().logDebug('[' + actionString + ']');
+  }
+
+  private SubmitLogDialog mLogSubmitDialog;
+
+  private void DoSubmitLogFile() {
+    if(mLogSubmitDialog == null) {
+      mLogSubmitDialog = new SubmitLogDialog();
+    }
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        mLogSubmitDialog.showDialog();
+      }
+    });
   }
 
   private void DoRestart() {

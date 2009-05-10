@@ -27,6 +27,7 @@ public class JBidMenuBar extends JMenuBar {
   protected JMenuBar _menuBar;
   protected JMenu _fileMenu;
   protected JMenu _editMenu;
+  protected JMenu _debugMenu;
   protected JMenu _serverMenu;
   protected JMenu mWindowMenu;
   protected JMenu mTabMenu;
@@ -138,6 +139,7 @@ public class JBidMenuBar extends JMenuBar {
     makeMenuItem(inMenu, "Serialize");
     makeMenuItem(inMenu, "Deserialize");
     inMenu.add(new JSeparator());
+    makeMenuItem(inMenu, "Submit Log File");
   }
 
   protected void establishEditMenu(JMenu inMenu) {
@@ -306,6 +308,11 @@ public class JBidMenuBar extends JMenuBar {
     _fileMenu.setMnemonic('F');
     _editMenu = new JMenu("Edit");
     _editMenu.setMnemonic('E');
+    if(JConfig.debugging()) {
+      _debugMenu = new JMenu("Debug");
+      _debugMenu.setMnemonic('D');
+      establishDebugMenu(_debugMenu);
+    }
     _serverMenu = new JMenu("Servers");
     _serverMenu.setMnemonic('S');
     _auctionMenu = new JMenu("Auction");
@@ -327,6 +334,9 @@ public class JBidMenuBar extends JMenuBar {
 
     add(_fileMenu);
     add(_editMenu);
+    if (JConfig.debugging()) {
+      add(_debugMenu);
+    }
     add(_serverMenu);
     add(_auctionMenu);
     add(mTabMenu);
