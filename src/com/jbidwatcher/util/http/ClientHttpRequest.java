@@ -231,7 +231,13 @@ public class ClientHttpRequest {
     boundary();
     writeln("--");
     mOutput.close();
-    InputStream rval = mConnection.getInputStream();
+    InputStream rval;
+    HttpURLConnection huc = (HttpURLConnection)mConnection;
+    if(huc.getResponseCode() / 100 == 4) {
+      rval = huc.getErrorStream();
+    } else {
+      rval = mConnection.getInputStream();
+    }
     int status = ((HttpURLConnection) mConnection).getResponseCode();
     if(status / 100 == 3) {
       String location = mConnection.getHeaderField("Location");
