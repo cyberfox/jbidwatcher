@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 
 /**
  * Created by IntelliJ IDEA.
@@ -31,16 +32,33 @@ public class MyJBidwatcher {
   private static MyJBidwatcher sInstance = null;
   private static final String LOG_UPLOAD_URL = "http://my.jbidwatcher.com/upload/log";
 
-  public boolean sendLogFile() {
+  public boolean sendLogFile(String email, String desc) {
     File fp = JConfig.log().closeLog();
-    if(fp != null) return uploadFile(fp, LOG_UPLOAD_URL);
-    return false;
+    return sendFile(fp, email, desc);
   }
 
-  public boolean sendLogFile(String filename) {
-    File f = new File(filename);
-    String feedForm = LOG_UPLOAD_URL;
-    return uploadFile(f, feedForm);
+  private String createFormSource(String email, String desc) {
+    String formSource = LOG_UPLOAD_URL;
+    try {
+      String parameters = "";
+      if(email != null && email.length() != 0) {
+        parameters = "?email=" + URLEncoder.encode(email, "UTF-8");
+      }
+      if(desc != null && desc.length() != 0) {
+        parameters += (parameters.length() == 0) ? '?' : '&';
+        parameters += "description=" + URLEncoder.encode(desc, "UTF-8");
+      }
+      formSource += parameters;
+    } catch(Exception e) {
+      formSource += "email=teh%40fail.com&description=Failed+to+encode+description";
+    }
+    return formSource;
+  }
+
+  public boolean sendFile(File fp, String email, String desc) {
+    String formSource = createFormSource(email, desc);
+    if (fp != null) return uploadFile(fp, formSource);
+    return false;
   }
 
   private boolean uploadFile(File f, String feedForm) {
