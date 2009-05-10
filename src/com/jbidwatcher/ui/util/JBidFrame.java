@@ -20,6 +20,10 @@ public class JBidFrame extends JFrame
     sMenuBar = def;
   }
 
+  public static JMenuBar getDefaultMenuBar() {
+    return sMenuBar;
+  }
+
   /**
    * @brief In order to support the everpresent top-of-screen menu bar
    * on the Mac, we need this assistance function to add a menu bar to
