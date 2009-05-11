@@ -1,12 +1,10 @@
 package com.jbidwatcher.ui;
 
 import com.jbidwatcher.my.MyJBidwatcher;
-import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.ui.util.JBidFrame;
 
 import javax.swing.*;
 import java.awt.event.*;
-import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -59,8 +57,13 @@ public class SubmitLogDialog extends JDialog {
   }
 
   private void onOK() {
-    MyJBidwatcher.getInstance().sendLogFile(mEmailAddressTextField.getText(), mProblemTextArea.getText());
-    dispose();
+    String email = mEmailAddressTextField.getText();
+    if (email == null || email.length() == 0) {
+      JOptionPane.showMessageDialog(null, "Email Address Required", "An email address is necessary so I can contact you if I need more information.", JOptionPane.ERROR_MESSAGE);
+    } else {
+      MyJBidwatcher.getInstance().sendLogFile(email, mProblemTextArea.getText());
+      dispose();
+    }
   }
 
   private void onCancel() {
