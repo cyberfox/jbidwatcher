@@ -7,6 +7,7 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.PlainMessageQueue;
 import com.jbidwatcher.ui.table.Selector;
 import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.ui.util.JMouseAdapter;
@@ -187,7 +188,7 @@ public class JTabManager extends JMouseAdapter {
       }
     }
 
-    MQFactory.getConcrete("user").enqueue(new ActionTriple(event.getSource(), actionString, whichAuction)); // NONSTRING Queue Object
+    ((PlainMessageQueue)MQFactory.getConcrete("user")).enqueueObject(new ActionTriple(event.getSource(), actionString, whichAuction));
   }
 
   public void sortDefault() {

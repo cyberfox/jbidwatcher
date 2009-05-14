@@ -6,7 +6,7 @@ package com.jbidwatcher.util.queue;
  */
 
 public class AuctionQObject extends QObject {
-  int m_cmd;
+  private int mCmd;
 
   public static final int LOAD_URL = 0;
   public static final int LOAD_SEARCH = 1;
@@ -20,18 +20,22 @@ public class AuctionQObject extends QObject {
   public static final int SNIPE = 9;
   public static final int CANCEL_SNIPE = 10;
 
+  public AuctionQObject() { super(); }
+
   public AuctionQObject(int cmd, Object data, String label) {
     super(data, label);
-    m_cmd = cmd;
+    mCmd = cmd;
   }
 
-  public String toString() {
-    return "AuctionQObject{" +
-            super.toString() +
-            "m_cmd=" + m_cmd +
-            '}';
-  }
+//  public String toString() {
+//    return "AuctionQObject{" +
+//            super.toString() +
+//            "mCmd=" + mCmd +
+//            '}';
+//  }
 
-  public int getCommand() { return m_cmd; }
-  public String getStringData() { return (String)m_data; }
+  public void setCommand(int cmd) { mCmd = cmd; }
+  public int getCommand() { return mCmd; }
+
+  public String getStringData() { return (String) mData; }
 }

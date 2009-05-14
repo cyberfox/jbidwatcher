@@ -21,16 +21,29 @@ public class ThumbnailLoader implements MessageQueue.Listener {
   public void messageAction(Object deQ) {
     AuctionInfo ai = (AuctionInfo) deQ;
 
-    ByteBuffer thumbnail = ai.getSiteThumbnail();
+    String thumbnail = ai.getThumbnailURL();
     //  eBay has started including a 64x64 image instead of the 96x96 ones they used to have,
     //  but it's named '*6464.jpg' instead of '*.jpg'.
     if(thumbnail == null) thumbnail = ai.getAlternateSiteThumbnail();
-    //  If we retrieved 'something', but it was 0 bytes long, it's not a thumbnail.
-    if(thumbnail != null && thumbnail.getLength() == 0) thumbnail = null;
 
-    String imgPath = Thumbnail.getValidImagePath(ai.getIdentifier(), thumbnail);
+    ByteBuffer thumbnailImage = getThumbnailByURL(thumbnail);
+
+    //  If we retrieved 'something', but it was 0 bytes long, it's not a thumbnail.
+    if(thumbnailImage != null && thumbnailImage.getLength() == 0) thumbnailImage = null;
+
+    String imgPath = Thumbnail.getValidImagePath(ai.getIdentifier(), thumbnailImage);
 
     ai.setThumbnail(imgPath);
+  }
+
+  private ByteBuffer getThumbnailByURL(String url) {
+    ByteBuffer tmpThumb;
+    try {
+      tmpThumb = downloadThumbnail(new URL(url));
+    } catch (Exception ignored) {
+      tmpThumb = null;
+    }
+    return tmpThumb;
   }
 
   public static ByteBuffer downloadThumbnail(URL img) {

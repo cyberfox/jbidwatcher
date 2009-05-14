@@ -192,7 +192,7 @@ public class JHTML implements JHTMLListener {
         inputTag = tempTag;
       }
 
-      boolean showInputs = JConfig.queryConfiguration("debug.showInputs", "true").equals("true");
+      boolean showInputs = JConfig.queryConfiguration("debug.showInputs", "false").equals("true");
 
       boolean isError = inputType == null;
       if(!isError) {

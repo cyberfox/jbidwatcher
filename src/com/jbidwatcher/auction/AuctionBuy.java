@@ -10,6 +10,7 @@ import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.server.AuctionServer;
 
 public class AuctionBuy extends AuctionActionImpl {
+  public AuctionBuy() { super(); }
   public AuctionBuy(String id, Currency amount, int quantity) {
     super(id, amount, quantity);
   }

@@ -1,7 +1,6 @@
 package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.auction.server.ServerMenu;
-import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
@@ -30,7 +29,7 @@ class ebayServerMenu extends ServerMenu {
 
     //  Handle stuff which is redirected to the search manager.
     if(actionString.equals("Search eBay")) MQFactory.getConcrete("user").enqueue("SEARCH");
-    else MQFactory.getConcrete(mQueueServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null)); // NONSTRING Queue Object
+    else MQFactory.getConcrete(mQueueServer).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null));
   }
 
   protected ebayServerMenu(Object qServer, String serverName, char ch) {

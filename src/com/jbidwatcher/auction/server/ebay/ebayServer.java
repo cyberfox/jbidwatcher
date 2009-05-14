@@ -200,10 +200,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
         break;
       case AuctionQObject.CANCEL_SNIPE:
-        cancelSnipeMsg(ac);
+        cancelSnipe((EntryInterface) ac.getData());
         return;
       case AuctionQObject.SET_SNIPE:
-        setSnipeMsg(ac);
+        setSnipe((AuctionEntry) ac.getData());
         return;
       case AuctionQObject.BID:
         bidMsg(ac);
@@ -293,8 +293,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     MQFactory.getConcrete("Swing").enqueue("IGNORE " + configBidMsg + ' ' + bidResultString);
   }
 
-  private void setSnipeMsg(AuctionQObject ac) {
-    AuctionEntry snipeOn = (AuctionEntry)ac.getData();
+  public void setSnipe(AuctionEntry snipeOn) {
     AuctionQObject currentlyExists = snipeMap.get(snipeOn.getIdentifier());
     //  If we already have a snipe set for it, first cancel the old one, and then set up the new.
     if(currentlyExists != null) {
@@ -309,13 +308,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime())-two_minutes);
     _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime()));
     if (snipeOn.getEndDate() != null && snipeOn.getEndDate() != Constants.FAR_FUTURE) {
-      _etqm.add(snipeOn, "drop", snipeOn.getEndDate().getTime() + 30 * Constants.ONE_SECOND);
+      _etqm.add(snipeOn.getIdentifier(), "drop", snipeOn.getEndDate().getTime() + 30 * Constants.ONE_SECOND);
     }
     snipeMap.put(snipeOn.getIdentifier(), payload);
   }
 
-  private void cancelSnipeMsg(AuctionQObject ac) {
-    EntryInterface snipeCancel = (EntryInterface)ac.getData();
+  public void cancelSnipe(EntryInterface snipeCancel) {
     String identifier = snipeCancel.getIdentifier();
     AuctionQObject cancellable = snipeMap.get(identifier);
 

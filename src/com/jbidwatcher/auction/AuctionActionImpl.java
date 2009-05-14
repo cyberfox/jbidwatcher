@@ -31,6 +31,8 @@ public abstract class AuctionActionImpl implements AuctionAction {
     mQuantity = quantity;
   }
 
+  public AuctionActionImpl() { }
+
   public String activate() {
     JConfig.increment("stats.bid");
     AuctionEntry entry = EntryCorral.getInstance().takeForWrite(mIdentifier);
@@ -51,9 +53,16 @@ public abstract class AuctionActionImpl implements AuctionAction {
 
   protected abstract int execute(AuctionEntry ae, Currency curr, int quant);
 
-  public int getResult() { return mResult; }
+  public void setIdentifier(String id) { mIdentifier = id; }
+  public void setAmount(Currency amount) { mAmount = amount; }
+  public void setQuantity(int quantity) { mQuantity = quantity; }
+
+  public String getIdentifier() { return mIdentifier; }
   public Currency getAmount() { return mAmount; }
   public int getQuantity() { return mQuantity; }
+
+
+  public int getResult() { return mResult; }
   public boolean isSuccessful() {
     return (mResult == AuctionServerInterface.BID_WINNING ||
             mResult == AuctionServerInterface.BID_DUTCH_CONFIRMED ||

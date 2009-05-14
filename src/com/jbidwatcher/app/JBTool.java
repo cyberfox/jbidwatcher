@@ -67,7 +67,7 @@ public class JBTool implements ToolInterface {
     if(mRunServer) {
       spawnServer();
     } else if(mJustMyeBay) {
-      MQFactory.getConcrete(mEbay).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); // NONSTRING Queue Object
+      MQFactory.getConcrete(mEbay).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
       try { Thread.sleep(120000); } catch(Exception ignored) { }
     } else if(mParseFile != null) {
       buildAuctionEntryFromFile(mParseFile);

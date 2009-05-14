@@ -1,6 +1,5 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.util.ByteBuffer;
 import com.jbidwatcher.util.GZip;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.xml.XMLElement;
@@ -27,11 +26,11 @@ class MockSpecificAuction extends SpecificAuction {
   public void cleanup(StringBuffer sb) {
   }
 
-  public ByteBuffer getSiteThumbnail() {
-    return mAI.getSiteThumbnail();
+  public String getThumbnailURL() {
+    return mAI.getThumbnailURL();
   }
 
-  public ByteBuffer getAlternateSiteThumbnail() {
+  public String getAlternateSiteThumbnail() {
     return mAI.getAlternateSiteThumbnail();
   }
 

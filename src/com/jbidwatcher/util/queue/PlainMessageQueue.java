@@ -18,7 +18,7 @@ public final class PlainMessageQueue extends MessageQueue {
   protected void handleListener() {
     if(_postpone != null) {
       for (Object data : _postpone) {
-        enqueue(data);
+        enqueueObject(data);
       }
       _postpone.clear();
       _postpone = null;
@@ -70,7 +70,11 @@ public final class PlainMessageQueue extends MessageQueue {
     }
   }
 
-  public void enqueue(Object objToEnqueue) {
+  public void enqueue(String entry) {
+    enqueueObject(entry);
+  }
+
+  public void enqueueObject(Object objToEnqueue) {
     synchronized(_queue) {
       //  We really do want to make sure the exact same object isn't enqueued multiple times.
       //noinspection ObjectEquality

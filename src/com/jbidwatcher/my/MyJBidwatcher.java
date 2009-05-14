@@ -129,7 +129,7 @@ public class MyJBidwatcher {
     if(JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
       MQFactory.getConcrete("report").registerListener(new MessageQueue.Listener() {
         public void messageAction(Object deQ) {
-          AuctionEntry ae = (AuctionEntry) deQ;
+          AuctionEntry ae = EntryCorral.getInstance().takeForRead((String)deQ);
           XMLElement root = new XMLElement("report");
           XMLElement body = new XMLElement("body");
           body.setContents(ae.getContent().toString());

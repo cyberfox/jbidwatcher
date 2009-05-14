@@ -11,7 +11,6 @@ import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.event.EventLogger;
 import com.jbidwatcher.auction.event.EventStatus;
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
@@ -356,9 +355,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    */
   public void setServer(AuctionServerInterface newServer) {
     if(newServer != mServer) {
-      if(isSniped()) MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null)); // NONSTRING Queue Object
+      //  "CANCEL_SNIPE #{id}"
+      if(isSniped()) getServer().cancelSnipe(this);
       mServer = newServer;
-      if(isSniped()) MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null)); // NONSTRING Queue Object
+      if(isSniped()) getServer().setSnipe(this);
     }
   }
 
@@ -1198,10 +1198,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       }
       setInteger("snipe_id", null);
       mSnipe = null;
-      MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null)); // NONSTRING Queue Object
+      getServer().cancelSnipe(this);
     } else {
       mSnipe = AuctionSnipe.create(snipe, quantity, 0);
-      MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null));  // NONSTRING Queue Object
+      getServer().setSnipe(this);
     }
     setDirty();
     saveDB();
@@ -1212,8 +1212,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @brief Refresh the snipe, so it picks up a potentially changed end time, or when initially loading items.
    */
   public void refreshSnipe() {
-    MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.CANCEL_SNIPE, this, null)); // NONSTRING Queue Object
-    MQFactory.getConcrete(getServer()).enqueue(new AuctionQObject(AuctionQObject.SET_SNIPE, this, null)); // NONSTRING Queue Object
+    getServer().cancelSnipe(this);
+    getServer().setSnipe(this);
   }
 
   /** @brief Actually bid on a single item for a given price.

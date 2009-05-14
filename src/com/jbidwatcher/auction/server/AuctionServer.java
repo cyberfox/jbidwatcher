@@ -59,14 +59,18 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   public abstract boolean isHighDutch(EntryInterface inAE);
   public abstract void updateHighBid(AuctionEntry ae);
 
+  public abstract void setSnipe(AuctionEntry snipeOn);
+  public abstract void cancelSnipe(EntryInterface snipeCancel);
+
+
   /**
    * @brief Get the string-form URL for a given item ID on this
    * auction server, for when we aren't browsing.
    *
    * Note: AuctionEntry, JBWDropHandler
-   * 
+   *
    * @param itemID - The item to retrieve the URL for.
-   * 
+   *
    * @return - A String with the full URL of the item description on the auction server.
    */
   public abstract String getStringURLFromItem(String itemID);
@@ -336,7 +340,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
     //  Only retry the login cookie once every ten minutes of these errors.
     if ((sLastUpdated + Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
       sLastUpdated = System.currentTimeMillis();
-      MQFactory.getConcrete(this).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$ //$NON-NLS-2$  // NONSTRING Queue Object
+      MQFactory.getConcrete(this).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$ //$NON-NLS-2$
     }
   }
 

@@ -514,8 +514,8 @@ public class AuctionInfo extends ActiveRecord
   protected void setOutbid(boolean outbid) { setBoolean("outbid", outbid); }
   protected void setPaypal(boolean paypal) { setBoolean("paypal", paypal); }
 
-  public ByteBuffer getSiteThumbnail() { return null; }
-  public ByteBuffer getAlternateSiteThumbnail() { return null; }
+  public String getThumbnailURL() { return null; }
+  public String getAlternateSiteThumbnail() { return null; }
 
   private static Table sDB = null;
   protected static String getTableName() { return "auctions"; }

@@ -6,21 +6,26 @@ package com.jbidwatcher.util.queue;
  */
 
 public class QObject {
-  Object m_data;
-  String m_label;
+  protected Object mData;
+  protected String mLabel;
 
   public QObject(Object data, String label) {
-    m_data = data;
-    m_label = label;
+    mData = data;
+    mLabel = label;
   }
 
-  public String toString() {
-    return "QObject{" +
-            "m_data=" + m_data +
-            ", m_label='" + m_label + '\'' +
-            '}';
-  }
+  public QObject() { }
 
-  public Object getData() { return m_data; }
-  public String getLabel() { return m_label; }
+//  public String toString() {
+//    return "QObject{" +
+//            "mData=" + mData +
+//            ", mLabel='" + mLabel + '\'' +
+//            '}';
+//  }
+//
+  public Object getData() { return mData; }
+  public void setData(Object newData) { mData = newData; }
+
+  public String getLabel() { return mLabel; }
+  public void setLabel(String label) { mLabel = label; }
 }

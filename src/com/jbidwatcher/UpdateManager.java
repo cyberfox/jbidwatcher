@@ -31,10 +31,9 @@ public class UpdateManager implements TimerHandler.WakeupProcess, MessageQueue.L
 
   public void messageAction(Object deQ) {
     boolean interactive = false;
-    if(deQ instanceof Boolean) {
-      interactive = (Boolean)deQ;
+    if(deQ.equals("INTERACTIVE")) {
+      interactive = true;
     }
-    //  Ignore the parameter deQ, it's just a 'ping'.
     checkUpdate(interactive);
   }
 

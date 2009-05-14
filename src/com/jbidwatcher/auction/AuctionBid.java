@@ -9,6 +9,7 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.Currency;
 
 public class AuctionBid extends AuctionActionImpl {
+  public AuctionBid() { super(); }
   public AuctionBid(String id, Currency amount, int quantity) {
     super(id, amount, quantity);
   }

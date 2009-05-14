@@ -17,6 +17,9 @@ import com.jbidwatcher.util.Constants;
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.beans.PersistenceDelegate;
+import java.beans.Expression;
+import java.beans.Encoder;
 
 public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, TimerHandler.WakeupProcess {
   private List<Searcher> _searches = new ArrayList<Searcher>();
@@ -47,34 +50,63 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     destinationQueue = dQueue;
   }
 
-  private class StringSearcher extends Searcher {
+  public static class SearcherPersistenceDelegate extends PersistenceDelegate {
+    protected Expression instantiate(Object o, Encoder encoder) {
+      Searcher s = (Searcher) o;
+      return new Expression(o, SearchManager.class, "getSearchById", new Object[]{new Long(s.getId())});
+    }
+  }
+
+  static {
+    try {
+      Class[] searchers = { StringSearcher.class, TitleSearcher.class, SellerSearcher.class, URLSearcher.class, MyItemSearcher.class};
+      SearcherPersistenceDelegate delegate = new SearcherPersistenceDelegate();
+      for(Class c : searchers) {
+        java.beans.Introspector.getBeanInfo(c).getBeanDescriptor().setValue("persistenceDelegate", delegate);
+      }
+    } catch(Exception e) {
+      System.err.println("Error loading SS BeanInfo: " + e.getMessage());
+    }
+  }
+
+  public class StringSearcher extends Searcher {
     public String getTypeName() { return "Text"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_SEARCH, this, getCategory())); } // NONSTRING Queue Object
+    protected void fire() {
+      MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_SEARCH, this, getCategory()));
+    }
   }
 
-  private class TitleSearcher extends Searcher {
+  public class TitleSearcher extends Searcher {
+    public TitleSearcher() { super(); }
     public String getTypeName() { return "Title"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_TITLE, this, getCategory())); } // NONSTRING Queue Object
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_TITLE, this, getCategory())); }
   }
 
-  private class SellerSearcher extends Searcher {
+  public class SellerSearcher extends Searcher {
+    public SellerSearcher() { super(); }
     public String getTypeName() { return "Seller"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_SELLER, this, getCategory())); } // NONSTRING Queue Object
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_SELLER, this, getCategory())); }
   }
 
-  private class URLSearcher extends Searcher {
+  public class URLSearcher extends Searcher {
+    public URLSearcher() { super(); }
     public String getTypeName() { return "URL"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_URL, this, getCategory())); } // NONSTRING Queue Object
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_URL, this, getCategory())); }
   }
 
-  private class MyItemSearcher extends Searcher {
+  public class MyItemSearcher extends Searcher {
+    public MyItemSearcher() { super(); }
     public String getTypeName() { return "My Items"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueue(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); } // NONSTRING Queue Object
+    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); }
   }
 
   public Searcher getSearchByIndex(int i) { if(i < _searches.size()) return _searches.get(i); else return null; }
 
   public int findSearch(Searcher s) { return _searches.indexOf(s); }
+
+  public static Searcher getSearchById(Long id) {
+    return getInstance().getSearchById(id.longValue());
+  }
 
   public Searcher getSearchById(long id) {
     for (Searcher s : _searches) {

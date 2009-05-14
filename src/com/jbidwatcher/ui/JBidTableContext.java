@@ -3,6 +3,7 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.auction.Category;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.PlainMessageQueue;
 import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.*;
@@ -31,7 +32,7 @@ public class JBidTableContext extends JBidContext {
     if(actionString.startsWith("BT-")) {
       actionString = actionString.substring(3);
     }
-    MQFactory.getConcrete("user").enqueue(new ActionTriple(src, actionString, whichAuction)); // NONSTRING Queue Object
+    ((PlainMessageQueue)MQFactory.getConcrete("user")).enqueueObject(new ActionTriple(src, actionString, whichAuction));
   }
 
   protected void buildMenu(JPopupMenu menu) {

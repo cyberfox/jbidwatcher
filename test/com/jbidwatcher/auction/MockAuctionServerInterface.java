@@ -103,4 +103,8 @@ class MockAuctionServerInterface implements AuctionServerInterface {
   public String stripId(String source) {
     return mMock.getIdentifier();
   }
+
+  public void setSnipe(AuctionEntry snipeOn) { }
+
+  public void cancelSnipe(EntryInterface snipeCancel) { }
 }

@@ -474,11 +474,11 @@ public class UserActions implements MessageQueue.Listener {
         Snipeable tempEntry = (Snipeable) mTabs.getIndexedEntry(aRowList);
 
         tempEntry.cancelSnipe(false);
-        MQFactory.getConcrete("redraw").enqueue(tempEntry); // NONSTRING Queue Object (AuctionEntry)
+        MQFactory.getConcrete("redraw").enqueue(tempEntry.getIdentifier());
       }
     } else {
       ae.cancelSnipe(false);
-      MQFactory.getConcrete("redraw").enqueue(ae); // NONSTRING Queue Object (AuctionEntry)
+      MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
     }
   }
 
@@ -716,7 +716,7 @@ public class UserActions implements MessageQueue.Listener {
     for(i=0; i<rowList.length; i++) {
       AuctionEntry stepAE = (AuctionEntry)mTabs.getIndexedEntry(rowList[i]);
       stepAE.setMultiSnipe(aeMS);
-      MQFactory.getConcrete("redraw").enqueue(stepAE); // NONSTRING Queue Object (AuctionEntry)
+      MQFactory.getConcrete("redraw").enqueue(stepAE.getIdentifier());
     }
   }
 
@@ -819,7 +819,7 @@ public class UserActions implements MessageQueue.Listener {
     }
 
     //  if(JConfig.queryConfiguration("message.sniped", null) == null) { ... }
-    MQFactory.getConcrete("redraw").enqueue(ae); // NONSTRING Queue Object (AuctionEntry)
+    MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
     _oui.promptWithCheckbox(src, "Sniped for: " + ae.getSnipeAmount(), "Snipe Alert", "message.sniped", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
   }
 
@@ -854,7 +854,7 @@ public class UserActions implements MessageQueue.Listener {
 
     if(shippingAmount != null) {
       ae.setShipping(shippingAmount);
-      MQFactory.getConcrete("redraw").enqueue(ae); // NONSTRING Queue Object (AuctionEntry)
+      MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
     }
   }
 
@@ -888,7 +888,7 @@ public class UserActions implements MessageQueue.Listener {
                                             "Buy Item", "prompt.bin_confirm");
 
     if(endResult != JOptionPane.CANCEL_OPTION && endResult != JOptionPane.CLOSED_OPTION) {
-      MQFactory.getConcrete(ae.getServer()).enqueue(new AuctionQObject(AuctionQObject.BID, new AuctionBuy(ae, Currency.NoValue(), 1), "none")); // NONSTRING Queue Object
+      MQFactory.getConcrete(ae.getServer()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBuy(ae, Currency.NoValue(), 1), "none"));
     }
   }
 
@@ -939,7 +939,7 @@ public class UserActions implements MessageQueue.Listener {
                                     "Bad bid value", JOptionPane.PLAIN_MESSAGE);
       return;
     }
-    MQFactory.getConcrete(ae.getServer()).enqueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, Integer.parseInt(endResult[1])), "none")); // NONSTRING Queue Object
+    MQFactory.getConcrete(ae.getServer()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, Integer.parseInt(endResult[1])), "none"));
   }
 
   private void DoShowInBrowser(Component src, AuctionEntry inAuction) {
@@ -1000,7 +1000,7 @@ public class UserActions implements MessageQueue.Listener {
     }
 
     ae.setComment("");
-    MQFactory.getConcrete("redraw").enqueue(ae); // NONSTRING Queue Object (AuctionEntry)
+    MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
   }
 
   private void DoComment(Component src, AuctionEntry inAuction) {
@@ -1015,7 +1015,7 @@ public class UserActions implements MessageQueue.Listener {
     if(endResult == null) return;
 
     inAuction.setComment(endResult);
-    MQFactory.getConcrete("redraw").enqueue(inAuction); // NONSTRING Queue Object (AuctionEntry)
+    MQFactory.getConcrete("redraw").enqueue(inAuction.getIdentifier());
   }
 
   private void ShowComment(Component src, AuctionEntry inAuction) {
@@ -1369,7 +1369,7 @@ public class UserActions implements MessageQueue.Listener {
     // Force the 'last known version' to be the current, so that users can check
     // later, and have it still find the new version.
     JConfig.setConfiguration("updates.last_version", Constants.PROGRAM_VERS);
-    MQFactory.getConcrete("update").enqueue(Boolean.TRUE); // NONSTRING Queue Object
+    MQFactory.getConcrete("update").enqueue("INTERACTIVE");
   }
 
   protected void DoSetBackgroundColor(Component src) {
@@ -1377,7 +1377,7 @@ public class UserActions implements MessageQueue.Listener {
     if(bgColor == null) {
       return;
     }
-    MQFactory.getConcrete("redraw").enqueue(bgColor); // NONSTRING Queue Object
+    MQFactory.getConcrete("redraw").enqueue("#" + Integer.toHexString(bgColor.getRGB() & 0x00ffffff));
     myTableCellRenderer.resetBehavior();
     JConfig.setConfiguration("background", MultiSnipe.makeRGB(bgColor));
   }
@@ -1493,7 +1493,7 @@ public class UserActions implements MessageQueue.Listener {
     if(endResult == null) endResult = "";
 
     auction.setLastStatus(endResult);
-    MQFactory.getConcrete("report").enqueue(auction); // NONSTRING Queue Object (AuctionEntry)
+    MQFactory.getConcrete("report").enqueue(auction.getIdentifier());
   }
 
   public static void start() {

@@ -10,9 +10,11 @@ import com.jbidwatcher.util.queue.DropQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.DeletedEntry;
+import com.jbidwatcher.auction.EntryCorral;
 import com.jbidwatcher.auction.server.AuctionServer;
 
 public class JBWDropHandler implements MessageQueue.Listener {
@@ -21,28 +23,40 @@ public class JBWDropHandler implements MessageQueue.Listener {
   private static String lastSeen = null;
 
   public void messageAction(Object deQ) {
-    DropQObject dObj;
-    if (deQ instanceof String) {
-      dObj = new DropQObject((String)deQ, null, false);
-    } else if (deQ instanceof AuctionEntry) {
-      AuctionEntry ae = (AuctionEntry) deQ;
-      boolean lostAuction = ae.getAuction() == null;
-      ae.update();
-      if(lostAuction) {
-        AuctionsManager.getInstance().addEntry(ae);
+    if (deQ instanceof String && StringTools.isNumberOnly((String)deQ)) {
+      AuctionEntry ae = EntryCorral.getInstance().takeForRead((String) deQ);
+      if (ae != null) {
+        boolean lostAuction = ae.getAuction() == null;
+        ae.update();
+        if (lostAuction) AuctionsManager.getInstance().addEntry(ae);
+        return;
       }
-      return;
-    } else {
-      dObj = (DropQObject) deQ;
     }
-    String auctionURL = (String)dObj.getData();
-    String label = dObj.getLabel();
 
-    if(do_uber_debug) {
+    String auctionURL;
+    String label;
+    boolean interactive;
+
+    if(deQ instanceof String) {
+      auctionURL = deQ.toString();
+      label = null;
+      interactive = true;
+    } else {
+      DropQObject dObj = (DropQObject) deQ;
+      auctionURL = (String) dObj.getData();
+      label = dObj.getLabel();
+      interactive = dObj.isInteractive();
+    }
+
+    loadDroppedEntry(auctionURL, label, interactive);
+  }
+
+  private void loadDroppedEntry(String auctionURL, String label, boolean interactive) {
+    String aucId;
+
+    if (do_uber_debug) {
       JConfig.log().logDebug("Dropping (action): " + auctionURL);
     }
-
-    String aucId;
 
     //  Check to see if it's got a protocol ({protocol}:{path})
     //  If not, treat it as an item number alone, in the space of the default auction server.
@@ -52,7 +66,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
     } else {
       aucId = auctionURL;
     }
-    if(dObj.isInteractive()) DeletedEntry.remove(aucId);
+    if(interactive) DeletedEntry.remove(aucId);
 
     //  We get the identifier from the URL (which is multi-country),
     //  then create an auction entry from the id.

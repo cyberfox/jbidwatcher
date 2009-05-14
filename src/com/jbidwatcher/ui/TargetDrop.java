@@ -68,13 +68,13 @@ public class TargetDrop implements JDropHandler
         auctionURL = anAllItemsOnPage;
         if (auctionURL != null) {
           JConfig.log().logDebug("Adding: " + auctionURL.trim());
-          MQFactory.getConcrete("drop").enqueue(new DropQObject(auctionURL.trim(), mTargetName, true)); // NONSTRING Queue Object
+          MQFactory.getConcrete("drop").enqueueBean(new DropQObject(auctionURL.trim(), mTargetName, true));
         }
       }
     } else {
       String newEntry = dropped.toString();
 
-      MQFactory.getConcrete("drop").enqueue(new DropQObject(newEntry.trim(), mTargetName, true)); // NONSTRING Queue Object
+      MQFactory.getConcrete("drop").enqueueBean(new DropQObject(newEntry.trim(), mTargetName, true));
     }
   }
 }

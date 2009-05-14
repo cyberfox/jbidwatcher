@@ -42,7 +42,15 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
     Object deQ;
     while( (deQ = mTQ.getAnyLessThan(getCurrentTime()+900)) != null) {
       TQCarrier interim = (TQCarrier) deQ;
-      MQFactory.getConcrete(interim.getDestinationQueue()).enqueue(interim.getPayload());
+      MessageQueue q = MQFactory.getConcrete(interim.getDestinationQueue());
+      //  TODO -- This is grossly wrong, but it will do for now.  Fix it when not sleep-deprived.
+      if(q instanceof PlainMessageQueue) {
+        ((PlainMessageQueue)q).enqueueObject(interim.getPayload());
+      } else {
+        Object payload = interim.getPayload();
+        if(payload instanceof String) q.enqueue((String)payload);
+        else q.enqueueBean(payload);
+      }
       if(interim.getRepeatRate() != 0) {
         //  If there's a positive repeat count, decrement it once.
         if(interim.getRepeatCount() > 0) {

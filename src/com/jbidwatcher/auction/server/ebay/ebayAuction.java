@@ -2,16 +2,15 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
-import com.jbidwatcher.auction.ThumbnailLoader;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.PlainMessageQueue;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.html.htmlToken;
 import com.jbidwatcher.util.Constants;
 
-import java.net.URL;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -195,7 +194,7 @@ class ebayAuction extends SpecificAuction {
     return outTitle.toString();
   }
 
-  private Pattern amountPat = Pattern.compile("(([0-9]+\\.[0-9]+|(?i)free))");
+  private Pattern amountPat = Pattern.compile("([0-9]+\\.[0-9]+|(?i)free)");
 
   private void loadShippingInsurance(Currency sampleAmount) {
     String shipString = mDocument.getNextContentAfterRegex(T.s("ebayServer.shipping"));
@@ -750,7 +749,7 @@ class ebayAuction extends SpecificAuction {
     try {
       if(JConfig.queryConfiguration("show.images", "true").equals("true")) {
         if(!hasNoThumbnail() && !hasThumbnail()) {
-          MQFactory.getConcrete("thumbnail").enqueue(this); // NONSTRING Queue Object
+          ((PlainMessageQueue)MQFactory.getConcrete("thumbnail")).enqueueObject(this);
         }
       }
     } catch(Exception e) {
@@ -880,33 +879,17 @@ class ebayAuction extends SpecificAuction {
     return bidCount;
   }
 
-  public ByteBuffer getSiteThumbnail() {
-    ByteBuffer thumb = null;
-    if(potentialThumbnail != null) {
-      thumb = getThumbnailByURL(potentialThumbnail);
-    }
-    if(thumb == null) {
-      thumb = getThumbnailById(getIdentifier());
-    }
-    return thumb;
+  public String getThumbnailURL() {
+    if(potentialThumbnail != null) return potentialThumbnail;
+    return getThumbnailById(getIdentifier());
   }
 
-  public ByteBuffer getAlternateSiteThumbnail() {
+  public String getAlternateSiteThumbnail() {
     return getThumbnailById(getIdentifier() + "6464");
   }
 
-  private ByteBuffer getThumbnailById(String id) {
-    return getThumbnailByURL("http://thumbs.ebaystatic.com/pict/" + id + ".jpg");
-  }
-
-  private ByteBuffer getThumbnailByURL(String url) {
-    ByteBuffer tmpThumb;
-    try {
-      tmpThumb = ThumbnailLoader.downloadThumbnail(new URL(url));
-    } catch(Exception ignored) {
-      tmpThumb = null;
-    }
-    return tmpThumb;
+  private String getThumbnailById(String id) {
+    return "http://thumbs.ebaystatic.com/pict/" + id + ".jpg";
   }
 
   private Integer getNumberFromLabel(JHTML doc, String label, String ignore) {

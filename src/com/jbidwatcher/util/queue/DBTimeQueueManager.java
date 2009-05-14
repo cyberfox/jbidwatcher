@@ -18,7 +18,7 @@ public class DBTimeQueueManager extends TimeQueueManager {
     List<DBTimeQueue> events = DBTimeQueue.allBefore(getCurrentTime() + 900);
     for(DBTimeQueue event : events) {
       event.delete();
-      MQFactory.getConcrete(event.getDestination()).enqueue(event.getPayload()); // NONSTRING Queue Object ?
+      MQFactory.getConcrete(event.getDestination()).enqueue(event.getPayload());
       if(event.getInterval() != 0) {
         int count = event.getRepeatCount();
         if(count > 0) count--;

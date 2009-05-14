@@ -6,17 +6,20 @@ package com.jbidwatcher.util.queue;
  */
 
 public class DropQObject extends QObject {
-  private boolean m_interactive;
+  private boolean mInteractive;
+
+  public DropQObject() { super(); }
 
   public DropQObject(String data, String label) {
     super(data, label);
-    m_interactive = false;
+    mInteractive = false;
   }
 
   public DropQObject(String data, String label, boolean isInteractive) {
     super(data, label);
-    m_interactive = isInteractive;
+    mInteractive = isInteractive;
   }
 
-  public boolean isInteractive() { return m_interactive; }
+  public boolean isInteractive() { return mInteractive; }
+  public void setInteractive(boolean interactive) { mInteractive = interactive; }
 }

@@ -29,8 +29,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   private AuctionServer mServer = null;
   private static SearchManager mSearcher;
 
-  private static final boolean sUberDebug = false;
-
   static {
     mInstance = new AuctionServerManager();
     mSearcher = SearchManager.getInstance();
@@ -236,7 +234,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         JConfig.log().logMessage("We lost the underlying auction for: " + ae.dumpRecord());
         if(ae.getIdentifier() != null) {
           JConfig.log().logMessage("Trying to reload auction via its auction identifier.");
-          MQFactory.getConcrete("drop").enqueue(ae); // NONSTRING Queue Object (AuctionEntry)
+          MQFactory.getConcrete("drop").enqueue(ae.getIdentifier());
         } else {
           timeStart("delete");
           ae.delete();
@@ -292,22 +290,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       long servTime = defaultServer.getServerTimeDelta();
       Date now = new Date(System.currentTimeMillis() + servTime);
       MQFactory.getConcrete("Swing").enqueue("Server time is now: " + now);
-
-      try {
-        boolean done = false;
-        final MessageQueue aucManagerQ = MQFactory.getConcrete("auction_manager");
-        while(!done) {
-          cmd = aucManagerQ.dequeue();
-          if(!cmd.equals("TIMECHECK")) done=true;
-        }
-        //  Re-enqueue the last one, because it must not have been
-        //  another TIMECHECK command!
-        aucManagerQ.enqueue(cmd);
-      } catch(NoSuchElementException nsee) {
-        //  Nothing really to do, this just means we cleaned out the
-        //  list before finding a non-timecheck value.
-        if(sUberDebug) JConfig.log().logDebug("No Such Element caught.");
-      }
     }
   }
 

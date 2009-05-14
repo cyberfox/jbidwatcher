@@ -118,4 +118,8 @@ public interface AuctionServerInterface {
   void updateHighBid(AuctionEntry eEntry);
 
   String stripId(String source);
+
+  void setSnipe(AuctionEntry snipeOn);
+
+  void cancelSnipe(EntryInterface snipeCancel);
 }

@@ -1,7 +1,6 @@
 package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.ByteBuffer;
 
 import java.util.Date;
 
@@ -50,11 +49,11 @@ class MockAuctionInfo extends AuctionInfo {
     mLoadedPage = null;
   }
 
-  public ByteBuffer getSiteThumbnail() {
+  public String getThumbnailURL() {
     return null;
   }
 
-  public ByteBuffer getAlternateSiteThumbnail() {
+  public String getAlternateSiteThumbnail() {
     return null;
   }
 }
