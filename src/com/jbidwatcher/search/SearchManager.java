@@ -6,9 +6,9 @@ package com.jbidwatcher.search;
  */
 
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
-import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
@@ -17,9 +17,6 @@ import com.jbidwatcher.util.Constants;
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
-import java.beans.PersistenceDelegate;
-import java.beans.Expression;
-import java.beans.Encoder;
 
 public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, TimerHandler.WakeupProcess {
   private List<Searcher> _searches = new ArrayList<Searcher>();
@@ -50,54 +47,39 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     destinationQueue = dQueue;
   }
 
-  public static class SearcherPersistenceDelegate extends PersistenceDelegate {
-    protected Expression instantiate(Object o, Encoder encoder) {
-      Searcher s = (Searcher) o;
-      return new Expression(o, SearchManager.class, "getSearchById", new Object[]{new Long(s.getId())});
-    }
-  }
-
-  static {
-    try {
-      Class[] searchers = { StringSearcher.class, TitleSearcher.class, SellerSearcher.class, URLSearcher.class, MyItemSearcher.class};
-      SearcherPersistenceDelegate delegate = new SearcherPersistenceDelegate();
-      for(Class c : searchers) {
-        java.beans.Introspector.getBeanInfo(c).getBeanDescriptor().setValue("persistenceDelegate", delegate);
-      }
-    } catch(Exception e) {
-      System.err.println("Error loading SS BeanInfo: " + e.getMessage());
-    }
-  }
-
   public class StringSearcher extends Searcher {
     public String getTypeName() { return "Text"; }
     protected void fire() {
-      MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_SEARCH, this, getCategory()));
+      MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_SEARCH, getId(), getCategory()));
     }
   }
 
   public class TitleSearcher extends Searcher {
-    public TitleSearcher() { super(); }
     public String getTypeName() { return "Title"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_TITLE, this, getCategory())); }
-  }
-
-  public class SellerSearcher extends Searcher {
-    public SellerSearcher() { super(); }
-    public String getTypeName() { return "Seller"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_SELLER, this, getCategory())); }
+    protected void fire() {
+      MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_TITLE, getId(), getCategory()));
+    }
   }
 
   public class URLSearcher extends Searcher {
-    public URLSearcher() { super(); }
     public String getTypeName() { return "URL"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_URL, this, getCategory())); }
+    protected void fire() {
+      MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_URL, getId(), getCategory()));
+    }
+  }
+
+  public class SellerSearcher extends Searcher {
+    public String getTypeName() { return "Seller"; }
+    protected void fire() {
+      MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_SELLER, getId(), getCategory()));
+    }
   }
 
   public class MyItemSearcher extends Searcher {
-    public MyItemSearcher() { super(); }
     public String getTypeName() { return "My Items"; }
-    protected void fire() { MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null)); }
+    protected void fire() {
+      MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
+    }
   }
 
   public Searcher getSearchByIndex(int i) { if(i < _searches.size()) return _searches.get(i); else return null; }

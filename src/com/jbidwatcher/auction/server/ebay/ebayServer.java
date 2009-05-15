@@ -180,16 +180,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     switch(ac.getCommand()) {
       case AuctionQObject.LOAD_URL:
-        mSearcher.loadAllFromURLString(ac.getData(), ac.getLabel());
+        mSearcher.loadAllFromURLString(SearchManager.getSearchById((Long) ac.getData()), ac.getLabel());
         return;
       case AuctionQObject.LOAD_SEARCH:
-        mSearcher.loadSearchString(ac.getData(), ac.getLabel(), false);
+        mSearcher.loadSearchString(SearchManager.getSearchById((Long) ac.getData()), ac.getLabel(), false);
         return;
       case AuctionQObject.LOAD_TITLE:
-        mSearcher.loadSearchString(ac.getData(), ac.getLabel(), true);
+        mSearcher.loadSearchString(SearchManager.getSearchById((Long)ac.getData()), ac.getLabel(), true);
         return;
       case AuctionQObject.LOAD_SELLER:
-        doGetSelling(ac.getData(), ac.getLabel());
+        doGetSelling(SearchManager.getSearchById((Long) ac.getData()), ac.getLabel());
         return;
       case AuctionQObject.LOAD_MYITEMS:
         if(mLogin.isDefault()) {
