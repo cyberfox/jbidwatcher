@@ -18,6 +18,7 @@ public class DBTimeQueueManager extends TimeQueueManager {
     List<DBTimeQueue> events = DBTimeQueue.allBefore(getCurrentTime() + 900);
     for(DBTimeQueue event : events) {
       event.delete();
+      //  TODO -- This isn't going to work with ebayServer objects!
       MQFactory.getConcrete(event.getDestination()).enqueue(event.getPayload());
       if(event.getInterval() != 0) {
         int count = event.getRepeatCount();
@@ -31,7 +32,7 @@ public class DBTimeQueueManager extends TimeQueueManager {
     }
     return false;
   }
-
+  //  TODO - Need a 'delete all' option, so I can wipe out all saved queued entries...?
   public DBTimeQueueManager() { }
 
   @Override
