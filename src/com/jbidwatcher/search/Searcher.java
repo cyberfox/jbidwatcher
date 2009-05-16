@@ -53,6 +53,7 @@ public abstract class Searcher extends XMLSerializeSimple {
   public String getSearch() { return _search; }
   public void setSearch(String newSearch) { _search = newSearch; _initialized = true; }
 
+  public boolean hasCategory() { return _category != null; }
   public String getCategory() { return _category == null?getName():_category; }
   public void setCategory(String category) { _category = category; }
 

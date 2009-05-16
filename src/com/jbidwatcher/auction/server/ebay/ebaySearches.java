@@ -232,9 +232,10 @@ public class ebaySearches {
     }
     String watchInfo = watch_count == 0 ? "" : " (" + new_watch_count + " new)";
     String bidInfo = bid_count == 0 ? "" : " (" + new_bid_count + " new)";
-    MQFactory.getConcrete("current Tab").enqueue("REPORT Found " + watch_count + " watched items" + watchInfo + ", and " + bid_count + " items" + bidInfo + " you've apparently bid on.");
-    MQFactory.getConcrete("current Tab").enqueue("SHOW");
-    SuperQueue.getInstance().preQueue("HIDE", "current Tab", System.currentTimeMillis() + Constants.ONE_MINUTE);
+    String reportTab = (label == null ? "current" : label) + " Tab";
+    MQFactory.getConcrete(reportTab).enqueue("REPORT Found " + watch_count + " watched items" + watchInfo + ", and " + bid_count + " items" + bidInfo + " you've apparently bid on.");
+    MQFactory.getConcrete(reportTab).enqueue("SHOW");
+    SuperQueue.getInstance().preQueue("HIDE", reportTab, System.currentTimeMillis() + Constants.ONE_MINUTE);
   }
 
   /**

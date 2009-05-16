@@ -78,7 +78,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
   public class MyItemSearcher extends Searcher {
     public String getTypeName() { return "My Items"; }
     protected void fire() {
-      MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
+      MQFactory.getConcrete(destinationQueue).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, hasCategory() ? getCategory() : null));
     }
   }
 
