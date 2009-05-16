@@ -305,12 +305,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     long two_minutes = Constants.ONE_MINUTE*2;
     AuctionQObject payload = new AuctionQObject(AuctionQObject.SNIPE, new Snipe(mLogin, mBidder, snipeOn), null);
 
-    _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime())-two_minutes);
-    _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime()-snipeOn.getSnipeTime()));
     if (snipeOn.getEndDate() != null && snipeOn.getEndDate() != Constants.FAR_FUTURE) {
+      _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime() - snipeOn.getSnipeTime()) - two_minutes);
+      _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime() - snipeOn.getSnipeTime()));
       _etqm.add(snipeOn.getIdentifier(), "drop", snipeOn.getEndDate().getTime() + 30 * Constants.ONE_SECOND);
+      snipeMap.put(snipeOn.getIdentifier(), payload);
     }
-    snipeMap.put(snipeOn.getIdentifier(), payload);
   }
 
   public void cancelSnipe(EntryInterface snipeCancel) {
@@ -366,7 +366,28 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     mCleaner = new ebayCleaner();
     mLogin = new ebayLoginManager(T, Constants.EBAY_SERVER_NAME, password, username);
     mSearcher = new ebaySearches(mCleaner, mLogin);
-    mBidder = new ebayBidder(T, mLogin);
+    if(JConfig.queryConfiguration("ebay.mock_bidding", "false").equals("true")) {
+      mBidder = new Bidder() {
+        public int buy(AuctionEntry ae, int quantity) {
+          return BID_BOUGHT_ITEM;
+        }
+
+        public int bid(AuctionEntry inEntry, Currency inBid, int inQuantity) {
+          return BID_ERROR_OUTBID;
+        }
+
+        //  These two are called by sniping.
+        public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr, int inQuant) throws BadBidException {
+          return new JHTML.Form("<form action=\"http://example.com\">");
+        }
+
+        public int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, Currency inBid, int inQuantity) {
+          return BID_ERROR_UNKNOWN;
+        }
+      };
+    } else {
+      mBidder = new ebayBidder(T, mLogin);
+    }
 
     _etqm = new eBayTimeQueueManager();
     eQueue = new TimerHandler(_etqm);
