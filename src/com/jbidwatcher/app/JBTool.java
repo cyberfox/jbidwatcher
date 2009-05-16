@@ -17,6 +17,8 @@ import com.jbidwatcher.util.ToolInterface;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.my.MyJBidwatcher;
+import com.jbidwatcher.search.SearchManager;
+import com.jbidwatcher.search.Searcher;
 
 import java.util.*;
 import java.text.SimpleDateFormat;
@@ -47,6 +49,11 @@ public class JBTool implements ToolInterface {
   private String mCountry = "ebay.com";
   private ebayServer mEbayUK;
   private String mParseFile = null;
+
+  private void testSearching() {
+    Searcher sm = SearchManager.getInstance().addSearch("Title", "zarf", "zarf", "ebay", -1, 12345678);
+    sm.execute();
+  }
 
   private void testDateFormatting() {
     try {
@@ -165,6 +172,7 @@ public class JBTool implements ToolInterface {
     }
 
     for(String option: options) {
+      if(option.equals("searching")) { testSearching(); return params; }
       if(option.equals("server")) mRunServer = true;
       if(option.startsWith("port=")) mPortNumber = option.substring(5);
       if(option.equals("logging")) JConfig.setConfiguration("logging", "true");
