@@ -29,12 +29,14 @@ public class SwingMessageQueue extends MessageQueue
     }
   }
 
-  public void enqueue(String obj) {
+  public boolean enqueue(String obj) {
     synchronized(_queue) {
       if (_queue.isEmpty() || _queue.getLast() != obj) {
         _queue.addLast(obj);
         SwingUtilities.invokeLater(this);
+        return true;
       }
     }
+    return false;
   }
 }

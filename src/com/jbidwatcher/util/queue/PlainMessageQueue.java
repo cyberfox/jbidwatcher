@@ -70,18 +70,20 @@ public final class PlainMessageQueue extends MessageQueue {
     }
   }
 
-  public void enqueue(String entry) {
-    enqueueObject(entry);
+  public boolean enqueue(String entry) {
+    return enqueueObject(entry);
   }
 
-  public void enqueueObject(Object objToEnqueue) {
+  public boolean enqueueObject(Object objToEnqueue) {
     synchronized(_queue) {
       //  We really do want to make sure the exact same object isn't enqueued multiple times.
       //noinspection ObjectEquality
       if(_queue.isEmpty() || _queue.getLast() != objToEnqueue) {
         _queue.addLast(objToEnqueue);
         _queue.notifyAll();
+        return true;
       }
     }
+    return false;
   }
 }

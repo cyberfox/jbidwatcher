@@ -27,7 +27,7 @@ public abstract class MessageQueue implements Runnable {
   }
 
   //  TODO -- Should end up only allowing String and XMLEncode'able objects (which get converted to a String?).
-  public abstract void enqueue(String objToEnqueue);
+  public abstract boolean enqueue(String objToEnqueue);
 
   //  Maybe XML queues are different?  MQFactory.getXMLQueue()?
   public void enqueueBean(QObject xe) {
