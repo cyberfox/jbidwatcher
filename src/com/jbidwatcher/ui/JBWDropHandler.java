@@ -60,16 +60,20 @@ public class JBWDropHandler implements MessageQueue.Listener {
 
     //  Check to see if it's got a protocol ({protocol}:{path})
     //  If not, treat it as an item number alone, in the space of the default auction server.
+    //  If so, we get the identifier from the URL (which is multi-country),
     if(auctionURL.indexOf(":") != -1) {
       AuctionServer aucServ = AuctionServerManager.getInstance().getServer();
       aucId = aucServ.extractIdentifierFromURLString(auctionURL);
     } else {
       aucId = auctionURL;
     }
+    if(!StringTools.isNumberOnly(aucId)) {
+      JConfig.log().logDebug("Rejecting item: " + aucId);
+      return;
+    }
     if(interactive) DeletedEntry.remove(aucId);
 
-    //  We get the identifier from the URL (which is multi-country),
-    //  then create an auction entry from the id.
+    //  Create an auction entry from the id.
     AuctionEntry aeNew = AuctionEntry.construct(aucId);
     if(aeNew != null && aeNew.isLoaded()) {
       if(label != null) aeNew.setCategory(label);
