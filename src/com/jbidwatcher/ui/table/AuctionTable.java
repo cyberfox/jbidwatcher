@@ -3,6 +3,7 @@ package com.jbidwatcher.ui.table;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.Pair;
 import com.jbidwatcher.util.queue.SuperQueue;
 
 import javax.swing.*;
@@ -150,24 +151,6 @@ public class AuctionTable extends JTable {
   };
 
   private static int notify_delay = 0;
-
-  private class Pair<K,V> {
-    private K mFirst;
-    private V mLast;
-
-    public Pair(K k, V v) {
-      mFirst = k;
-      mLast = v;
-    }
-
-    public K getFirst() {
-      return mFirst;
-    }
-
-    public V getLast() {
-      return mLast;
-    }
-  }
 
   private class ColumnIndex extends Pair<String,Integer> {
     public ColumnIndex(String s, Integer i) { super(s, i); }
