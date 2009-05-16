@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<local-project language="java" version="3.2.329" flavor="j2se">
+   <property name="hide-externals" value="true" />
+   <property name="detail-mode" value="true" />
+   <classpath>
+      <classpathentry kind="lib" path="/Users/mrs/IdeaProjects/JBidwatcher-E/classes" />
+   </classpath>
+   <excludes>
+      <exclude expression="com.jbidwatcher.util.db.TableTest" />
+      <exclude expression="com.jbidwatcher.auction.AuctionEntryTest" />
+      <exclude expression="com.jbidwatcher.auction.MultiSnipeTest" />
+      <exclude expression="com.jbidwatcher.auction.AuctionInfoTest" />
+      <exclude expression="com.jbidwatcher.auction.MockAuctionInfo" />
+      <exclude expression="com.jbidwatcher.auction.MockAuctionServerInterface" />
+      <exclude expression="com.jbidwatcher.auction.MockSpecificAuction" />
+      <exclude expression="com.jbidwatcher.auction.AuctionEntryTest*" />
+      <exclude expression="com.jbidwatcher.auction.MultiSnipeTest*" />
+   </excludes>
+   <grid-set sep="." version="3.2.329">
+      <grid name="JBidwatcher Overview" enforce="true" strict="false">
+         <row>
+            <cell name="app" pattern="com.jbidwatcher.app.?" vexpanded="true" visibility="public" />
+         </row>
+         <row>
+            <cell name="webserver" pattern="com.jbidwatcher.webserver.?" vexpanded="true" visibility="public" />
+            <cell name="jbidwatcher" pattern="com.jbidwatcher.?" vexpanded="true" visibility="public" />
+         </row>
+         <row>
+            <cell name="ui" pattern="com.jbidwatcher.ui.*" vexpanded="true" visibility="public">
+               <grid>
+                  <row>
+                     <cell name="ui" pattern="com.jbidwatcher.ui.?" vexpanded="true" visibility="public" />
+                  </row>
+                  <row>
+                     <cell name="config" pattern="com.jbidwatcher.ui.config.?" vexpanded="true" visibility="public" />
+                     <cell name="table" pattern="com.jbidwatcher.ui.table.?" vexpanded="true" visibility="public" />
+                  </row>
+                  <row>
+                     <cell name="util" pattern="com.jbidwatcher.ui.util.?" vexpanded="true" visibility="public" />
+                  </row>
+               </grid>
+            </cell>
+         </row>
+         <row>
+            <cell name="my" pattern="com.jbidwatcher.my.?" vexpanded="true" visibility="public" />
+            <cell name="platform" pattern="com.jbidwatcher.platform.?" vexpanded="true" visibility="public" />
+         </row>
+         <row>
+            <cell name="auction" pattern="com.jbidwatcher.auction.*" vexpanded="true" visibility="public">
+               <grid>
+                  <row>
+                     <cell name="server" pattern="com.jbidwatcher.auction.server.*" vexpanded="true" visibility="public">
+                        <grid>
+                           <row>
+                              <cell name="ebay" pattern="com.jbidwatcher.auction.server.ebay.?" vexpanded="true" visibility="public" />
+                           </row>
+                           <row>
+                              <cell name="server" pattern="com.jbidwatcher.auction.server.?" vexpanded="true" visibility="public" />
+                           </row>
+                        </grid>
+                     </cell>
+                  </row>
+                  <row>
+                     <cell name="auction" pattern="com.jbidwatcher.auction.?" vexpanded="true" visibility="public" />
+                  </row>
+                  <row>
+                     <cell name="event" pattern="com.jbidwatcher.auction.event.?" vexpanded="true" visibility="public" />
+                  </row>
+               </grid>
+            </cell>
+         </row>
+         <row>
+            <cell name="search" pattern="com.jbidwatcher.search.?" vexpanded="true" visibility="public" />
+         </row>
+         <row>
+            <cell name="util" pattern="com.jbidwatcher.util.*" vexpanded="true" visibility="public">
+               <grid>
+                  <row>
+                     <cell name="browser" pattern="com.jbidwatcher.util.browser.?" vexpanded="true" visibility="public" />
+                     <cell name="script" pattern="com.jbidwatcher.util.script.?" vexpanded="true" visibility="public" />
+                     <cell name="html" pattern="com.jbidwatcher.util.html.?" vexpanded="true" visibility="public" />
+                     <cell name="services" pattern="com.jbidwatcher.util.services.?" vexpanded="true" visibility="public" />
+                  </row>
+                  <row>
+                     <cell name="http" pattern="com.jbidwatcher.util.http.?" vexpanded="true" visibility="public" />
+                     <cell name="queue" pattern="com.jbidwatcher.util.queue.?" vexpanded="true" visibility="public" />
+                  </row>
+                  <row>
+                     <cell name="db" pattern="com.jbidwatcher.util.db.?" vexpanded="true" visibility="public" />
+                  </row>
+                  <row>
+                     <cell name="util" pattern="com.jbidwatcher.util.?" vexpanded="true" visibility="public" />
+                  </row>
+                  <row>
+                     <cell name="xml" pattern="com.jbidwatcher.util.xml.?" vexpanded="true" visibility="public" />
+                     <cell name="config" pattern="com.jbidwatcher.util.config.?" vexpanded="true" visibility="public" />
+                  </row>
+               </grid>
+            </cell>
+         </row>
+         <description>Top-level breakout (depth=3)</description>
+      </grid>
+   </grid-set>
+</local-project>
+
