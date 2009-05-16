@@ -9,17 +9,21 @@ package com.jbidwatcher.auction.server.ebay;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Externalized;
+import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.util.Pair;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.LoginManager;
+import com.jbidwatcher.auction.EntryCorral;
 import com.jbidwatcher.util.html.CleanupHandler;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.DropQObject;
+import com.jbidwatcher.util.queue.SuperQueue;
 import com.jbidwatcher.search.Searcher;
 
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 import java.net.URLEncoder;
 import java.io.UnsupportedEncodingException;
 
@@ -36,6 +40,11 @@ public class ebaySearches {
   private CleanupHandler mCleaner;
   private com.jbidwatcher.auction.LoginManager mLogin;
 
+  private class ItemResults extends Pair<List<String>, Collection<String>> {
+    public ItemResults() { super(null, null); }
+    public ItemResults(List<String> s, Collection<String> c) { super(s, c); }
+  }
+
   public ebaySearches(CleanupHandler cleaner, LoginManager login) {
     mCleaner = cleaner;
     mLogin = login;
@@ -48,54 +57,31 @@ public class ebaySearches {
    * @return - A count of items added.
    * @brief Add all the items on the page to the list of monitored auctions.
    */
-  private int addAllItemsOnPage(JHTML htmlDocument, String category, boolean interactive) {
-    List<String> allItemsOnPage = htmlDocument.getAllURLsOnPage(true);
-    int item_count = 0;
+  private ItemResults addAllItemsOnPage(JHTML htmlDocument, String category, boolean interactive) {
+    List<String> allURLsOnPageUnprocessed = htmlDocument.getAllURLsOnPage(true);
+    List<String> allURLsOnPage = new ArrayList<String>();
+    if(allURLsOnPageUnprocessed != null) for(String process : allURLsOnPageUnprocessed) { allURLsOnPage.add(process.replaceAll("\n|\r", "")); }
+    Map<String,String> allItemsOnPage = new LinkedHashMap<String,String>();
+    List<String> newItems = new ArrayList<String>();
+    AuctionServerInterface aucServ = AuctionServerManager.getInstance().getServer();
+    for(String url : allURLsOnPage) {
+      // Does this look like an auction server item URL?
+      String hasId = aucServ.extractIdentifierFromURLString(url);
 
-    if (allItemsOnPage == null) {
-      JConfig.log().logDebug("No items on page!");
-    } else {
-      for (ListIterator<String> it = allItemsOnPage.listIterator(); it.hasNext();) {
-        String url = it.next();
+      if(hasId != null && StringTools.isNumberOnly(hasId)) {
+        if (EntryCorral.getInstance().takeForRead(hasId) == null) newItems.add(url);
 
-        url = url.replaceAll("\n|\r", "");
-        boolean gotNext;
-        String nextURL;
-
-        if (it.hasNext()) {
-          nextURL = it.next();
-
-          nextURL = nextURL.replaceAll("\n|\r", "");
-          gotNext = true;
-        } else {
-          nextURL = "";
-          gotNext = false;
-        }
-
-        //  If the URL is listed multiple times in order, then skip
-        //  until the last instance of it.
-        if (nextURL.equals(url)) {
-          //  If they're equal, it pretty much has to have gotten the next entry, but for safety's sake, check.
-          if (gotNext) it.previous();
-        } else {
-          //  Back out the move if we made one.
-          if (gotNext) it.previous();
-          url = url.trim();
-
-          /**
-           * Does this look like an auction server item URL?
-           */
-          AuctionServerInterface aucServ = AuctionServerManager.getInstance().getServer();
-          String hasId = aucServ.extractIdentifierFromURLString(url);
-
-          if (hasId != null) {
-            MQFactory.getConcrete("drop").enqueueBean(new DropQObject(url.trim(), category, interactive));
-            item_count++;
-          }
-        }
+        allItemsOnPage.put(hasId, url);
       }
     }
-    return item_count;
+    if (allItemsOnPage.isEmpty()) {
+      JConfig.log().logDebug("No items on page!");
+    } else {
+      for (String url : allItemsOnPage.values()) {
+        MQFactory.getConcrete("drop").enqueueBean(new DropQObject(url.trim(), category, interactive));
+      }
+    }
+    return new ItemResults(newItems, allItemsOnPage.values());
   }
 
   /**
@@ -120,14 +106,15 @@ public class ebaySearches {
 
       JHTML htmlDocument = (JHTML) li.next();
       if (htmlDocument != null) {
-        results += addAllItemsOnPage(htmlDocument, label, !((Searcher) searcher).shouldSkipDeleted());
+        ItemResults rval = addAllItemsOnPage(htmlDocument, label, !((Searcher) searcher).shouldSkipDeleted());
+        results += rval.getFirst().size();
       }
     }
 
     if (results == 0) {
-      MQFactory.getConcrete("Swing").enqueue("Failed to load from URL " + urlStr);
+      MQFactory.getConcrete("Swing").enqueue("No new items found at URL: " + urlStr);
     } else {
-      MQFactory.getConcrete("Swing").enqueue("Done loading from URL " + urlStr);
+      MQFactory.getConcrete("Swing").enqueue("Done loading from URL: " + urlStr);
     }
   }
 
@@ -157,8 +144,10 @@ public class ebaySearches {
     JHTML htmlDocument = new JHTML(myEBayURL, userCookie, mCleaner);
 
     if (htmlDocument.isLoaded()) {
-      int count = addAllItemsOnPage(htmlDocument, label, userId.equals(curUser));
-      MQFactory.getConcrete("Swing").enqueue("Loaded " + count + " items for seller " + userId);
+      ItemResults rval = addAllItemsOnPage(htmlDocument, label, userId.equals(curUser));
+      int count = rval.getFirst().size();
+
+      MQFactory.getConcrete("Swing").enqueue("Loaded " + count + " new items for seller " + userId);
     } else {
       JConfig.log().logMessage("getSellingItems failed!");
     }
@@ -181,7 +170,8 @@ public class ebaySearches {
       JConfig.log().logMessage("Cannot load My eBay pages without a userid and password.");
       return;
     }
-
+    int watch_count = 0;
+    int new_watch_count = 0;
     int page = 0;
     boolean done_watching = false;
     while (!done_watching) {
@@ -213,7 +203,9 @@ public class ebaySearches {
         JConfig.log().logDebug("Navigating to the '200 at a time' watching page: " + biggestLink);
         htmlDocument = new JHTML(biggestLink, userCookie, mCleaner);
       }
-      addAllItemsOnPage(htmlDocument, label, true);
+      ItemResults rval = addAllItemsOnPage(htmlDocument, label, true);
+      watch_count += rval.getLast().size();
+      new_watch_count += rval.getFirst().size();
       String ofX = htmlDocument.getNextContentAfterRegex("Page " + (page + 1));
       if (ofX == null || !ofX.startsWith("of ")) done_watching = true;
       else try {
@@ -224,6 +216,8 @@ public class ebaySearches {
       if (!done_watching) page++;
     }
 
+    int bid_count = 0;
+    int new_bid_count = 0;
     boolean done_bidding = false;
     while (!done_bidding) {
       //  Now load items the user is bidding on...
@@ -231,9 +225,14 @@ public class ebaySearches {
       JConfig.log().logDebug("Loading page: " + biddingURL);
 
       JHTML htmlDocument = new JHTML(biddingURL, userCookie, mCleaner);
-      addAllItemsOnPage(htmlDocument, label, true);
+      ItemResults rval = addAllItemsOnPage(htmlDocument, label, true);
+      new_bid_count += rval.getFirst().size();
+      bid_count += rval.getLast().size();
       done_bidding = true;
     }
+    MQFactory.getConcrete("current Tab").enqueue("REPORT Found " + watch_count + " watched items (" + new_watch_count + " new), and " + bid_count + " items (" + new_bid_count + " new) you've apparently bid on.");
+    MQFactory.getConcrete("current Tab").enqueue("SHOW");
+    SuperQueue.getInstance().preQueue("HIDE", "current Tab", System.currentTimeMillis() + Constants.ONE_MINUTE);
   }
 
   /**
@@ -282,7 +281,8 @@ public class ebaySearches {
         if (cj != null) userCookie = cj.toString();
         JHTML htmlDocument = new JHTML(fullSearch, userCookie, mCleaner);
         if (htmlDocument.isLoaded()) {
-          int pageResults = addAllItemsOnPage(htmlDocument, label, !((Searcher) searcher).shouldSkipDeleted());
+          ItemResults rval = addAllItemsOnPage(htmlDocument, label, !((Searcher) searcher).shouldSkipDeleted());
+          int pageResults = rval.getLast().size();
           if (pageResults != 0) {
             if (pageResults >= ITEMS_PER_PAGE) {
               skipCount += ITEMS_PER_PAGE;
@@ -297,7 +297,7 @@ public class ebaySearches {
     }
 
     if (allResults == 0) {
-      MQFactory.getConcrete("Swing").enqueue("No results found for search: " + search);
+      MQFactory.getConcrete("Swing").enqueue("No new results found for search: " + search);
     } else {
       MQFactory.getConcrete("Swing").enqueue("Done searching for: " + search);
     }
