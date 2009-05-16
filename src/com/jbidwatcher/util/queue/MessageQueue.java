@@ -30,7 +30,7 @@ public abstract class MessageQueue implements Runnable {
   public abstract void enqueue(String objToEnqueue);
 
   //  Maybe XML queues are different?  MQFactory.getXMLQueue()?
-  public void enqueueBean(Object xe) {
+  public void enqueueBean(QObject xe) {
     // Create output stream.
     ByteArrayOutputStream fos = new ByteArrayOutputStream();
     XMLEncoder xe2 = new XMLEncoder(fos);

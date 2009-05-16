@@ -1,5 +1,7 @@
 package com.jbidwatcher.util.queue;
 
+import com.jbidwatcher.util.config.JConfig;
+
 import java.util.*;
 
 /*
@@ -44,12 +46,18 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
       TQCarrier interim = (TQCarrier) deQ;
       MessageQueue q = MQFactory.getConcrete(interim.getDestinationQueue());
       //  TODO -- This is grossly wrong, but it will do for now.  Fix it when not sleep-deprived.
-      if(q instanceof PlainMessageQueue) {
+      Object payload = interim.getPayload();
+      if(payload instanceof QObject) {
+        q.enqueueBean((QObject)payload);
+      } else if (payload instanceof String) {
+        q.enqueue((String) payload);
+      } else if(q instanceof PlainMessageQueue) {
         ((PlainMessageQueue)q).enqueueObject(interim.getPayload());
       } else {
-        Object payload = interim.getPayload();
-        if(payload instanceof String) q.enqueue((String)payload);
-        else q.enqueueBean(payload);
+        //  Payload isn't a QObject or String, and q isn't a plainMessageQueue.
+        //  Trying to submit an arbitrary object to the SwingMessageQueue?  Teh fail.
+        JConfig.log().logDebug("Submitting: " + payload.toString() + " to " + q.toString() + " will probably fail.");
+        q.enqueue(payload.toString());
       }
       if(interim.getRepeatRate() != 0) {
         //  If there's a positive repeat count, decrement it once.
