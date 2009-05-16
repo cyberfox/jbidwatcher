@@ -230,7 +230,9 @@ public class ebaySearches {
       bid_count += rval.getLast().size();
       done_bidding = true;
     }
-    MQFactory.getConcrete("current Tab").enqueue("REPORT Found " + watch_count + " watched items (" + new_watch_count + " new), and " + bid_count + " items (" + new_bid_count + " new) you've apparently bid on.");
+    String watchInfo = watch_count == 0 ? "" : " (" + new_watch_count + " new)";
+    String bidInfo = bid_count == 0 ? "" : " (" + new_bid_count + " new)";
+    MQFactory.getConcrete("current Tab").enqueue("REPORT Found " + watch_count + " watched items" + watchInfo + ", and " + bid_count + " items" + bidInfo + " you've apparently bid on.");
     MQFactory.getConcrete("current Tab").enqueue("SHOW");
     SuperQueue.getInstance().preQueue("HIDE", "current Tab", System.currentTimeMillis() + Constants.ONE_MINUTE);
   }
