@@ -2080,4 +2080,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public void clearUpdating() {
     mUpdating = false;
   }
+
+  public static int countByCategory(Category c) {
+    if(c == null) return 0;
+    return getRealDatabase().countBySQL("SELECT COUNT(*) FROM entries WHERE category_id=" + c.getId());
+  }
 }
