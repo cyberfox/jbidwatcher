@@ -13,10 +13,8 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.Pair;
 import com.jbidwatcher.util.http.CookieJar;
-import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.auction.LoginManager;
-import com.jbidwatcher.auction.EntryCorral;
+import com.jbidwatcher.auction.*;
 import com.jbidwatcher.util.html.CleanupHandler;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.DropQObject;
@@ -40,9 +38,9 @@ public class ebaySearches {
   private CleanupHandler mCleaner;
   private com.jbidwatcher.auction.LoginManager mLogin;
 
-  private class ItemResults extends Pair<List<String>, Collection<String>> {
+  private class ItemResults extends Pair<List<String>, Map<String,String>> {
     public ItemResults() { super(null, null); }
-    public ItemResults(List<String> s, Collection<String> c) { super(s, c); }
+    public ItemResults(List<String> s, Map<String,String> c) { super(s, c); }
   }
 
   public ebaySearches(CleanupHandler cleaner, LoginManager login) {
@@ -50,14 +48,7 @@ public class ebaySearches {
     mLogin = login;
   }
 
-  /**
-   * @param htmlDocument - The document to get all the items from.
-   * @param category     - What 'group' to label items retrieved this way as.
-   * @param interactive  - Is this operation being done interactively, by the user?
-   * @return - A count of items added.
-   * @brief Add all the items on the page to the list of monitored auctions.
-   */
-  private ItemResults addAllItemsOnPage(JHTML htmlDocument, String category, boolean interactive) {
+  private ItemResults getAllItemsOnPage(JHTML htmlDocument) {
     List<String> allURLsOnPageUnprocessed = htmlDocument.getAllURLsOnPage(true);
     List<String> allURLsOnPage = new ArrayList<String>();
     if(allURLsOnPageUnprocessed != null) for(String process : allURLsOnPageUnprocessed) { allURLsOnPage.add(process.replaceAll("\n|\r", "")); }
@@ -69,19 +60,36 @@ public class ebaySearches {
       String hasId = aucServ.extractIdentifierFromURLString(url);
 
       if(hasId != null && StringTools.isNumberOnly(hasId)) {
-        if (EntryCorral.getInstance().takeForRead(hasId) == null) newItems.add(url);
-
-        allItemsOnPage.put(hasId, url);
+        if(allItemsOnPage.put(hasId, url) == null) {
+          if (EntryCorral.getInstance().takeForRead(hasId) == null) newItems.add(url);
+        }
       }
     }
-    if (allItemsOnPage.isEmpty()) {
+    return new ItemResults(newItems, allItemsOnPage);
+  }
+
+  /**
+   * @param htmlDocument - The document to get all the items from.
+   * @param category     - What 'group' to label items retrieved this way as.
+   * @param interactive  - Is this operation being done interactively, by the user?
+   * @return - A count of items added.
+   * @brief Add all the items on the page to the list of monitored auctions.
+   */
+  private ItemResults addAllItemsOnPage(JHTML htmlDocument, String category, boolean interactive) {
+    ItemResults ir = getAllItemsOnPage(htmlDocument);
+    addAll(ir.getLast().values(), category, interactive);
+
+    return ir;
+  }
+
+  private void addAll(Collection<String> urls, String category, boolean interactive) {
+    if (urls.isEmpty()) {
       JConfig.log().logDebug("No items on page!");
     } else {
-      for (String url : allItemsOnPage.values()) {
+      for (String url : urls) {
         MQFactory.getConcrete("drop").enqueueBean(new DropQObject(url.trim(), category, interactive));
       }
     }
-    return new ItemResults(newItems, allItemsOnPage.values());
   }
 
   /**
@@ -164,48 +172,47 @@ public class ebaySearches {
   void getMyEbayItems(String curUser, String label) {
     CookieJar cj = mLogin.getNecessaryCookie(false);
     String userCookie = null;
+    ItemResults rval;
     if (cj != null) userCookie = cj.toString();
 
     if (curUser == null || curUser.equals("default")) {
       JConfig.log().logMessage("Cannot load My eBay pages without a userid and password.");
       return;
     }
-    int watch_count = 0;
-    int new_watch_count = 0;
+
+    Map<String, String> collatedItems = new LinkedHashMap<String,String>();
+    int newWatchCount = pullWatchingItems(curUser, userCookie, collatedItems);
+
+    rval = getAllItemsOnPage(new JHTML(Externalized.getString("ebayServer.oldWatching"), userCookie, mCleaner));
+    collatedItems.putAll(rval.getLast());
+    newWatchCount += rval.getFirst().size();
+    int watchCount = collatedItems.size();
+    newWatchCount = Math.min(newWatchCount, watchCount);
+
+    rval = getBiddingOnItems(label);
+    collatedItems.putAll(rval.getLast());
+    int newBidCount = rval.getFirst().size();
+    int bidCount = rval.getLast().size();
+
+    addAll(collatedItems.values(), label, true);
+    reportMyeBayResults(label, watchCount, newWatchCount, bidCount, newBidCount);
+  }
+
+  private int pullWatchingItems(String curUser, String userCookie, Map<String, String> collatedItems) {
     int page = 0;
+    int newWatchCount = 0;
+    ItemResults rval;
     boolean done_watching = false;
     while (!done_watching) {
       //  First load items that the user is watching (!)
       //    String watchingURL = Externalized.getString("ebayServer.watchingURL");
-      String watchingURL = Externalized.getString("ebayServer.bigWatchingURL1") + curUser +
-          Externalized.getString("ebayServer.bigWatchingURL2") + page +
-          Externalized.getString("ebayServer.bigWatchingURL3") + (page + 1);
-      JConfig.log().logDebug("Loading page " + page + " of My eBay for user " + curUser);
-      JConfig.log().logDebug("URL: " + watchingURL);
+      String watchingURL = generateWatchedItemsURL(curUser, page);
+      JHTML htmlDocument = getWatchedItemsPage(userCookie, watchingURL);
+      rval = getAllItemsOnPage(htmlDocument);
+      collatedItems.putAll(rval.getLast());
 
-      JHTML htmlDocument = new JHTML(watchingURL, userCookie, mCleaner);
-      if(htmlDocument.getTitle().equals("eBay Message")) {
-        JConfig.log().logDebug("eBay is presenting an interstitial 'eBay Message' page!");
-        JHTML.Form f = htmlDocument.getFormWithInput("MfcISAPICommand");
-        if(f != null) {
-          try {
-            JConfig.log().logDebug("Navigating to the 'Continue to My eBay' page.");
-            htmlDocument = new JHTML(f.getCGI(), userCookie, mCleaner);
-          } catch(UnsupportedEncodingException uee) {
-            JConfig.log().handleException("Failed to get the real My eBay page", uee);
-          }
-        }
-      }
-      //  If there's a link with content '200', then it's the new My eBay
-      //  page, and the 200 is to show that many watched items on the page.
-      String biggestLink = htmlDocument.getLinkForContent("200");
-      if(biggestLink != null) {
-        JConfig.log().logDebug("Navigating to the '200 at a time' watching page: " + biggestLink);
-        htmlDocument = new JHTML(biggestLink, userCookie, mCleaner);
-      }
-      ItemResults rval = addAllItemsOnPage(htmlDocument, label, true);
-      watch_count += rval.getLast().size();
-      new_watch_count += rval.getFirst().size();
+      newWatchCount += rval.getFirst().size();
+
       String ofX = htmlDocument.getNextContentAfterRegex("Page " + (page + 1));
       if (ofX == null || !ofX.startsWith("of ")) done_watching = true;
       else try {
@@ -215,27 +222,77 @@ public class ebaySearches {
       }
       if (!done_watching) page++;
     }
+    return newWatchCount;
+  }
 
-    int bid_count = 0;
-    int new_bid_count = 0;
-    boolean done_bidding = false;
-    while (!done_bidding) {
-      //  Now load items the user is bidding on...
-      String biddingURL = Externalized.getString("ebayServer.biddingURL");
-      JConfig.log().logDebug("Loading page: " + biddingURL);
+  //  Now load items the user is bidding on...
+  private ItemResults getBiddingOnItems(String userCookie) {
+    String biddingURL = Externalized.getString("ebayServer.biddingURL");
+    JConfig.log().logDebug("Loading page: " + biddingURL);
 
-      JHTML htmlDocument = new JHTML(biddingURL, userCookie, mCleaner);
-      ItemResults rval = addAllItemsOnPage(htmlDocument, label, true);
-      new_bid_count += rval.getFirst().size();
-      bid_count += rval.getLast().size();
-      done_bidding = true;
+    JHTML htmlDocument = new JHTML(biddingURL, userCookie, mCleaner);
+    return getAllItemsOnPage(htmlDocument);
+  }
+
+  /**
+   * If the My eBay search has a destination category/tab name, check to
+   * see if it has any entries.  If not, display the results in the 'current'
+   * tab, otherwise display them in the appropriate tab.
+   *
+   * @param label - The label to potentially show the results in.
+   * @param watchCount - The number of items found in the watch list.
+   * @param newWatchCount - The count of items in your watch list that aren't already in JBidwatcher.
+   * @param bidCount - The number of items found in the bid list.
+   * @param newBidCount - The count of items you've bid on that aren't already in JBidwatcher.
+   */
+  private void reportMyeBayResults(String label, int watchCount, int newWatchCount, int bidCount, int newBidCount) {
+    String watchInfo = watchCount == 0 ? "" : " (about " + newWatchCount + " new)";
+    String bidInfo = bidCount == 0 ? "" : " (" + newBidCount + " new)";
+    String reportTab = "current";
+    if(label != null) {
+      Category c = Category.findFirstByName(label);
+      if(c !=  null) {
+        int count = AuctionEntry.countByCategory(c);
+        if(count != 0) reportTab = label;
+      }
     }
-    String watchInfo = watch_count == 0 ? "" : " (" + new_watch_count + " new)";
-    String bidInfo = bid_count == 0 ? "" : " (" + new_bid_count + " new)";
-    String reportTab = (label == null ? "current" : label) + " Tab";
-    MQFactory.getConcrete(reportTab).enqueue("REPORT Found " + watch_count + " watched items" + watchInfo + ", and " + bid_count + " items" + bidInfo + " you've apparently bid on.");
+    reportTab = reportTab + " Tab";
+    MQFactory.getConcrete(reportTab).enqueue("REPORT Found " + watchCount + " watched items" + watchInfo + ", and " + bidCount + " items" + bidInfo + " you've apparently bid on.");
     MQFactory.getConcrete(reportTab).enqueue("SHOW");
     SuperQueue.getInstance().preQueue("HIDE", reportTab, System.currentTimeMillis() + Constants.ONE_MINUTE);
+  }
+
+  private String generateWatchedItemsURL(String curUser, int page) {
+    String watchingURL = Externalized.getString("ebayServer.bigWatchingURL1") + curUser +
+        Externalized.getString("ebayServer.bigWatchingURL2") + page +
+        Externalized.getString("ebayServer.bigWatchingURL3") + (page + 1);
+    JConfig.log().logDebug("Loading page " + page + " of My eBay for user " + curUser);
+    JConfig.log().logDebug("URL: " + watchingURL);
+    return watchingURL;
+  }
+
+  private JHTML getWatchedItemsPage(String userCookie, String watchingURL) {
+    JHTML htmlDocument = new JHTML(watchingURL, userCookie, mCleaner);
+    if(htmlDocument.getTitle().equals("eBay Message")) {
+      JConfig.log().logDebug("eBay is presenting an interstitial 'eBay Message' page!");
+      JHTML.Form f = htmlDocument.getFormWithInput("MfcISAPICommand");
+      if(f != null) {
+        try {
+          JConfig.log().logDebug("Navigating to the 'Continue to My eBay' page.");
+          htmlDocument = new JHTML(f.getCGI(), userCookie, mCleaner);
+        } catch(UnsupportedEncodingException uee) {
+          JConfig.log().handleException("Failed to get the real My eBay page", uee);
+        }
+      }
+    }
+    //  If there's a link with content '200', then it's the new My eBay
+    //  page, and the 200 is to show that many watched items on the page.
+    String biggestLink = htmlDocument.getLinkForContent("200");
+    if(biggestLink != null) {
+      JConfig.log().logDebug("Navigating to the '200 at a time' watching page: " + biggestLink);
+      htmlDocument = new JHTML(biggestLink, userCookie, mCleaner);
+    }
+    return htmlDocument;
   }
 
   /**
