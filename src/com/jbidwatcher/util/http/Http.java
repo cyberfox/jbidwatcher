@@ -186,7 +186,7 @@ public class Http {
 
     if(buff == null) return null;
     String charset = uc.getContentType();
-    if(charset.matches(".*charset=([^;]*).*")) {
+    if(charset != null && charset.matches(".*charset=([^;]*).*")) {
       charset = charset.replaceFirst(".*charset=([^;]*).*", "$1");
       return new StringBuffer(new String(buff.getData(), 0, buff.getLength(), charset));
     }
