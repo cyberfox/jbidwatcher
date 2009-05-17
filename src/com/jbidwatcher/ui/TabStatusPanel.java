@@ -13,11 +13,12 @@ import java.awt.event.ActionEvent;
 
 /**
  * Created by IntelliJ IDEA.
-* User: Morgan
-* Date: Feb 11, 2009
-* Time: 4:35:36 PM
-* To change this template use File | Settings | File Templates.
-*/
+ * User: Morgan
+ * Date: Feb 11, 2009
+ * Time: 4:35:36 PM
+ *
+ * A zone where less transient information can be delivered to the user per-tab.
+ */
 class TabStatusPanel extends JPanel {
   private JLabel mStatus;
   private JProgressBar mLoadProgress;
@@ -28,7 +29,7 @@ class TabStatusPanel extends JPanel {
 
     mStatus = new JLabel("Status area");
     mStatus.setHorizontalAlignment(JLabel.CENTER);
-    mStatus.setBackground(Color.decode("0xEDD400"));
+    mStatus.setBackground(Color.decode("#FFFE9C")); //  #FDFB6F
 
     JButton closeButton = new JButton("x");
     closeButton.setOpaque(false);
@@ -47,7 +48,7 @@ class TabStatusPanel extends JPanel {
     add(mLoadProgress, BorderLayout.WEST);
     add(mStatus, BorderLayout.CENTER);
     add(closeButton, BorderLayout.EAST);
-    setBackground(Color.decode("0xEDD400"));
+    setBackground(Color.decode("#FFFE9C"));
     setOpaque(true);
     setVisible(false);
     String queueName = tabName + " Tab";
