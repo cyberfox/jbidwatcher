@@ -566,6 +566,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
           try {
             Scripting.initialize();
             JConfig.enableScripting();
+            JConfig.log().logMessage("Scripting is enabled.");
+          } catch (NoClassDefFoundError ncdfe) {
+            JConfig.log().logMessage("Scripting is not enabled.");
           } catch (Throwable e) {
             JConfig.log().logMessage("Error setting up scripting: " + e.toString());
             JConfig.disableScripting();
