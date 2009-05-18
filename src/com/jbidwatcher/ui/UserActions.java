@@ -515,13 +515,30 @@ public class UserActions implements MessageQueue.Listener {
     showComplexInformation(rowList);
   }
 
+  private int getInteger(String cfgValue, int defaultValue) {
+    int rval = defaultValue;
+
+    try {
+      String prop = JConfig.queryDisplayProperty(cfgValue);
+      if(prop != null) {
+        rval = Integer.parseInt(prop);
+      }
+    } catch(Exception ignored) {
+      //  Ignore it, since rval is already set to the default.
+    }
+    return rval;
+  }
+
   private void showComplexInformation(int[] rowList) {
     StringBuffer prompt = new StringBuffer();
     for (int aRowList : rowList) {
       AuctionEntry stepAE = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
       prompt.append(stepAE.buildInfoHTML()).append("<hr>");
     }
-    Dimension statusBox = new Dimension(480, Math.min(372, rowList.length * 30 + 200));
+    int width = getInteger("info.width", 480);
+    int height = getInteger("info.height", Math.min(372, rowList.length * 30 + 200));
+
+    Dimension statusBox = new Dimension(width, height);
     ArrayList<String> buttons = new ArrayList<String>(2);
     buttons.add("Continue");
     MyActionListener al = new MyActionListener() {
@@ -531,7 +548,13 @@ public class UserActions implements MessageQueue.Listener {
         }
       };
 
-    JFrame newFrame = _oui.showChoiceTextDisplay(new JHTMLOutput("Information", prompt).getStringBuffer(), statusBox, "Information...", buttons, "Information...", al);
+    final JFrame newFrame = _oui.showChoiceTextDisplay(new JHTMLOutput("Information", prompt).getStringBuffer(), statusBox, "Information...", buttons, "Information...", al);
+    newFrame.addComponentListener(new ComponentAdapter() {
+      public void componentResized(ComponentEvent e) {
+        JConfig.setDisplayConfiguration("info.width", Integer.toString(newFrame.getWidth()));
+        JConfig.setDisplayConfiguration("info.height", Integer.toString(newFrame.getHeight()));
+      }
+    });
     al.setFrame(newFrame);
   }
 
