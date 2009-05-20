@@ -339,9 +339,9 @@ public class OptionUI {
 
     JScrollPane jsp = new JScrollPane(jep);
     jsp.getVerticalScrollBar().setValue(0);
-    jsp.setPreferredSize(inSize);
-    jsp.setMaximumSize(inSize);
-    jsp.setMinimumSize(inSize);
+    otherFrame.setPreferredSize(inSize);
+    otherFrame.setMaximumSize(inSize);
+    otherFrame.setMinimumSize(inSize);
     otherFrame.getContentPane().add(insidePanel);
     insidePanel.add(jsp, BorderLayout.CENTER);
     insidePanel.setBorder(BorderFactory.createTitledBorder(borderTitle));
