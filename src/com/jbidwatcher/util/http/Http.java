@@ -17,8 +17,23 @@ import java.io.*;
 import java.util.Map;
 
 public class Http {
+  private String mUsername = null;
+  private String mPassword = null;
+
   private static Http sInstance = new Http();
   public static Http net() { return sInstance; }
+
+  public void setAuthInfo(String user, String pass) {
+    mUsername = user;
+    mPassword = pass;
+  }
+
+  private void setConnectionInfo(URLConnection huc) {
+    if(mUsername != null && mPassword != null) {
+      huc.setRequestProperty("Authorization", "Basic " + Base64.encodeString(mUsername + ':' + mPassword));
+    }
+    setConnectionProxyInfo(huc);
+  }
 
   private void setConnectionProxyInfo(URLConnection huc) {
     if(JConfig.queryConfiguration("proxyfirewall", "none").equals("proxy")) {
@@ -49,7 +64,7 @@ public class Http {
       URL authURL = new URL(urlToPost);
 
       huc = authURL.openConnection();
-      setConnectionProxyInfo(huc);
+      setConnectionInfo(huc);
       huc.setDoOutput(true);
 
       if(huc instanceof HttpURLConnection) {
@@ -97,7 +112,7 @@ public class Http {
       JConfig.log().logDebug("makeRequest: " + source.toString());
     }
     URLConnection uc = source.openConnection();
-    setConnectionProxyInfo(uc);
+    setConnectionInfo(uc);
     if(cookie != null) {
       uc.setRequestProperty("Cookie", cookie);
     }
@@ -207,7 +222,7 @@ public class Http {
       }
       huc = (HttpURLConnection)uc;
       huc.setInstanceFollowRedirects(redirect);
-      setConnectionProxyInfo(huc);
+      setConnectionInfo(huc);
 
       huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
       if(referer != null) huc.setRequestProperty("Referer", referer);
@@ -217,6 +232,28 @@ public class Http {
       huc = null;
     }
     return(huc);
+  }
+
+  public String putTo(String url, String sb) {
+    HttpURLConnection huc = null;
+    String result = null;
+    try {
+      huc = (HttpURLConnection) new URL(url).openConnection();
+      setConnectionInfo(huc);
+      huc.setRequestProperty("Content-Type", "application/octet-stream");
+      huc.setRequestProperty("Content-Length", Integer.toString(sb.length() - 1));
+      huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
+
+      huc.setRequestMethod("PUT");
+      huc.setDoOutput(true);
+      huc.getOutputStream().write(sb.getBytes());
+      result = StringTools.cat(huc.getInputStream());
+    } catch (MalformedURLException murle) {
+      JConfig.log().logMessage("Invalid URL!? (" + url + "): " + murle.getMessage());
+    } catch (IOException ioe) {
+      try { result = StringTools.cat(huc.getErrorStream()); } catch (Exception e) { }
+    }
+    return result;
   }
 
   public String postTo(String url, Parameters params) {
