@@ -186,7 +186,17 @@ public class Http {
     return new ByteBuffer(mainBuf, offset);
   }
 
+  public StringBuffer get(String url) {
+    try {
+      return receivePage(getPage(url));
+    } catch (IOException ioe) {
+      JConfig.log().logDebug("Got an exception reading " + url + ": " + ioe.getMessage());
+      return null;
+    }
+  }
+
   public StringBuffer receivePage(URLConnection uc) throws IOException {
+    if(uc == null) return null;
     ByteBuffer buff = receiveData(uc);
 
     if(buff == null) return null;
