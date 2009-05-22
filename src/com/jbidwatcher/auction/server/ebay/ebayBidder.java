@@ -222,7 +222,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     StringBuffer loadedPage;
 
     //  If we failed to load, punt.  Treat it as success, but with a null form result.
-    if (huc == null || (loadedPage = Http.receivePage(huc)) == null) {
+    if (huc == null || (loadedPage = Http.net().receivePage(huc)) == null) {
       return new BidFormReturn(true, null, null, null);
     }
 
@@ -366,7 +366,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
         //  We failed to load, entirely.  Punt.
         if (huc == null) return AuctionServerInterface.BID_ERROR_CONNECTION;
 
-        loadedPage = Http.receivePage(huc);
+        loadedPage = Http.net().receivePage(huc);
         //  We failed to load.  Punt.
         if (loadedPage == null) return AuctionServerInterface.BID_ERROR_CONNECTION;
 

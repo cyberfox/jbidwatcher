@@ -31,7 +31,7 @@ public class JBHelp {
 
     try {
       URL resource = JConfig.getResource(helpPath);
-      if(resource != null) outSB = new StringBuffer(preprocess(Http.receivePage(resource.openConnection()), title));
+      if(resource != null) outSB = new StringBuffer(preprocess(Http.net().receivePage(resource.openConnection()), title));
     } catch(IOException ignored) {
       outSB = null;
     }

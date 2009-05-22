@@ -10,13 +10,17 @@ import com.jbidwatcher.util.config.Base64;
 import com.jbidwatcher.util.ByteBuffer;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.Parameters;
+import com.jbidwatcher.util.StringTools;
 
 import java.net.*;
 import java.io.*;
 import java.util.Map;
 
 public class Http {
-  private static void setConnectionProxyInfo(URLConnection huc) {
+  private static Http sInstance = new Http();
+  public static Http net() { return sInstance; }
+
+  private void setConnectionProxyInfo(URLConnection huc) {
     if(JConfig.queryConfiguration("proxyfirewall", "none").equals("proxy")) {
       String proxyHost = JConfig.queryConfiguration("proxy.host", null);
 
@@ -35,7 +39,7 @@ public class Http {
     }
   }
 
-  public static URLConnection postFormPage(String urlToPost, String cgiData, String cookie, String referer, boolean follow_redirects) {
+  public URLConnection postFormPage(String urlToPost, String cgiData, String cookie, String referer, boolean follow_redirects) {
     URLConnection huc;
 
     try {
@@ -88,26 +92,12 @@ public class Http {
     }
   }
 
-  public static URLConnection makeRequest(URL source, String cookie) throws java.io.IOException {
+  public URLConnection makeRequest(URL source, String cookie) throws java.io.IOException {
     if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
       JConfig.log().logDebug("makeRequest: " + source.toString());
     }
     URLConnection uc = source.openConnection();
-    if(JConfig.queryConfiguration("proxyfirewall", "none").equals("proxy")) {
-      String proxyHost = JConfig.queryConfiguration("proxy.host", null);
-      if(proxyHost != null) {
-        String user = JConfig.queryConfiguration("proxy.user", null);
-        String pass = JConfig.queryConfiguration("proxy.pass", null);
-
-        if (user != null && pass != null) {
-          if(user.length() != 0) {
-            String str = user + ':' + pass;
-            String encoded = "Basic " + Base64.encodeString(str);
-            uc.setRequestProperty("Proxy-Authorization", encoded);
-          }
-        }
-      }
-    }
+    setConnectionProxyInfo(uc);
     if(cookie != null) {
       uc.setRequestProperty("Cookie", cookie);
     }
@@ -119,7 +109,7 @@ public class Http {
     return uc;
   }
 
-  public static ByteBuffer getURL(URL dataURL) {
+  public ByteBuffer getURL(URL dataURL) {
     return getURL(dataURL, null);
   }
 
@@ -131,7 +121,7 @@ public class Http {
    * 
    * @return - A result with raw data and the length.
    */
-  public static ByteBuffer getURL(URL dataURL, String inCookie) {
+  private ByteBuffer getURL(URL dataURL, String inCookie) {
     ByteBuffer rval;
 
     try {
@@ -159,7 +149,7 @@ public class Http {
    * @return - A structure containing the raw data and the length.
    * @throws java.io.IOException if an error occurs while reading the data.
    */
-  public static ByteBuffer receiveData(URLConnection uc) throws IOException {
+  private ByteBuffer receiveData(URLConnection uc) throws IOException {
     InputStream is = uc.getInputStream();
     int curMax = 32768;
     byte[] mainBuf = new byte[curMax];
@@ -181,7 +171,7 @@ public class Http {
     return new ByteBuffer(mainBuf, offset);
   }
 
-  public static StringBuffer receivePage(URLConnection uc) throws IOException {
+  public StringBuffer receivePage(URLConnection uc) throws IOException {
     ByteBuffer buff = receiveData(uc);
 
     if(buff == null) return null;
@@ -199,11 +189,11 @@ public class Http {
    * @param urlToGet - The URL to load.
    * @return - A URLConnection usable to retrieve the page requested.
    */
-  public static URLConnection getPage(String urlToGet) {
+  public URLConnection getPage(String urlToGet) {
     return(getPage(urlToGet, null, null, true));
   }
 
-  public static URLConnection getPage(String urlToGet, String cookie, String referer, boolean redirect) {
+  public URLConnection getPage(String urlToGet, String cookie, String referer, boolean redirect) {
     HttpURLConnection huc;
 
     try {
@@ -229,7 +219,7 @@ public class Http {
     return(huc);
   }
 
-  public static String postTo(String url, Parameters params) {
+  public String postTo(String url, Parameters params) {
     StringBuffer postData = null;
     try {
       postData = createCGIData(params);

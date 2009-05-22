@@ -636,8 +636,8 @@ public class JHTML implements JHTMLListener {
     StringBuffer loadedPage;
 
     try {
-      URLConnection uc = Http.getPage(newURL, cookie, null, true);
-      loadedPage = Http.receivePage(uc);
+      URLConnection uc = Http.net().getPage(newURL, cookie, null, true);
+      loadedPage = Http.net().receivePage(uc);
       if(loadedPage != null) {
         if(cl != null) cl.cleanup(loadedPage);
         m_parser.parse(loadedPage);

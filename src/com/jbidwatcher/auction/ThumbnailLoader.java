@@ -47,7 +47,7 @@ public class ThumbnailLoader implements MessageQueue.Listener {
   }
 
   public static ByteBuffer downloadThumbnail(URL img) {
-    ByteBuffer tmpThumb = Http.getURL(img);
+    ByteBuffer tmpThumb = Http.net().getURL(img);
     //  There's a specific image which is just 'click here to
     //  view item'.  Boring, and misleading.
     if(tmpThumb.getCRC() == 0xAEF9E727 ||

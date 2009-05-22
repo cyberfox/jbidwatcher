@@ -35,8 +35,8 @@ public class UpdaterEntry extends XMLSerializeSimple {
     StringBuffer loadedUpdate;
 
     try {
-      URLConnection uc = Http.getPage(updateFrom);
-      loadedUpdate = Http.receivePage(uc);
+      URLConnection uc = Http.net().getPage(updateFrom);
+      loadedUpdate = Http.net().receivePage(uc);
       _valid = true;
     } catch(IOException e) {
       loadedUpdate = null;

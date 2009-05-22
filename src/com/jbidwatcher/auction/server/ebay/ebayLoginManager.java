@@ -53,7 +53,7 @@ public class ebayLoginManager implements LoginManager {
   }
 
   private URLConnection checkFollowRedirector(URLConnection current, CookieJar cj, String lookFor) throws IOException, CaptchaException {
-    StringBuffer signed_in = Http.receivePage(current);
+    StringBuffer signed_in = Http.net().receivePage(current);
     JConfig.log().dump2File("sign_in-a1.html", signed_in);
 
     //  Parse the redirector, and find the URL that points to the adult
@@ -111,7 +111,7 @@ public class ebayLoginManager implements LoginManager {
   }
 
   private boolean getAdultConfirmation(URLConnection uc_signin, CookieJar cj) throws IOException {
-    StringBuffer confirm = Http.receivePage(uc_signin);
+    StringBuffer confirm = Http.net().receivePage(uc_signin);
     JConfig.log().dump2File("sign_in-a2.html", confirm);
     JHTML confirmPage = new JHTML(confirm);
 
@@ -120,7 +120,7 @@ public class ebayLoginManager implements LoginManager {
     for (JHTML.Form finalForm : confirm_forms) {
       if (finalForm.hasInput("MfcISAPICommand", "AdultSignIn")) {
         uc_signin = cj.connect(finalForm.getCGI());
-        StringBuffer confirmed = Http.receivePage(uc_signin);
+        StringBuffer confirmed = Http.net().receivePage(uc_signin);
         JConfig.log().dump2File("sign_in-a3.html", confirmed);
         JHTML htdoc = new JHTML(confirmed);
         JHTML.Form curForm = htdoc.getFormWithInput("pass");
@@ -194,7 +194,7 @@ public class ebayLoginManager implements LoginManager {
       JConfig.log().logDebug(cj.dump());
     }
     try {
-      StringBuffer signin = Http.receivePage(uc_signin);
+      StringBuffer signin = Http.net().receivePage(uc_signin);
       JConfig.log().dump2File("sign_in-1.html", signin);
       JHTML htdoc = new JHTML(signin);
 
@@ -248,7 +248,7 @@ public class ebayLoginManager implements LoginManager {
           cj = retryLoginWithoutAdult(cj, username, password);
         }
       } else {
-        StringBuffer confirm = Http.receivePage(uc_signin);
+        StringBuffer confirm = Http.net().receivePage(uc_signin);
         JConfig.log().dump2File("sign_in-2.html", confirm);
         JHTML doc = new JHTML(confirm);
         //  Check for CAPTCHA and bad passwords...

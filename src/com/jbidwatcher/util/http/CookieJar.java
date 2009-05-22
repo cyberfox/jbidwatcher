@@ -62,7 +62,7 @@ public class CookieJar {
     StringBuffer sb = null;
 
     try {
-      sb = Http.receivePage(uc);
+      sb = Http.net().receivePage(uc);
     } catch(ConnectException ce) {
       logException(page, ce);
       if(ce.toString().indexOf("Connection refused") != -1) {
@@ -126,7 +126,7 @@ public class CookieJar {
           if(!page.contains("pass")) JConfig.log().logMessage("Redirecting to: " + redirect);
           try {
             if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
-              JConfig.log().logMessage("Content: " + Http.receivePage(uc));
+              JConfig.log().logMessage("Content: " + Http.net().receivePage(uc));
             }
           } catch (IOException ignored) {
             //  If there's no content or it's an unrecognized type, ignore it.
@@ -210,15 +210,15 @@ public class CookieJar {
 
     if(!_cookies.isEmpty()) {
       if(post) {
-        uc = (HttpURLConnection)Http.postFormPage(sendRequest, cgi, this.toString(), referer, m_ignore_redirect_cookies);
+        uc = (HttpURLConnection)Http.net().postFormPage(sendRequest, cgi, this.toString(), referer, m_ignore_redirect_cookies);
       } else {
-        uc = (HttpURLConnection)Http.getPage(sendRequest, this.toString(), referer, m_ignore_redirect_cookies);
+        uc = (HttpURLConnection)Http.net().getPage(sendRequest, this.toString(), referer, m_ignore_redirect_cookies);
       }
     } else {
       if(post) {
-        uc = (HttpURLConnection)Http.postFormPage(sendRequest, cgi, null, referer, m_ignore_redirect_cookies);
+        uc = (HttpURLConnection)Http.net().postFormPage(sendRequest, cgi, null, referer, m_ignore_redirect_cookies);
       } else {
-        uc = (HttpURLConnection)Http.getPage(sendRequest, null, referer, m_ignore_redirect_cookies);
+        uc = (HttpURLConnection)Http.net().getPage(sendRequest, null, referer, m_ignore_redirect_cookies);
       }
     }
     return uc;

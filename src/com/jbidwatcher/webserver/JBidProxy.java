@@ -86,7 +86,7 @@ public class JBidProxy extends HTTPProxyClient {
     if(relativeDocument.equals("favicon.ico")) {
       try {
         URL resource = JConfig.getResource("/icons/favicon.ico");
-        if(sIcon == null) sIcon = new StringBuffer(Http.receivePage(resource.openConnection()));
+        if(sIcon == null) sIcon = new StringBuffer(Http.net().receivePage(resource.openConnection()));
 
         outBuf.append("Content-Type: image/x-icon\n");
         outBuf.append("Content-Length: ").append(sIcon.length()).append('\n');

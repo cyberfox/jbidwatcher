@@ -159,9 +159,9 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
       if(curCook != null) {
         uc = curCook.connect(auctionURL.toString());
       } else {
-        uc = Http.makeRequest(auctionURL, null);
+        uc = Http.net().makeRequest(auctionURL, null);
       }
-      loadedPage = Http.receivePage(uc);
+      loadedPage = Http.net().receivePage(uc);
       if(loadedPage != null && loadedPage.length() == 0) loadedPage = null;
     } catch(FileNotFoundException fnfe) {
       JConfig.log().logDebug("Item not found: " + auctionURL.toString());
