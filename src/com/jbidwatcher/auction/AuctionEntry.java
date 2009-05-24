@@ -17,6 +17,7 @@ import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.xml.XMLElement;
 
 import java.io.FileNotFoundException;
+import java.io.File;
 import java.text.MessageFormat;
 import java.util.*;
 import java.net.InetAddress;
@@ -1647,6 +1648,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public boolean isOutbid() { return getAuction().isOutbid(); }
 
   public StringBuffer getContent() { return getAuction().getContent(); }
+  public File getContentFile() { return getAuction().getContentFile(); }
   public String getThumbnail() { return getAuction().getThumbnail(); }
 
   public boolean hasPaypal() { return getAuction().hasPaypal(); }

@@ -311,8 +311,7 @@ public class AuctionInfo extends ActiveRecord
     mLoadedPage = null;
   }
 
-  private GZip loadFile(String fileName) {
-    File fp = new File(fileName);
+  private GZip loadFile(File fp) {
     GZip localZip = new GZip();
 
     if(fp.exists()) {
@@ -322,13 +321,13 @@ public class AuctionInfo extends ActiveRecord
           JConfig.log().logDebug("Loading from backing page (file is " + fp.length() + " bytes)!");
           localZip.load(fp);
         } catch(IOException ioe) {
-          JConfig.log().handleException("Couldn't read " + fileName, ioe);
+          JConfig.log().handleException("Couldn't read " + fp.getName(), ioe);
           return null;
         }
 
         return localZip;
       } else {
-        JConfig.log().logDebug("Can't load " + fileName + ", file is too large.");
+        JConfig.log().logDebug("Can't load " + fp.getName() + ", file is too large.");
       }
     }
     return null;
@@ -359,13 +358,20 @@ public class AuctionInfo extends ActiveRecord
   }
 
   GZip getRealContent() {
+    File fp = getContentFile();
+    if(fp != null) return loadFile(fp);
+    return mLoadedPage;
+  }
+
+  File getContentFile() {
+    File fp = null;
     String outPath = JConfig.queryConfiguration("auctions.savepath");
     if(outPath != null && outPath.length() != 0) {
       String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
       JConfig.log().logDebug("filePath = " + filePath);
-      return loadFile(filePath);
+      fp = new File(filePath);
     }
-    return mLoadedPage;
+    return fp;
   }
 
   public void setContent(StringBuffer inContent, boolean final_data) {
