@@ -220,7 +220,7 @@ public class ClientHttpRequest {
    *
    * @return input stream with the server response
    */
-  public InputStream post() throws IOException {
+  public HttpURLConnection post() throws IOException {
     if (mOutput == null) mOutput = mConnection.getOutputStream();
     postCookies();
     for(String key : mParameters.keySet()) {
@@ -231,20 +231,13 @@ public class ClientHttpRequest {
     boundary();
     writeln("--");
     mOutput.close();
-    InputStream rval;
-    HttpURLConnection huc = (HttpURLConnection)mConnection;
-    if(huc.getResponseCode() / 100 == 4) {
-      rval = huc.getErrorStream();
-    } else {
-      rval = mConnection.getInputStream();
-    }
-    int status = ((HttpURLConnection) mConnection).getResponseCode();
-    if(status / 100 == 3) {
-      String location = mConnection.getHeaderField("Location");
-      rval.close();
-      rval = new URL(location).openStream();
-    }
-    return rval;
+    return (HttpURLConnection)mConnection;
+  }
+
+  public InputStream postStream() throws IOException {
+    HttpURLConnection huc = post();
+
+    return Http.net().getStream(huc);
   }
 
   /**
@@ -255,7 +248,7 @@ public class ClientHttpRequest {
    */
   public InputStream post(Map<String, Object> parameters) throws IOException {
     setParameters(parameters);
-    return post();
+    return postStream();
   }
 
   /**
@@ -266,7 +259,7 @@ public class ClientHttpRequest {
    */
   public InputStream post(Object[] parameters) throws IOException {
     setParameters(parameters);
-    return post();
+    return postStream();
   }
 
   /**
@@ -279,7 +272,7 @@ public class ClientHttpRequest {
   public InputStream post(Map<String,String> cookies, Map<String, Object> parameters) throws IOException {
     setCookies(cookies);
     setParameters(parameters);
-    return post();
+    return postStream();
   }
 
   /**
@@ -292,7 +285,7 @@ public class ClientHttpRequest {
   public InputStream post(String[] cookies, Object[] parameters) throws IOException {
     setCookies(cookies);
     setParameters(parameters);
-    return post();
+    return postStream();
   }
 
   /**
