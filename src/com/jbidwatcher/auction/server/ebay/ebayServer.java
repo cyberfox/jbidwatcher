@@ -382,7 +382,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
 
         public int placeFinalBid(CookieJar cj, JHTML.Form bidForm, AuctionEntry inEntry, Currency inBid, int inQuantity) {
-          return BID_ERROR_UNKNOWN;
+          return BID_ERROR_OUTBID;
         }
       };
     } else {
