@@ -8,6 +8,7 @@ import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
+import com.jbidwatcher.util.config.Base64;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
@@ -24,6 +25,8 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.io.File;
+import java.net.URL;
+import java.net.HttpURLConnection;
 
 /**
  * This provides a command-line interface to JBidwatcher, loading an individual auction
@@ -49,6 +52,15 @@ public class JBTool implements ToolInterface {
   private String mCountry = "ebay.com";
   private ebayServer mEbayUK;
   private String mParseFile = null;
+
+  private void testBasicAuthentication(final String user, final String key) throws Exception {
+    URL retrievalURL = new URL("http://localhost:9909/services/sqsurl");
+    HttpURLConnection huc = (HttpURLConnection) retrievalURL.openConnection();
+
+    huc.setRequestProperty("Authorization", "Basic " + Base64.encodeString(user + ":" + key));
+    String url = StringTools.cat(huc.getInputStream());
+    System.out.println("URL == " + url);
+  }
 
   private void testSearching() {
     Searcher sm = SearchManager.getInstance().addSearch("Title", "zarf", "zarf", "ebay", -1, 12345678);
@@ -172,6 +184,14 @@ public class JBTool implements ToolInterface {
     }
 
     for(String option: options) {
+      if(option.equals("basicauth")) {
+        try {
+          testBasicAuthentication("morgan", "schweers");
+        } catch (Exception e) {
+          System.err.println(e.getMessage());
+        }
+        return params;
+      }
       if(option.equals("searching")) { testSearching(); return params; }
       if(option.equals("server")) mRunServer = true;
       if(option.startsWith("port=")) mPortNumber = option.substring(5);
@@ -190,7 +210,7 @@ public class JBTool implements ToolInterface {
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
       if(option.startsWith("file=")) mParseFile = option.substring(5);
-      if(option.startsWith("upload=")) MyJBidwatcher.getInstance().sendFile(new File(option.substring(7)), "cyberfox@jbidwatcher.com", "This is a <test> of descriptions & stuff.");
+      if(option.startsWith("upload=")) MyJBidwatcher.getInstance().sendFile(new File(option.substring(7)), "http://my.jbidwatcher.com/upload/log", "cyberfox@jbidwatcher.com", "This is a <test> of descriptions & stuff.");
     }
 
     if(!mLogin) {
