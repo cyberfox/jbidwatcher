@@ -302,4 +302,26 @@ public class Http {
     }
     return postData;
   }
+
+  public InputStream getStream(HttpURLConnection huc) {
+    if(huc == null) return null;
+    InputStream rval;
+
+    try {
+      int status = huc.getResponseCode();
+      if (status / 100 == 4) {
+        rval = huc.getErrorStream();
+      } else if (status / 100 == 3) {
+        String location = huc.getHeaderField("Location");
+        huc = (HttpURLConnection)getPage(location);
+        rval = huc.getInputStream();
+      } else {
+        rval = huc.getInputStream();
+      }
+    } catch (IOException e) {
+      JConfig.log().logDebug("Error getting the stream from " + huc.getURL() + ": " + e.getMessage());
+      rval = null;
+    }
+    return rval;
+  }
 }
