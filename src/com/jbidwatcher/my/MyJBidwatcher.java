@@ -107,17 +107,15 @@ public class MyJBidwatcher {
   public String recognizeBidpage(String identifier, StringBuffer page) {
     Parameters p = new Parameters();
     if(identifier != null) p.put("item", identifier);
-    p.put("user", JConfig.queryConfiguration("my.jbidwatcher.id"));
     p.put("body", page);
-    String url = "http://my.jbidwatcher.com/advanced/recognize";
+    String url = "http://my.jbidwatcher.com/services/recognize";
     return http().postTo(url, p);
   }
 
   public String reportException(String sb) {
     Parameters p = new Parameters();
-    p.put("user", JConfig.queryConfiguration("my.jbidwatcher.id"));
     p.put("body", sb);
-    String url = "http://my.jbidwatcher.com/advanced/report";
+    String url = "http://my.jbidwatcher.com/services/report";
     return http().postTo(url, p);
   }
 
@@ -204,11 +202,11 @@ public class MyJBidwatcher {
 
   public boolean updateAccount(String email, String password) {
     //  TODO - Must be logged in first?
-    String acct_key = JConfig.queryConfiguration("my.jbidwatcher.id");
-    if(acct_key == null) return false;
+    String user = JConfig.queryConfiguration("my.jbidwatcher.id");
+    if(user == null) return false;
 
-    String old_password = JConfig.queryConfiguration("my.jbidwatcher.password");
-    //  TODO - PUT (!) http://my.jbidwatcher.com/users/update with user[email]={email}&user[password]={password}&old_password={old_password}
+    String old_key = JConfig.queryConfiguration("my.jbidwatcher.key");
+    //  TODO - PUT (!) http://my.jbidwatcher.com/users/update with user[email]={email}&user[password]={key}&old_password={old_key}
     //  TODO - Write server side for update.
 
     return false;
