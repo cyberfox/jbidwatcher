@@ -166,6 +166,10 @@ public class Http {
    */
   private ByteBuffer receiveData(URLConnection uc) throws IOException {
     InputStream is = uc.getInputStream();
+    return receiveStream(is);
+  }
+
+  private ByteBuffer receiveStream(InputStream is) throws IOException {
     int curMax = 32768;
     byte[] mainBuf = new byte[curMax];
 
@@ -188,7 +192,15 @@ public class Http {
 
   public StringBuffer get(String url) {
     try {
-      return receivePage(getPage(url));
+      HttpURLConnection huc = (HttpURLConnection)getPage(url);
+      InputStream is = getStream(huc);
+      ByteBuffer results = receiveStream(is);
+      StringBuffer sb = convertByteBufferToStringBuffer(huc, results);
+      if((huc.getResponseCode() / 100) > 3) {
+        JConfig.log().logMessage("Failed to get " + url + ": " + sb);
+        return null;
+      }
+      return sb;
     } catch (IOException ioe) {
       JConfig.log().logDebug("Got an exception reading " + url + ": " + ioe.getMessage());
       return null;
@@ -199,6 +211,10 @@ public class Http {
     if(uc == null) return null;
     ByteBuffer buff = receiveData(uc);
 
+    return convertByteBufferToStringBuffer(uc, buff);
+  }
+
+  private StringBuffer convertByteBufferToStringBuffer(URLConnection uc, ByteBuffer buff) throws UnsupportedEncodingException {
     if(buff == null) return null;
     String charset = uc.getContentType();
     if(charset != null && charset.matches(".*charset=([^;]*).*")) {
