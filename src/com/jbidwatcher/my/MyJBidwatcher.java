@@ -115,7 +115,7 @@ public class MyJBidwatcher {
   public String reportException(String sb) {
     Parameters p = new Parameters();
     p.put("body", sb);
-    String url = "http://my.jbidwatcher.com/services/report";
+    String url = "http://my.jbidwatcher.com/services/report_exception";
     return http().postTo(url, p);
   }
 
