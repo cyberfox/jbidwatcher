@@ -29,6 +29,7 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionServerInterface;
+import com.l2fprod.common.swing.JFontChooser;
 
 public class UserActions implements MessageQueue.Listener {
   private static JTabManager mTabs = JTabManager.getInstance();
@@ -150,6 +151,15 @@ public class UserActions implements MessageQueue.Listener {
     } else {
       //  Warn the user that scripting is not enabled.
     }
+  }
+
+  private void DoChooseFont() {
+    JFontChooser jfc = new JFontChooser();
+    jfc.setSelectedFont(myTableCellRenderer.getDefaultFont());
+    Font chosen = jfc.showFontDialog(null, "Please choose the default font for the auction table");
+    myTableCellRenderer.setDefaultFont(chosen);
+    JTabbedPane tabs = mTabs.getTabs();
+    MQFactory.getConcrete("redraw").enqueue(tabs.getTitleAt(tabs.getSelectedIndex()));
   }
 
   private void DoShowLastError(Component src, AuctionEntry passedAE) {
@@ -1483,7 +1493,8 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("View Activity")) DoViewActivity();
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
     else if(actionString.equals("Submit Log File")) DoSubmitLogFile();
-    else if (actionString.equals("Restart")) DoRestart();
+    else if(actionString.equals("Restart")) DoRestart();
+    else if(actionString.equals("Font")) DoChooseFont();
     else JConfig.log().logDebug('[' + actionString + ']');
   }
 
