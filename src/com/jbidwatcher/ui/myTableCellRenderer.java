@@ -217,8 +217,33 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   }
 
   private static Font sDefaultFont = null;
-  public static Font getDefaultFont() { return sDefaultFont; }
-  public static void setDefaultFont(Font defaultFont) { sDefaultFont = defaultFont; fixedFont = null; boldFont = null; }
+  public static Font getDefaultFont() {
+    if(sDefaultFont == null) {
+      String cfgDefault = JConfig.queryConfiguration("default.font");
+      if(cfgDefault != null) {
+        sDefaultFont = Font.decode(cfgDefault);
+      }
+    }
+    return sDefaultFont;
+  }
+
+  private static String getStyleName(int style) {
+    switch(style) {
+      case 1: return "bold";
+      case 2: return "italic";
+      case 3: return "bolditalic";
+      case 0:
+      default: return "plain";
+    }
+  }
+
+  public static void setDefaultFont(Font defaultFont) {
+    String formattedFontName = defaultFont.getFamily() + "-" + getStyleName(defaultFont.getStyle()) + "-" + defaultFont.getSize();
+    JConfig.setConfiguration("default.font", formattedFontName);
+    sDefaultFont = defaultFont;
+    fixedFont = null;
+    boldFont = null;
+  }
 
   private Font chooseFont(Font base, AuctionEntry ae, int col) {
     boolean hasComment = ae.getComment() != null;

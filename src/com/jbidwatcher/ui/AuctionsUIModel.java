@@ -73,10 +73,10 @@ public class AuctionsUIModel {
       }
       JConfig.killAll("show_shipping");
     }
+
     // provide sufficient vertical height in the rows for micro-thumbnails list view
-    if (_table.convertColumnIndexToView(TableColumnController.THUMBNAIL) != -1) {
-      _table.setRowHeight(Constants.MICROTHUMBNAIL_ROW_HEIGHT);
-    }
+    adjustRowHeight();
+
     _table.addMouseListener(tableContextMenu);
     _tSort.addMouseListenerToHeaderInTable(_table);
     if(Platform.isMac() || JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
@@ -375,14 +375,31 @@ public class AuctionsUIModel {
       rval = false;
     }
 
-    // hack and a half - but adding a row height attribute for columns seems like overkill
-    if (_table.convertColumnIndexToView(TableColumnController.THUMBNAIL) != -1) {
-      _table.setRowHeight(Constants.MICROTHUMBNAIL_ROW_HEIGHT);
-    } else {
-      _table.setRowHeight(Constants.DEFAULT_ROW_HEIGHT);
-    }
+    adjustRowHeight();
 
     return rval;
+  }
+
+  // hack and a half - but adding a row height attribute for columns seems like overkill
+  public void adjustRowHeight() {
+    Font def = myTableCellRenderer.getDefaultFont();
+    Graphics g = _table.getGraphics();
+    int defaultHeight;
+
+    if(def == null || g == null) {
+      defaultHeight = Constants.DEFAULT_ROW_HEIGHT;
+    } else {
+      FontMetrics metrics = g.getFontMetrics(def);
+      defaultHeight = metrics.getMaxAscent() + metrics.getMaxDescent() + metrics.getLeading();
+    }
+
+    if (_table.convertColumnIndexToView(TableColumnController.THUMBNAIL) != -1) {
+      defaultHeight = Math.max(Constants.MICROTHUMBNAIL_ROW_HEIGHT, defaultHeight);
+    }
+    _table.setRowHeight(Math.max(defaultHeight, Constants.DEFAULT_ROW_HEIGHT));
+    if(def != null) {
+      _table.getTableHeader().setFont(def);
+    }
   }
 
   public List<String> getColumns() {

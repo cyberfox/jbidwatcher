@@ -181,6 +181,8 @@ public class JBidMenuBar extends JMenuBar {
     makeMenuItem(inMenu, "Search Manager", "Search", 'S');
     makeMenuItem(inMenu, "Configuration", "Configure", 'C');
     makeMenuItem(inMenu, "Scripting", 'P');
+    inMenu.add(new JSeparator());
+    makeMenuItem(inMenu, "Choose Font", "Font", 'F');
   }
 
   protected void establishAuctionMenu(JMenu inMenu) {

@@ -148,6 +148,14 @@ public class ListManager {
     }
   }
 
+  public void adjustHeights() {
+    List<AuctionListHolder> categories = new ArrayList<AuctionListHolder>(mCategoryMap.values());
+
+    for (AuctionListHolder step : categories) {
+      step.getUI().adjustRowHeight();
+    }
+  }
+
   public boolean checkEachList() {
     boolean retval = false;
     List<AuctionListHolder> categories = new ArrayList<AuctionListHolder>(mCategoryMap.values());

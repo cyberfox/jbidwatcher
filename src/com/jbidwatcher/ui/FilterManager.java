@@ -114,6 +114,8 @@ public class FilterManager implements MessageQueue.Listener {
     // Starting with #, and 6 hex digits long it's a color
     if(cmd.startsWith("#") && cmd.length() == 7) {
       mList.setBackground(Color.decode(cmd));
+    } else if(cmd.startsWith("#font")) {
+      mList.adjustHeights();
     } else {
       AuctionListHolder toSort = mList.findCategory(cmd);
       if(toSort != null) {
