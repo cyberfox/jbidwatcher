@@ -199,7 +199,7 @@ public class TableSorter extends Transformation implements TableModelListener {
   }
 
   public synchronized int insert(Object o) {
-    final Selection save = new Selection(_table, _sorted);
+    final Selection save = getSelectionSafely();
     int myRow = m_tm.insert(o);
     //final Object inserted = o;
     final TableSorter sorter = this;
@@ -208,10 +208,20 @@ public class TableSorter extends Transformation implements TableModelListener {
       public void run() {
         //int row = m_tm.findRow(inserted);
         _table.tableChanged(new TableModelEvent(sorter, 0, m_tm.getRowCount(), TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT));
-        restoreSelection(save);
+        if(save != null) restoreSelection(save);
       }
     });
     return myRow;
+  }
+
+  private Selection getSelectionSafely() {
+    Selection save;
+    try {
+      save = new Selection(_table, _sorted);
+    } catch(Exception e) {
+      save = null;
+    }
+    return save;
   }
 
   public boolean update(final Object updated) {
