@@ -81,7 +81,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     AuctionEntry ae = (AuctionEntry)table.getValueAt(row, -1);
     if(ae == null) return returnComponent;
 
-    Color foreground = chooseForeground(ae, column);
+    Color foreground = chooseForeground(ae, column, table.getForeground());
     Color background = chooseBackground(ae, column, table.getBackground());
 
     mRow = row;
@@ -188,7 +188,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     return new Colors(foreground, background);
   }
 
-  private Color chooseForeground(AuctionEntry ae, int col) {
+  private Color chooseForeground(AuctionEntry ae, int col, Color foreground) {
     switch(col) {
       case TableColumnController.ID:
         return chooseIDColor(ae);
@@ -199,7 +199,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
         return titleColor(ae);
       case TableColumnController.CUR_BID:
       default:
-        return Color.BLACK;
+        return (foreground == null) ? Color.BLACK : foreground;
     }
   }
 
@@ -216,8 +216,13 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     return default_color;
   }
 
+  private static Font sDefaultFont = null;
+  public static Font getDefaultFont() { return sDefaultFont; }
+  public static void setDefaultFont(Font defaultFont) { sDefaultFont = defaultFont; fixedFont = null; boldFont = null; }
+
   private Font chooseFont(Font base, AuctionEntry ae, int col) {
     boolean hasComment = ae.getComment() != null;
+    if(sDefaultFont != null) base = sDefaultFont; else sDefaultFont = base;
 
     if(fixedFont == null) fixedFont = new Font("Monospaced", base.getStyle(), base.getSize());
     if(boldFont == null) boldFont = base.deriveFont(Font.BOLD);
