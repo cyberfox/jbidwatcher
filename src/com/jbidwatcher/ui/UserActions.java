@@ -1197,7 +1197,20 @@ public class UserActions implements MessageQueue.Listener {
       logText = EMPTY_LOG;
     }
 
-    JFrame logFrame = _oui.showTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " " + frameName, false);
+    JFrame logFrame = _oui.getTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " " + frameName, false);
+    JButton logButton = new JButton("Submit Log");
+    logButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        DoSubmitLogFile();
+      }
+    });
+    JPanel buttonBox = new JPanel(new BorderLayout());
+    buttonBox.add(logButton, BorderLayout.EAST);
+    logFrame.add(buttonBox, BorderLayout.SOUTH);
+
+    logFrame.pack();
+    logFrame.setSize(logBoxSize.width, logBoxSize.height);
+    logFrame.setVisible(true);
     logFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
   }
 
