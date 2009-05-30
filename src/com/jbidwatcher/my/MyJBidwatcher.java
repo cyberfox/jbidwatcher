@@ -5,6 +5,7 @@ import com.jbidwatcher.util.config.ErrorHandler;
 import com.jbidwatcher.util.Parameters;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.ZoneDate;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.net.HttpURLConnection;
+import java.util.Date;
 
 /**
  * Created by IntelliJ IDEA.
@@ -37,6 +39,12 @@ public class MyJBidwatcher {
   private static final String ITEM_UPLOAD_URL = "http://my.jbidwatcher.com/upload/listing";
   private String mSyncQueueURL = null;
   private String mReportQueueURL = null;
+  private boolean mUseSSL = false;
+  private boolean mUploadHTML = false;
+  private boolean mUseServerParser = false;
+  private boolean mGixen = false;
+  private boolean mReadSnipesFromServer = false;
+  private ZoneDate mExpiry;
 
   private Http http() {
     if(mNet == null) {
@@ -191,6 +199,50 @@ public class MyJBidwatcher {
         }
       }
     });
+  }
+
+  public void getAccountInfo() {
+    StringBuffer sb = http().get("http://my.jbidwatcher.com/services/account");
+    XMLElement xml = new XMLElement();
+    xml.parseString(sb.toString());
+    XMLElement sync = xml.getChild("syncq");
+    XMLElement expires = xml.getChild("expiry");
+    XMLElement listingsRemaining = xml.getChild("listings");
+    XMLElement categoriesRemaining = xml.getChild("categories");
+    XMLElement reporting = xml.getChild("reportingq");
+    XMLElement snipesListen = xml.getChild("snipes");
+    XMLElement ssl = xml.getChild("ssl");
+    XMLElement uploadHTML = xml.getChild("uploadhtml");
+    XMLElement serverParser = xml.getChild("parser");
+    XMLElement gixen = xml.getChild("gixen");
+
+    if(expires != null) {
+      String date = expires.getContents();
+      mExpiry = StringTools.figureDate(date, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+      if(mExpiry.getDate().after(new Date())) {
+        JConfig.setConfiguration("my.jbidwatcher.enabled", "false");
+      }
+    }
+
+    mSyncQueueURL = sync.getContents();
+    mReportQueueURL = reporting.getContents();
+    mUseSSL = getBoolean(ssl);
+    mReadSnipesFromServer = getBoolean(snipesListen);
+    mUploadHTML = getBoolean(uploadHTML);
+    mUseServerParser = getBoolean(serverParser);
+    mGixen = getBoolean(gixen);
+  }
+
+  private boolean getBoolean(XMLElement x) {
+    boolean rval = false;
+    if(x != null) {
+      String contents = x.getContents();
+      if(contents != null) {
+        rval = contents.equals("true");
+      }
+    }
+
+    return rval;
   }
 
   public boolean createAccount(String email, String password) {
