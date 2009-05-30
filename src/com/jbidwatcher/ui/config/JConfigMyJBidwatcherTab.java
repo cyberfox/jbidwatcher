@@ -20,8 +20,7 @@ import javax.swing.*;
 public class JConfigMyJBidwatcherTab extends JConfigTab {
   private JCheckBox mEnable;
   private JTextField mEmail;
-  private JPasswordField mPassword;
-  private JTextField mUserId;
+  private JTextField mPassword;
   private JButton mCreateOrUpdate;
   private final OptionUI mOui = new OptionUI();
 
@@ -33,13 +32,12 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     JConfig.setConfiguration("my.jbidwatcher.enabled", Boolean.toString(enabled));
 
     String email = mEmail.getText();
-    char[] rawPassword = mPassword.getPassword();
+    String password = mPassword.getText();
 
-    if(email != null && rawPassword != null) {
-      String password = new String(rawPassword);
-      if(MyJBidwatcher.getInstance().login(email, password)) {
-        JConfig.setConfiguration("my.jbidwatcher.email", email);
-        JConfig.setConfiguration("my.jbidwatcher.password", password);
+    if(email != null && password != null) {
+      if(MyJBidwatcher.getInstance().getAccountInfo()) {
+        JConfig.setConfiguration("my.jbidwatcher.id", email);
+        JConfig.setConfiguration("my.jbidwatcher.key", password);
       }
     }
 
@@ -47,22 +45,14 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
   }
 
   public void updateValues() {
-    String email = JConfig.queryConfiguration("my.jbidwatcher.email", "");
-    String pass = JConfig.queryConfiguration("my.jbidwatcher.password", "");
+    String email = JConfig.queryConfiguration("my.jbidwatcher.id", "");
+    String pass = JConfig.queryConfiguration("my.jbidwatcher.key", "");
     boolean enabled = JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true");
-    String id = JConfig.queryConfiguration("my.jbidwatcher.id");
+//    String id = JConfig.queryConfiguration("my.jbidwatcher.id");
 
     mEmail.setText(email);
     mPassword.setText(pass);
     mEnable.setSelected(enabled);
-
-    if(id != null && id.length() != 0) {
-      mUserId.setText(id);
-      mCreateOrUpdate.setText("Update");
-    } else {
-      mUserId.setText("");
-      mCreateOrUpdate.setText("Create");
-    }
 
     for(ActionListener al : mEnable.getActionListeners()) {
       al.actionPerformed(new ActionEvent(mEnable, ActionEvent.ACTION_PERFORMED, "Redraw"));
@@ -73,6 +63,9 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     comp.setToolTipText(text);
     comp.getAccessibleContext().setAccessibleDescription(text);
   }
+
+  private static final ImageIcon successIcon = new ImageIcon(JConfig.getResource("/icons/status_green_16.png"));
+  private static final ImageIcon failIcon = new ImageIcon(JConfig.getResource("/icons/status_red_16.png"));
 
   private JPanel buildUserSettings() {
     JPanel jp = new JPanel(new BorderLayout());
@@ -89,50 +82,46 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     innerPanel.add(emailLabel);
     innerPanel.add(mEmail);
 
-    mPassword = new JPasswordField();
+    mPassword = new JTextField();
     mPassword.addMouseListener(JPasteListener.getInstance());
-    setComponentTooltip(mPassword, "Password to use on My JBidwatcher (NOT the same as your eBay password!)");
-    final JLabel passwordLabel = new JLabel("My JBid Password:");
+    setComponentTooltip(mPassword, "My JBidwatcher access key");
+    final JLabel passwordLabel = new JLabel("Access Key:");
     passwordLabel.setLabelFor(mPassword);
     innerPanel.add(passwordLabel);
     innerPanel.add(mPassword);
 
-    innerPanel.add(new JLabel(""));
-    final JLabel mWarningMessage = new JLabel("This should not be the same as your eBay password!", JLabel.RIGHT);
-    mWarningMessage.setFont(mWarningMessage.getFont().deriveFont(Font.ITALIC | Font.BOLD));
     Box button = Box.createHorizontalBox();
-    mCreateOrUpdate = new JButton("");
+    final JLabel statusLabel = new JLabel("");
+    mCreateOrUpdate = new JButton("Test Access");
     mCreateOrUpdate.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent event) {
         String action = event.getActionCommand();
         if(action == null) return;
 
-        boolean create = action.equals("Create");
-        boolean update = action.equals("Update");
+        String oldId = JConfig.queryConfiguration("my.jbidwatcher.id");
+        String oldKey= JConfig.queryConfiguration("my.jbidwatcher.key");
 
-        if(create) {
-          createNewUser();
-        } else if(update) {
-          updateUser();
+        JConfig.setConfiguration("my.jbidwatcher.id", mEmail.getText());
+        JConfig.setConfiguration("my.jbidwatcher.key", mPassword.getText());
+
+        if(MyJBidwatcher.getInstance().getAccountInfo()) {
+          statusLabel.setIcon(successIcon);
+          statusLabel.setText("success!");
         } else {
-          System.err.println("Unknown action command: " + action);
+          statusLabel.setIcon(failIcon);
+          statusLabel.setText("failed.");
         }
+
+        JConfig.setConfiguration("my.jbidwatcher.id", oldId);
+        JConfig.setConfiguration("my.jbidwatcher.key", oldKey);
       }
     });
     button.add(mCreateOrUpdate);
-    button.add(Box.createHorizontalGlue());
-    button.add(mWarningMessage);
+    button.add(statusLabel);
+    innerPanel.add(new JLabel(""));
     innerPanel.add(button);
 
-    mUserId = new JTextField();
-    mUserId.setEditable(false);
-    JLabel userIdLabel = new JLabel("My JBidwatcher Id:");
-    userIdLabel.setEnabled(false);
-    userIdLabel.setLabelFor(mUserId);
-    innerPanel.add(userIdLabel);
-    innerPanel.add(mUserId);
-
-    SpringUtilities.makeCompactGrid(innerPanel, 4, 2, 6, 6, 6, 1);
+    SpringUtilities.makeCompactGrid(innerPanel, 3, 2, 6, 6, 6, 1);
 
     mEnable = new JCheckBox();
     mEnable.addActionListener(new ActionListener() {
@@ -148,8 +137,6 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
         mPassword.setEditable(selected);
 
         mCreateOrUpdate.setEnabled(selected);
-        mWarningMessage.setEnabled(selected);
-        mUserId.setEnabled(selected);
       }
     });
     JLabel enableLabel = new JLabel("Enable My JBidwatcher");
@@ -163,7 +150,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
 
   private void updateUser() {
     final String email = mEmail.getText();
-    final String password = new String(mPassword.getPassword());
+    final String password = mPassword.getText();
 
     final boolean success = MyJBidwatcher.getInstance().updateAccount(email, password);
     final String message = success ? "Account updated to:\nEmail: " + email + "\nPassword: " + password : "Account update failed.";
@@ -178,7 +165,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
 
   private void createNewUser() {
     String email = mEmail.getText();
-    String password = new String(mPassword.getPassword());
+    String password = mPassword.getText();
     final boolean success = MyJBidwatcher.getInstance().createAccount(email, password);
 
     final JPanel panel = this;
