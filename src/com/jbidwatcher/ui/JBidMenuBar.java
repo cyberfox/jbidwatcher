@@ -27,7 +27,7 @@ public class JBidMenuBar extends JMenuBar {
   protected JMenuBar _menuBar;
   protected JMenu _fileMenu;
   protected JMenu _editMenu;
-  protected JMenu _debugMenu;
+  protected JMenu _debugMenu = null;
   protected JMenu _serverMenu;
   protected JMenu mWindowMenu;
   protected JMenu mTabMenu;
@@ -310,7 +310,7 @@ public class JBidMenuBar extends JMenuBar {
     _fileMenu.setMnemonic('F');
     _editMenu = new JMenu("Edit");
     _editMenu.setMnemonic('E');
-    if(JConfig.debugging()) {
+    if(JConfig.queryConfiguration("debug.menu", "false").equals("true") && JConfig.debugging()) {
       _debugMenu = new JMenu("Debug");
       _debugMenu.setMnemonic('D');
       establishDebugMenu(_debugMenu);
@@ -336,7 +336,7 @@ public class JBidMenuBar extends JMenuBar {
 
     add(_fileMenu);
     add(_editMenu);
-    if (JConfig.debugging()) {
+    if (_debugMenu != null) {
       add(_debugMenu);
     }
     add(_serverMenu);
