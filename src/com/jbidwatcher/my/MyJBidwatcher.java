@@ -158,13 +158,13 @@ public class MyJBidwatcher {
       public void messageAction(Object deQ) {
         String cmd = (String)deQ;
         if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true")) {
-          if (cmd.equals("GETURLS")) getSQSURL();
+          if (cmd.equals("ACCOUNT")) getAccountInfo();
         }
       }
     });
 
     //  Get the URLs to POST stuff to, and get a new one every 12 hours.
-    SuperQueue.getInstance().preQueue("GETURLS", "my", System.currentTimeMillis(), 12 * Constants.ONE_HOUR);
+    SuperQueue.getInstance().preQueue("ACCOUNT", "my", System.currentTimeMillis(), Constants.ONE_DAY);
 
     MQFactory.getConcrete("upload").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
@@ -201,15 +201,16 @@ public class MyJBidwatcher {
     });
   }
 
-  public void getAccountInfo() {
+  public boolean getAccountInfo() {
     StringBuffer sb = http().get("http://my.jbidwatcher.com/services/account");
+    if(sb == null) return false;
     XMLElement xml = new XMLElement();
     xml.parseString(sb.toString());
     XMLElement sync = xml.getChild("syncq");
     XMLElement expires = xml.getChild("expiry");
     XMLElement listingsRemaining = xml.getChild("listings");
     XMLElement categoriesRemaining = xml.getChild("categories");
-    XMLElement reporting = xml.getChild("reportingq");
+    XMLElement reporting = xml.getChild("reportq");
     XMLElement snipesListen = xml.getChild("snipes");
     XMLElement ssl = xml.getChild("ssl");
     XMLElement uploadHTML = xml.getChild("uploadhtml");
@@ -218,19 +219,23 @@ public class MyJBidwatcher {
 
     if(expires != null) {
       String date = expires.getContents();
-      mExpiry = StringTools.figureDate(date, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-      if(mExpiry.getDate().after(new Date())) {
+      mExpiry = StringTools.figureDate(date, "yyyy-MM-dd'T'HH:mm:ssZ");
+      if(mExpiry.getDate().before(new Date())) {
         JConfig.setConfiguration("my.jbidwatcher.enabled", "false");
+      } else {
+        JConfig.setConfiguration("my.jbidwatcher.enabled", "true");
       }
     }
 
-    mSyncQueueURL = sync.getContents();
-    mReportQueueURL = reporting.getContents();
+    mSyncQueueURL = sync == null ? null : sync.getContents();
+    mReportQueueURL = reporting == null ? null : reporting.getContents();
     mUseSSL = getBoolean(ssl);
     mReadSnipesFromServer = getBoolean(snipesListen);
     mUploadHTML = getBoolean(uploadHTML);
     mUseServerParser = getBoolean(serverParser);
     mGixen = getBoolean(gixen);
+
+    return mSyncQueueURL != null && mReportQueueURL != null;
   }
 
   private boolean getBoolean(XMLElement x) {
