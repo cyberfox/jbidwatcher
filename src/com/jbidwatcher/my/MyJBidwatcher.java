@@ -189,6 +189,7 @@ public class MyJBidwatcher {
     }
 
     JConfig.log().addHandler(new ErrorHandler() {
+      public void close() { /* ignored */ }
       public void addLog(String s) { /* ignored */}
 
       public void exception(String log, String message, String trace) {

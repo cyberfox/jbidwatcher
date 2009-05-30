@@ -50,6 +50,9 @@ public class ErrorManagement implements LoggerInterface {
   }
 
   public File closeLog() {
+    for (ErrorHandler handler : sHandlers) {
+      handler.close();
+    }
     if(mLogWriter != null) {
       mLogWriter.close();
       mLogWriter = null;

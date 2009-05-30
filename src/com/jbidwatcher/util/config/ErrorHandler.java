@@ -12,4 +12,6 @@ public interface ErrorHandler {
   void addLog(String s);
 
   void exception(String log, String message, String trace);
+
+  void close();
 }

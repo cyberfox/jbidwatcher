@@ -40,4 +40,8 @@ public class ScrollingBuffer implements ErrorHandler {
     addLog(message);
     addLog(trace);
   }
+
+  public void close() {
+    sLogBuffer.append("--- Log file was reset at this point ---\n");
+  }
 }
