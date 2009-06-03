@@ -51,7 +51,13 @@ public class Seller extends ActiveRecord
     xfeedback.setContents(Integer.toString(getFeedback()));
     xmlResult.addChild(xfeedback);
 
-    xpercentage.setContents(getString("feedback_percentage"));
+    String fp = getString("feedback_percentage");
+    if(fp.equals("100.00")) fp = "100";
+    int decimal = fp.lastIndexOf('.');
+    if(decimal != -1) {
+      if(fp.substring(decimal+1).length() == 1) fp = fp + "0";
+    }
+    xpercentage.setContents(fp);
     xmlResult.addChild(xpercentage);
 
     return xmlResult;
