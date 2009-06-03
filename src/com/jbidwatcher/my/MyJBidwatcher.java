@@ -35,8 +35,8 @@ import java.util.Date;
 public class MyJBidwatcher {
   private static MyJBidwatcher sInstance = null;
   private Http mNet = null;
-  private static final String LOG_UPLOAD_URL =  "http://my.jbidwatcher.com/upload/log";
-  private static final String ITEM_UPLOAD_URL = "http://my.jbidwatcher.com/upload/listing";
+  private static String LOG_UPLOAD_URL =  "my.jbidwatcher.com/upload/log";
+  private static String ITEM_UPLOAD_URL = "my.jbidwatcher.com/upload/listing";
   private String mSyncQueueURL = null;
   private String mReportQueueURL = null;
   private boolean mUseSSL = false;
@@ -45,6 +45,11 @@ public class MyJBidwatcher {
   private boolean mGixen = false;
   private boolean mReadSnipesFromServer = false;
   private ZoneDate mExpiry;
+
+  private String url(String url) {
+    if(mUseSSL) return "https://" + url;
+    return "http://" + url;
+  }
 
   private Http http() {
     if(mNet == null) {
@@ -58,7 +63,7 @@ public class MyJBidwatcher {
 
   public String sendLogFile(String email, String desc) {
     File fp = JConfig.log().closeLog();
-    return sendFile(fp, LOG_UPLOAD_URL, email, desc);
+    return sendFile(fp, url(LOG_UPLOAD_URL), email, desc);
   }
 
   private String createFormSource(String formBase, String email, String desc) {
@@ -116,14 +121,14 @@ public class MyJBidwatcher {
     Parameters p = new Parameters();
     if(identifier != null) p.put("item", identifier);
     p.put("body", page);
-    String url = "http://my.jbidwatcher.com/services/recognize";
+    String url = url("my.jbidwatcher.com/services/recognize");
     return http().postTo(url, p);
   }
 
   public String reportException(String sb) {
     Parameters p = new Parameters();
     p.put("body", sb);
-    String url = "http://my.jbidwatcher.com/services/report_exception";
+    String url = url("my.jbidwatcher.com/services/report_exception");
     return http().postTo(url, p);
   }
 
@@ -133,9 +138,9 @@ public class MyJBidwatcher {
   }
 
   private void getSQSURL() {
-    StringBuffer sb = http().get("http://my.jbidwatcher.com/services/syncq");
+    StringBuffer sb = http().get(url("my.jbidwatcher.com/services/syncq"));
     mSyncQueueURL = (sb == null) ? null : sb.toString();
-    sb = http().get("http://my.jbidwatcher.com/services/reportq");
+    sb = http().get(url("my.jbidwatcher.com/services/reportq"));
     mReportQueueURL = (sb == null) ? null : sb.toString();
   }
 
@@ -178,7 +183,7 @@ public class MyJBidwatcher {
       MQFactory.getConcrete("report").registerListener(new MessageQueue.Listener() {
         public void messageAction(Object deQ) {
           AuctionEntry ae = EntryCorral.getInstance().takeForRead((String)deQ);
-          String s3Result = sendFile(ae.getContentFile(), ITEM_UPLOAD_URL, JConfig.queryConfiguration("my.jbidwatcher.id"), ae.getLastStatus());
+          String s3Result = sendFile(ae.getContentFile(), url(ITEM_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), ae.getLastStatus());
           XMLElement root = new XMLElement("report");
           XMLElement s3Key = new XMLElement("s3");
           s3Key.setContents(s3Result);
@@ -203,7 +208,7 @@ public class MyJBidwatcher {
   }
 
   public boolean getAccountInfo() {
-    StringBuffer sb = http().get("http://my.jbidwatcher.com/services/account");
+    StringBuffer sb = http().get("https://my.jbidwatcher.com/services/account");
     if(sb == null) return false;
     XMLElement xml = new XMLElement();
     xml.parseString(sb.toString());
@@ -255,25 +260,6 @@ public class MyJBidwatcher {
     //  TODO - GET http://my.jbidwatcher.com/users/new
     //  POST http://my.jbidwatcher.com/users with user[email]={email}&user[password]={password}&user[password_confirmation]={password}
     //  If 200 OK, the body contains the my.jbidwatcher.id
-    return false;
-  }
-
-  public boolean updateAccount(String email, String password) {
-    //  TODO - Must be logged in first?
-    String user = JConfig.queryConfiguration("my.jbidwatcher.id");
-    if(user == null) return false;
-
-    String old_key = JConfig.queryConfiguration("my.jbidwatcher.key");
-    //  TODO - PUT (!) http://my.jbidwatcher.com/users/update with user[email]={email}&user[password]={key}&old_password={old_key}
-    //  TODO - Write server side for update.
-
-    return false;
-  }
-
-  public boolean login(String email, String password) {
-    //  TODO - GET http://my.jbidwatcher.com/login
-    //  Fill in email and password & submit
-    //  Get back a session key/cookie?
     return false;
   }
 }
