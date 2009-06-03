@@ -7,8 +7,6 @@ package com.jbidwatcher.ui.config;
 
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.SpringUtilities;
-import com.jbidwatcher.ui.util.OptionUI;
-import com.jbidwatcher.ui.util.JBEditorPane;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.my.MyJBidwatcher;
 
@@ -22,7 +20,6 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
   private JTextField mEmail;
   private JTextField mPassword;
   private JButton mCreateOrUpdate;
-  private final OptionUI mOui = new OptionUI();
 
   public String getTabName() { return "My JBidwatcher"; }
   public void cancel() { }
@@ -146,40 +143,6 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     jp.add(innerPanel, BorderLayout.CENTER);
 
     return(jp);
-  }
-
-  private void updateUser() {
-    final String email = mEmail.getText();
-    final String password = mPassword.getText();
-
-    final boolean success = MyJBidwatcher.getInstance().updateAccount(email, password);
-    final String message = success ? "Account updated to:\nEmail: " + email + "\nPassword: " + password : "Account update failed.";
-
-    final JPanel panel = this;
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        mOui.promptWithCheckbox(panel, message, "My JBidwatcher Account Update", "prompt.account_updated." + (success ? "success" : "failure"));
-      }
-    });
-  }
-
-  private void createNewUser() {
-    String email = mEmail.getText();
-    String password = mPassword.getText();
-    final boolean success = MyJBidwatcher.getInstance().createAccount(email, password);
-
-    final JPanel panel = this;
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        JBEditorPane jep;
-        if(success) {
-          jep = OptionUI.getHTMLLabel("<html><body>Account created.  Check your email for a verification link.</body></html>");
-        } else {
-          jep = OptionUI.getHTMLLabel("<html><body>Account creation failed.<br><br>Go to <a href=\"http://my.jbidwatcher.com\">My JBidwatcher</a> (http://my.jbidwatcher.com)<br>and create an account.</body></html>");
-        }
-        JOptionPane.showMessageDialog(panel, jep, "My JBidwatcher Account", success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
-      }
-    });
   }
 
   public JConfigMyJBidwatcherTab() {
