@@ -11,6 +11,8 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
+import java.beans.PersistenceDelegate;
+import java.beans.DefaultPersistenceDelegate;
 
 public class Currency implements Comparable {
   private static NumberFormat df = NumberFormat.getNumberInstance(Locale.US); // We create a lot of these, so minimizing memory usage is good.
@@ -32,8 +34,8 @@ public class Currency implements Comparable {
     return _noValue;
   }
 
-  private int _whatCurrency;
-  private double _value;
+  protected int mCurrencyType;
+  protected double mValue;
   private static final char pound = '\u00A3';
   private static final Character objPound = '\u00A3';
 
@@ -393,8 +395,8 @@ public class Currency implements Comparable {
    * @param startValue - The amount represented.
    */
   private void setValues(int whatType, double startValue) {
-    _whatCurrency = whatType;
-    _value = startValue;
+    mCurrencyType = whatType;
+    mValue = startValue;
     df.setMinimumFractionDigits(2);
     df.setMaximumFractionDigits(2);
   }
@@ -406,7 +408,7 @@ public class Currency implements Comparable {
    * @return A string containing a full ISO currency name.
    */
   public String fullCurrencyName() {
-    switch(_whatCurrency) {
+    switch(mCurrencyType) {
       case US_DOLLAR: return("USD");
       case AU_DOLLAR: return("AUD");
       case NT_DOLLAR: return("NTD");
@@ -425,7 +427,7 @@ public class Currency implements Comparable {
     }
   }
 
-  public double getValue() { return _value; }
+  public double getValue() { return mValue; }
 
   public String fullCurrency() {
     return fullCurrencyName() + " " + getValueString();
@@ -446,13 +448,13 @@ public class Currency implements Comparable {
   public Currency add(Currency addValue) throws CurrencyTypeException {
     if(addValue == null) throw new CurrencyTypeException("Cannot add null Currency.");
 
-    if(addValue.getCurrencyType() == _whatCurrency) {
-      return new Currency(_whatCurrency, _value + addValue.getValue());
+    if(addValue.getCurrencyType() == mCurrencyType) {
+      return new Currency(mCurrencyType, mValue + addValue.getValue());
     }
 
     //  If only one currency is known, return the result as the known currency.
-    if (_whatCurrency == NONE) return new Currency(addValue.getCurrencyType(), _value + addValue.getValue());
-    if (addValue.getCurrencyType() == NONE) return new Currency(_whatCurrency, _value + addValue.getValue());
+    if (mCurrencyType == NONE) return new Currency(addValue.getCurrencyType(), mValue + addValue.getValue());
+    if (addValue.getCurrencyType() == NONE) return new Currency(mCurrencyType, mValue + addValue.getValue());
 
     throw new CurrencyTypeException("Cannot add " + fullCurrencyName() + " to " + addValue.fullCurrencyName() + ".");
   }
@@ -472,21 +474,21 @@ public class Currency implements Comparable {
   public Currency subtract(Currency subValue) throws CurrencyTypeException {
     if(subValue == null) throw new CurrencyTypeException("Cannot subtract null Currency.");
 
-    if(subValue.getCurrencyType() == _whatCurrency) {
-      return new Currency(_whatCurrency, _value - subValue.getValue());
+    if(subValue.getCurrencyType() == mCurrencyType) {
+      return new Currency(mCurrencyType, mValue - subValue.getValue());
     }
 
     //  If only one currency is known, return the result as the known currency.
-    if(_whatCurrency == NONE) return new Currency(subValue.getCurrencyType(), _value - subValue.getValue());
-    if(subValue.getCurrencyType() == NONE) return new Currency(_whatCurrency, _value - subValue.getValue());
+    if(mCurrencyType == NONE) return new Currency(subValue.getCurrencyType(), mValue - subValue.getValue());
+    if(subValue.getCurrencyType() == NONE) return new Currency(mCurrencyType, mValue - subValue.getValue());
 
     throw new CurrencyTypeException("Cannot subtract " + fullCurrencyName() + " from " + subValue.fullCurrencyName() + ".");
   }
 
-  public int getCurrencyType() { return _whatCurrency; }
+  public int getCurrencyType() { return mCurrencyType; }
 
   public String getCurrencySymbol() {
-    switch(_whatCurrency) {
+    switch(mCurrencyType) {
       case US_DOLLAR: return("$");
       case NT_DOLLAR: return("nt$");
       case HK_DOLLAR: return("hk$");
@@ -522,7 +524,7 @@ public class Currency implements Comparable {
     } else {
       String cvtToString = getCurrencySymbol();
 
-      cvtToString += df.format(_value);
+      cvtToString += df.format(mValue);
 
       return(cvtToString);
     }
@@ -542,7 +544,7 @@ public class Currency implements Comparable {
     if(isNull()) {
       return("null");
     } else {
-      return df.format(_value);
+      return df.format(mValue);
     }
   }
 
@@ -579,8 +581,8 @@ public class Currency implements Comparable {
     if(!(inValue instanceof Currency)) return false;
     //  Okay, now cast it because it's safe.
     Currency otherValue = (Currency) inValue;
-    boolean sameCurrency = (otherValue.getCurrencyType() == _whatCurrency);
-    boolean sameValue = ((int) (otherValue.getValue() * 1000)) == ((int) (_value * 1000));
+    boolean sameCurrency = (otherValue.getCurrencyType() == mCurrencyType);
+    boolean sameValue = ((int) (otherValue.getValue() * 1000)) == ((int) (mValue * 1000));
 
     return(sameCurrency && sameValue);
   }
@@ -605,12 +607,12 @@ public class Currency implements Comparable {
     //  Shortcut
     if(otherValue == this) return false;
 
-    boolean sameCurrency = (otherValue.getCurrencyType() == _whatCurrency);
+    boolean sameCurrency = (otherValue.getCurrencyType() == mCurrencyType);
     if(!sameCurrency) {
       throw new CurrencyTypeException("Cannot compare different currencies.");
     }
 
-    boolean lowerValue = Double.compare((double) ((int) (otherValue.getValue() * 1000)), (double) (int) (_value * 1000)) == 1;
+    boolean lowerValue = Double.compare((double) ((int) (otherValue.getValue() * 1000)), (double) (int) (mValue * 1000)) == 1;
 
     return(lowerValue);
   }
@@ -623,7 +625,7 @@ public class Currency implements Comparable {
    * @return True if this is a 'null currency' object.
    */
   public boolean isNull() {
-    return(_value == 0.0 && _whatCurrency == NONE);
+    return(mValue == 0.0 && mCurrencyType == NONE);
   }
 
   /** 
@@ -668,5 +670,9 @@ public class Currency implements Comparable {
     }
     if(equals(otherValue)) return 0;
     return 1;
+  }
+
+  public static PersistenceDelegate getDelegate() {
+    return new DefaultPersistenceDelegate(new String[]{"mCurrencyType", "mValue"});
   }
 }

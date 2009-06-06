@@ -9,6 +9,7 @@ import java.util.*;
 import java.beans.*;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import com.jbidwatcher.util.Currency;
 
 public abstract class MessageQueue implements Runnable {
   protected final LinkedList<Object> _queue = new LinkedList<Object>();
@@ -34,6 +35,7 @@ public abstract class MessageQueue implements Runnable {
     // Create output stream.
     ByteArrayOutputStream fos = new ByteArrayOutputStream();
     XMLEncoder xe2 = new XMLEncoder(fos);
+    xe2.setPersistenceDelegate(Currency.class, Currency.getDelegate());
     xe2.writeObject(xe);
     xe2.close();
     enqueue(fos.toString());
