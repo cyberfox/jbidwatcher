@@ -52,7 +52,7 @@ public class Seller extends ActiveRecord
     xmlResult.addChild(xfeedback);
 
     String fp = getString("feedback_percentage");
-    if(fp.equals("100.00")) fp = "100";
+    if(fp == null || fp.equals("100.00")) fp = "100";
     int decimal = fp.lastIndexOf('.');
     if(decimal != -1) {
       if(fp.substring(decimal+1).length() == 1) fp = fp + "0";
