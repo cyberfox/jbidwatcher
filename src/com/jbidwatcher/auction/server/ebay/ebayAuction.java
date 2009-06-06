@@ -371,10 +371,16 @@ class ebayAuction extends SpecificAuction {
     String score = doc.getContentBeforeContent(T.s("ebayServer.feedback"));
     if(score != null && StringTools.isNumberOnly(score)) {
       mSeller.setFeedback(Integer.parseInt(score));
+    } else {
+      score = doc.getNextContentAfterRegex(T.s("ebayServer.sellerInfoPrequel"));
+      if(score != null && score.equals("Seller:")) score = doc.getNextContent();
+      if(score != null) score = doc.getNextContent();
+      if(score != null && StringTools.isNumberOnly(score)) mSeller.setFeedback(Integer.parseInt(score));
     }
 
     String percentage = doc.getNextContentAfterContent(T.s("ebayServer.feedback"));
     if(percentage != null) mSeller.setPositivePercentage(percentage);
+    else mSeller.setPositivePercentage("100");
   }
 
   /**
