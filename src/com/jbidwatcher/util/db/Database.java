@@ -193,6 +193,11 @@ public class Database {
       }
       JConfig.kill("jbidwatcher.created_db");
       return true;
+    } else if(JConfig.queryConfiguration("temp.db.switch2derby", "false").equals("true")) {
+      JConfig.kill("db.protocol");
+      JConfig.kill("db.driver");
+      JConfig.kill("db.user");
+      JConfig.kill("db.pass");
     }
     return false;
   }

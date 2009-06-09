@@ -1,6 +1,7 @@
 package com.jbidwatcher.ui.config;
 
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.ui.util.OptionUI;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -19,6 +20,7 @@ import java.awt.GridLayout;
 public class JConfigDatabaseTab extends JConfigTab {
   private JRadioButton defaultDerbyDB;
   private JRadioButton mysqlDB;
+  private OptionUI mOui = null;
 
   private JTextField mysqlHost, mysqlPort;
   private JTextField mysqlDatabase;
@@ -61,18 +63,20 @@ public class JConfigDatabaseTab extends JConfigTab {
     updateValues();
   }
 
-  //
-  //  Apply all changes made to the firewall options.  This does NOT
-  //  immediately open a SOCKS server, or a web proxy for all future
-  //  transactions.  It should.  HACKHACK -- mrs: 14-August-2001 01:44
-  //
   public boolean apply() {
     if (defaultDerbyDB.isSelected()) {
-      JConfig.kill("db.protocol");
-      JConfig.kill("db.driver");
-      JConfig.kill("db.user");
-      JConfig.kill("db.pass");
+      if(JConfig.queryConfiguration("temp.db.switch2derby") != null) JConfig.kill("temp.db.switch2derby");
+      if(JConfig.queryConfiguration("db.protocol", "jdbc:derby:").contains("mysql")) {
+        JConfig.setConfiguration("temp.db.switch2derby", "true");
+      }
+      JConfig.kill("temp.db.protocol");
+      JConfig.kill("temp.db.driver");
+      JConfig.kill("temp.db.user");
+      JConfig.kill("temp.db.pass");
     } else if (mysqlDB.isSelected()) {
+      if(!JConfig.queryConfiguration("db.protocol", "jdbc:derby:").contains("mysql")) {
+        JConfig.setConfiguration("temp.db.switch2derby", "false");
+      }
       String host = mysqlHost.getText();
 
       String port = mysqlPort.getText();
@@ -93,6 +97,11 @@ public class JConfigDatabaseTab extends JConfigTab {
       JConfig.setConfiguration("temp.db.driver", "com.mysql.jdbc.Driver");
       JConfig.setConfiguration("temp.db.user", mysqlUser.getText());
       JConfig.setConfiguration("temp.db.pass", new String(mysqlPassword.getPassword()));
+    }
+
+    if(JConfig.queryConfiguration("temp.db.switch2derby") != null) {
+      if(mOui == null) mOui = new OptionUI();
+      mOui.promptWithCheckbox(null, "You will have to shut down JBidwatcher and restart for the database change to take effect.", "JBidwatcher restart required", "prompt.db_change_restart");
     }
 
     return true;
