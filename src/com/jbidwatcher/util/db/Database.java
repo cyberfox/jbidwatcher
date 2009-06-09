@@ -185,13 +185,15 @@ public class Database {
     return mConn;
   }
 
-  public static void saveDBConfig() {
+  public static boolean saveDBConfig() {
     if(JConfig.queryConfiguration("temp.db.protocol") != null) {
       String[] keys = { "db.framework", "db.protocol", "db.driver", "db.user", "db.pass" };
       for(String key : keys) {
         JConfig.setConfiguration(key, JConfig.queryConfiguration("temp." + key));
       }
       JConfig.kill("jbidwatcher.created_db");
+      return true;
     }
+    return false;
   }
 }

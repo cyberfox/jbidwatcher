@@ -172,7 +172,10 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     SearchManager.getInstance().saveSearches();
     AuctionStats as = AuctionServerManager.getInstance().getStats();
     JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
-    Database.saveDBConfig();
+    if(Database.saveDBConfig()) {
+      // If we're changing databases, we'll need the auction information saved so we can load it into the new database.
+      AuctionsManager.getInstance().saveAuctions();
+    }
     JConfig.saveConfiguration(cfgFilename);
     ActiveRecord.shutdown(); //  TODO -- Can this be put before the saveDBConfig?
     JConfig.log().logMessage("Shutting down JBidwatcher.");
