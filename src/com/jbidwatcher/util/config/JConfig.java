@@ -124,7 +124,12 @@ public class JConfig {
   }
 
   public static void kill(String key) {
-    Set ks = soleProperty.keySet();
+    Set ks;
+    if(key.startsWith("temp.")) {
+      ks = mTempProps.keySet();
+    } else {
+      ks = soleProperty.keySet();
+    }
     Iterator it = ks.iterator();
 
     while(it.hasNext()) {
