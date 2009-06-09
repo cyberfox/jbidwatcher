@@ -28,7 +28,7 @@ public class AuctionBuy extends AuctionActionImpl {
 
     switch (bidResult) {
       case AuctionServerInterface.BID_ERROR_UNKNOWN:
-        bidResultString = "Purchasing " + bidAmount + " apparently failed for an unknown reason.  Check the auction in the browser, to see if it went through anyway.";
+        bidResultString = "Purchasing apparently failed for an unknown reason.  Check the auction in the browser, to see if it went through anyway.";
         break;
       case com.jbidwatcher.auction.AuctionServerInterface.BID_ERROR_ENDED:
       case AuctionServerInterface.BID_ERROR_CANNOT:
