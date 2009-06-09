@@ -74,22 +74,25 @@ public class JConfigDatabaseTab extends JConfigTab {
       JConfig.kill("db.pass");
     } else if (mysqlDB.isSelected()) {
       String host = mysqlHost.getText();
-      JConfig.setConfiguration("db.mysql.host", host);
+
       String port = mysqlPort.getText();
-      JConfig.setConfiguration("db.mysql.port", port);
       Integer portNum;
       try { portNum = Integer.parseInt(port); } catch(Exception e) { portNum = -1; }
+
       String db = mysqlDatabase.getText();
-      JConfig.setConfiguration("db.mysql.database", db);
+
       String connectURL = "jdbc:mysql://" + host;
       if(portNum != -1) connectURL += ":" + portNum;
       connectURL += "/";
 
-      JConfig.setConfiguration("db.framework", "remote");
-      JConfig.setConfiguration("db.protocol", connectURL);
-      JConfig.setConfiguration("db.driver", "com.mysql.jdbc.Driver");
-      JConfig.setConfiguration("db.user", mysqlUser.getText());
-      JConfig.setConfiguration("db.pass", new String(mysqlPassword.getPassword()));
+      JConfig.setConfiguration("db.mysql.host", host);
+      JConfig.setConfiguration("db.mysql.port", port);
+      JConfig.setConfiguration("db.mysql.database", db);
+      JConfig.setConfiguration("temp.db.framework", "remote");
+      JConfig.setConfiguration("temp.db.protocol", connectURL);
+      JConfig.setConfiguration("temp.db.driver", "com.mysql.jdbc.Driver");
+      JConfig.setConfiguration("temp.db.user", mysqlUser.getText());
+      JConfig.setConfiguration("temp.db.pass", new String(mysqlPassword.getPassword()));
     }
 
     return true;

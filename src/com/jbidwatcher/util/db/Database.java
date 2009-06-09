@@ -184,4 +184,14 @@ public class Database {
   public Connection getConnection() {
     return mConn;
   }
+
+  public static void saveDBConfig() {
+    if(JConfig.queryConfiguration("temp.db.protocol") != null) {
+      String[] keys = { "db.framework", "db.protocol", "db.driver", "db.user", "db.pass" };
+      for(String key : keys) {
+        JConfig.setConfiguration(key, JConfig.queryConfiguration("temp." + key));
+      }
+      JConfig.kill("jbidwatcher.created_db");
+    }
+  }
 }

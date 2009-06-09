@@ -3,6 +3,7 @@ package com.jbidwatcher.app;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -171,8 +172,9 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     SearchManager.getInstance().saveSearches();
     AuctionStats as = AuctionServerManager.getInstance().getStats();
     JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
+    Database.saveDBConfig();
     JConfig.saveConfiguration(cfgFilename);
-    ActiveRecord.shutdown();
+    ActiveRecord.shutdown(); //  TODO -- Can this be put before the saveDBConfig?
     JConfig.log().logMessage("Shutting down JBidwatcher.");
     JConfig.log().closeLog();
     System.exit(0);
