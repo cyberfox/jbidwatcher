@@ -30,6 +30,7 @@ public class JConfig {
   protected static Properties soleProperty = new Properties();
   protected static Properties displayProperty = null;
   protected static Properties mAuxProps = null;
+  protected static Properties mTempProps = null;
   protected static Runtime curRuntime = Runtime.getRuntime();
 
   protected static String _configFileName = null;
@@ -383,7 +384,6 @@ public class JConfig {
   public static void saveConfiguration(String outFile) {
     _configFileName = outFile;
     passwordFixup(soleProperty);
-    killAll("temp.");
 
     if (_configFileName != null) {
       saveArbitrary(_configFileName, soleProperty);
@@ -549,8 +549,13 @@ public class JConfig {
   }
 
   public static void setConfiguration(String key, String value) {
-    _anyUpdates = true;
-    soleProperty.setProperty(key, value);
+    if(key.startsWith("temp.")) {
+      if(mTempProps == null) mTempProps = new Properties();
+      mTempProps.setProperty(key, value);
+    } else {
+      _anyUpdates = true;
+      soleProperty.setProperty(key, value);
+    }
   }
 
   public static String queryConfiguration(String query, String inDefault) {
@@ -563,6 +568,9 @@ public class JConfig {
   public static String queryConfiguration(String query) {
     if(soleProperty.getProperty("config.logging", "false").equals("true")) {
       System.out.println("Query: " + query);
+    }
+    if(query.startsWith("temp.")) {
+      return mTempProps.getProperty(query, null);
     }
     return soleProperty.getProperty(query, null);
   }
