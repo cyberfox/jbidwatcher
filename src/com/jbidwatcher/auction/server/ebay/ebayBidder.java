@@ -45,12 +45,12 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
      */
     if(mResultHash == null) {
       mResultHash = new HashMap<String, Integer>();
-      mResultHash.put("you('re| are) not permitted to bid on their listings.", AuctionServer.BID_ERROR_BANNED);
+      mResultHash.put("you('re| are) not permitted to bid on their listings.", AuctionServer.BID_ERROR_BANNED); /**/
       mResultHash.put("the item is no longer available because the auction has ended.", AuctionServer.BID_ERROR_ENDED);
       mResultHash.put("bidding has ended (for|on) this item", AuctionServer.BID_ERROR_ENDED);
       mResultHash.put("cannot proceed", AuctionServer.BID_ERROR_CANNOT);
       mResultHash.put("problem with bid amount", AuctionServer.BID_ERROR_AMOUNT);
-      mResultHash.put("your bid must be at least ", AuctionServer.BID_ERROR_TOO_LOW);
+      mResultHash.put("your bid must be at least ", AuctionServer.BID_ERROR_TOO_LOW); /*?*/
       mResultHash.put("you('ve| have) been outbid by another bidder", AuctionServer.BID_ERROR_OUTBID);
       mResultHash.put("you('ve| have) just been outbid", ebayServer.BID_ERROR_OUTBID);
       mResultHash.put("your bid is confirmed!", AuctionServer.BID_DUTCH_CONFIRMED);
@@ -59,7 +59,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       mResultHash.put("you('re| are) the current high bidder", AuctionServer.BID_WINNING);
       mResultHash.put("you('re| are) the first bidder", AuctionServer.BID_WINNING);
       mResultHash.put("you('re| are) the high bidder and currently in the lead", AuctionServer.BID_WINNING);
-      mResultHash.put("you('re| are) currently the highest bidder", AuctionServer.BID_WINNING);
+      mResultHash.put("you('re| are) currently the highest bidder", AuctionServer.BID_WINNING); /**/
       mResultHash.put("you purchased the item", AuctionServer.BID_WINNING);
       mResultHash.put("you('re| are) currently the high bidder, but the reserve hasn.t been met", AuctionServer.BID_ERROR_RESERVE_NOT_MET);
       mResultHash.put("the reserve price has not been met", AuctionServer.BID_ERROR_RESERVE_NOT_MET);
@@ -133,7 +133,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
 
     if(rval.getDocument() != null) {
       checkSignOn(rval.getDocument());
-      checkBidErrors(rval.getDocument());
+      checkBidErrors(rval);
     }
 
     if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true") &&
@@ -153,6 +153,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     }
 
     if(JConfig.debugging) inEntry.setLastStatus("Failed to bid. 'Show Last Error' from context menu to see the failure page from the bid attempt.");
+    JConfig.log().dump2File("unknown-" + inEntry.getIdentifier() + ".html", rval.getBuffer());
     inEntry.setErrorPage(rval.getBuffer());
 
     //  We don't recognize this error.  Damn.  Log it and freak.
@@ -236,18 +237,23 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     return new BidFormReturn(false, null, htmlDocument, loadedPage);
   }
 
-  private void checkBidErrors(JHTML htmlDocument) throws BadBidException {
+  private void checkBidErrors(BidFormReturn inVal) throws BadBidException {
+    JHTML htmlDocument = inVal.getDocument();
     String errMsg = htmlDocument.grep(mBidResultRegex);
     if(errMsg != null) {
       Matcher bidMatch = mFindBidResult.matcher(errMsg);
       bidMatch.find();
       String matched_error = bidMatch.group().toLowerCase();
-      throw new BadBidException(matched_error, getMatchedResult(matched_error));
+      Integer result = getMatchedResult(matched_error);
+      JConfig.log().dump2File("error-" + result + ".html", inVal.getBuffer());
+
+      throw new BadBidException(matched_error, result);
     } else {
       String amount = htmlDocument.getNextContentAfterRegex("\\s*Enter\\s*");
       if (amount != null) {
         String orMore = htmlDocument.getNextContent();
         if (orMore != null && orMore.indexOf("or more") != -1) {
+          JConfig.log().dump2File("error-" + ebayServer.BID_ERROR_TOO_LOW + ".html", inVal.getBuffer());
           throw new BadBidException("Enter " + amount + orMore, ebayServer.BID_ERROR_TOO_LOW);
         }
       }
@@ -382,6 +388,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       bidMatch.find();
       String matched_error = bidMatch.group().toLowerCase();
       Integer bidResult = getMatchedResult(matched_error);
+      JConfig.log().dump2File("error-" + bidResult + ".html", loadedPage);
 
       int result = 0;
       if (bidResult != null) {
@@ -418,6 +425,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     }
 
     if(JConfig.debugging) inEntry.setLastStatus("Failed to load post-bid data. 'Show Last Error' from context menu to see the failure page from the post-bid page.");
+    JConfig.log().dump2File("unknown-" + inEntry.getIdentifier() + ".html", loadedPage);
     inEntry.setErrorPage(loadedPage);
 
     JConfig.log().logFile(safeBidInfo, loadedPage);
