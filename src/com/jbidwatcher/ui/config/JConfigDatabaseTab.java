@@ -83,7 +83,7 @@ public class JConfigDatabaseTab extends JConfigTab {
       JConfig.setConfiguration("db.mysql.database", db);
       String connectURL = "jdbc:mysql://" + host;
       if(portNum != -1) connectURL += ":" + portNum;
-      connectURL += "/" + db;
+      connectURL += "/";
 
       JConfig.setConfiguration("db.framework", "remote");
       JConfig.setConfiguration("db.protocol", connectURL);

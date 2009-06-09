@@ -83,18 +83,18 @@ public class Database {
       mNew = false;
     } catch(SQLException se) {
       if(isMySQL()) {
-        mConn = DriverManager.getConnection(protocol + "mysql", props);
+        mConn = DriverManager.getConnection(protocol, props);
         Statement s = mConn.createStatement();
         s.executeUpdate("CREATE DATABASE jbidwatcher");
         mConn.close();
-        mConn = DriverManager.getConnection(protocol + "jbidwatcher", props);
+        mConn = DriverManager.getConnection(protocol + JConfig.queryConfiguration("db.mysql.database", "jbidwatcher"), props);
       } else {
         mConn = DriverManager.getConnection(protocol + "jbdb;create=true", props);
       }
       mNew = true;
     }
     if(sFirst) {
-      JConfig.log().logDebug("Connected to " + (mNew?"and created ":"") + "database jbdb (JBidwatcher DataBase)");
+      JConfig.log().logDebug("Connected to " + (mNew?"and created ":"") + "database " + (isMySQL() ? JConfig.queryConfiguration("db.mysql.database", "jbidwatcher") : "jbdb") + " (JBidwatcher DataBase)");
     }
 
     mConn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
