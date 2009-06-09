@@ -174,7 +174,11 @@ public class MyJBidwatcher {
     MQFactory.getConcrete("upload").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
         if(JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-          postXML(mSyncQueueURL, EntryCorral.getInstance().takeForRead(deQ.toString()));
+          AuctionEntry ae = EntryCorral.getInstance().takeForRead((String) deQ);
+          postXML(mSyncQueueURL, ae);
+          if(JConfig.queryConfiguration("my.jbidwatcher.uploadhtml", "false").equals("true")) {
+            uploadAuctionHTML(ae, "uploadhtml");
+          }
         }
       }
     });
@@ -183,12 +187,7 @@ public class MyJBidwatcher {
       MQFactory.getConcrete("report").registerListener(new MessageQueue.Listener() {
         public void messageAction(Object deQ) {
           AuctionEntry ae = EntryCorral.getInstance().takeForRead((String)deQ);
-          String s3Result = sendFile(ae.getContentFile(), url(ITEM_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), ae.getLastStatus());
-          XMLElement root = new XMLElement("report");
-          XMLElement s3Key = new XMLElement("s3");
-          s3Key.setContents(s3Result);
-          root.addChild(ae.toXML());
-          postXML(mReportQueueURL, root);
+          uploadAuctionHTML(ae, "report");
         }
       });
     }
@@ -205,6 +204,15 @@ public class MyJBidwatcher {
         }
       }
     });
+  }
+
+  private void uploadAuctionHTML(AuctionEntry ae, String uploadType) {
+    String s3Result = sendFile(ae.getContentFile(), url(ITEM_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), ae.getLastStatus());
+    XMLElement root = new XMLElement(uploadType);
+    XMLElement s3Key = new XMLElement("s3");
+    s3Key.setContents(s3Result);
+    root.addChild(ae.toXML());
+    postXML(mReportQueueURL, root);
   }
 
   public boolean getAccountInfo() {
