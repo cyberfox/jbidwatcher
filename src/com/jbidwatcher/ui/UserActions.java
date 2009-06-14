@@ -912,7 +912,7 @@ public class UserActions implements MessageQueue.Listener {
 
     return false;
   }
-
+  // TODO -- Add the ability to pick a quantity to buy, defaulting to 1.
   private void DoBuy(Component src, AuctionEntry ae) {
     if(anyBiddingErrors(src, ae)) return;
 
@@ -978,18 +978,8 @@ public class UserActions implements MessageQueue.Listener {
     AuctionEntry ae = inAuction;
     int[] rowList = mTabs.getPossibleRows();
 
+    //  TODO -- It would be nice to be able to show multiple items.
     if(rowList.length != 0) {
-//      Vector<String> multiAuctionIds = new Vector<String>();
-//      int i;
-//
-//      for(i=0; i<rowList.length; i++) {
-//        AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(rowList[i]);
-//
-//        multiAuctionIds.add(tempEntry.getIdentifier());
-//      }
-//      TODO -- Find another way to do this...
-//      JBidProxy.setItems(multiAuctionIds);
-
       ae = (AuctionEntry) mTabs.getIndexedEntry(rowList[0]);
     } else {
       if(ae == null) {

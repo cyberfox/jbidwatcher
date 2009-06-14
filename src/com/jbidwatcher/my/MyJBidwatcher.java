@@ -137,13 +137,6 @@ public class MyJBidwatcher {
     return sInstance;
   }
 
-  private void getSQSURL() {
-    StringBuffer sb = http().get(url("my.jbidwatcher.com/services/syncq"));
-    mSyncQueueURL = (sb == null) ? null : sb.toString();
-    sb = http().get(url("my.jbidwatcher.com/services/reportq"));
-    mReportQueueURL = (sb == null) ? null : sb.toString();
-  }
-
   public void postXML(String queue, XMLSerialize ae) {
     XMLElement xmlWrapper = new XMLElement("message");
     XMLElement user = new XMLElement("user");

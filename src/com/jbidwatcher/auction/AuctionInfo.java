@@ -32,6 +32,8 @@ public class AuctionInfo extends ActiveRecord
   private static Map<String, String> mKeys;
   private String mThumbnailPath;
   private Object mServer = null; //  TODO --  This is a hack!
+  //  It's so that the AuctionServer that creates this can record
+  // 'who it is', so the AuctionEntry will pick it up.
 
   private static void setupKeys() {
     mKeys = new HashMap<String, String>();

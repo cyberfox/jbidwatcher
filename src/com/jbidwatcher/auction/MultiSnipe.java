@@ -143,7 +143,6 @@ public class MultiSnipe extends ActiveRecord {
     mAuctionEntriesInThisGroup = new LinkedList<Snipeable>();
 
     for (Snipeable aeFromList : oldEntries) {
-      //  TODO --  Fix this up; this calls back into here, for the remove() function.  This needs to be seperated somehow.
       aeFromList.cancelSnipe(false);
     }
     oldEntries.clear();

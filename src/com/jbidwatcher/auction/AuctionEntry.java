@@ -252,7 +252,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     if (mLoaded) {
       if(mAuction.getServer() != null) setServer((AuctionServerInterface)mAuction.getServer());
       setDefaultCurrency(mAuction.getCurBid());
-      checkHighBidder(true);
+      updateHighBid();
+      checkHighBidder();
       checkSeller();
       checkEnded();
     }
@@ -660,23 +661,24 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   ///////////////////////////
   //  Actual logic functions
 
-  //  TODO  -- Check this for the need of a saveDB() occasionally...
+  public void updateHighBid() {
+    int numBidders = getNumBidders();
+
+    if (numBidders > 0 && isOutbid()) {
+      getServer().updateHighBid(this);
+    }
+  }
+
   /**
    * @brief On update, we check if we're the high bidder.
    *
    * When you change user ID's, you should force a complete update, so
    * this is synchronized correctly.
-   *
-   * @param doNetworkCheck - Should we actually check over the network for new bid information, if the user is outbid?
    */
-  private void checkHighBidder(boolean doNetworkCheck) {
+  private void checkHighBidder() {
     int numBidders = getNumBidders();
 
     if(numBidders > 0) {
-      //  TODO -- This is silly.  Why should the AuctionEntry know about doing a network check?
-      if(isOutbid() && doNetworkCheck) {
-        getServer().updateHighBid(this);
-      }
       if(isBidOn() && isPrivate()) {
         Currency curBid = getCurBid();
         try {
@@ -695,9 +697,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
           //  eBay knows the 'true' answer, but how to extract it from them...
         }
       } else {
-        if(!isDutch()) {
-          setWinning(getServer().isCurrentUser(getHighBidder()));
-        }
+        setWinning(getServer().isCurrentUser(getHighBidder()));
       }
     }
   }
@@ -1037,7 +1037,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       if(mEntryEvents == null) {
         getEvents();
       }
-      checkHighBidder(false);
+      checkHighBidder();
       checkSeller();
       saveDB();
     }
@@ -1139,7 +1139,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     mLastUpdatedAt = System.currentTimeMillis();
     mAddedRecently = 0;
     try {
-      checkHighBidder(true);
+      updateHighBid();
+      checkHighBidder();
       if(isDutch()) checkDutchHighBidder();
     } catch(Exception e) {
       JConfig.log().handleException("Unexpected exception during high bidder check.", e);
@@ -1261,7 +1262,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     Currency bin = getBuyNow();
     if(bin != null && !bin.isNull()) {
       setBid(getBuyNow());
-      setBidQuantity(quant);  //  TODO --  Is it possible to Buy more than 1 item?  Yes...how?
+      setBidQuantity(quant);
       mBidAt = System.currentTimeMillis();
       JConfig.log().logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
       rval = getServer().buy(this, quant);
@@ -1586,7 +1587,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       }
     }
 
-    checkHighBidder(false);
+    checkHighBidder();
     checkSeller();
     checkEnded();
     saveDB();
