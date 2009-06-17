@@ -54,7 +54,7 @@ public class AuctionTransformer implements ErrorListener, URIResolver {
   }
 
   public static StringBuffer outputHTML(String loadFile, String xmlOutputFile) {
-    FileInputStream xmlIn = null;
+    InputStream xmlIn = null;
     InputStream xslIn = null;
     FileOutputStream htmlOut = null;
 
@@ -63,7 +63,19 @@ public class AuctionTransformer implements ErrorListener, URIResolver {
     // Java input stream/reader
     try {
       //String xmlInputFile = "myXMLinput.xml";
-      xmlIn = new FileInputStream(loadFile);
+      try {
+        xmlIn = new FileInputStream(loadFile);
+      } catch(FileNotFoundException fnfe) {
+        xmlIn = new StringBufferInputStream(
+            "<?xml version=\"1.0\"?>\n" +
+            "\n" +
+            "<!DOCTYPE auctions SYSTEM \"http://www.jbidwatcher.com/auctions.dtd\">\n" +
+            "<jbidwatcher format=\"0101\">" +
+            "<auctions count=\"0\">" +
+            "</auctions>" +
+            "</jbidwatcher>"
+        );
+      }
       Source xmlSource = new StreamSource(xmlIn);
 
       // create the XSLT Stylesheet input source
