@@ -139,7 +139,8 @@ public class JConfigFrame implements ActionListener {
     }
     allTabs.add(new JConfigFirewallTab());
     allTabs.add(new JConfigSnipeTab());
-    if(JConfig.queryConfiguration("allow.my_jbidwatcher", "false").equals("true")) allTabs.add(new JConfigMyJBidwatcherTab());
+//    if(JConfig.queryConfiguration("allow.my_jbidwatcher", "false").equals("true"))
+      allTabs.add(new JConfigMyJBidwatcherTab());
     allTabs.add(new JConfigFilePathTab());
     allTabs.add(new JConfigWebserverTab());
     allTabs.add(new JConfigDatabaseTab());

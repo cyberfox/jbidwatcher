@@ -118,11 +118,15 @@ public class MyJBidwatcher {
   }
 
   public String recognizeBidpage(String identifier, StringBuffer page) {
-    Parameters p = new Parameters();
-    if(identifier != null) p.put("item", identifier);
-    p.put("body", page);
-    String url = url("my.jbidwatcher.com/services/recognize");
-    return http().postTo(url, p);
+    if(canParse()) {
+      Parameters p = new Parameters();
+      if (identifier != null) p.put("item", identifier);
+      p.put("body", page);
+      String url = url("my.jbidwatcher.com/services/recognize");
+      return http().postTo(url, p);
+    } else {
+      return null;
+    }
   }
 
   public String reportException(String sb) {
@@ -138,17 +142,19 @@ public class MyJBidwatcher {
   }
 
   public void postXML(String queue, XMLSerialize ae) {
-    XMLElement xmlWrapper = new XMLElement("message");
-    XMLElement user = new XMLElement("user");
-    XMLElement access_key = new XMLElement("key");
-    user.setContents(JConfig.queryConfiguration("my.jbidwatcher.id"));
-    access_key.setContents(JConfig.queryConfiguration("my.jbidwatcher.key"));
-    xmlWrapper.addChild(user);
-    xmlWrapper.addChild(access_key);
-    xmlWrapper.addChild(ae.toXML());
-    String aucXML = xmlWrapper.toString();
+    if(canSync()) {
+      XMLElement xmlWrapper = new XMLElement("message");
+      XMLElement user = new XMLElement("user");
+      XMLElement access_key = new XMLElement("key");
+      user.setContents(JConfig.queryConfiguration("my.jbidwatcher.id"));
+      access_key.setContents(JConfig.queryConfiguration("my.jbidwatcher.key"));
+      xmlWrapper.addChild(user);
+      xmlWrapper.addChild(access_key);
+      xmlWrapper.addChild(ae.toXML());
+      String aucXML = xmlWrapper.toString();
 
-    if(queue != null) http().putTo(queue, aucXML);
+      if (queue != null) http().putTo(queue, aucXML);
+    }
   }
 
   private MyJBidwatcher() {
@@ -169,9 +175,7 @@ public class MyJBidwatcher {
         if(JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
           AuctionEntry ae = EntryCorral.getInstance().takeForRead((String) deQ);
           postXML(mSyncQueueURL, ae);
-          if(JConfig.queryConfiguration("my.jbidwatcher.uploadhtml", "false").equals("true")) {
-            uploadAuctionHTML(ae, "uploadhtml");
-          }
+          uploadAuctionHTML(ae, "uploadhtml");
         }
       }
     });
@@ -200,12 +204,25 @@ public class MyJBidwatcher {
   }
 
   private void uploadAuctionHTML(AuctionEntry ae, String uploadType) {
-    String s3Result = sendFile(ae.getContentFile(), url(ITEM_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), ae.getLastStatus());
-    XMLElement root = new XMLElement(uploadType);
-    XMLElement s3Key = new XMLElement("s3");
-    s3Key.setContents(s3Result);
-    root.addChild(ae.toXML());
-    postXML(mReportQueueURL, root);
+    if(canUploadHTML()) {
+      String s3Result = sendFile(ae.getContentFile(), url(ITEM_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), ae.getLastStatus());
+      XMLElement root = new XMLElement(uploadType);
+      XMLElement s3Key = new XMLElement("s3");
+      s3Key.setContents(s3Result);
+      root.addChild(ae.toXML());
+      postXML(mReportQueueURL, root);
+    }
+  }
+
+  private boolean canUploadHTML() { return allow("uploadhtml"); }
+  private boolean canSync() { return allow("sync"); }
+  private boolean canParse() { return allow("parser"); }
+  private boolean canGetSnipes() { return allow("snipes"); }
+  private boolean canSendSnipeToGixen() { return allow("gixen"); }
+
+  private boolean allow(String type) {
+    return JConfig.queryConfiguration("my.jbidwatcher.allow." + type, "false").equals("true") &&
+           JConfig.queryConfiguration("my.jbidwatcher." + type, "false").equals("true");
   }
 
   public boolean getAccountInfo() {
@@ -234,13 +251,22 @@ public class MyJBidwatcher {
       }
     }
 
+    JConfig.setConfiguration("my.jbidwatcher.allow.listings", listingsRemaining.getContents());
+    JConfig.setConfiguration("my.jbidwatcher.allow.categories", categoriesRemaining.getContents());
+
     mSyncQueueURL = sync == null ? null : sync.getContents();
+    JConfig.setConfiguration("my.jbidwatcher.allow.sync", Boolean.toString(mSyncQueueURL != null));
     mReportQueueURL = reporting == null ? null : reporting.getContents();
     mUseSSL = getBoolean(ssl);
+    JConfig.setConfiguration("my.jbidwatcher.allow.ssl", Boolean.toString(mUseSSL));
     mReadSnipesFromServer = getBoolean(snipesListen);
+    JConfig.setConfiguration("my.jbidwatcher.allow.snipes", Boolean.toString(mReadSnipesFromServer));
     mUploadHTML = getBoolean(uploadHTML);
+    JConfig.setConfiguration("my.jbidwatcher.allow.uploadhtml", Boolean.toString(mUploadHTML));
     mUseServerParser = getBoolean(serverParser);
+    JConfig.setConfiguration("my.jbidwatcher.allow.parser", Boolean.toString(mUseServerParser));
     mGixen = getBoolean(gixen);
+    JConfig.setConfiguration("my.jbidwatcher.allow.gixen", Boolean.toString(mGixen));
 
     return mSyncQueueURL != null && mReportQueueURL != null;
   }

@@ -13,6 +13,8 @@ import com.jbidwatcher.my.MyJBidwatcher;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.util.Map;
+import java.util.HashMap;
 import javax.swing.*;
 
 public class JConfigMyJBidwatcherTab extends JConfigTab {
@@ -20,14 +22,16 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
   private JTextField mEmail;
   private JTextField mPassword;
   private JButton mCreateOrUpdate;
+  private Map<JCheckBox,String> mConfigurationMap = new HashMap<JCheckBox,String>();
+  private Map<JCheckBox,String> mEnabledMap = new HashMap<JCheckBox,String>();
+  private JLabel mListingStats;
+  private JLabel mCategoryStats;
+  private JLabel mSSLEnabled;
 
   public String getTabName() { return "My JBidwatcher"; }
   public void cancel() { }
 
   public boolean apply() {
-    boolean enabled = mEnable.isSelected();
-    JConfig.setConfiguration("my.jbidwatcher.enabled", Boolean.toString(enabled));
-
     String email = mEmail.getText();
     String password = mPassword.getText();
 
@@ -38,18 +42,30 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
       }
     }
 
+    for(JCheckBox cb : mConfigurationMap.keySet()) {
+      String cfg = mConfigurationMap.get(cb);
+      JConfig.setConfiguration(cfg, Boolean.toString(cb.isSelected()));
+    }
     return true;
   }
 
   public void updateValues() {
     String email = JConfig.queryConfiguration("my.jbidwatcher.id", "");
     String pass = JConfig.queryConfiguration("my.jbidwatcher.key", "");
-    boolean enabled = JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true");
-//    String id = JConfig.queryConfiguration("my.jbidwatcher.id");
+
+    mEnable.setSelected(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true"));
+
+    for (JCheckBox cb : mEnabledMap.keySet()) {
+      String cfg = mEnabledMap.get(cb);
+      cb.setEnabled(mEnable.isSelected() && JConfig.queryConfiguration(cfg, "false").equals("true"));
+    }
 
     mEmail.setText(email);
     mPassword.setText(pass);
-    mEnable.setSelected(enabled);
+
+    mListingStats.setText(left("listings"));
+    mCategoryStats.setText(left("categories"));
+    mSSLEnabled.setText(sslState());
 
     for(ActionListener al : mEnable.getActionListeners()) {
       al.actionPerformed(new ActionEvent(mEnable, ActionEvent.ACTION_PERFORMED, "Redraw"));
@@ -104,6 +120,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
         if(MyJBidwatcher.getInstance().getAccountInfo()) {
           statusLabel.setIcon(successIcon);
           statusLabel.setText("success!");
+          updateValues();
         } else {
           statusLabel.setIcon(failIcon);
           statusLabel.setText("failed.");
@@ -134,10 +151,14 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
         mPassword.setEditable(selected);
 
         mCreateOrUpdate.setEnabled(selected);
+        for(JCheckBox cb : mEnabledMap.keySet()) {
+          cb.setEnabled(selected && JConfig.queryConfiguration(mEnabledMap.get(cb), "false").equals("true"));
+        }
       }
     });
     JLabel enableLabel = new JLabel("Enable My JBidwatcher");
     enableLabel.setLabelFor(mEnable);
+    mConfigurationMap.put(mEnable, "my.jbidwatcher.enabled");
 
     jp.add(makeLine(mEnable, enableLabel), BorderLayout.NORTH);
     jp.add(innerPanel, BorderLayout.CENTER);
@@ -151,8 +172,59 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
     jp.add(buildUserSettings(), BorderLayout.NORTH);
-//    jp.add(buildExtraSettings(), BorderLayout.SOUTH);
+    jp.add(buildExtraSettings(), BorderLayout.SOUTH);
     this.add(panelPack(jp), BorderLayout.NORTH);
     updateValues();
+  }
+
+  private JPanel buildExtraSettings() {
+    JPanel jp = new JPanel(new BorderLayout());
+    jp.setBorder(BorderFactory.createTitledBorder("My JBidwatcher Settings"));
+
+    JPanel innerPanel = new JPanel();
+    innerPanel.setLayout(new SpringLayout());
+
+    innerPanel.add(createSettingsCheckbox("Upload item info to My JBidwatcher", "sync"));
+    innerPanel.add(createSettingsCheckbox("Upload item HTML", "uploadhtml"));
+//    innerPanel.add(createSettingsCheckbox("Upload snipes to Gixen", "gixen"));
+    innerPanel.add(createSettingsCheckbox("Allow setting snipes in My JBidwatcher", "snipes"));
+    innerPanel.add(createSettingsCheckbox("Use My JBidwatcher as a fallback parser", "parser"));
+
+    mListingStats = new JLabel(left("listings"));
+    mListingStats.setFont(mListingStats.getFont().deriveFont(Font.BOLD));
+    mCategoryStats = new JLabel(left("categories"));
+    mCategoryStats.setFont(mCategoryStats.getFont().deriveFont(Font.BOLD));
+
+    innerPanel.add(mListingStats);
+    innerPanel.add(mCategoryStats);
+    innerPanel.add(new JLabel(""));
+    mSSLEnabled = new JLabel();
+    mSSLEnabled.setText(sslState());
+    mSSLEnabled.setFont(mSSLEnabled.getFont().deriveFont(Font.BOLD | Font.ITALIC));
+    JPanel tmp = new JPanel(new BorderLayout());
+    tmp.add(mSSLEnabled, BorderLayout.EAST);
+    innerPanel.add(tmp);
+    SpringUtilities.makeCompactGrid(innerPanel, 4, 2, 6, 6, 6, 1);
+
+    jp.add(innerPanel, BorderLayout.CENTER);
+    return jp;
+  }
+
+  private String sslState() {return JConfig.queryConfiguration("my.jbidwatcher.allow.ssl", "false").equals("true") ? "SSL Enabled" : "SSL Disabled";}
+
+  private JCheckBox createSettingsCheckbox(String text, String identifier) {
+    String cfgAllowed = "my.jbidwatcher.allow." + identifier;
+    String cfgSetting = "my.jbidwatcher." + identifier;
+    final JCheckBox cb = new JCheckBox(text);
+    cb.setEnabled(JConfig.queryConfiguration(cfgAllowed, "false").equals("true"));
+    mConfigurationMap.put(cb, cfgSetting);
+    mEnabledMap.put(cb, cfgAllowed);
+    return cb;
+  }
+
+  private String left(String type) {
+    String listings = JConfig.queryConfiguration("my.jbidwatcher.allow." + type, "unknown");
+    if(listings.equals("-1")) listings = "unlimited";
+    return  listings + " " + type + " remaining";
   }
 }

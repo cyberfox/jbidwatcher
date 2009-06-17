@@ -613,6 +613,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     MQFactory.getConcrete("Swing").enqueue("Done Getting Selling Items for " + userId);
   }
 
+  //  TODO -- Wouldn't it be nice if this took an item number, and looked it up, instead of keeping a reference to the actual (potentially duplicated) object?
   private class SnipeListener implements MessageQueue.Listener {
     public void messageAction(Object deQ) {
       AuctionQObject ac = (AuctionQObject) deQ;
