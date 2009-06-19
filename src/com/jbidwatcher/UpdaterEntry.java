@@ -128,7 +128,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
   public String getURL() { return _url; }
 
   public static void main(String[] args) {
-    UpdaterEntry ue = new UpdaterEntry("update", "http://www.vixen.com/update.xml");
+    UpdaterEntry ue = new UpdaterEntry("update", "http://www.jbidwatcher.com/jbidwatcher2.xml");
     System.out.println("Available version is: " + ue.getVersion());
     System.out.println("How strongly encouraged: " + ue.getSeverity());
     System.out.println("What is new/necessary: " + ue.getDescription());
