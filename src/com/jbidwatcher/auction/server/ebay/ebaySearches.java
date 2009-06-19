@@ -257,7 +257,10 @@ public class ebaySearches {
       }
     }
     reportTab = reportTab + " Tab";
-    MQFactory.getConcrete(reportTab).enqueue("REPORT Found " + watchCount + " watched items" + watchInfo + ", and " + bidCount + " items" + bidInfo + " you've apparently bid on.");
+    String report = "Found " + watchCount + " watched items" + watchInfo;
+    if(bidCount != 0) report += ", and " + bidCount + " items" + bidInfo + " you've apparently bid on";
+    report += '.';
+    MQFactory.getConcrete(reportTab).enqueue("REPORT " + report);
     MQFactory.getConcrete(reportTab).enqueue("SHOW");
     SuperQueue.getInstance().preQueue("HIDE", reportTab, System.currentTimeMillis() + Constants.ONE_MINUTE);
   }
