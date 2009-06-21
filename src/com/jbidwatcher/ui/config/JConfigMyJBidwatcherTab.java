@@ -42,10 +42,11 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
       }
     }
 
-    for(JCheckBox cb : mConfigurationMap.keySet()) {
-      String cfg = mConfigurationMap.get(cb);
-      JConfig.setConfiguration(cfg, Boolean.toString(cb.isSelected()));
-    }
+    if(JConfig.queryConfiguration("my.jbidwatcher.allow.sync") != null)
+      for(JCheckBox cb : mConfigurationMap.keySet()) {
+        String cfg = mConfigurationMap.get(cb);
+        JConfig.setConfiguration(cfg, Boolean.toString(cb.isSelected()));
+      }
     return true;
   }
 
@@ -120,6 +121,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
         if(MyJBidwatcher.getInstance().getAccountInfo()) {
           statusLabel.setIcon(successIcon);
           statusLabel.setText("success!");
+          if(JConfig.queryConfiguration("my.jbidwatcher.sync") == null) JConfig.setConfiguration("my.jbidwatcher.sync", "true");
           updateValues();
         } else {
           statusLabel.setIcon(failIcon);
