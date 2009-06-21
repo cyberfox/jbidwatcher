@@ -60,7 +60,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   public abstract void updateHighBid(AuctionEntry ae);
 
   public abstract void setSnipe(AuctionEntry snipeOn);
-  public abstract void cancelSnipe(EntryInterface snipeCancel);
+  public abstract void cancelSnipe(String identifier);
 
 
   /**

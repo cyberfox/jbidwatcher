@@ -358,7 +358,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public void setServer(AuctionServerInterface newServer) {
     if(newServer != mServer) {
       //  "CANCEL_SNIPE #{id}"
-      if(isSniped()) getServer().cancelSnipe(this);
+      if(isSniped()) getServer().cancelSnipe(getIdentifier());
       mServer = newServer;
       if(isSniped()) getServer().setSnipe(this);
     }
@@ -1200,7 +1200,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       }
       setInteger("snipe_id", null);
       mSnipe = null;
-      getServer().cancelSnipe(this);
+      getServer().cancelSnipe(getIdentifier());
     } else {
       mSnipe = AuctionSnipe.create(snipe, quantity, 0);
       getServer().setSnipe(this);
@@ -1214,7 +1214,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @brief Refresh the snipe, so it picks up a potentially changed end time, or when initially loading items.
    */
   public void refreshSnipe() {
-    getServer().cancelSnipe(this);
+    getServer().cancelSnipe(getIdentifier());
     getServer().setSnipe(this);
   }
 

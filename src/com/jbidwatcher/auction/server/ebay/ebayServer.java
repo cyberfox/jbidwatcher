@@ -47,7 +47,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   /** @noinspection FieldCanBeLocal*/
   private TimerHandler eQueue;
-  private Map<String, AuctionQObject> snipeMap = new HashMap<String, AuctionQObject>();
 
   /**< The full amount of time it takes to request a single page from this site. */
   private long mPageRequestTime =0;
@@ -199,12 +198,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           return;
         }
         break;
-      case AuctionQObject.CANCEL_SNIPE:
-        cancelSnipe((EntryInterface) ac.getData());
-        return;
-      case AuctionQObject.SET_SNIPE:
-        setSnipe((AuctionEntry) ac.getData());
-        return;
       case AuctionQObject.BID:
         bidMsg(ac);
         return;
@@ -293,36 +286,26 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     MQFactory.getConcrete("Swing").enqueue("IGNORE " + configBidMsg + ' ' + bidResultString);
   }
 
+  private static final int THIRTY_SECONDS = 30 * Constants.ONE_SECOND;
+  private static final long TWO_MINUTES = Constants.ONE_MINUTE * 2;
+
   public void setSnipe(AuctionEntry snipeOn) {
-    AuctionQObject currentlyExists = snipeMap.get(snipeOn.getIdentifier());
+    String identifier = snipeOn.getIdentifier();
+    Date endDate = snipeOn.getEndDate();
+    long snipeDelta = snipeOn.getSnipeTime();
     //  If we already have a snipe set for it, first cancel the old one, and then set up the new.
-    if(currentlyExists != null) {
-      _etqm.erase(null, currentlyExists);
-      _etqm.erase(null, snipeOn);
-      snipeMap.remove(snipeOn.getIdentifier());
-    }
+    _etqm.erase(identifier);
 
-    long two_minutes = Constants.ONE_MINUTE*2;
-    AuctionQObject payload = new AuctionQObject(AuctionQObject.SNIPE, new Snipe(mLogin, mBidder, snipeOn), null);
-
-    if (snipeOn.getEndDate() != null && snipeOn.getEndDate() != Constants.FAR_FUTURE) {
-      _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime() - snipeOn.getSnipeTime()) - two_minutes);
-      _etqm.add(payload, mSnipeQueue, (snipeOn.getEndDate().getTime() - snipeOn.getSnipeTime()));
-      _etqm.add(snipeOn.getIdentifier(), "drop", snipeOn.getEndDate().getTime() + 30 * Constants.ONE_SECOND);
-      snipeMap.put(snipeOn.getIdentifier(), payload);
+    if (endDate != null && endDate != Constants.FAR_FUTURE) {
+      _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta) - TWO_MINUTES);
+      _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta));
+      _etqm.add(identifier, "drop",       endDate.getTime() + THIRTY_SECONDS);
     }
   }
 
-  public void cancelSnipe(EntryInterface snipeCancel) {
-    String identifier = snipeCancel.getIdentifier();
-    AuctionQObject cancellable = snipeMap.get(identifier);
-
+  public void cancelSnipe(String identifier) {
     //  Erase the pending snipe
-    _etqm.erase(null, cancellable);
-    //  Erase the 30 seconds post-completion update
-    _etqm.erase(null, snipeCancel);
-
-    snipeMap.remove(identifier);
+    _etqm.erase(identifier);
   }
 
   public ebayServer(String site, String username, String password) {
@@ -613,43 +596,68 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     MQFactory.getConcrete("Swing").enqueue("Done Getting Selling Items for " + userId);
   }
 
-  //  TODO -- Wouldn't it be nice if this took an item number, and looked it up, instead of keeping a reference to the actual (potentially duplicated) object?
   private class SnipeListener implements MessageQueue.Listener {
-    public void messageAction(Object deQ) {
-      AuctionQObject ac = (AuctionQObject) deQ;
-      if (ac.getCommand() == AuctionQObject.SNIPE) {
-        Snipe snipe = (Snipe) ac.getData();
-        int snipeResult = snipe.fire();
-        switch(snipeResult) {
-          case Snipe.RESNIPE:
-            /**
-             *  The formula for 'when' the next resnipe is, is a little complex.
-             * It's all in the code, though.  If we're 3 seconds or less away,
-             * give up.  Otherwise wait another 20% of the remaining time
-             * (minimum of 3 seconds), and retry.
-             */
-            long snipeIn = snipe.getItem().getEndDate().getTime() - _etqm.getCurrentTime();
-            if(snipeIn > Constants.THREE_SECONDS) {
-              long retry_wait = (snipeIn / 10) * 2;
-              if(retry_wait < Constants.THREE_SECONDS) retry_wait = Constants.THREE_SECONDS;
+    private Map<String, Snipe> mSnipeMap = new HashMap<String, Snipe>();
 
-              _etqm.add(deQ, mSnipeQueue, _etqm.getCurrentTime()+retry_wait);
-              break;
-            }
-            //  If there are less than 3 seconds left, give up by falling through to FAIL and DONE.
-            JConfig.log().logDebug("Resnipes failed, and less than 3 seconds away.  Giving up.");
-          case Snipe.FAIL:
-            _etqm.erase(null, deQ);
-            JConfig.log().logDebug("Snipe appears to have failed; cancelling.");
-            snipe.getItem().snipeFailed();
-            //  A failed snipe is a serious, hard error, and should fall through to being removed from the snipe map.
-          case Snipe.DONE:
-            snipeMap.remove(snipe.getItem().getIdentifier());
+    /**
+     * Retrieve a stored Snipe object if one exists (containing the cookie information),
+     * or create a new one if one doesn't exist.
+     *
+     * @param identifier - The auction identifier to create the snipe for.
+     *
+     * @return - A Snipe object, either with a cookie object, or w/o. Returns
+     * null if the AuctionEntry associated with the identifier does not exist
+     * or is not sniped.
+     */
+    private Snipe getSnipe(String identifier) {
+      AuctionEntry ae = EntryCorral.getInstance().takeForRead(identifier);
+      if (ae == null || !ae.isSniped()) return null;
+
+      Snipe snipe;
+      if (mSnipeMap.containsKey(identifier)) {
+        snipe = mSnipeMap.get(identifier);
+      } else {
+        snipe = new Snipe(mLogin, mBidder, ae);
+        mSnipeMap.put(identifier, snipe);
+      }
+      return snipe;
+    }
+
+    public void messageAction(Object deQ) {
+      String identifier = (String)deQ;
+      Snipe snipe = getSnipe(identifier);
+      if(snipe == null) return;
+
+      int snipeResult = snipe.fire();
+      switch (snipeResult) {
+        case Snipe.RESNIPE:
+          /**
+           *  The formula for 'when' the next resnipe is, is a little complex.
+           * It's all in the code, though.  If we're 3 seconds or less away,
+           * give up.  Otherwise wait another 20% of the remaining time
+           * (minimum of 3 seconds), and retry.
+           */
+          long snipeIn = snipe.getItem().getEndDate().getTime() - _etqm.getCurrentTime();
+          if (snipeIn > Constants.THREE_SECONDS) {
+            long retry_wait = (snipeIn / 10) * 2;
+            if (retry_wait < Constants.THREE_SECONDS) retry_wait = Constants.THREE_SECONDS;
+
+            _etqm.add(identifier, mSnipeQueue, _etqm.getCurrentTime() + retry_wait);
             break;
-          case Snipe.SUCCESSFUL:
-          default:
-            break;
-        }
+          }
+          //  If there are less than 3 seconds left, give up by falling through to FAIL and DONE.
+          JConfig.log().logDebug("Resnipes failed, and less than 3 seconds away.  Giving up.");
+        case Snipe.FAIL:
+          _etqm.erase(identifier);
+          JConfig.log().logDebug("Snipe appears to have failed; cancelling.");
+          snipe.getItem().snipeFailed();
+          //  A failed snipe is a serious, hard error, and should fall through to being removed from any other lists.
+        case Snipe.DONE:
+          mSnipeMap.remove(identifier);
+          break;
+        case Snipe.SUCCESSFUL:
+        default:
+          break;
       }
     }
   }

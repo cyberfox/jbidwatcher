@@ -121,5 +121,5 @@ public interface AuctionServerInterface {
 
   void setSnipe(AuctionEntry snipeOn);
 
-  void cancelSnipe(EntryInterface snipeCancel);
+  void cancelSnipe(String identifier);
 }

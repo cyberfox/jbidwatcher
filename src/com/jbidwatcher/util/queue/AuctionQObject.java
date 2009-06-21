@@ -16,9 +16,6 @@ public class AuctionQObject extends QObject {
   public static final int BID = 5;
   public static final int LOAD_TITLE = 6;
   public static final int LOAD_STRINGS = 7;
-  public static final int SET_SNIPE = 8;
-  public static final int SNIPE = 9;
-  public static final int CANCEL_SNIPE = 10;
 
   public AuctionQObject() { super(); }
 
