@@ -51,8 +51,8 @@ public class DBTimeQueueManager extends TimeQueueManager {
   }
 
   @Override
-  public boolean erase(Object destination, Object payload) {
-    return DBTimeQueue.erase(destination, payload);
+  public boolean erase(Object payload) {
+    return DBTimeQueue.erase(payload);
   }
 
   @Override

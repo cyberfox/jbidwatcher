@@ -71,9 +71,10 @@ public class DBTimeQueue extends ActiveRecord {
     return (List<DBTimeQueue>) findAllBy(DBTimeQueue.class, null, null);
   }
 
-  public static boolean erase(Object destination, Object payload) {
+  public static boolean erase(Object payload) {
     List<DBTimeQueue> targets;
-    if(destination != null) {
+    Object destination = null;
+    if(false && destination != null) {
       String[] keys = {"destination", "payload"};
       String[] values = {destination.toString(), payload.toString()};
       targets = (List<DBTimeQueue>) findAllMulti(DBTimeQueue.class, keys, values, null);

@@ -90,14 +90,14 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
     mTQ.addEvent(when, createCarrier(payload, destination, repeat, howmany));
   }
 
-  public boolean erase(Object destination, Object payload) {
+  public boolean erase(Object payload) {
     List<TimeQueue.QObject> doErase = new ArrayList<TimeQueue.QObject>();
     List current = mTQ.getUnsorted();
     boolean didErase = false;
     for (Iterator it = current.listIterator(); it.hasNext();) {
       TimeQueue.QObject tqo = (TimeQueue.QObject) it.next();
       TQCarrier event = (TQCarrier) tqo.getEvent();
-      if(event.getPayload() == payload) {
+      if(event.getPayload() == payload || event.getPayload().equals(payload)) {
         doErase.add(tqo);
         didErase = true;
       }
