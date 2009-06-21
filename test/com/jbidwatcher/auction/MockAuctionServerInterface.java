@@ -106,5 +106,5 @@ class MockAuctionServerInterface implements AuctionServerInterface {
 
   public void setSnipe(AuctionEntry snipeOn) { }
 
-  public void cancelSnipe(EntryInterface snipeCancel) { }
+  public void cancelSnipe(String identifier) { }
 }
