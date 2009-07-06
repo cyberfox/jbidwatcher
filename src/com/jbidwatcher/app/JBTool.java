@@ -210,6 +210,7 @@ public class JBTool implements ToolInterface {
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
       if(option.startsWith("file=")) mParseFile = option.substring(5);
+      if(option.startsWith("adult")) JConfig.setConfiguration("ebay.mature", "true");
       if(option.startsWith("upload=")) MyJBidwatcher.getInstance().sendFile(new File(option.substring(7)), "http://my.jbidwatcher.com/upload/log", "cyberfox@jbidwatcher.com", "This is a <test> of descriptions & stuff.");
     }
 
