@@ -119,7 +119,7 @@ public class ebayLoginManager implements LoginManager {
     boolean enqueued = false;
     for (JHTML.Form finalForm : confirm_forms) {
       if (finalForm.hasInput("MfcISAPICommand", "AdultSignIn")) {
-        uc_signin = cj.connect(finalForm.getCGI());
+        uc_signin = cj.connect(finalForm.getAction(), finalForm.getFormData(), null, true, null);
         StringBuffer confirmed = Http.net().receivePage(uc_signin);
         JConfig.log().dump2File("sign_in-a3.html", confirmed);
         JHTML htdoc = new JHTML(confirmed);

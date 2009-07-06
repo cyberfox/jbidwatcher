@@ -340,7 +340,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
 
     try {
       if (JConfig.debugging) inEntry.setLastStatus("Submitting bid form.");
-      loadedPage = cj.getPage(bidForm.getCGI(), null, bidURL);
+      loadedPage = cj.getPage(bidForm.getAction(), bidForm.getFormData(), bidURL);
       if (JConfig.debugging) inEntry.setLastStatus("Done submitting bid form.");
     } catch (UnsupportedEncodingException uee) {
       JConfig.log().handleException("UTF-8 not supported locally, can't URLEncode bid form.", uee);
@@ -362,13 +362,13 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     if(continueForm != null) {
       try {
         inEntry.setLastStatus("Trying to 'continue' to the bid result page.");
-        String cgi = continueForm.getCGI();
+        String cgi = continueForm.getFormData();
         //  For some reason, the continue page represents the currency as
         //  separated from the amount with a '0xA0' character.  When encoding,
         //  this becomes...broken somehow, and adds an extra character, which
         //  does not work when bidding.
         cgi = cgi.replaceFirst("%[A-F][A-F0-9]%A0", "%A0");
-        URLConnection huc = cj.connect(cgi);
+        URLConnection huc = cj.connect(continueForm.getAction(), cgi, null, true, null);
         //  We failed to load, entirely.  Punt.
         if (huc == null) return AuctionServerInterface.BID_ERROR_CONNECTION;
 
