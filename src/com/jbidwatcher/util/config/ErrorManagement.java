@@ -15,9 +15,15 @@ public class ErrorManagement implements LoggerInterface {
   private static PrintWriter mLogWriter = null;
   private List<ErrorHandler> sHandlers = new ArrayList<ErrorHandler>();
   private File mFP;
+  private int fileNumber = 1;
 
   public void addHandler(ErrorHandler eh) {
     sHandlers.add(eh);
+  }
+
+  public void dumpFile(StringBuffer loadedPage) {
+    if(loadedPage == null) return;
+    dump2File("page" + fileNumber++ + ".html", loadedPage);
   }
 
   public ErrorManagement() { }

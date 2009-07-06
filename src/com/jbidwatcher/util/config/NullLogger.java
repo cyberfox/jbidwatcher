@@ -17,6 +17,7 @@ class NullLogger implements LoggerInterface {
   public void handleDebugException(String sError, Throwable e) { }
   public void logFile(String msgtop, StringBuffer dumpsb) { }
   public void dump2File(String fname, StringBuffer sb) { }
+  public void dumpFile(StringBuffer sb) { }
   public File closeLog() { return null; }
   public void addHandler(ErrorHandler eh) { }
 }

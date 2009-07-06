@@ -24,7 +24,9 @@ public interface LoggerInterface {
 
   void dump2File(String fname, StringBuffer sb);
 
-  public File closeLog();
+  File closeLog();
 
-  public void addHandler(ErrorHandler eh);
+  void addHandler(ErrorHandler eh);
+
+  void dumpFile(StringBuffer loadedPage);
 }
