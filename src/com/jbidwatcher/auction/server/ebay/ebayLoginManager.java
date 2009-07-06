@@ -133,6 +133,8 @@ public class ebayLoginManager implements LoginManager {
           MQFactory.getConcrete("login").enqueue("FAILED Incorrect login information.");
         } else if(htdoc.grep(T.s("your.information.has.been.verified"))!=null) {
           MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
+        } else if(htdoc.grep(T.s("mature.audiences.accepted")) != null) {
+          MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
         } else if(htdoc.grep(T.s("mature.audiences.disallowed.outside.the.us")) != null) {
           MQFactory.getConcrete("login").enqueue("NEUTRAL Turn off 'Mature Audiences' in JBidwatcher configuration; it's not valid for non-US users.");
           JConfig.setConfiguration("ebay.mature", "false");
