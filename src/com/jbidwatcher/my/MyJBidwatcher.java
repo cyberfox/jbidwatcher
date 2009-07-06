@@ -37,6 +37,7 @@ public class MyJBidwatcher {
   private Http mNet = null;
   private static String LOG_UPLOAD_URL =  "my.jbidwatcher.com/upload/log";
   private static String ITEM_UPLOAD_URL = "my.jbidwatcher.com/upload/listing";
+  private static String SYNC_UPLOAD_URL = "my.jbidwatcher.com/upload/sync";
   private String mSyncQueueURL = null;
   private String mReportQueueURL = null;
   private boolean mUseSSL = false;
@@ -163,6 +164,7 @@ public class MyJBidwatcher {
         String cmd = (String)deQ;
         if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true")) {
           if (cmd.equals("ACCOUNT")) getAccountInfo();
+          if (cmd.startsWith("SYNC ")) uploadAuctionList(cmd.substring(5));
         }
       }
     });
@@ -201,6 +203,13 @@ public class MyJBidwatcher {
         }
       }
     });
+  }
+
+  private void uploadAuctionList(String fname) {
+    File fp = new File(fname);
+    if(fp.exists()) {
+      sendFile(fp, url(SYNC_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), "synchronize");
+    }
   }
 
   private void uploadAuctionHTML(AuctionEntry ae, String uploadType) {

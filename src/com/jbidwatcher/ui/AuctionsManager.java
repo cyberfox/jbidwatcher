@@ -277,16 +277,16 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * abstracted to write to any outputstream, allowing us to write to
    * a remote node to update it with our auctions and snipes.
    * 
-   * @return - true if it successfully saved, false if an error occurred.
+   * @return - the filename if it successfully saved, null if an error occurred.
    */
-  public boolean saveAuctions() {
+  public String saveAuctions() {
     XMLElement auctionsData = AuctionServerManager.getInstance().toXML();
     String oldSave = JConfig.queryConfiguration("savefile", "auctions.xml");
     String saveFilename = JConfig.getCanonicalFile(JConfig.queryConfiguration("savefile", "auctions.xml"), "jbidwatcher", false);
     String newSave=saveFilename;
 
     //  If there's no data to save, then pretend we did it.
-    if(auctionsData == null) return true;
+    if(auctionsData == null) return saveFilename;
 
     ensureDirectories(saveFilename);
 
@@ -325,7 +325,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       preserveFiles(saveFilename);
     }
 
-    return saveDone;
+    return saveFilename;
   }
 
   public int clearDeleted() {

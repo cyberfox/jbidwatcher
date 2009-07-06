@@ -1233,6 +1233,11 @@ public class UserActions implements MessageQueue.Listener {
     System.out.println(AuctionServerManager.getInstance().toXML());
   }
 
+  private void DoUploadAuctions() {
+    String fname = AuctionsManager.getInstance().saveAuctions();
+    MQFactory.getConcrete("my").enqueue("SYNC " + fname);
+  }
+
   private void DoLoad(String fname) {
     String canonicalFName = fname;
     if(canonicalFName == null) {
@@ -1265,10 +1270,10 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private void DoSave(Component src) {
-    boolean didSave = AuctionsManager.getInstance().saveAuctions();
+    String didSave = AuctionsManager.getInstance().saveAuctions();
     System.gc();
 
-    if(didSave) {
+    if(didSave != null) {
 //      JOptionPane.showMessageDialog(src, "Auctions Saved!", "Save Complete", JOptionPane.INFORMATION_MESSAGE);
       _oui.promptWithCheckbox(src, "Auctions saved!", "Save Complete", "prompt.savecomplete", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
     } else {
