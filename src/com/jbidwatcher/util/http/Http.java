@@ -77,14 +77,14 @@ public class Http {
       }
 
       huc.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-      huc.setRequestProperty("Content-Length", Integer.toString(cgiData.length()-1));
+      huc.setRequestProperty("Content-Length", Integer.toString(cgiData.length()));
       huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
       if(referer != null) huc.setRequestProperty("Referer", referer);
       if(cookie != null) {
         huc.setRequestProperty("Cookie", cookie);
       }
       PrintStream obw = new PrintStream(huc.getOutputStream());
-      obw.println(cgiData);
+      obw.print(cgiData);
       obw.close();
     } catch(ConnectException ce) {
       JConfig.log().logMessage("postFormPage: " + ce);
@@ -277,7 +277,7 @@ public class Http {
     } catch (MalformedURLException murle) {
       JConfig.log().logMessage("Invalid URL!? (" + url + "): " + murle.getMessage());
     } catch (IOException ioe) {
-      try { result = StringTools.cat(huc.getErrorStream()); } catch (Exception e) { }
+      try { if(huc != null) result = StringTools.cat(huc.getErrorStream()); } catch (Exception ignored) { }
     }
     return result;
   }
