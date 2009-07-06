@@ -69,6 +69,7 @@ public class MiniServer extends HTTPProxyClient {
     int quantity = getQuantity(howMany);
 
     AuctionEntry ae = AuctionEntry.construct(identifier);
+    EntryCorral.getInstance().put(ae);
     AuctionBuy ab = new AuctionBuy(ae, null, quantity);
     return fireAction(ae, ab);
   }
