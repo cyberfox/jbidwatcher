@@ -244,7 +244,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
 
       if(ac.getData().equals("Dump eBay Activity Queue")) {
-        _etqm.dumpQueue();
+        if(getBackupServer() != null && getBackupServer() != this) MQFactory.getConcrete(getBackupServer()).enqueueBean(ac);
+        _etqm.dumpQueue(T.getBundle());
         return;
       }
     }
