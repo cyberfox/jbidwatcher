@@ -56,10 +56,10 @@ public class DBTimeQueueManager extends TimeQueueManager {
   }
 
   @Override
-  public void dumpQueue() {
+  public void dumpQueue(String prefix) {
     List<DBTimeQueue> wholeQueue = DBTimeQueue.getSorted();
     for(DBTimeQueue event : wholeQueue) {
-      System.err.println(event.toString());
+      System.err.println(prefix + ": " + event.toString());
     }
   }
 }

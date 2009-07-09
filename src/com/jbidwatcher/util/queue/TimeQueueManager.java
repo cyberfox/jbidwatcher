@@ -110,15 +110,19 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
     return didErase;
   }
 
-  public void dumpQueue() {
+  public void dumpQueue(String prefix) {
     List current = mTQ.getSorted();
+
+    if(current.isEmpty()) {
+      System.err.println(prefix + ": queue empty");
+    }
 
     for(ListIterator it=current.listIterator(); it.hasNext();) {
       TimeQueue.QObject step = (TimeQueue.QObject) it.next();
       TQCarrier event = (TQCarrier) step.getEvent();
-      System.err.println("Queue: " + event.getDestinationQueue());
-      System.err.println("Object: [" + event.getPayload() + "]");
-      System.err.println("When: " + new Date(step.getTime()));
+      System.err.println(prefix + ": Queue: " + event.getDestinationQueue());
+      System.err.println(prefix + ": Object: [" + event.getPayload() + "]");
+      System.err.println(prefix + ": When: " + new Date(step.getTime()));
       System.err.println();
     }
   }
