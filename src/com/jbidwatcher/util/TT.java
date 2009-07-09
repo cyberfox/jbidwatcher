@@ -83,4 +83,8 @@ public class TT {
     String bundle = country.replace('.', '_');
     return setBundle(bundle);
   }
+
+  public String getBundle() {
+    return mBundle;
+  }
 }
