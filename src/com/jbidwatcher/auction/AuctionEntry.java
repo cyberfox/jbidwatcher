@@ -595,9 +595,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     Integer id = getInteger("multisnipe_id");
     if(id == null) return null;
 
-    MultiSnipe ms = MultiSnipe.find(id);
-    setMultiSnipe(ms);
-    return ms;
+    mMultiSnipe = MultiSnipe.find(id);
+    return mMultiSnipe;
   }
 
   /**
