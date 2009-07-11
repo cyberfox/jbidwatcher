@@ -409,7 +409,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @return Whether there is a snipe waiting on this auction.
    */
   public boolean isSniped() {
-    getMultiSnipe();
     return getSnipe() != null;
   }
 
@@ -1090,7 +1089,19 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    */
   public int getCancelledSnipeQuantity() { return mCancelSnipeQuant; }
 
+  /**
+   * Cancel the snipe and clear the multisnipe setting.  This is used for
+   * user-driven snipe cancellations, and errors like the listing going away.
+   *
+   * @param after_end - Is this auction already completed?
+   */
   public void cancelSnipe(boolean after_end) {
+    handleCancel(after_end);
+
+    setMultiSnipe(null);
+  }
+
+  private void handleCancel(boolean after_end) {
     if(isSniped()) {
       JConfig.log().logDebug("Cancelling Snipe for: " + getTitle() + '(' + getIdentifier() + ')');
       setLastStatus("Cancelling snipe.");
@@ -1099,8 +1110,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         mCancelSnipeQuant = getSnipe().getQuantity();
       }
     }
-
-    setMultiSnipe(null);
   }
 
   public void snipeCompleted() {
@@ -1114,8 +1123,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     saveDB();
   }
 
+  /**
+   * In this case, the snipe failed, and we want to cancel the snipe, but we
+   * don't want to remove the listing from the multisnipe group, in case you
+   * still win it.  (For example, if you have a bid on it already.)
+   */
   public void snipeFailed() {
-    cancelSnipe(true);
+    handleCancel(true);
     mNeedsUpdate = true;
     setDirty();
     saveDB();
@@ -1164,6 +1178,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         JConfig.increment("stats.won");
       }
       if (isSniped()) {
+        //  It's okay to cancel the snipe here; if the auction was won, it would be caught above.
         setLastStatus("Cancelling snipe, auction is reported as ended.");
         cancelSnipe(true);
       }
