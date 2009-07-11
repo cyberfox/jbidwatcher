@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<local-project language="java" version="3.2.329" flavor="j2se">
+<local-project language="java" associate="file:/Users/mrs/IdeaProjects/JBidwatcher-E/structure/jbidwatcher" version="3.2.329" flavor="j2se">
    <property name="hide-externals" value="true" />
    <property name="detail-mode" value="true" />
    <classpath>
