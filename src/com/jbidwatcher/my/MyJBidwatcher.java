@@ -206,9 +206,16 @@ public class MyJBidwatcher {
   }
 
   private void uploadAuctionList(String fname) {
-    File fp = new File(fname);
-    if(fp.exists()) {
-      sendFile(fp, url(SYNC_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), "synchronize");
+    if(canSync()) {
+      File fp = new File(fname);
+      if (fp.exists()) {
+        sendFile(fp, url(SYNC_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), "synchronize");
+        MQFactory.getConcrete("Swing").enqueue("NOTIFY Finished synchronizing auctions to My JBidwatcher");
+      } else {
+        MQFactory.getConcrete("Swing").enqueue("NOTIFY No auctions file to synchronize to My JBidwatcher");
+      }
+    } else {
+      MQFactory.getConcrete("Swing").enqueue("NOTIFY Synchronizing auctions to My JBidwatcher is disabled");
     }
   }
 

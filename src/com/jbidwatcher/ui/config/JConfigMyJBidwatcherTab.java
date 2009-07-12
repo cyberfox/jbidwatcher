@@ -2,12 +2,13 @@ package com.jbidwatcher.ui.config;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
- * Developed by mrs (Morgan Schweers)
+m * Developed by mrs (Morgan Schweers)
  */
 
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.SpringUtilities;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.my.MyJBidwatcher;
 
 import java.awt.*;
@@ -22,6 +23,8 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
   private JTextField mEmail;
   private JTextField mPassword;
   private JButton mCreateOrUpdate;
+  private JLabel mStatusLabel;
+  private JButton mDoUpload;
   private Map<JCheckBox,String> mConfigurationMap = new HashMap<JCheckBox,String>();
   private Map<JCheckBox,String> mEnabledMap = new HashMap<JCheckBox,String>();
   private JLabel mListingStats;
@@ -29,7 +32,10 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
   private JLabel mSSLEnabled;
 
   public String getTabName() { return "My JBidwatcher"; }
-  public void cancel() { }
+  public void cancel() {
+    mStatusLabel.setIcon(null);
+    mStatusLabel.setText("");
+  }
 
   public boolean apply() {
     String email = mEmail.getText();
@@ -47,6 +53,10 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
         String cfg = mConfigurationMap.get(cb);
         JConfig.setConfiguration(cfg, Boolean.toString(cb.isSelected()));
       }
+
+    mStatusLabel.setIcon(null);
+    mStatusLabel.setText("");
+
     return true;
   }
 
@@ -71,6 +81,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     for(ActionListener al : mEnable.getActionListeners()) {
       al.actionPerformed(new ActionEvent(mEnable, ActionEvent.ACTION_PERFORMED, "Redraw"));
     }
+    mDoUpload.setEnabled(JConfig.queryConfiguration("my.jbidwatcher.uploaded") == null);
   }
 
   private void setComponentTooltip(JComponent comp, String text) {
@@ -105,7 +116,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     innerPanel.add(mPassword);
 
     Box button = Box.createHorizontalBox();
-    final JLabel statusLabel = new JLabel("");
+    mStatusLabel = new JLabel("");
     mCreateOrUpdate = new JButton("Test Access");
     mCreateOrUpdate.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent event) {
@@ -119,13 +130,13 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
         JConfig.setConfiguration("my.jbidwatcher.key", mPassword.getText());
 
         if(MyJBidwatcher.getInstance().getAccountInfo()) {
-          statusLabel.setIcon(successIcon);
-          statusLabel.setText("success!");
+          mStatusLabel.setIcon(successIcon);
+          mStatusLabel.setText("success!");
           if(JConfig.queryConfiguration("my.jbidwatcher.sync") == null) JConfig.setConfiguration("my.jbidwatcher.sync", "true");
           updateValues();
         } else {
-          statusLabel.setIcon(failIcon);
-          statusLabel.setText("failed.");
+          mStatusLabel.setIcon(failIcon);
+          mStatusLabel.setText("failed.");
         }
 
         JConfig.setConfiguration("my.jbidwatcher.id", oldId);
@@ -133,8 +144,20 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
       }
     });
     button.add(mCreateOrUpdate);
-    button.add(statusLabel);
-    innerPanel.add(new JLabel(""));
+    button.add(mStatusLabel);
+    mDoUpload = new JButton("Upload All");
+    mDoUpload.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        String action = e.getActionCommand();
+        if (action == null) return;
+
+        MQFactory.getConcrete("user").enqueue("Upload");
+        JConfig.setConfiguration("my.jbidwatcher.uploaded", "true");
+        mDoUpload.setEnabled(false);
+      }
+    });
+    mDoUpload.setEnabled(JConfig.queryConfiguration("my.jbidwatcher.uploaded") == null);
+    innerPanel.add(mDoUpload);
     innerPanel.add(button);
 
     SpringUtilities.makeCompactGrid(innerPanel, 3, 2, 6, 6, 6, 1);
@@ -155,6 +178,9 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
         mCreateOrUpdate.setEnabled(selected);
         for(JCheckBox cb : mEnabledMap.keySet()) {
           cb.setEnabled(selected && JConfig.queryConfiguration(mEnabledMap.get(cb), "false").equals("true"));
+        }
+        for (JCheckBox cb : mConfigurationMap.keySet()) {
+          cb.setSelected(selected && JConfig.queryConfiguration(mConfigurationMap.get(cb), "false").equals("true"));
         }
       }
     });
@@ -216,11 +242,17 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
 
   private JCheckBox createSettingsCheckbox(String text, String identifier) {
     String cfgAllowed = "my.jbidwatcher.allow." + identifier;
+    boolean allowed = JConfig.queryConfiguration(cfgAllowed, "false").equals("true");
     String cfgSetting = "my.jbidwatcher." + identifier;
+    boolean set = JConfig.queryConfiguration(cfgSetting, "false").equals("true");
     final JCheckBox cb = new JCheckBox(text);
-    cb.setEnabled(JConfig.queryConfiguration(cfgAllowed, "false").equals("true"));
+
+    cb.setEnabled(allowed);
+    cb.setSelected(set);
+
     mConfigurationMap.put(cb, cfgSetting);
     mEnabledMap.put(cb, cfgAllowed);
+
     return cb;
   }
 

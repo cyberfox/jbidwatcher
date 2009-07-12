@@ -103,6 +103,8 @@ public class UserActions implements MessageQueue.Listener {
       DoNeedHelp();
     } else if(commandStr.equals("Configure")) {
       DoConfigure();
+    } else if(commandStr.equals("Upload")) {
+      DoUploadAuctions();
     }
   }
 
@@ -1452,6 +1454,7 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("RSS")) DoRSS();
 
     else if(actionString.equals("Serialize")) DoSerialize();
+    else if(actionString.equals("Upload")) DoUploadAuctions();
 
     else if(actionString.equals("Paste")) DoPasteFromClipboard();
     else if(actionString.equals("CopyURL")) DoCopyURL(c_src, whichAuction);
