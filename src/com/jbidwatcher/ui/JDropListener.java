@@ -13,7 +13,6 @@ import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 import java.awt.datatransfer.Clipboard;
-import java.lang.reflect.*;
 
 public class JDropListener implements DropTargetListener {
   private JDropHandler handler;
@@ -235,50 +234,23 @@ public class JDropListener implements DropTargetListener {
     dumpDataFlavors(dfa);
   }
 
-  private Method getSpecialAPI() {
-    Class[] specialClasses = new Class[1];
-    java.lang.reflect.Method acting;
-
-    specialClasses[0] = Transferable.class;
-
-    try {
-      acting = DataFlavor.class.getMethod("getReaderForText", specialClasses);
-    } catch(NoSuchMethodException nsme) {
-      //  This is expected in earlier versions of the API!
-      JConfig.log().logDebug("No such method getReaderForText!");
-      return null;
-    }
-    return acting;
-  }
-
   private BufferedReader useNewAPI(Transferable t, DataFlavor dtf) {
-    java.lang.reflect.Method acting;
-    Object[] transfer = new Object[1];
     Reader dropReader = null;
     BufferedReader br;
 
-    acting = getSpecialAPI();
+    try {
+      //  Oddly enough, this appears to dump the text out to the
+      //  console under win32-jre-1.4.0_01-b03
+      dropReader = dtf.getReaderForText(t);
+    } catch (UnsupportedFlavorException e) {
+      JConfig.log().handleDebugException("Unable to read dropped data (bad flavor)", e);
+    } catch (IOException e) {
+      JConfig.log().handleDebugException("Unable to read dropped data (unspecific error)", e);
+    }
 
-    if(acting != null) {
-      try {
-        JConfig.log().logVerboseDebug("Trying getReaderForText");
-
-        //  This translates to:
-        //          dropped = dtf.getReaderForText(t);
-        //  Oddly enough, this appears to dump the text out to the
-        //  console under win32-jre-1.4.0_01-b03
-        transfer[0] = t;
-        dropReader = (Reader)(acting.invoke(dtf, transfer));
-      } catch(IllegalAccessException iae) {
-        JConfig.log().logDebug("Failed to invoke getReaderForText!  Illegal Access!");
-      } catch(InvocationTargetException ite) {
-        JConfig.log().logDebug("Failed to invoke getReaderForText!  Bad Invocation Target!");
-      }
-
-      if(dropReader != null) {
-        br = new BufferedReader(dropReader);
-        return(br);
-      }
+    if (dropReader != null) {
+      br = new BufferedReader(dropReader);
+      return (br);
     }
     return null;
   }
