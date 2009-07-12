@@ -235,7 +235,9 @@ public class MyJBidwatcher {
   }
 
   public boolean getAccountInfo() {
-    StringBuffer sb = http().get("https://my.jbidwatcher.com/services/account");
+    String suffix = JConfig.queryConfiguration("ebay.browse.site", "");
+    if(suffix.length() != 0 && !suffix.equals("0")) suffix = "?browse_to=" + suffix;
+    StringBuffer sb = http().get("https://my.jbidwatcher.com/services/account" + suffix);
     if(sb == null) return false;
     XMLElement xml = new XMLElement();
     xml.parseString(sb.toString());
