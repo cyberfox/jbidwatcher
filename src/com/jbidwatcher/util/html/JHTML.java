@@ -348,8 +348,16 @@ public class JHTML implements JHTMLListener {
 
   public String getTitle() {
     reset();
-    while(!"title".equalsIgnoreCase(getNextTag())) { }
-    return getNextContent();
+    String tagWalk = getNextTag();
+    while(tagWalk != null && !"title".equalsIgnoreCase(tagWalk)) {
+      tagWalk = getNextTag();
+    }
+    if(tagWalk == null) return null;
+
+    htmlToken t = nextToken();
+    while(t != null && t.getTokenType() != htmlToken.HTML_CONTENT) t = nextToken();
+
+    return t == null ? null : t.getToken();
   }
 
   public String getFirstContent() {
@@ -525,6 +533,7 @@ public class JHTML implements JHTMLListener {
   }
 
   public String getLinkForContent(String searchContent) {
+    reset();
     String lastTag = null;
     htmlToken curToken = nextToken();
 

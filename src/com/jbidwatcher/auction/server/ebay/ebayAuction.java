@@ -496,7 +496,9 @@ class ebayAuction extends SpecificAuction {
   private String checkTitle() throws ParseException {
     String prelimTitle = mDocument.getTitle();
     if( prelimTitle == null) {
-      prelimTitle = T.s("ebayServer.unavailable");
+      if(mDocument.grep("(?si).*not available for purchase on eBay United States.*") != null) {
+        prelimTitle = T.s("ebayServer.invalidItem");
+      } else prelimTitle = T.s("ebayServer.unavailable");
     }
     if(prelimTitle.equals(T.s("ebayServer.adultPageTitle")) || prelimTitle.indexOf("Terms of Use") != -1) {
       throw new ParseException(ParseErrors.NOT_ADULT);
