@@ -240,7 +240,7 @@ public class UserActions implements MessageQueue.Listener {
       //  pixels, the heading adds 30, but we don't want it to get
       //  larger than 756x372, so as to keep 800x600 users capable of
       //  reading it.
-      statusBox = new Dimension(756, Math.min(372, rowList.length * 30 + 30));
+      statusBox = new Dimension(756, Math.min(372, rowList.length * 27 + 90));
     } else {
       if(rowList.length == 1) {
         ae = (AuctionEntry) mTabs.getIndexedEntry(rowList[0]);
@@ -254,7 +254,7 @@ public class UserActions implements MessageQueue.Listener {
                   append(ae.getTitle()).
                   append("</td></tr></table>");
       deleteIds.add(ae);
-      statusBox = new Dimension(756, 45);
+      statusBox = new Dimension(756, 115);
     }
 
     List<String> buttons = new ArrayList<String>();
