@@ -171,7 +171,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    */
   private boolean doNextUpdate() {
     AuctionEntry result = mList.find(new Comparison() {
-      public boolean match(Object o) { return ((AuctionEntry) o).checkUpdate(); }
+      public boolean match(Object o) { if(o == null) return false; return ((AuctionEntry) o).checkUpdate(); }
     });
     if (result != null) {
       boolean forcedUpdate = result.isUpdateForced();
