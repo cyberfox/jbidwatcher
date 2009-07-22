@@ -11,11 +11,11 @@ import com.jbidwatcher.util.Currency;
 public class AuctionBid extends AuctionActionImpl {
   public AuctionBid() { super(); }
   public AuctionBid(String id, Currency amount, int quantity) {
-    super(id, amount, quantity);
+    super(id, amount.fullCurrency(), quantity);
   }
 
   public AuctionBid(AuctionEntry ae, Currency amount, int quantity) {
-    super(ae.getIdentifier(), amount, quantity);
+    super(ae.getIdentifier(), amount.fullCurrency(), quantity);
     EntryCorral.getInstance().put(ae);
   }
 

@@ -19,7 +19,7 @@ import com.jbidwatcher.util.Currency;
 public interface AuctionAction {
   public String activate();
   public int getResult();
-  public Currency getAmount();
+  public String getAmount();
   public int getQuantity();
 
   /**

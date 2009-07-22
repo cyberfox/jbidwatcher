@@ -21,11 +21,11 @@ import com.jbidwatcher.auction.server.AuctionServer;
  */
 public abstract class AuctionActionImpl implements AuctionAction {
   protected String mIdentifier;
-  protected Currency mAmount;
+  protected String mAmount;
   protected int mQuantity;
   int mResult = -1;
 
-  protected AuctionActionImpl(String id, Currency amount, int quantity) {
+  protected AuctionActionImpl(String id, String amount, int quantity) {
     mIdentifier = id;
     mAmount = amount;
     mQuantity = quantity;
@@ -34,15 +34,16 @@ public abstract class AuctionActionImpl implements AuctionAction {
   public AuctionActionImpl() { }
 
   public String activate() {
+    Currency amount = Currency.getCurrency(mAmount);
     JConfig.increment("stats.bid");
     AuctionEntry entry = EntryCorral.getInstance().takeForWrite(mIdentifier);
     try {
       if (entry == null) {
         mResult = AuctionServer.BID_ERROR_AUCTION_GONE;
-        return getBidResult(mAmount, mResult);
+        return getBidResult(amount, mResult);
       }
-      mResult = execute(entry, mAmount, mQuantity);
-      String bidResultString = getBidResult(mAmount, mResult);
+      mResult = execute(entry, amount, mQuantity);
+      String bidResultString = getBidResult(amount, mResult);
       entry.setLastStatus(bidResultString);
       entry.update();
       return bidResultString;
@@ -54,13 +55,12 @@ public abstract class AuctionActionImpl implements AuctionAction {
   protected abstract int execute(AuctionEntry ae, Currency curr, int quant);
 
   public void setIdentifier(String id) { mIdentifier = id; }
-  public void setAmount(Currency amount) { mAmount = amount; }
+  public void setAmount(String amount) { mAmount = amount; }
   public void setQuantity(int quantity) { mQuantity = quantity; }
 
   public String getIdentifier() { return mIdentifier; }
-  public Currency getAmount() { return mAmount; }
+  public String getAmount() { return mAmount; }
   public int getQuantity() { return mQuantity; }
-
 
   public int getResult() { return mResult; }
   public boolean isSuccessful() {
