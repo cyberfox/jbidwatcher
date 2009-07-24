@@ -35,9 +35,10 @@ public class FilterManager implements MessageQueue.Listener {
 
     MQFactory.getConcrete("delete").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
-        AuctionEntry ae = EntryCorral.getInstance().takeForWrite(deQ.toString());  //  Lock the item
-        EntryCorral.getInstance().erase(ae.getIdentifier());  //  Remove and unlock it
+        AuctionEntry ae = EntryCorral.getInstance().takeForRead(deQ.toString());  //  Lock the item
         deleteAuction(ae);
+        ae = EntryCorral.getInstance().takeForWrite(deQ.toString());  //  Lock the item
+        EntryCorral.getInstance().erase(ae.getIdentifier());  //  Remove and unlock it
       }
     });
   }

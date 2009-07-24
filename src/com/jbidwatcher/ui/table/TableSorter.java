@@ -124,17 +124,17 @@ public class TableSorter extends Transformation implements TableModelListener {
   public synchronized Object getValueAt(int row, int col) { return m_tm.getValueAt(row, col); }
 
   public synchronized boolean delete(Object o) {
-    int myRow = m_tm.findRow(o);
-    final Object deleted = o;
+    final int myRow = m_tm.findRow(o);
+//    final Object deleted = o;
     final TableSorter sorter = this;
     if(myRow == -1) return false;
+    final Selection save = new Selection(_table, _sorted);
+    save.delete(myRow);
+    m_tm.delete(myRow);
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        Selection save = new Selection(_table, _sorted);
-        int row = m_tm.findRow(deleted);
-        save.delete(row);
-        m_tm.delete(row);
-        _table.tableChanged(new TableModelEvent(sorter, row, row, TableModelEvent.ALL_COLUMNS, TableModelEvent.DELETE));
+//        int row = m_tm.findRow(deleted);
+        _table.tableChanged(new TableModelEvent(sorter, myRow, myRow, TableModelEvent.ALL_COLUMNS, TableModelEvent.DELETE));
         restoreSelection(save);
       }
     });
