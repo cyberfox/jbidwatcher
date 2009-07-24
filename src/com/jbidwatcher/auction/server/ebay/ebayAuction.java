@@ -418,7 +418,8 @@ class ebayAuction extends SpecificAuction {
 
     setFixedPrice(false);
     setNumBids(getBidCount(mDocument, getQuantity()));
-    if(!isFixedPrice() && quant != null) setDutch(true);
+    //  Once upon a time, quantity could mean 'dutch', but that listing format is gone.
+    if(quant != null) setFixedPrice(true);
 
     try {
       loadBuyNow();
@@ -803,9 +804,8 @@ class ebayAuction extends SpecificAuction {
           email = findHighBidderEmail(bidder);
         }
       } else {
-        if (getQuantity() > 1 || isDutch()) {
-          setDutch(true);
-          bidder = "(dutch)";
+        if (getQuantity() > 1) {
+          bidder = "(multiple)";
         } else {
           if (getNumBids() != 0) {
             bidder = mDocument.getNextContentAfterRegex(T.s("ebayServer.highBidder"));

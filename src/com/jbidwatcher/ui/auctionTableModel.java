@@ -366,7 +366,7 @@ public class auctionTableModel extends BaseTransformation
         case TableColumnController.ID: return aEntry.getIdentifier();
         case TableColumnController.CUR_BID:
           if(aEntry.isFixed()) {
-            return aEntry.getCurBid() + " (FP)";
+            return aEntry.getCurBid() + " (FP" + ((aEntry.getQuantity() > 1) ? " x " + aEntry.getQuantity() + ")" : ")");
           } else {
             if(aEntry.isDutch()) {
               return aEntry.getCurBid() + " x " + Integer.toString(aEntry.getQuantity());
