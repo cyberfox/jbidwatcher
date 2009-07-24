@@ -212,7 +212,7 @@ public class Table
       ResultSet rs = mS.executeQuery(query);
       return getAllResults(rs);
     } catch (SQLException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      JConfig.log().handleDebugException("Error running query: " + query, e);
       return null;
     }
   }
