@@ -365,6 +365,9 @@ class ebayAuction extends SpecificAuction {
         i++;
       }
     }
+
+    String payments = doc.getNextContentAfterContent("Payments:");
+    if (payments != null && payments.matches("(?si).*paypal.*")) setPaypal(true);
   }
 
   private void loadFeedback(JHTML doc) {
@@ -378,9 +381,14 @@ class ebayAuction extends SpecificAuction {
       if(score != null && StringTools.isNumberOnly(score)) mSeller.setFeedback(Integer.parseInt(score));
     }
 
-    String percentage = doc.getNextContentAfterContent(T.s("ebayServer.feedback"));
-    if(percentage != null) mSeller.setPositivePercentage(percentage);
-    else mSeller.setPositivePercentage("100");
+    String newPercent = doc.getContentBeforeContent("&#160;Positive feedback");
+    if(newPercent != null && newPercent.matches("[0-9]+(\\.[0-9])?%")) {
+      mSeller.setPositivePercentage(newPercent);
+    } else {
+      String percentage = doc.getNextContentAfterContent(T.s("ebayServer.feedback"));
+      if(percentage != null) mSeller.setPositivePercentage(percentage);
+      else mSeller.setPositivePercentage("100");
+    }
   }
 
   /**
