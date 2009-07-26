@@ -495,7 +495,7 @@ public class XMLElement implements XMLSerialize {
    */
   protected static boolean isIdentifierChar(char ch) {
     return (((ch >= 'A') && (ch <= 'Z')) || ((ch >= 'a') && (ch <= 'z'))
-            || ((ch >= '0') && (ch <= '9')) || (".-_:".indexOf(ch) >= 0));
+            || ((ch >= '0') && (ch <= '9')) || ("?.-_:".indexOf(ch) >= 0));
   }
 
 
@@ -981,6 +981,7 @@ public class XMLElement implements XMLSerialize {
     String key = scanIdentifier(input, offset, end);
 
     if (key == null) {
+      System.err.println("scanIdentifier(\"" + new String(input) + "\", " + offset + ", " + end);
       throw syntaxError("an attribute key (" + new String(input) + ")", lineNr[0]);
     }
 
