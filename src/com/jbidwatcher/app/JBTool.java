@@ -16,6 +16,8 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.ToolInterface;
 import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.util.html.JHTML;
+import com.jbidwatcher.util.html.htmlToken;
 import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.my.MyJBidwatcher;
 import com.jbidwatcher.search.SearchManager;
@@ -60,6 +62,14 @@ public class JBTool implements ToolInterface {
     huc.setRequestProperty("Authorization", "Basic " + Base64.encodeString(user + ":" + key));
     String url = StringTools.cat(huc.getInputStream());
     System.out.println("URL == " + url);
+  }
+
+  private void testBidHistory(String file) {
+    StringBuffer sb = new StringBuffer(StringTools.cat(file));
+    JHTML hDoc = new JHTML(sb);
+    List<List<htmlToken>> tableList = hDoc.extractTables();
+
+    System.err.println("There were " + tableList.size() + " tables.");
   }
 
   private void testSearching() {
@@ -172,14 +182,22 @@ public class JBTool implements ToolInterface {
   private List<String> parseOptions(String[] args) {
     List<String> options = new LinkedList<String>();
     List<String> params = new LinkedList<String>();
+    boolean append=false;
 
     for(String arg : args) {
-      if(arg.charAt(0) == '-') {
-        int skip = 1;
-        if(arg.charAt(1) == '-') skip = 2;
-        options.add(arg.substring(skip));
+      if(append) {
+        String last = options.get(options.size()-1);
+        last = last.substring(0, last.length()-1) + ' ' + arg;
+        options.set(options.size()-1, last);
       } else {
-        params.add(arg);
+        if (arg.charAt(0) == '-') {
+          int skip = 1;
+          if (arg.charAt(1) == '-') skip = 2;
+          options.add(arg.substring(skip));
+          if (arg.charAt(arg.length() - 1) == '\\') append = true;
+        } else {
+          params.add(arg);
+        }
       }
     }
 
@@ -192,6 +210,7 @@ public class JBTool implements ToolInterface {
         }
         return params;
       }
+      if(option.equals("accountinfo")) { testAccountInfo(); return params; }
       if(option.equals("searching")) { testSearching(); return params; }
       if(option.equals("server")) mRunServer = true;
       if(option.startsWith("port=")) mPortNumber = option.substring(5);
@@ -210,6 +229,7 @@ public class JBTool implements ToolInterface {
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
       if(option.startsWith("file=")) mParseFile = option.substring(5);
+      if(option.startsWith("bidfile=")) testBidHistory(option.substring(8));
       if(option.startsWith("adult")) JConfig.setConfiguration("ebay.mature", "true");
       if(option.startsWith("upload=")) MyJBidwatcher.getInstance().sendFile(new File(option.substring(7)), "http://my.jbidwatcher.com/upload/log", "cyberfox@jbidwatcher.com", "This is a <test> of descriptions & stuff.");
     }
@@ -218,6 +238,9 @@ public class JBTool implements ToolInterface {
       mPassword = mUsername = "default";
     }
     return params;
+  }
+
+  private void testAccountInfo() {
   }
 
   public static int getSiteNumber(String site) {

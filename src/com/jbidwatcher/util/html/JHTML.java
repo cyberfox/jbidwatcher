@@ -686,4 +686,55 @@ public class JHTML implements JHTMLListener {
   public void setCharset(String charset) {
     mCharset = charset;
   }
+
+  private boolean isToken(htmlToken tok, int tokenType, String tag) {
+    return tok.getTokenType() == tokenType && tok.getToken().regionMatches(true, 0, tag, 0, tag.length());
+  }
+
+  public List<List<htmlToken>> extractTables() {
+    List<List<htmlToken>> tableList = new ArrayList<List<htmlToken>>(1);
+    List<htmlToken> currentTable = null;
+    List<String> headers = null;
+    String curHdr = null;
+
+    htmlToken tok = nextToken();
+    while (tok != null) {
+      if (isToken(tok, htmlToken.HTML_TAG, "table")) {
+        currentTable = new ArrayList<htmlToken>();
+        tableList.add(currentTable);
+        headers = new ArrayList<String>();
+      }
+
+      if (currentTable != null) {
+        if (isToken(tok, htmlToken.HTML_ENDTAG, "/tr")) {
+          boolean first = true;
+          for (String hdr : headers) {
+            if (!first) System.out.print(", ");
+            System.out.print(hdr);
+            first = false;
+          }
+          if (headers.size() != 0) System.out.println();
+          headers = new ArrayList<String>();
+        } else {
+          if (isToken(tok, htmlToken.HTML_TAG, "td") || isToken(tok, htmlToken.HTML_TAG, "th")) {
+            curHdr = "";
+          } else if (isToken(tok, htmlToken.HTML_ENDTAG, "/td") || isToken(tok, htmlToken.HTML_ENDTAG, "/th")) {
+            if (curHdr != null && curHdr.length() != 0) headers.add(curHdr);
+            curHdr = null;
+          }
+        }
+        if (tok.getTokenType() == htmlToken.HTML_CONTENT && curHdr != null) {
+          if (curHdr.length() != 0) curHdr += ' ';
+          curHdr += tok.getToken();
+        }
+        currentTable.add(tok);
+      }
+      if (isToken(tok, htmlToken.HTML_ENDTAG, "/table")) {
+        System.out.println();
+        currentTable = null;
+      }
+      tok = nextToken();
+    }
+    return tableList;
+  }
 }

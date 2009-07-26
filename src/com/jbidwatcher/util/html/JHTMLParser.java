@@ -239,7 +239,7 @@ public class JHTMLParser {
 
     int i = workingString.indexOf("&nbsp;");
     while(i != -1) {
-      workingString = workingString.substring(0, i) + workingString.substring(i+6);
+      workingString = workingString.substring(0, i) + ' ' + workingString.substring(i+6);
 
       i = workingString.indexOf("&nbsp;");
     }
