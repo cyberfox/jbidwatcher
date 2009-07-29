@@ -13,7 +13,7 @@
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidwatcher" />
-  <property name="VER" value="2.1pre1" />
+  <property name="VER" value="2.1pre3" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
@@ -286,8 +286,6 @@
 
     <copy file="${packaging}/JavaApplicationStub" todir="${osx.app.path}/Contents/MacOS" />
     <chmod file="${osx.app.path}/Contents/MacOS/JavaApplicationStub" perm="755" />
-    <copy file="${packaging}/JBidLauncher" todir="${osx.app.path}/Contents/MacOS" />
-    <chmod file="${osx.app.path}/Contents/MacOS/JBidLauncher" perm="755" />
     <copy file="${packaging}/Info.plist" todir="${osx.app.path}/Contents" />
     <copy file="${packaging}/PkgInfo" todir="${osx.app.path}/Contents" />
     <copy file="${packaging}/jbidicon.icns" todir="${osx.app.path}/Contents/Resources" />
@@ -311,7 +309,6 @@
   <target name="osx-app">
     <tar destfile="${APPFILE}" compression="gzip">
       <tarfileset dir="${osx.app.path}" prefix="${app.name}.app" mode="755">
-	<include name="Contents/MacOS/JBidLauncher" />
 	<include name="Contents/MacOS/JavaApplicationStub" />
 	<include name="Contents/Resources/Java/libquaqua.jnilib" />
       </tarfileset>
@@ -321,7 +318,6 @@
 	<exclude name="Contents/MacOS" />
 	<exclude name="Contents/Resources" />
 	<exclude name="Contents/Resources/Java" />
-	<exclude name="Contents/MacOS/JBidLauncher" />
 	<exclude name="Contents/MacOS/JavaApplicationStub" />
 	<exclude name="Contents/Resources/Java/libquaqua.jnilib" />
       </tarfileset>
