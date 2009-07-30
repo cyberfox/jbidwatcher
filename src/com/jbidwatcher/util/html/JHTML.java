@@ -691,9 +691,43 @@ public class JHTML implements JHTMLListener {
     return tok.getTokenType() == tokenType && tok.getToken().regionMatches(true, 0, tag, 0, tag.length());
   }
 
-  public List<List<htmlToken>> extractTables() {
+  public class Table {
+    private List<List<String>> data;
+
+    public Table() {
+      data = new ArrayList<List<String>>();
+    }
+
+    public void addRow(List<String> newRow) {
+      data.add(newRow);
+    }
+
+    public String getCell(int col, int row) {
+      return data.get(row).get(col);
+    }
+
+    public List<String> getRow(int row) {
+      return data.get(row);
+    }
+
+    public boolean rowCellMatches(int row, String regexp) {
+      if(data.size() == 0) return false;
+      for(String cell : data.get(row)) {
+        if(cell.matches(regexp)) return true;
+      }
+      return false;
+    }
+
+    public int getRowCount() {
+      return data.size();
+    }
+  }
+
+  public List<Table> extractTables() {
     List<List<htmlToken>> tableList = new ArrayList<List<htmlToken>>(1);
+    List<Table> tableContents = new ArrayList<Table>(1);
     List<htmlToken> currentTable = null;
+    Table currentTableContents = null;
     List<String> headers = null;
     String curHdr = null;
 
@@ -701,6 +735,7 @@ public class JHTML implements JHTMLListener {
     while (tok != null) {
       if (isToken(tok, htmlToken.HTML_TAG, "table")) {
         currentTable = new ArrayList<htmlToken>();
+        currentTableContents = new Table();
         tableList.add(currentTable);
         headers = new ArrayList<String>();
       }
@@ -708,12 +743,21 @@ public class JHTML implements JHTMLListener {
       if (currentTable != null) {
         if (isToken(tok, htmlToken.HTML_ENDTAG, "/tr")) {
           boolean first = true;
+          List<String> curRow = null;
           for (String hdr : headers) {
-            if (!first) System.out.print(", ");
-            System.out.print(hdr);
-            first = false;
+            if (!first) {
+//              System.out.print(", ");
+            } else {
+              curRow = new ArrayList<String>(headers.size());
+              first = false;
+            }
+            curRow.add(hdr);
+//            System.out.print(hdr);
           }
-          if (headers.size() != 0) System.out.println();
+          if (headers.size() != 0) {
+            currentTableContents.addRow(curRow);
+//            System.out.println();
+          }
           headers = new ArrayList<String>();
         } else {
           if (isToken(tok, htmlToken.HTML_TAG, "td") || isToken(tok, htmlToken.HTML_TAG, "th")) {
@@ -730,11 +774,12 @@ public class JHTML implements JHTMLListener {
         currentTable.add(tok);
       }
       if (isToken(tok, htmlToken.HTML_ENDTAG, "/table")) {
-        System.out.println();
+//        System.out.println();
+        tableContents.add(currentTableContents);
         currentTable = null;
       }
       tok = nextToken();
     }
-    return tableList;
+    return tableContents;
   }
 }

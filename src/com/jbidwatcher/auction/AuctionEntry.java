@@ -662,7 +662,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public void updateHighBid() {
     int numBidders = getNumBidders();
 
-    if (numBidders > 0 && isOutbid()) {
+    if (numBidders > 0 /* && isOutbid() */) {
       getServer().updateHighBid(this);
     }
   }

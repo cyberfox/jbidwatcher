@@ -491,7 +491,7 @@ public class AuctionInfo extends ActiveRecord
   public Date getEnd() { return getDate("end"); }
 
   public void setIdentifier(String id) { setString("identifier", id); }
-  protected void setHighBidder(String highBidder) { setString("highBidder", highBidder); }
+  public void setHighBidder(String highBidder) { setString("highBidder", highBidder); }
   protected void setTitle(String title) { setString("title", title); }
   protected void setHighBidderEmail(String highBidderEmail) { setString("highBidderEmail", highBidderEmail); }
   protected void setItemLocation(String itemLocation) { setString("itemLocation", itemLocation); }

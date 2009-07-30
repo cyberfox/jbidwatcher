@@ -133,46 +133,44 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     JHTML htmlDocument = new JHTML(bidHistory, userCookie, mCleaner);
 
     if(htmlDocument.isLoaded()) {
-      String newCurrency = htmlDocument.getNextContentAfterContent(mLogin.getUserId());
-
-      //  If we couldn't find anything, ditch, because we're probably wrong that the user is in the high bid table.
-      if(newCurrency == null) return;
-
-      //  If we're dealing with feedback, skip it.
-      if(StringTools.isNumberOnly(newCurrency)) newCurrency = htmlDocument.getNextContent(); //  Skip feedback number
-      int bidCount = 1;
-
-      //  Check the next two columns for acceptable values.
-      for(int i=0; i<2; i++) {
-        Currency highBid = Currency.getCurrency(newCurrency);
-        if(!highBid.isNull()) {
-          if(ae.isDutch()) {
-            String quant = htmlDocument.getNextContent();
-            try {
-              bidCount = Integer.parseInt(quant);
-            } catch(NumberFormatException ignored) {
-              //  We don't care what happened, that it's not a number means the bid count is 1.
-              bidCount = 1;
+      List<JHTML.Table> bidderTables = htmlDocument.extractTables();
+      for (JHTML.Table t : bidderTables) {
+        if (t.rowCellMatches(0, "Bidder")) {
+          int bidCount = t.getRowCount() - 2; // 1 for the header, and 1 for the Starting Price
+          int myMostRecentRow = -1;
+          for(int i=1; i<t.getRowCount()-1; i++) {
+            if(t.getCell(0, i).equals(mLogin.getUserId())) {
+              myMostRecentRow = i;
+              break;
             }
           }
-          try {
-            if(!ae.isBidOn() || ae.getBid().less(highBid)) {
-              ae.setBid(highBid);
-              ae.setBidQuantity(bidCount);
-              ae.saveDB();
+          if(myMostRecentRow != -1) {
+            String newCurrency = t.getCell(1, myMostRecentRow);
+            if (newCurrency != null) {
+              Currency highBid = Currency.getCurrency(newCurrency);
+              try {
+                if (!ae.isBidOn() || ae.getBid().less(highBid)) {
+                  ae.setBid(highBid);
+                  ae.setBidQuantity(bidCount);
+                  ae.saveDB();
+                }
+              } catch (Currency.CurrencyTypeException cte) {
+                //  Bad things happen here.  Ignore it for now.
+              }
             }
-          } catch(Currency.CurrencyTypeException cte) {
-            //  Bad things happen here.  Ignore it for now.
+          }
+          if(bidCount > 0) {
+            AuctionInfo ai = ae.getAuction();
+            ai.setHighBidder(t.getCell(0, 1));
+            ai.saveDB();
           }
         }
-        newCurrency = htmlDocument.getNextContent();
       }
     }
   }
-
-  /**
-   * @brief Process an action, based on messages passed through our internal queues.
-   */
+    /**
+     * @brief Process an action, based on messages passed through our internal queues.
+     */
   public void messageAction(Object deQ) {
     AuctionQObject ac = (AuctionQObject)deQ;
     String failString = null;
