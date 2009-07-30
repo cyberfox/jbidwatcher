@@ -93,9 +93,11 @@ public class EventLogger implements XMLSerialize {
       xmsg.setContents(curEvent.getMessage());
       xmlResult.addChild(xmsg);
 
-      XMLElement xdate = new XMLElement("date");
-      xdate.setContents(Long.toString(curEvent.getLoggedAt().getTime()));
-      xmlResult.addChild(xdate);
+      if (curEvent.getLoggedAt() != null) {
+        XMLElement xdate = new XMLElement("date");
+        xdate.setContents(Long.toString(curEvent.getLoggedAt().getTime()));
+        xmlResult.addChild(xdate);
+      }
 
       xmlLog.addChild(xmlResult);
     }
