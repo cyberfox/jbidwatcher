@@ -17,7 +17,6 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.ToolInterface;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.util.html.htmlToken;
 import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.my.MyJBidwatcher;
 import com.jbidwatcher.search.SearchManager;
@@ -67,9 +66,17 @@ public class JBTool implements ToolInterface {
   private void testBidHistory(String file) {
     StringBuffer sb = new StringBuffer(StringTools.cat(file));
     JHTML hDoc = new JHTML(sb);
-    List<List<htmlToken>> tableList = hDoc.extractTables();
+    List<JHTML.Table> tableList = hDoc.extractTables();
 
     System.err.println("There were " + tableList.size() + " tables.");
+
+    for(JHTML.Table t : tableList) {
+      if(t.rowCellMatches(0, "Bidder")) {
+        for(int i=1; i<t.getRowCount()-1; i++) {
+          System.err.println("Bidder #" + i + ": " + t.getCell(0, i));
+        }
+      }
+    }
   }
 
   private void testSearching() {
