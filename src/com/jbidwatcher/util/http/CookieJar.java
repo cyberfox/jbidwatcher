@@ -110,7 +110,15 @@ public class CookieJar {
   }
 
   private URLConnection internal_connect(String page, String body, String referer, boolean post, List<String> pages) {
-    handleInfiniteRedirection(page);
+    if(handleInfiniteRedirection(page)) {
+      //  If we're posting, and we hit an infloop, maybe we don't want to re-submit the data...
+      if(post) {
+        post = false;
+        body = null;
+      } else {
+        throw new CookieRedirectException("Looped redirect to " + page, null);
+      }
+    }
 
     if(pages != null) pages.add(page);
 
@@ -140,11 +148,12 @@ public class CookieJar {
     return uc;
   }
 
-  private void handleInfiniteRedirection(String page) {
+  private boolean handleInfiniteRedirection(String page) {
     Integer pageCount = mRedirections.get(page);
     if(pageCount == null) pageCount = 0;
-    if(pageCount == 2) throw new CookieRedirectException("Looped redirect to " + page, null);
+    if(pageCount >= 2) return true;
     mRedirections.put(page, pageCount+1);
+    return false;
   }
 
   private String handleRedirect(HttpURLConnection uc, String pageName) {
