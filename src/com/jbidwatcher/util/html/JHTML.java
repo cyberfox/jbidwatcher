@@ -316,8 +316,13 @@ public class JHTML implements JHTMLListener {
     if(newToken.getToken().toLowerCase().startsWith("form")) {
       if (m_curForm != null) {
         m_formList.add(m_curForm);
+        m_curForm = null;
       }
-      m_curForm = new Form(newToken.getToken());
+      try {
+        m_curForm = new Form(newToken.getToken());
+      } catch (com.jbidwatcher.util.xml.XMLParseException parseException) {
+        JConfig.log().handleException("Form parsing failure: " + parseException, parseException);
+      }
     } else if(newToken.getToken().toLowerCase().startsWith("/form")) {
       if(m_curForm != null) m_formList.add(m_curForm);
       m_curForm = null;
@@ -671,7 +676,7 @@ public class JHTML implements JHTMLListener {
    */
   public JHTML(String newURL, String cookie, CleanupHandler cl) {
     setup();
-  	loadParseURL(newURL, cookie, cl);
+    loadParseURL(newURL, cookie, cl);
   }
 
   public JHTML.Form getFormWithInput(String input) {
@@ -746,17 +751,14 @@ public class JHTML implements JHTMLListener {
           List<String> curRow = null;
           for (String hdr : headers) {
             if (!first) {
-//              System.out.print(", ");
             } else {
               curRow = new ArrayList<String>(headers.size());
               first = false;
             }
             curRow.add(hdr);
-//            System.out.print(hdr);
           }
           if (headers.size() != 0) {
             currentTableContents.addRow(curRow);
-//            System.out.println();
           }
           headers = new ArrayList<String>();
         } else {
@@ -774,7 +776,6 @@ public class JHTML implements JHTMLListener {
         currentTable.add(tok);
       }
       if (isToken(tok, htmlToken.HTML_ENDTAG, "/table")) {
-//        System.out.println();
         tableContents.add(currentTableContents);
         currentTable = null;
       }
