@@ -1084,21 +1084,14 @@ public class XMLElement implements XMLSerialize, XMLInterface {
    *    if an error occured while parsing the array
    */
   protected int skipBogusTag(char[] input, int startLoc, int end, int[] lineNr) {
-    int offset = startLoc;
-    if ((input[offset + 1] == '-') && (input[offset + 2] == '-')) {
-      while ((offset < end) && ((input[offset] != '-')
-                                || (input[offset + 1] != '-')
-                                || (input[offset + 2] != '>'))) {
-        offset += nextCharCountSkipEOL(input, offset, end, lineNr);
-      }
-
-      if (offset == end) {
-        throw unexpectedEndOfData(lineNr[0]);
-      } else {
-        return offset + 3;
-      }
+    if(isComment(input, startLoc)) {
+      return skipComment(input, end, lineNr, startLoc);
+    } else {
+      return findTagEnd(input, end, lineNr, startLoc);
     }
+  }
 
+  private int findTagEnd(char[] input, int end, int[] lineNr, int offset) {
     int level = 1;
 
     while (offset < end) {
@@ -1137,6 +1130,21 @@ public class XMLElement implements XMLSerialize, XMLInterface {
     throw unexpectedEndOfData(lineNr[0]);
   }
 
+  private boolean isComment(char[] input, int offset) {return (input[offset + 1] == '-') && (input[offset + 2] == '-');}
+
+  private int skipComment(char[] input, int end, int[] lineNr, int offset) {
+    while ((offset < end) && ((input[offset] != '-')
+                              || (input[offset + 1] != '-')
+                              || (input[offset + 2] != '>'))) {
+      offset += nextCharCountSkipEOL(input, offset, end, lineNr);
+    }
+
+    if (offset == end) {
+      throw unexpectedEndOfData(lineNr[0]);
+    } else {
+      return offset + 3;
+    }
+  }
 
   /**
    * Skips a tag that don't contain any useful data: &lt;?...?&gt;,
@@ -1165,16 +1173,14 @@ public class XMLElement implements XMLSerialize, XMLInterface {
 
       offset++;
 
-      if (offset >= end) {
-        throw unexpectedEndOfData(lineNr[0]);
-      }
+      if (offset >= end) throw unexpectedEndOfData(lineNr[0]);
 
       ch = input[offset];
 
       if ((ch == '!') || (ch == '?')) {
         offset = skipBogusTag(input, offset, end, lineNr);
       }
-    } while (! isIdentifierChar(ch));
+    } while (ch == '?' || !isIdentifierChar(ch));
 
     return offset;
   }
