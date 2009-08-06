@@ -135,7 +135,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           }
           if(bidCount > 0) {
             AuctionInfo ai = ae.getAuction();
-            ai.setHighBidder(t.getCell(0, 1));
+            String highBidder = t.getCell(0, 1);
+            int feedbackStart = highBidder.indexOf(" (");
+            if(feedbackStart != -1) {
+              highBidder = highBidder.substring(0, feedbackStart);
+            }
+            ai.setHighBidder(highBidder);
             ai.saveDB();
           }
         }

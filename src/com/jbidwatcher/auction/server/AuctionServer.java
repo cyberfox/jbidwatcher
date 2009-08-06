@@ -367,7 +367,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
    * than the current username.  True if the current app user is the same as the username passed in.
    */
   public boolean isCurrentUser(String username) {
-    return !(username == null || isDefaultUser() || !getUserId().trim().equalsIgnoreCase(username.trim()));
+    return !(username == null || isDefaultUser()) && getUserId().trim().equalsIgnoreCase(username.trim());
   }
 
   public AuctionServer getBackupServer() {
