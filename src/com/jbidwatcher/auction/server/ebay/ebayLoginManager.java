@@ -303,7 +303,7 @@ public class ebayLoginManager implements LoginManager {
     }
   }
 
-  private boolean checkSecurityConfirmation(JHTML doc) throws IOException, CaptchaException {
+  private boolean checkSecurityConfirmation(JHTML doc) throws CaptchaException {
     if(doc.grep(T.s("security.measure")) != null ||
        doc.grep(T.s("enter.verification.code")) != null ||
        doc.grep(T.s("enter.a.verification.code.to.continue")) != null ||

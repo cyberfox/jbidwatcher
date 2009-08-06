@@ -15,8 +15,8 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLInterface;
 
-import java.io.FileNotFoundException;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.*;
@@ -84,27 +84,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return mSnipe;
   }
 
-  public static class AuctionComparator implements Comparator<AuctionEntry>
-  {
-    /**
-     * @param o1 - The first auction entry.
-     * @param o2 - The second auction entry.
-     * @return -1 if o1 < o2, 0 if o1 == o2, 1 if o1 > o2.
-     * @brief Compare two auction objects for ordering by end-date.
-     */
-    public int compare(AuctionEntry o1, AuctionEntry o2) {
-      if (o1 == null && o2 == null) return 0;
-      if (o1 == null) return -1;
-      if (o2 == null) return 1;
-
-      int result = o1.getEndDate().compareTo(o2.getEndDate());
-      if (result == 0) {
-        result = o1.compareTo(o2);
-      }
-      return result;
-    }
-  }
-
   /** All the auction-independant information like high bidder's name,
    * seller's name, etc...  This is directly queried when this object
    * is queried about any of those fields.
@@ -159,11 +138,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * How much was a cancelled snipe for?  (Recordkeeping)
    */
   private Currency mCancelSnipeBid = null;
-
-  /**
-   * How many items are to be sniped on, but were cancelled?
-   */
-  private int mCancelSnipeQuant =1;
 
   /**
    * What AuctionServer is responsible for handling this
@@ -607,18 +581,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   /**
-   * @brief Determine how long before the auction-end is the default
-   * snipe set to fire?
-   *
-   * @return The number of milliseconds prior to auction end that a
-   * snipe should fire.
-   */
-  public static long getDefaultSnipeTime() {
-    sDefaultSnipeAt = getGlobalSnipeTime();
-    return sDefaultSnipeAt;
-  }
-
-  /**
    * @brief Set how long before auctions are complete to fire snipes
    * for any auction using the default snipe timer.
    *
@@ -662,7 +624,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public void updateHighBid() {
     int numBidders = getNumBidders();
 
-    if (numBidders > 0 /* && isOutbid() */) {
+    if (numBidders > 0 || isFixed()) {
       getServer().updateHighBid(this);
     }
   }
@@ -698,14 +660,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         setWinning(getServer().isCurrentUser(getHighBidder()));
       }
     }
-  }
-
-  /**
-   * @brief Determine if we're a high bidder on a multi-item ('dutch')
-   * auction.
-   */
-  public void checkDutchHighBidder() {
-    setWinning(getServer().isHighDutch(this));
   }
 
   /**
@@ -1017,7 +971,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *
    * @param inXML - The XMLElement that contains the items to load.
    */
-  public void fromXML(XMLElement inXML) {
+  public void fromXML(XMLInterface inXML) {
     String inID = inXML.getProperty("ID", null);
     if(inID != null) {
       mAuction = new AuctionInfo();
@@ -1082,14 +1036,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public Currency getCancelledSnipe() { return mCancelSnipeBid; }
 
   /**
-   * @brief Return the quantity that the snipe bid was for, before it
-   * was cancelled.
-   *
-   * @return - A number of items (for dutch only) that were to be bid on.
-   */
-  public int getCancelledSnipeQuantity() { return mCancelSnipeQuant; }
-
-  /**
    * Cancel the snipe and clear the multisnipe setting.  This is used for
    * user-driven snipe cancellations, and errors like the listing going away.
    *
@@ -1107,7 +1053,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       setLastStatus("Cancelling snipe.");
       if(after_end) {
         mCancelSnipeBid = getSnipe().getAmount();
-        mCancelSnipeQuant = getSnipe().getQuantity();
       }
     }
   }
@@ -1154,7 +1099,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     try {
       updateHighBid();
       checkHighBidder();
-      if(isDutch()) checkDutchHighBidder();
     } catch(Exception e) {
       JConfig.log().handleException("Unexpected exception during high bidder check.", e);
     }
@@ -1230,18 +1174,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public void refreshSnipe() {
     getServer().cancelSnipe(getIdentifier());
     getServer().setSnipe(this);
-  }
-
-  /** @brief Actually bid on a single item for a given price.
-   *
-   * Also called by the snipe() function, to actually bid.
-   *
-   * @param bid - The amount of money to bid on 1 of this item.
-   *
-   * @return The result of the bid attempt.
-   */
-  public int bid(Currency bid) {
-    return( bid(bid, 1) );
   }
 
   /**
@@ -1633,7 +1565,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   public String getSeller() { return getAuction().getSellerName(); }
   public String getHighBidder() { return getAuction().getHighBidder(); }
-  public String getHighBidderEmail() { return getAuction().getHighBidderEmail(); }
   public String getTitle() { return getAuction().getTitle(); }
 
   public Date getStartDate() {
@@ -1660,7 +1591,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public boolean isReserveMet() { return getAuction().isReserveMet(); }
   public boolean isPrivate() { return getAuction().isPrivate(); }
   public boolean isFixed() { return getAuction().isFixedPrice(); }
-  public boolean isOutbid() { return getAuction().isOutbid(); }
 
   public StringBuffer getContent() { return getAuction().getContent(); }
   public File getContentFile() { return getAuction().getContentFile(); }
@@ -1695,14 +1625,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public boolean isShippingOverridden() {
     Currency ship = getMonetary("shipping");
     return ship != null && !ship.isNull();
-  }
-
-  public String getURL() {
-    return getServer().getStringURLFromItem(getAuction().getIdentifier());
-  }
-
-  public StringBuffer getBody() throws FileNotFoundException {
-    return getServer().getAuction(StringTools.getURLFromString(getURL()));
   }
 
   /**
@@ -1934,13 +1856,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public static final String newCol = "</td><td>";
   public static final String endRow = "</td></tr>";
 
+  // TODO -- Extract this crap out to a EntryHTMLBuilder class, which gets instantiated with an AuctionEntry object.
   public String buildInfoHTML() {
-    return buildInfoHTML(false, false);
+    return buildInfoHTML(false);
   }
 
-  public String buildInfoHTML(boolean finalize, boolean forRSS) {
+  public String buildInfoHTML(boolean forRSS) {
     String prompt = "";
-    if(finalize) prompt = "<html><body>";
 
     if(forRSS) {
       prompt += "<b>" + StringTools.stripHigh(getTitle()) + "</b> (" + getIdentifier() + ")<br>";
@@ -1953,7 +1875,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       if (forRSS) {
         try {
           InetAddress thisIp = InetAddress.getLocalHost();
-          prompt += newRow + "<img src=\"http://" + thisIp.getHostAddress() + ":" + JConfig.queryConfiguration("server.port", "9099") + "/" + getIdentifier() + ".jpg\">" + newCol + "<table>";
+          prompt += newRow + "<img src=\"http://" + thisIp.getHostAddress() + ":" + JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING) + "/" + getIdentifier() + ".jpg\">" + newCol + "<table>";
           addedThumbnail = true;
         } catch (UnknownHostException e) {
           //  Couldn't find THIS host?!?  Perhaps that means we're not online?
@@ -1966,9 +1888,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     }
     prompt = buildInfoBody(prompt, addedThumbnail);
 
-    if(finalize) {
-      prompt += "</html>";
-    }
   	return(prompt);
   }
 
@@ -2071,8 +1990,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public static XMLElement retrieveAuctionXML(String identifier) {
     AuctionEntry ae = AuctionEntry.construct(identifier);
     if (ae != null) {
-      if (ae.isDutch()) ae.checkDutchHighBidder();
-      return ae.toXML();
+      return ae.toXML(); //  TODO -- Check high bidder (a separate request).
     }
 
     return null;

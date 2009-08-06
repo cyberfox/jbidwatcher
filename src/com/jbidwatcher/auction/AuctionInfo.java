@@ -73,9 +73,6 @@ public class AuctionInfo extends ActiveRecord
   }
 
   protected Seller mSeller;
-
-  protected static final sun.misc.BASE64Decoder b64dec = new sun.misc.BASE64Decoder();
-  protected static final sun.misc.BASE64Encoder b64enc = new sun.misc.BASE64Encoder();
   protected GZip mLoadedPage = null;
 
   /**
@@ -84,36 +81,6 @@ public class AuctionInfo extends ActiveRecord
    */
   public AuctionInfo() {
     setTranslationTable(mKeys);
-  }
-
-  /** 
-   * @brief Construct a somewhat complete AuctionInfo object with all
-   * the important values set.
-   * 
-   * @param auctionTitle - The title of the auction.
-   * @param auctionSeller - The seller's username for the auction.
-   * @param auctionHighBidder - The current high bidder, if any.
-   * @param auctionCurBid - The current/lowest/starting bid.
-   * @param auctionStart - The start time for the auction (if available).
-   * @param auctionEnd - The end time for the auction.
-   * @param auctionBidCount - The number of bids that have been placed so far.
-   */
-  protected AuctionInfo(String auctionTitle, String auctionSeller, String auctionHighBidder,
-                     Currency auctionCurBid, Date auctionStart, Date auctionEnd, int auctionBidCount) {
-    setTranslationTable(mKeys);
-    setTitle(auctionTitle.trim());
-    setHighBidder(auctionHighBidder.trim());
-    setSellerName(auctionSeller.trim());
-
-    setStart(auctionStart);
-    setEnd(auctionEnd);
-
-    setCurBid(auctionCurBid);
-    setNumBids(auctionBidCount);
-  }
-
-  public Record getMap() {
-    return getBacking();
   }
 
   protected String[] infoTags = { "title", "seller", "highbidder", "bidcount", "start", "end",
@@ -407,7 +374,7 @@ public class AuctionInfo extends ActiveRecord
   public String getIdentifier() { return getString("identifier"); }
   public String getTitle() { return getString("title"); }
   public String getHighBidder() { return getString("highBidder"); }
-  public String getHighBidderEmail() { return getString("highBidderEmail"); }
+//  public String getHighBidderEmail() { return getString("highBidderEmail"); }
   public String getItemLocation() { return getString("itemLocation", ""); }
 
   public Currency getCurBid() { return getMonetary("curBid"); }
@@ -435,7 +402,6 @@ public class AuctionInfo extends ActiveRecord
   protected boolean isPrivate() { return getBoolean("isPrivate"); }
   protected boolean isFixedPrice() { return getBoolean("fixed_price"); }
   boolean isReserveMet() { return getBoolean("reserveMet"); }
-  boolean isOutbid() { return getBoolean("outbid"); }
   protected boolean hasPaypal() { return getBoolean("paypal"); }
   boolean hasThumb() { return getBoolean("has_thumbnail"); }
   boolean isInsuranceOptional() { return getBoolean("insurance_optional", true); }
@@ -457,6 +423,7 @@ public class AuctionInfo extends ActiveRecord
     refreshSeller();
     return mSeller;
   }
+
   public String getPositiveFeedbackPercentage() {
     refreshSeller();
     if (mSeller != null) return mSeller.getPositivePercentage();
@@ -493,7 +460,7 @@ public class AuctionInfo extends ActiveRecord
   public void setIdentifier(String id) { setString("identifier", id); }
   public void setHighBidder(String highBidder) { setString("highBidder", highBidder); }
   protected void setTitle(String title) { setString("title", title); }
-  protected void setHighBidderEmail(String highBidderEmail) { setString("highBidderEmail", highBidderEmail); }
+//  protected void setHighBidderEmail(String highBidderEmail) { setString("highBidderEmail", highBidderEmail); }
   protected void setItemLocation(String itemLocation) { setString("itemLocation", itemLocation); }
 
   protected void setInsuranceOptional(boolean insuranceOptional) { setBoolean("insuranceOptional", insuranceOptional); }
@@ -514,7 +481,6 @@ public class AuctionInfo extends ActiveRecord
   protected void setQuantity(int quantity) { setInteger("quantity", quantity); }
   protected void setNumBids(int numBids) { setInteger("numBids", numBids); }
 
-  protected void setDutch(boolean dutch) { setBoolean("isDutch", dutch); }
   protected void setReserve(boolean isReserve) { setBoolean("isReserve", isReserve); }
   protected void setPrivate(boolean isPrivate) { setBoolean("private", isPrivate); }
   protected void setReserveMet(boolean reserveMet) { setBoolean("reserveMet", reserveMet); }

@@ -10,7 +10,7 @@ package com.jbidwatcher.util.html;
  * Date: Jun 26, 2004
  * Time: 3:05:47 PM
  *
- * @class A storage class to keep track of token information.  Each htmlToken is a piece of the document,
+ * A storage class to keep track of token information.  Each htmlToken is a piece of the document,
  * a tag, endtag, singletag, content, or a single EOF at the end.
  */
 public class htmlToken {

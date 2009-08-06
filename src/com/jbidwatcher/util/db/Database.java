@@ -31,8 +31,6 @@ public class Database {
     }
   }
 
-  public boolean isNew() { return mNew; }
-
   public Database(String base) throws ClassNotFoundException, IllegalAccessException, InstantiationException, SQLException {
     /* the default framework is embedded*/
     framework = JConfig.queryConfiguration("db.framework", "embedded");
@@ -125,7 +123,7 @@ public class Database {
     }
   }
 
-  public boolean shutdown() {
+  public void shutdown() {
     try {
       mConn.close();
       JConfig.log().logDebug("Closed connection");
@@ -156,7 +154,6 @@ public class Database {
       handleSQLException(e);
     }
     sFirst = true;
-    return true;
   }
 
   private static void handleSQLException(Throwable e) {

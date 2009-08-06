@@ -93,36 +93,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *
    */
   public ServerMenu establishMenu() {
-    ebayServerMenu esm = new ebayServerMenu(this, Constants.EBAY_DISPLAY_NAME, 'b');
+    ServerMenu esm = new ebayServerMenu(this, Constants.EBAY_DISPLAY_NAME, 'b');
     esm.initialize();
 
     return esm;
-  }
-
-  /**
-   * @brief Very simplistic check to see if the current user is the
-   * high bidder on a Dutch item.
-   *
-   * This only works, really, on closed items, I believe.  It shows
-   * you as a 'winner' always, otherwise.
-   *
-   * @param inAE - The auction entry to check.
-   *
-   * @return - true if the user is one of the high bidders on a dutch item, false otherwise.
-   */
-  public boolean isHighDutch(EntryInterface inAE) {
-    String dutchWinners = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.dutchRequestHost") + Externalized.getString("ebayServer.V3WS3File") + Externalized.getString("ebayServer.viewDutch") + inAE.getIdentifier();
-    CookieJar cj = mLogin.getNecessaryCookie(false);
-    String userCookie = null;
-    if (cj != null) userCookie = cj.toString();
-
-    JHTML htmlDocument = new JHTML(dutchWinners, userCookie, mCleaner);
-    String matchedName = null;
-    if(htmlDocument.isLoaded()) {
-      matchedName = htmlDocument.getNextContentAfterContent(mLogin.getUserId());
-    }
-
-    return matchedName != null;
   }
 
   public void updateHighBid(AuctionEntry ae) {
@@ -359,7 +333,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         }
 
         //  These two are called by sniping.
-        public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr, int inQuant) throws BadBidException {
+        public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr) throws BadBidException {
           return new JHTML.Form("<form action=\"http://example.com\">");
         }
 
@@ -461,17 +435,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return new ebayAuction(T);
   }
 
-  /**
-   * @brief Returns the amount of time it takes to retrieve a page
-   * from the auction server.
-   *
-   * @return The amount of milliseconds it takes to get a simple page
-   * from the auction server.
-   */
-  private long getSnipePadding() {
-    return 1;
-  }
-
   public StringBuffer getAuction(String id) throws FileNotFoundException {
     long pre = System.currentTimeMillis();
     StringBuffer sb = getAuction(getURLFromItem(id));
@@ -532,48 +495,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   public void addSearches(SearchManagerInterface searchManager) {
     Searcher s = searchManager.getSearchByName("My eBay");
     if(s == null) searchManager.addSearch("My Items", "My eBay", "", Constants.EBAY_SERVER_NAME, -1, 1);
-  }
-
-  /**
-   * @brief Get the list of bidders on an item.
-   *
-   * This is primarily useful for networks-of-interest searching.
-   *
-   * @param ae - The item you are interested in.
-   *
-   * @return - A list containing strings with the names of each
-   * user who was interested in the item enough to bid.
-   */
-  public List<String> getBidderNames(EntryInterface ae) {
-    CookieJar cj = mLogin.getNecessaryCookie(false);
-    String userCookie = null;
-    if (cj != null) userCookie = cj.toString();
-    JHTML htmlDocument = new JHTML(Externalized.getString("ebayServer.protocol") + T.s("ebayServer.bidderNamesHost") + Externalized.getString("ebayServer.file") + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier(), userCookie, mCleaner);
-
-    String curName = htmlDocument.getNextContentAfterContent(T.s("ebayServer.bidListPrequel"));
-
-    if(curName == null) {
-      JConfig.log().logMessage("Problem with loaded page when getting bidder names for auction " + ae.getIdentifier());
-      return null;
-    }
-
-    List<String> outNames = new ArrayList<String>();
-
-    do {
-      if(!outNames.contains(curName)) {
-        outNames.add(curName);
-      }
-      curName = htmlDocument.getNextContent();
-      while(curName != null && ! (curName.endsWith("PDT") || curName.endsWith("PST"))) {
-        curName = htmlDocument.getNextContent();
-      }
-      if(curName != null) curName = htmlDocument.getNextContent();
-      if(curName != null) {
-        if(curName.indexOf(T.s("ebayServer.earlierCheck")) != -1) curName = null;
-      }
-    } while(curName != null);
-
-    return outNames;
   }
 
   private void doMyEbaySynchronize(String label) {
@@ -689,7 +610,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public long getAdjustedTime() {
-    return System.currentTimeMillis() + getServerTimeDelta() + getPageRequestTime() + getSnipePadding();
+    return System.currentTimeMillis() + getServerTimeDelta() + getPageRequestTime();
   }
 
   public long getServerTimeDelta() {

@@ -20,7 +20,6 @@ public abstract class HTTPProxyClient extends ProxyClient {
   private String _serverName;
   protected boolean authorized = false;
   protected String requestedFile = null;
-  protected boolean firstBlank = true;
 
   protected HTTPProxyClient(Socket talkSock) {
     super(talkSock);

@@ -19,7 +19,6 @@ import javax.swing.*;
 import java.awt.*;
 
 public class SearchFrame implements ActionListener {
-  JPanel tablePanel;
   JFrame mainFrame;
   JComboBox newType;
   JTextField searchString;

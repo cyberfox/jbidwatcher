@@ -41,11 +41,6 @@ public abstract class MessageQueue implements Runnable {
     enqueue(fos.toString());
   }
 
-  public Object dequeueBean() {
-    String obj = dequeue();
-    return convertBean(obj);
-  }
-
   private Object convertBean(String obj) {
     ByteArrayInputStream fis = new ByteArrayInputStream(obj.getBytes());
     XMLDecoder xd = new XMLDecoder(fis);
@@ -54,15 +49,7 @@ public abstract class MessageQueue implements Runnable {
     return rval;
   }
 
-  public String dequeue() {
-    String outStr;
-    synchronized(_queue) {
-      outStr = (String) _queue.removeFirst();
-    }
-    return outStr;
-  }
-
-  public Object dequeueObject() {
+  public Object dequeue() {
     Object out;
     synchronized(_queue) {
       out = _queue.removeFirst();

@@ -98,7 +98,7 @@ public class Snipe {
     //  Get Bid Key/Form
     try {
       JConfig.increment("stats.presniped");
-      mBidForm = mBidder.getBidForm(mCJ, mEntry, mEntry.getSnipeAmount(), mEntry.getSnipeQuantity());
+      mBidForm = mBidder.getBidForm(mCJ, mEntry, mEntry.getSnipeAmount());
     } catch (BadBidException bbe) {
       String result = getSnipeResult(bbe.getResult(), mEntry.getTitle(), mEntry);
       mEntry.setLastStatus(result);
@@ -115,9 +115,6 @@ public class Snipe {
     String snipeOutput;
     if(snipeResult == AuctionServerInterface.BID_WINNING || snipeResult == AuctionServerInterface.BID_SELFWIN) {
       snipeOutput = "Successfully sniped a high bid on " + aucTitle + '!';
-      JConfig.increment("stats.sniped.success");
-    } else if(snipeResult == AuctionServerInterface.BID_DUTCH_CONFIRMED) {
-      snipeOutput = "Successfully sniped a high dutch bid on " + aucTitle + '!';
       JConfig.increment("stats.sniped.success");
     } else {
       switch(snipeResult) {

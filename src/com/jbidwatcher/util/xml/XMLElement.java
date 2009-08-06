@@ -66,7 +66,7 @@ import java.util.*;
  * @version 1.5
  */
 @SuppressWarnings({"JavaDoc", "ThrowableInstanceNeverThrown"})
-public class XMLElement implements XMLSerialize {
+public class XMLElement implements XMLSerialize, XMLInterface {
   /**
    * Major version of NanoXML.
    */
@@ -95,7 +95,7 @@ public class XMLElement implements XMLSerialize {
    * Subobjects of the object. The subobjects are of class XMLElement
    * themselves.
    */
-  protected List<XMLElement> _children;
+  protected List<XMLInterface> mChildren;
 
 
   /**
@@ -244,7 +244,7 @@ public class XMLElement implements XMLSerialize {
     _tagName = null;
     _contents = null;
     _attributes = new HashMap<String, String>(10);
-    _children = new ArrayList<XMLElement>(10);
+    mChildren = new ArrayList<XMLInterface>(10);
     _conversionTable = conversionTable==null?new HashMap<String, String>(10):new HashMap<String, String>(conversionTable);
     _lineNr = 0;
 
@@ -270,7 +270,7 @@ public class XMLElement implements XMLSerialize {
    * @return - The number of children of this element.
    */
   public int countChildren() {
-    return _children.size();
+    return mChildren.size();
   }
 
 
@@ -287,8 +287,8 @@ public class XMLElement implements XMLSerialize {
    * Enumerates the subobjects of the object.
    * @return - An iterator over the children of this element.
    */
-  public Iterator<XMLElement> getChildren() {
-    return _children.iterator();
+  public Iterator<XMLInterface> getChildren() {
+    return mChildren.iterator();
   }
 
 
@@ -298,9 +298,9 @@ public class XMLElement implements XMLSerialize {
    * @return - The element identified by the named child tag.
    */
   public XMLElement getChild(String tagName) {
-    Iterator<XMLElement> step = getChildren();
+    Iterator<XMLInterface> step = getChildren();
     while(step.hasNext()) {
-      XMLElement child = step.next();
+      XMLElement child = (XMLElement) step.next();
 
       if(child.getTagName().equals(tagName)) {
         return child;
@@ -393,7 +393,7 @@ public class XMLElement implements XMLSerialize {
    * been added.
    */
   public void setContents(String newContents) {
-    if(_children.size() == 0) {
+    if(mChildren.size() == 0) {
       _contents = newContents;
     } else {
       throw new XMLParseException(_tagName, _lineNr, "Cannot add contents to an XML element that already has children.");
@@ -404,9 +404,9 @@ public class XMLElement implements XMLSerialize {
    * Adds another XMLElement as a child of this one.  This can't be done if
    * contents is already set.
    */
-  public void addChild(XMLElement newChild) {
+  public void addChild(XMLInterface newChild) {
     if(_contents == null) {
-      _children.add(newChild);
+      mChildren.add(newChild);
     } else {
       throw new XMLParseException(_tagName, _lineNr, "Cannot add children to an XML element that already has contents.");
     }
@@ -465,7 +465,7 @@ public class XMLElement implements XMLSerialize {
     } else {
       wholeXML.append('>');
       if (_contents == null) {
-        Iterator<XMLElement> xmlStep = getChildren();
+        Iterator<XMLInterface> xmlStep = getChildren();
 
         wholeXML.append('\n');
         while (xmlStep.hasNext()) {
@@ -652,7 +652,7 @@ public class XMLElement implements XMLSerialize {
       scanChildren(input, contentOffset[0], contentSize[0], contentLineNr);
 
       //  If child-elements were found, then contents is set to null...
-      if (_children.size() > 0) {
+      if (mChildren.size() > 0) {
         _contents = null;
       } else {
         //  If there are no child elements, but there is data, then
@@ -790,7 +790,7 @@ public class XMLElement implements XMLSerialize {
 
       XMLElement child = new XMLElement(_conversionTable, _skipLeadingWhitespace, false);
       offset = child.parseCharArray(input, offset, end, lineNr);
-      _children.add(child);
+      mChildren.add(child);
     }
   }
 
@@ -1377,9 +1377,10 @@ public class XMLElement implements XMLSerialize {
     return this;
   }
 
-  public void fromXML(XMLElement inXML) {
+  public void fromXML(XMLInterface inXMLIFace) {
+    XMLElement inXML = (XMLElement) inXMLIFace;
     _attributes = inXML._attributes;
-    _children = inXML._children;
+    mChildren = inXML.mChildren;
     _tagName = inXML._tagName;
     _empty = inXML._empty;
     _contents = inXML._contents;

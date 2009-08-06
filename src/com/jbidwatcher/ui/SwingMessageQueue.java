@@ -19,7 +19,7 @@ public class SwingMessageQueue extends MessageQueue
   }
 
   public void run() {
-    Object data = dequeueObject();
+    Object data = dequeue();
     if(_listener != null) {
       try {
         _listener.messageAction(data);

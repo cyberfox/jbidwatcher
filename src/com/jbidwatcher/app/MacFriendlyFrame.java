@@ -37,14 +37,12 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
   /**
    * @brief Constructs a new window frame, with all the sorted tables,
    * scroll bars, drag and drop targets, menu & header bar, and status
-   * line.
+   * line.  Returns a completed frame, suitable for displaying as the primary UI of the program.
    *
    * @param title - The frame title.
    * @param myFrameAdapter - The adapter to listen to mouse events.
    * @param iconURL - The URL of the icon to associate with the frame.
    * @param tabManager - The Tab Manager to display within the frame.
-   * 
-   * @return A completed frame, suitable for displaying as the primary UI of the program.
    */
   public MacFriendlyFrame(String title, JMouseAdapter myFrameAdapter, URL iconURL, JTabManager tabManager) {
     super(title);

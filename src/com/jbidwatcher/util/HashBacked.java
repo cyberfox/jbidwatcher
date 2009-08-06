@@ -2,6 +2,7 @@ package com.jbidwatcher.util;
 
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
+import com.jbidwatcher.util.xml.XMLInterface;
 
 import java.util.Date;
 import java.util.Map;
@@ -34,12 +35,6 @@ public class HashBacked extends XMLSerializeSimple {
     mBacking = data;
     if(get("currency") == null) mDefaultCurrency = ONE_DOLLAR.fullCurrencyName();
     else mDefaultCurrency = get("currency");
-  }
-
-  protected static String formatDate(Date input) {
-    SimpleDateFormat fmt = new SimpleDateFormat(DB_DATE_FORMAT);
-    fmt.setTimeZone(TimeZone.getDefault());
-    return fmt.format(input);
   }
 
   public void setTranslationTable(Map<String, String> table) { if(mTranslationTable == null) mTranslationTable = table; }
@@ -191,7 +186,7 @@ public class HashBacked extends XMLSerializeSimple {
     return addCurrencyChild(parent, name, value);
   }
 
-  protected XMLElement addCurrencyChild(XMLElement parent, String name, int currencyType) {
+  protected XMLInterface addCurrencyChild(XMLElement parent, String name, int currencyType) {
     Currency value = getMonetary(name, currencyType);
     return addCurrencyChild(parent, name, value);
   }
@@ -209,7 +204,7 @@ public class HashBacked extends XMLSerializeSimple {
     return xadd;
   }
 
-  protected XMLElement addStringChild(XMLElement parent, String name) {
+  protected XMLInterface addStringChild(XMLElement parent, String name) {
     String value = getString(name);
     XMLElement xadd = null;
     if (value != null && value.length() != 0) {

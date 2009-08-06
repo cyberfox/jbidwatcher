@@ -41,7 +41,7 @@ public final class PlainMessageQueue extends MessageQueue {
       try {
         synchronized(_queue) {
           if(_queue.isEmpty()) _queue.wait();
-          data = dequeueObject();
+          data = dequeue();
         }
       } catch(InterruptedException ignore) {
         //  Ignore the interrupted exception, it just wakes us up.
@@ -63,7 +63,7 @@ public final class PlainMessageQueue extends MessageQueue {
           }
           synchronized (_queue) {
             empty = _queue.isEmpty();
-            if(!empty) data = dequeueObject();
+            if(!empty) data = dequeue();
           }
         } while (!empty);
       }

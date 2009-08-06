@@ -7,7 +7,8 @@ import java.io.File;
  * User: Morgan
  * Date: Dec 20, 2008
  * Time: 3:18:48 PM
- * To change this template use File | Settings | File Templates.
+ *
+ * A basic logging interface, so we can have a null and normal logger.
  */
 public interface LoggerInterface {
   void logMessage(String msg);

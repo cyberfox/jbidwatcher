@@ -7,7 +7,7 @@ package com.jbidwatcher.util.xml;
 
 /**
  * @file   XMLSerialize.java
- * @author Morgan Schweers <cyberfox@users.sourceforge.net>
+ * @author Morgan Schweers <cyberfox@jbidwatcher.com>
  * @note   Library GPL'ed.
  * @date   Thu Oct 10 01:30:40 2002
  * 
@@ -31,7 +31,7 @@ public interface XMLSerialize {
    * @return - An XMLElement that is the 'root object' for the XML
    * tree built by serializing this class, and all subclasses.
    */
-  XMLElement toXML();
+  XMLInterface toXML();
 
   /** 
    * @brief Step through all the important variables that had been
@@ -39,5 +39,5 @@ public interface XMLSerialize {
    *
    * @param inXML - The XML element to start the deserialization process from.
    */
-  void fromXML(XMLElement inXML);
+  void fromXML(XMLInterface inXML);
 }

@@ -134,10 +134,6 @@ class MockSpecificAuction extends SpecificAuction {
     return mAI.getHighBidder();
   }
 
-  public String getHighBidderEmail() {
-    return mAI.getHighBidderEmail();
-  }
-
   public String getTitle() {
     return mAI.getTitle();
   }
@@ -148,10 +144,6 @@ class MockSpecificAuction extends SpecificAuction {
 
   public Date getEndDate() {
     return mAI.getEndDate();
-  }
-
-  public boolean isDutch() {
-    return mAI.isDutch();
   }
 
   public boolean isReserve() {
@@ -168,10 +160,6 @@ class MockSpecificAuction extends SpecificAuction {
 
   public boolean isReserveMet() {
     return mAI.isReserveMet();
-  }
-
-  public boolean isOutbid() {
-    return mAI.isOutbid();
   }
 
   public boolean hasPaypal() {

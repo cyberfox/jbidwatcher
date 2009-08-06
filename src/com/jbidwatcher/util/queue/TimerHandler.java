@@ -10,7 +10,7 @@ import com.jbidwatcher.util.config.JConfig;
 
 /**
  * @file   TimerHandler.java
- * @author Morgan Schweers <cyberfox@users.sourceforge.net>
+ * @author Morgan Schweers <cyberfox@jbidwatcher.com>
  * @date   Sat Oct 12 18:42:10 2002
  * 
  * @brief  Several operations need 'regular wakeups', which is what this class provides.

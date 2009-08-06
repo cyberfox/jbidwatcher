@@ -202,13 +202,13 @@ public class JConfigEbayTab extends JConfigTab
     return tp;
   }
 
-  public JConfigEbayTab(String displayName, String[] choices) {
-    mDisplayName = displayName;
+  public JConfigEbayTab() {
+    mDisplayName = Constants.EBAY_DISPLAY_NAME;
     setLayout(new BorderLayout());
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
     jp.add(panelPack(buildUsernamePanel()), BorderLayout.NORTH);
-    jp.add(panelPack(buildBrowseTargetPanel(choices)), BorderLayout.CENTER);
+    jp.add(panelPack(buildBrowseTargetPanel(Constants.SITE_CHOICES)), BorderLayout.CENTER);
     add(jp, BorderLayout.NORTH);
     add(panelPack(buildCheckboxPanel()), BorderLayout.CENTER);
   }

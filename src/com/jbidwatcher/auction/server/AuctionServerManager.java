@@ -11,6 +11,7 @@ import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerialize;
+import com.jbidwatcher.util.xml.XMLInterface;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.*;
@@ -48,11 +49,11 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
    * @param inXML - The XML source to load from.
    * @noinspection ThrowInsideCatchBlockWhichIgnoresCaughtException,StringContatenationInLoop
    */
-  public void fromXML(XMLElement inXML) {
-    Iterator<XMLElement> serversStep = inXML.getChildren();
+  public void fromXML(XMLInterface inXML) {
+    Iterator<XMLInterface> serversStep = inXML.getChildren();
 
     while(serversStep.hasNext()) {
-      XMLElement perServer = serversStep.next();
+      XMLInterface perServer = serversStep.next();
       //  Only process the 'server' entries.
       if(perServer.getTagName().equals("server")) {
         AuctionServer newServer = null;
@@ -251,12 +252,12 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     }
   }
 
-  private void getServerAuctionEntries(AuctionServer newServer, XMLElement perServer) {
+  private void getServerAuctionEntries(AuctionServer newServer, XMLInterface perServer) {
     try {
-      Iterator<XMLElement> entryStep = perServer.getChildren();
+      Iterator<XMLInterface> entryStep = perServer.getChildren();
       int count = 0;
       while (entryStep.hasNext()) {
-        XMLElement perEntry = entryStep.next();
+        XMLInterface perEntry = entryStep.next();
         AuctionEntry ae = new AuctionEntry();
 
         ae.setServer(newServer);

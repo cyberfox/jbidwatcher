@@ -391,7 +391,7 @@ public class JBidProxy extends HTTPProxyClient {
       sb.append("</pubDate>");
 
       sb.append("<description><![CDATA[");
-      sb.append(ae.buildInfoHTML(false, true));
+      sb.append(ae.buildInfoHTML(true));
       sb.append("]]></description>\n</item>\n");
     }
 

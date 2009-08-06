@@ -19,7 +19,7 @@ public interface AuctionServerInterface {
   int BID_ERROR_OUTBID=3;
   int BID_WINNING=4;
   int BID_SELFWIN=5;
-  int BID_DUTCH_CONFIRMED=6;
+//  int BID_DUTCH_CONFIRMED=6;  --  This is obsolete.
   int BID_ERROR_MULTI=7;
   int BID_ERROR_TOO_LOW=8;
   int BID_ERROR_ENDED=9;
@@ -112,8 +112,6 @@ public interface AuctionServerInterface {
   StringBuffer getAuction(URL url) throws FileNotFoundException;
 
   boolean isCurrentUser(String checkUser);
-
-  boolean isHighDutch(EntryInterface entry);
 
   void updateHighBid(AuctionEntry eEntry);
 

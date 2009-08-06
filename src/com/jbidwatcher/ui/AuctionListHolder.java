@@ -2,7 +2,6 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.auction.Auctions;
 
-import javax.swing.*;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 
@@ -26,23 +25,18 @@ class AuctionListHolder {
     return mDeletable;
   }
 
-  public void setDeletable(boolean deletable) {
-    mDeletable = deletable;
-  }
-
   AuctionListHolder(String name) {
-    this(name, false, false, true);
+    this(name, false, true);
   }
 
   AuctionListHolder(String name, Color presetBackground) {
-    this(name, false, false, true);
+    this(name, false, true);
     mAuctionUI.setBackground(presetBackground);
   }
 
-  AuctionListHolder(String name, boolean _completed, boolean _selling, boolean deletable) {
+  AuctionListHolder(String name, boolean _completed, boolean deletable) {
     mAuctionList = new Auctions(name);
     if(_completed) mAuctionList.setComplete();
-    if(_selling) mAuctionList.setSelling();
     mAuctionUI = new AuctionsUIModel(mAuctionList, sTableContext, sFrameContext, sCornerButtonListener);
     mDeletable = deletable;
     JTabManager.getInstance().add(name, mAuctionUI.getPanel(), mAuctionUI.getTableSorter());

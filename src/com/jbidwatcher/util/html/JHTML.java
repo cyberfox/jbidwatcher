@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLInterface;
 import com.jbidwatcher.util.http.Http;
 
 public class JHTML implements JHTMLListener {
@@ -69,7 +70,7 @@ public class JHTML implements JHTMLListener {
   }
 
   public static class Form {
-    private List<XMLElement> allInputs;
+    private List<XMLInterface> mAllInputs;
     private XMLElement formTag;
     private static final String FORM_VALUE = "value";
     private static final String FORM_SUBMIT = "submit";
@@ -82,7 +83,7 @@ public class JHTML implements JHTMLListener {
       formTag = new XMLElement();
       formTag.parseString('<' + initialTag + "/>");
 
-      allInputs = new ArrayList<XMLElement>();
+      mAllInputs = new ArrayList<XMLInterface>();
 
       if (do_uber_debug) JConfig.log().logDebug("Name: " + formTag.getProperty("name", "(unnamed)"));
     }
@@ -90,7 +91,7 @@ public class JHTML implements JHTMLListener {
     public String getName() { return formTag.getProperty("name"); }
     public boolean hasInput(String srchFor) { return hasInput(srchFor, null); }
     public boolean hasInput(String srchFor, String value) {
-      for (XMLElement curInput : allInputs) {
+      for (XMLInterface curInput : mAllInputs) {
         String name = curInput.getProperty("name");
         if (name != null) {
           if (srchFor.equalsIgnoreCase(name) && (value == null || curInput.getProperty("value").equalsIgnoreCase(value))) {
@@ -102,9 +103,9 @@ public class JHTML implements JHTMLListener {
     }
 
     public boolean delInput(String srchFor) {
-      Iterator<XMLElement> it = allInputs.iterator();
+      Iterator<XMLInterface> it = mAllInputs.iterator();
       while (it.hasNext()) {
-        XMLElement curInput = it.next();
+        XMLInterface curInput = it.next();
         String name=curInput.getProperty("name");
         if(name != null) {
           if(srchFor.equalsIgnoreCase(name)) {
@@ -131,11 +132,11 @@ public class JHTML implements JHTMLListener {
     }
 
     public String getFormData() throws UnsupportedEncodingException {
-      Iterator<XMLElement> it = allInputs.iterator();
+      Iterator<XMLInterface> it = mAllInputs.iterator();
       StringBuffer rval = new StringBuffer("");
       String seperator = "";
       while(it.hasNext()) {
-        XMLElement curInput = it.next();
+        XMLElement curInput = (XMLElement)it.next();
 
         if(do_uber_debug) JConfig.log().logDebug("Type == " + curInput.getProperty("type", "text"));
         if (rval.length() != 0) {
@@ -169,7 +170,7 @@ public class JHTML implements JHTMLListener {
       return formTag.getProperty(JHTMLDialog.FORM_ACTION);
     }
 
-    private String createProperty(String property, XMLElement tag, String defValue) {
+    private String createProperty(String property, XMLInterface tag, String defValue) {
       String value = tag.getProperty(property);
       if(value != null) {
         return property + "=\"" + value + "\" ";
@@ -225,12 +226,12 @@ public class JHTML implements JHTMLListener {
       }
 
       if(!isError) {
-        allInputs.add(inputTag);
+        mAllInputs.add(inputTag);
       }
     }
 
     public void setText(String key, String val) {
-      for (XMLElement curInput : allInputs) {
+      for (XMLInterface curInput : mAllInputs) {
         String name = curInput.getProperty("name");
 
         if (name != null) {
@@ -242,7 +243,7 @@ public class JHTML implements JHTMLListener {
     }
 
     public String getInputValue(String inputName) {
-      for(XMLElement input : allInputs) {
+      for(XMLInterface input : mAllInputs) {
         String name = input.getProperty("name");
         if(name != null && name.equals(inputName)) {
           if (input.getProperty("value") != null) {
@@ -256,7 +257,7 @@ public class JHTML implements JHTMLListener {
 
     public Map<String, Object> getCGIMap() {
       LinkedHashMap<String, Object> rval = new LinkedHashMap<String, Object>();
-      for(XMLElement input : allInputs) {
+      for(XMLInterface input : mAllInputs) {
         String name = input.getProperty("name");
         String value = input.getProperty("value");
         rval.put(name, value);
@@ -363,11 +364,6 @@ public class JHTML implements JHTMLListener {
     while(t != null && t.getTokenType() != htmlToken.HTML_CONTENT) t = nextToken();
 
     return t == null ? null : t.getToken();
-  }
-
-  public String getFirstContent() {
-    if(contentList.isEmpty()) return null;
-    return contentList.get(0);
   }
 
   public String getNextContent() {
@@ -477,14 +473,6 @@ public class JHTML implements JHTMLListener {
   //  Default to caseless lookups.
   public String getNextContentAfterContent(String previousData) {
     return contentFind(previousData, CHECK_CASE);
-  }
-
-  public String getNextContentAfterContent(String previousData, boolean exactMatch, boolean ignoreCase) {
-    if (exactMatch) {
-      return contentLookup(previousData, ignoreCase);
-    } else {
-      return contentFind(previousData, ignoreCase);
-    }
   }
 
   public String getContentBeforeContent(String followingData) {

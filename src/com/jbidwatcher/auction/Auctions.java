@@ -11,7 +11,7 @@ import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.UpdateBlocker;
 import com.jbidwatcher.util.Task;
-import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLInterface;
 
 /**
  *  This class shouldn't have a 'TableSorter', it should defer to some
@@ -25,7 +25,6 @@ import com.jbidwatcher.util.xml.XMLElement;
  *  class could build it's own atm and tablesorter.  --  BUGBUG
  */
 public class Auctions implements TimerHandler.WakeupProcess {
-  boolean _selling = false;
   boolean _complete = false;
 //  private volatile TableSorter _tSort;
   private AuctionList mList;
@@ -43,31 +42,8 @@ public class Auctions implements TimerHandler.WakeupProcess {
     return _name;
   }
 
-  public void setSelling() { _selling = true; }
-  public boolean isSelling() { return _selling; }
   public void setComplete() { _complete = true; }
   public boolean isCompleted() { return _complete; }
-
-  /**
-   * Search for an AuctionEntry in our tables, given it's identifier.
-   * 
-   * @param whatIdentifier - The identifier to search for.
-   * 
-   * @return - The AuctionEntry, if it's found, or null if none was found.
-   */
-  public EntryInterface getEntry(final String whatIdentifier) {
-    return mList.find(new Comparison() {
-      public boolean match(Object o) {
-        if (o instanceof EntryInterface) {
-          EntryInterface ae = (EntryInterface) o;
-          if (whatIdentifier.equals(ae.getIdentifier())) {
-            return true;
-          }
-        }
-        return false;
-      }
-    });
-  }
 
   /**
    * Add an AuctionEntry that has already been created, denying
@@ -79,34 +55,6 @@ public class Auctions implements TimerHandler.WakeupProcess {
    */
   public boolean allowAddEntry(EntryInterface aeNew) {
     return aeNew != null && !DeletedEntry.exists(aeNew.getIdentifier());
-  }
-
-  /**
-   * Verify that the auction provided exists.
-   * 
-   * @param auctionId - The auction ID to search for.
-   * 
-   * @return - true if the auction is in the list, false otherwise.
-   */
-  public boolean verifyEntry(String auctionId) {
-    EntryInterface ae = getEntry(auctionId);
-
-    return (ae != null);
-  }
-
-  /** 
-   * Verify that the auction provided exists.
-   * 
-   * @param ae - The auction entry to search for.
-   * 
-   * @return - true if the auction is in the list, false otherwise.
-   */
-  public boolean verifyEntry(final EntryInterface ae) {
-    Object result = mList.find(new Comparison() {
-      public boolean match(Object o) { //noinspection ObjectEquality
-        return o == ae; }
-    });
-    return result != null;
   }
 
   /** 
@@ -135,9 +83,8 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * completed), and then let the user know we finished.
    * 
    * @param ae - The auction to update.
-   * @return - true if the auction was moved to another category, false otherwise.
    */
-  private boolean doUpdate(AuctionEntry ae) {
+  private void doUpdate(AuctionEntry ae) {
     String titleWithComment = getTitleAndComment(ae);
 
     if(!ae.isComplete() || ae.isUpdateForced()) {
@@ -145,9 +92,9 @@ public class Auctions implements TimerHandler.WakeupProcess {
       ae.setUpdating();
       MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
       Thread.yield();
-      XMLElement before = ae.toXML();
+      XMLInterface before = ae.toXML();
       ae.update();
-      XMLElement after = ae.toXML();
+      XMLInterface after = ae.toXML();
       ae.clearUpdating();
       if (!(after.toString().equals(before.toString()))) {
         MQFactory.getConcrete("upload").enqueue(ae.getIdentifier());
@@ -157,7 +104,6 @@ public class Auctions implements TimerHandler.WakeupProcess {
       MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
       MQFactory.getConcrete("Swing").enqueue("Done updating " + Auctions.getTitleAndComment(ae));
     }
-    return false;
   }
 
   /** 
@@ -171,12 +117,13 @@ public class Auctions implements TimerHandler.WakeupProcess {
    */
   private boolean doNextUpdate() {
     AuctionEntry result = mList.find(new Comparison() {
-      public boolean match(Object o) { if(o == null) return false; return ((AuctionEntry) o).checkUpdate(); }
+      public boolean match(Object o) { return o != null && ((AuctionEntry) o).checkUpdate();  }
     });
     if (result != null) {
       boolean forcedUpdate = result.isUpdateForced();
 
-      if(doUpdate(result) || forcedUpdate) {
+      doUpdate(result);
+      if(forcedUpdate) {
         MQFactory.getConcrete("redraw").enqueue(getName());
       }
     }

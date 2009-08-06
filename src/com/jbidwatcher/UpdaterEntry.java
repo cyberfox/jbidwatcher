@@ -9,6 +9,7 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLSerializeSimple;
+import com.jbidwatcher.util.xml.XMLInterface;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.Constants;
@@ -24,12 +25,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
   protected String _description = ""; //  Optional
   protected String _url = "";
   protected boolean _valid;
-  protected boolean _hasConfigChanges;
-  protected ArrayList<XMLElement> configChanges;
-
-  //  For creating, then filling in later, especially when loading from a
-  //  file, instead of remotely.
-  public UpdaterEntry() { }
+  protected ArrayList<XMLInterface> mConfigChanges;
 
   public UpdaterEntry(String packageName, String updateFrom) {
     StringBuffer loadedUpdate;
@@ -98,14 +94,14 @@ public class UpdaterEntry extends XMLSerializeSimple {
         if(valid) {
           String strStamp = curElement.getProperty("STAMP");
           if(strStamp == null) {
-            if(configChanges == null) configChanges = new ArrayList<XMLElement>(5);
-            configChanges.add(curElement);
+            if(mConfigChanges == null) mConfigChanges = new ArrayList<XMLInterface>(5);
+            mConfigChanges.add(curElement);
           } else {
             long stamp = Long.parseLong(strStamp);
             long last = Long.parseLong(JConfig.queryConfiguration("updates.lastConfig", "0"));
             if(stamp > last) {
-              if(configChanges == null) configChanges = new ArrayList<XMLElement>(5);
-              configChanges.add(curElement);
+              if(mConfigChanges == null) mConfigChanges = new ArrayList<XMLInterface>(5);
+              mConfigChanges.add(curElement);
             }
           }
         }
@@ -136,7 +132,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
   }
 
   public boolean hasConfigurationUpdates() {
-    return configChanges != null;
+    return mConfigChanges != null;
   }
 
   public void applyConfigurationUpdates() {
@@ -144,7 +140,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
     boolean cfgChanged = false;
     long lastStamp = Long.parseLong(JConfig.queryConfiguration("updates.lastConfig", "0"));
 
-    for (XMLElement cfg : configChanges) {
+    for (XMLInterface cfg : mConfigChanges) {
       String type = cfg.getProperty("TYPE", "config");
       if (type.equals("message")) {
         if (alert == null) {

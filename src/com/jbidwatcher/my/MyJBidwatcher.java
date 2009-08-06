@@ -12,6 +12,7 @@ import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.SuperQueue;
 import com.jbidwatcher.util.xml.XMLSerialize;
 import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLInterface;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.http.ClientHttpRequest;
 import com.jbidwatcher.auction.AuctionEntry;
@@ -250,16 +251,16 @@ public class MyJBidwatcher {
     if(sb == null) return false;
     XMLElement xml = new XMLElement();
     xml.parseString(sb.toString());
-    XMLElement sync = xml.getChild("syncq");
-    XMLElement expires = xml.getChild("expiry");
-    XMLElement listingsRemaining = xml.getChild("listings");
-    XMLElement categoriesRemaining = xml.getChild("categories");
-    XMLElement reporting = xml.getChild("reportq");
-    XMLElement snipesListen = xml.getChild("snipes");
-    XMLElement ssl = xml.getChild("ssl");
-    XMLElement uploadHTML = xml.getChild("uploadhtml");
-    XMLElement serverParser = xml.getChild("parser");
-    XMLElement gixen = xml.getChild("gixen");
+    XMLInterface sync = xml.getChild("syncq");
+    XMLInterface expires = xml.getChild("expiry");
+    XMLInterface listingsRemaining = xml.getChild("listings");
+    XMLInterface categoriesRemaining = xml.getChild("categories");
+    XMLInterface reporting = xml.getChild("reportq");
+    XMLInterface snipesListen = xml.getChild("snipes");
+    XMLInterface ssl = xml.getChild("ssl");
+    XMLInterface uploadHTML = xml.getChild("uploadhtml");
+    XMLInterface serverParser = xml.getChild("parser");
+    XMLInterface gixen = xml.getChild("gixen");
 
     if(expires != null) {
       String date = expires.getContents();
@@ -291,7 +292,7 @@ public class MyJBidwatcher {
     return mSyncQueueURL != null && mReportQueueURL != null;
   }
 
-  private boolean getBoolean(XMLElement x) {
+  private boolean getBoolean(XMLInterface x) {
     boolean rval = false;
     if(x != null) {
       String contents = x.getContents();

@@ -42,7 +42,7 @@ import java.util.*;
 
 /**
  * @file   JBidWatch.java
- * @author Morgan Schweers <cyberfox@users.sourceforge.net>
+ * @author Morgan Schweers <cyberfox@jbidwatcher.com>
  * @date   Fri Oct 11 17:54:21 2002
  *
  * @brief The startup class, that prepares the UI, and starts all the

@@ -7,7 +7,7 @@ package com.jbidwatcher.auction.server;
 
 /*
  * @file   AuctionServer.java
- * @author Morgan Schweers <cyberfox@users.sourceforge.net>
+ * @author Morgan Schweers <cyberfox@jbidwatcher.com>
  * @date   Wed Oct  9 13:49:02 2002
  * @note   Library GPL'ed.
  * @brief  This is an interface description for the general auction Servers
@@ -56,7 +56,6 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   public abstract void addSearches(SearchManagerInterface searchManager);
 
   //  Exposed to AuctionEntry for checking high bidder status.
-  public abstract boolean isHighDutch(EntryInterface inAE);
   public abstract void updateHighBid(AuctionEntry ae);
 
   public abstract void setSnipe(AuctionEntry snipeOn);
@@ -356,10 +355,6 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
     } else {
       MQFactory.getConcrete("Swing").enqueue("LINK DOWN Communications failure talking to the server");
     }
-  }
-
-  public int getCount() {
-    return AuctionEntry.count();
   }
 
   protected abstract String getUserId();

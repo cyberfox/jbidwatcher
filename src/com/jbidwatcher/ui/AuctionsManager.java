@@ -156,14 +156,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     return FilterManager.getInstance().getAuctionIterator();
   }
 
-  public void loadAuctionsFromDB() {
-    int auctionTotal = AuctionServerManager.getInstance().getServer().getCount();
-    MQFactory.getConcrete("splash").enqueue("SET 0");
-    MQFactory.getConcrete("splash").enqueue("WIDTH " + auctionTotal);
-
-    MQFactory.getConcrete("splash").enqueue("SET 100");
-  }
-
   /**
    * @brief Load auctions from a save file, with a pretty splash
    * screen and everything, if necessary.
@@ -304,7 +296,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       if(newSaveFile.exists()) newSaveFile.delete();
     }
 
-    StringBuffer buf = buildSaveBuffer(auctionsData, null);
+    StringBuffer buf = buildSaveBuffer(auctionsData);
     boolean saveDone = true;
 
     //  Dump the save file out!
@@ -344,7 +336,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     if(!saveParent.exists()) saveParent.mkdirs(); //  This can fail, but we don't mind.
   }
 
-  public static StringBuffer buildSaveBuffer(XMLElement auctionsData, XMLElement deletedData) {
+  public static StringBuffer buildSaveBuffer(XMLElement auctionsData) {
     synchronized(_saveBuf) {
       _saveBuf.setLength(0);
       _saveBuf.append("<?xml version=\"1.0\"?>\n\n");
@@ -352,9 +344,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       _saveBuf.append('\n');
       _saveBuf.append("<jbidwatcher format=\"0101\">\n");
       auctionsData.toStringBuffer(_saveBuf, 1);
-      if(deletedData != null) {
-        deletedData.toStringBuffer(_saveBuf, 1);
-      }
       _saveBuf.append("</jbidwatcher>");
     }
     return _saveBuf;

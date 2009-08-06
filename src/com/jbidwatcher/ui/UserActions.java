@@ -379,73 +379,6 @@ public class UserActions implements MessageQueue.Listener {
     DoCopySomething(src, ae, DO_COPY_DATA, "No auctions selected to copy!", "");
   }
 
-  /**
-   * @brief Pick and return a value from the entry that best describes
-   * how much COULD be spent on it by the buyer.
-   *
-   * For an item not bid on, it's the current bid price.  For an item
-   * the user has bid on, it's their maximum bid.  For an item the
-   * user has a snipe set for, it's the maximum of their snipe bid.
-   * If the item is closed, it's just the current bid price.
-   *
-   * @param checkEntry - The AuctionEntry to operate on.
-   *
-   * @return - A currency value containing either the current bid, the
-   * users high bid, or the users snipe bid.
-   */
-  Currency getBestBidValue(AuctionEntry checkEntry) {
-    return checkEntry.bestValue();
-  }
-
-  protected String sum(int rowList[]) {
-    boolean approx = false, i18n = true;
-    Currency accum = null;
-    Currency realAccum = null;
-
-    for (int aRowList : rowList) {
-      try {
-        AuctionEntry ae2 = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
-        if (accum == null) {
-          accum = ae2.getUSCurBid();
-          realAccum = getBestBidValue(ae2);
-        } else {
-          Currency stepVal = ae2.getUSCurBid();
-          accum = accum.add(stepVal);
-
-          //  If we're still trying to do the internationalization
-          //  thing, then try to keep track of the 'real' total.
-          if (i18n) {
-            try {
-              realAccum = realAccum.add(getBestBidValue(ae2));
-            } catch (Currency.CurrencyTypeException cte) {
-              //  We can't handle multiple non-USD currency types, so
-              //  we stop trying to do the internationalization thing.
-              i18n = false;
-            }
-          }
-        }
-        if (ae2.getCurBid().getCurrencyType() != Currency.US_DOLLAR) approx = true;
-      } catch (Exception e) {
-        JConfig.log().handleException("Sum currency exception!", e);
-        return "<unknown>";
-      }
-    }
-
-    if(accum == null) {
-      return "<unknown>";
-    }
-
-    //  If we managed to do the i18n thing through it all, and we have
-    //  some real values, return it.
-    if(i18n && realAccum != null) {
-      return realAccum.toString();
-    }
-
-    if(approx) return "Approximately " + accum.toString();
-
-    return accum.toString();
-  }
-
   private void DoAdd(Component src) {
     String prompt = "Enter the auction number to add";
 
@@ -817,11 +750,7 @@ public class UserActions implements MessageQueue.Listener {
     SnipeDialog sd = new SnipeDialog(previous);
     sd.clear();
     sd.setPrompt(prompt);
-    if(ae.isDutch()) {
-      sd.useQuantity(true);
-    } else {
-      sd.useQuantity(false);
-    }
+    sd.useQuantity(false);
     sd.pack();
     Rectangle rec = OptionUI.findCenterBounds(sd.getPreferredSize());
     sd.setLocation(rec.x, rec.y);
@@ -940,19 +869,11 @@ public class UserActions implements MessageQueue.Listener {
 
     String[] endResult;
     if(minimumNextBid != null) {
-      if(ae.isDutch()) {
-        endResult = promptString(src, prompt, "Bidding", Float.toString((float)minimumNextBid.getValue()), "Quantity", "1");
-      } else {
-        endResult = promptString(src, prompt, "Bidding", Float.toString((float)minimumNextBid.getValue()), null, null);
-        if(endResult != null) endResult[1] = "1";
-      }
+      endResult = promptString(src, prompt, "Bidding", Float.toString((float) minimumNextBid.getValue()), null, null);
+      if (endResult != null) endResult[1] = "1";
     } else {
-      if(ae.isDutch()) {
-        endResult = promptString(src, prompt, "Bidding", null, "Quantity", "1");
-      } else {
-        endResult = promptString(src, prompt, "Bidding", null, null, null);
-        if(endResult != null) endResult[1] = "1";
-      }
+      endResult = promptString(src, prompt, "Bidding", null, null, null);
+      if (endResult != null) endResult[1] = "1";
     }
 
     //  They closed the window
@@ -1129,10 +1050,9 @@ public class UserActions implements MessageQueue.Listener {
     MQFactory.getConcrete("user").enqueue(GET_SERVER_TIME);
   }
 
-  private final static StringBuffer badHelpData = new StringBuffer("Error loading About text!  (D'oh!)  Email <a href=\"mailto:cyberfox@users.sourceforge.net\">me</a>!");
-  private final static StringBuffer badAbout = new StringBuffer("Error loading About text!  (D'oh!)  Email <a href=\"mailto:cyberfox@users.sourceforge.net\">me</a>!");
+  private final static StringBuffer badAbout = new StringBuffer("Error loading About text!  (D'oh!)  Email <a href=\"mailto:cyberfox@jbidwatcher.com\">me</a>!");
   private final static StringBuffer badLicense = new StringBuffer("Error loading License text!  Please visit <a href=\"http://www.jbidwatcher.com/by-nc-sa-amended.shtml\">http://http://www.jbidwatcher.com/by-nc-sa-amended.shtml</a>!");
-  private final static StringBuffer badFAQ = new StringBuffer("Error loading FAQ text!  (D'oh!)  Email <a href=\"mailto:cyberfox@users.sourceforge.net\">me</a>!");
+  private final static StringBuffer badFAQ = new StringBuffer("Error loading FAQ text!  (D'oh!)  Email <a href=\"mailto:cyberfox@jbidwatcher.com\">me</a>!");
 
   static private JFrame aboutFrame = null;
   private void DoAbout() {
@@ -1374,13 +1294,13 @@ public class UserActions implements MessageQueue.Listener {
     JOptionPane.showMessageDialog(src,
                                   "I'm very sorry, but help has not been implemented yet.\n" +
                                   "If you'd like to assist in getting help up, you could\n" +
-                                  "write me an email at cyberfox@users.sourceforge.net\n" +
+                                  "write me an email at cyberfox@jbidwatcher.com\n" +
                                   "describing how you use a particular part of JBidwatcher,\n" +
                                   "and I'll try to collect those into contextual help options.",
                                   "Sorry, no help!", JOptionPane.INFORMATION_MESSAGE);
   }
 
-  private final static StringBuffer badColors = new StringBuffer("Error loading Color help text!  (D'oh!)  Email <a href=\"mailto:cyberfox%40users.sourceforge.net\">me</a>!");
+  private final static StringBuffer badColors = new StringBuffer("Error loading Color help text!  (D'oh!)  Email <a href=\"mailto:cyberfox%40jbidwatcher.com\">me</a>!");
 
   private static JFrame helpFrame = null;
   private void DoHelpColors() {

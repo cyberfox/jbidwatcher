@@ -21,7 +21,6 @@ public abstract class SpecificAuction extends AuctionInfo implements CleanupHand
     NOT_ADULT,
     BAD_TITLE,
     SELLER_AWAY,
-    ERROR,
     CAPTCHA,
     DELETED,
     WRONG_SITE

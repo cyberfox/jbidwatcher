@@ -53,7 +53,7 @@ public class Constants {
   public static final int DEFAULT_SERVER_PORT = 9099;
 /** String version of what port to listen on by default.
  */
-  public static final String DEFAULT_SERVER_PORT_STRING = "9099";
+  public static final String DEFAULT_SERVER_PORT_STRING = Integer.toString(Constants.DEFAULT_SERVER_PORT);
 /** What browser to pretend to be, when talking to the auction servers.
  */
   public static final String FAKE_BROWSER = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2";

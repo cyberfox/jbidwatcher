@@ -10,6 +10,7 @@ import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.browser.BrowserLauncher;
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.Category;
 
 import javax.swing.*;
@@ -64,7 +65,7 @@ public class RSSDialog extends BasicDialog {
   }
 
   public void fireFeed(String feedName) {
-    String url = "feed://" + getHost() + ":" + JConfig.queryConfiguration("server.port", "9099") + "/syndicate/" + feedName + ".xml";
+    String url = "feed://" + getHost() + ":" + JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING) + "/syndicate/" + feedName + ".xml";
     try {
       BrowserLauncher.openURL(url);
     } catch (IOException e) {
@@ -74,7 +75,7 @@ public class RSSDialog extends BasicDialog {
   }
 
   public void fireCopy(String feedName) {
-    String url = "http://" + getHost() + ":" + JConfig.queryConfiguration("server.port", "9099") + "/syndicate/" + feedName + ".xml";
+    String url = "http://" + getHost() + ":" + JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING) + "/syndicate/" + feedName + ".xml";
     Clipboard.setClipboardString(url);
     onOK();
   }

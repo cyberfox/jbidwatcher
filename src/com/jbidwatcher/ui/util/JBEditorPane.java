@@ -8,9 +8,6 @@ package com.jbidwatcher.ui.util;
 import javax.swing.*;
 
 public class JBEditorPane extends JEditorPane {
-  public void scrollToReference(String reference) {
-    super.scrollToReference(reference);
-  }
   public JBEditorPane(String mimetype, String data) {
     super(mimetype, data);
   }

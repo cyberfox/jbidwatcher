@@ -94,10 +94,6 @@ class MockAuctionServerInterface implements AuctionServerInterface {
     return false;
   }
 
-  public boolean isHighDutch(EntryInterface entry) {
-    return false;
-  }
-
   public void updateHighBid(AuctionEntry eEntry) { }
 
   public String stripId(String source) {

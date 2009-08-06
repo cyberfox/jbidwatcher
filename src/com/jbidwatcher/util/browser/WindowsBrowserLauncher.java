@@ -13,7 +13,7 @@ import java.io.*;
  * to support a separate way to determine the default browser if
  * running under Windows.
  * <o>
- * This code is Copyright 2001-2004 by Morgan Schweers (cyberfox@users.sourceforge.net) and may be
+ * This code is Copyright 2001-2004 by Morgan Schweers (cyberfox@jbidwatcher.com) and may be
  * redistributed or modified in any form without restrictions as long as the portion of this
  * comment from this paragraph through the end of the comment is not removed.  The author
  * requests that he be notified of any application, applet, or other binary that makes use of
@@ -26,7 +26,7 @@ import java.io.*;
  *         http://browserlauncher.sourceforge.net
  * under Windows, so I owe a great deal to Eric Albert
  *
- * @author Morgan Schweers (<a href="mailto:cyberfox@users.sourceforge.net">cyberfox@users.sourceforge.net</a>)
+ * @author Morgan Schweers (<a href="mailto:cyberfox@jbidwatcher.com">cyberfox@jbidwatcher.com</a>)
  * @version 1.0 (Released January 30, 2004)
  */
 public class WindowsBrowserLauncher {

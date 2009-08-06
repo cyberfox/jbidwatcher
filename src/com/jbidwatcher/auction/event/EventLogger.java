@@ -9,6 +9,7 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLSerialize;
+import com.jbidwatcher.util.xml.XMLInterface;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,20 +52,20 @@ public class EventLogger implements XMLSerialize {
    * 
    * @param curElement - The current element to load the events from.
    */
-  public void fromXML(XMLElement curElement) {
-    Iterator<XMLElement> logStep = curElement.getChildren();
+  public void fromXML(XMLInterface curElement) {
+    Iterator<XMLInterface> logStep = curElement.getChildren();
 
     while(logStep.hasNext()) {
-      XMLElement curEntry = logStep.next();
+      XMLElement curEntry = (XMLElement)logStep.next();
 
       if(curEntry.getTagName().equals("entry")) {
         long msgtime = System.currentTimeMillis();
         String msg = "Nothing has happened.";
         int curCount = Integer.parseInt(curEntry.getProperty("COUNT"));
 
-        Iterator<XMLElement> entryStep = curEntry.getChildren();
+        Iterator<XMLInterface> entryStep = curEntry.getChildren();
         while(entryStep.hasNext()) {
-          XMLElement entryField = entryStep.next();
+          XMLElement entryField = (XMLElement)entryStep.next();
           if(entryField.getTagName().equals("message")) msg = entryField.getContents();
           if(entryField.getTagName().equals("date")) msgtime = Long.parseLong(entryField.getContents());
         }

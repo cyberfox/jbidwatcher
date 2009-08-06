@@ -44,9 +44,9 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   public void loadFilters() {
-    mMainTab = mList.add(new AuctionListHolder("current", false, false, false));
-    mDefaultCompleteTab = mList.add(new AuctionListHolder("complete", true, false, false));
-    mDefaultSellingTab = mList.add(new AuctionListHolder("selling", false, true, false));
+    mMainTab = mList.add(new AuctionListHolder("current", false, false));
+    mDefaultCompleteTab = mList.add(new AuctionListHolder("complete", true, false));
+    mDefaultSellingTab = mList.add(new AuctionListHolder("selling", false, false));
 
     String tabName;
     int i = 2;

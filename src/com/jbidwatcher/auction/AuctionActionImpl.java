@@ -65,7 +65,6 @@ public abstract class AuctionActionImpl implements AuctionAction {
   public int getResult() { return mResult; }
   public boolean isSuccessful() {
     return (mResult == AuctionServerInterface.BID_WINNING ||
-            mResult == AuctionServerInterface.BID_DUTCH_CONFIRMED ||
             mResult == AuctionServerInterface.BID_SELFWIN);
   }
 
@@ -81,10 +80,6 @@ public abstract class AuctionActionImpl implements AuctionAction {
       case AuctionServerInterface.BID_ERROR_CANNOT:
         bidResultString = "Bidding apparently failed, as the auction cannot be bid on anymore (probably ended)!";
         JConfig.increment("stats.bid.too_late");
-        break;
-      case com.jbidwatcher.auction.AuctionServerInterface.BID_DUTCH_CONFIRMED:
-        bidResultString = "Your dutch bid was confirmed, and you are in the list of high bidders!";
-        JConfig.increment("stats.bid.success");
         break;
       case AuctionServerInterface.BID_ERROR_BANNED:
         bidResultString = "Your bid failed, as you are disallowed from bidding on this seller's items.";

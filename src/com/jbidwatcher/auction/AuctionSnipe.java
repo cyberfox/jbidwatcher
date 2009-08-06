@@ -60,10 +60,6 @@ public class AuctionSnipe extends ActiveRecord
     return snipe;
   }
 
-  public String saveDB() {
-    return super.saveDB();
-  }
-
   private static Table sDB = null;
   protected static String getTableName() { return "snipes"; }
 

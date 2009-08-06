@@ -35,10 +35,8 @@ class MockAuctionInfo extends AuctionInfo {
     mSeller.setPositivePercentage(String.valueOf(Double.parseDouble("99.6")));
     setHighBidder("test-jbidwatcher-bids");
     setTitle("A test auction.");
-    setHighBidderEmail(null);
     setQuantity(1);
     setNumBids(1);
-    setDutch(false);
     setReserve(false);
     setPrivate(false);
     setReserveMet(false);

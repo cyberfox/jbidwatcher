@@ -24,7 +24,6 @@ import java.util.HashMap;
  */
 public class JBidMenuBar extends JMenuBar {
   protected static JBidMenuBar _instance = null;
-  protected JMenuBar _menuBar;
   protected JMenu _fileMenu;
   protected JMenu _editMenu;
   protected JMenu _debugMenu = null;

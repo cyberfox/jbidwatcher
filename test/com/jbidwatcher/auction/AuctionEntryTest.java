@@ -4,7 +4,6 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorManagement;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -130,10 +129,6 @@ public class AuctionEntryTest extends TestCase {
     assertNull(mAE.getCancelledSnipe());
   }
 
-  public void testGetCancelledSnipeQuantity() throws Exception {
-    assertEquals(1, mAE.getCancelledSnipeQuantity());
-  }
-
   public void testSetNeedsUpdate() throws Exception {
     MQFactory.getConcrete("redraw").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
@@ -168,11 +163,11 @@ public class AuctionEntryTest extends TestCase {
   }
 
   private static final int NOT_FIXED_PRICE=1;
-  private static final int HIGH_BIDDER=2;
-  private static final int WILL_WIN=4;
+//  private static final int HIGH_BIDDER=2;
+//  private static final int WILL_WIN=4;
   private static final int HAS_BIN=8;
-  private static final int RESERVE_AND_MET=16;
-  private static final int RESERVE_NOT_MET=32;
+//  private static final int RESERVE_AND_MET=16;
+//  private static final int RESERVE_NOT_MET=32;
   private static final int HAS_PAYPAL=64;
 
   public void testGetFlags() throws Exception {
@@ -219,10 +214,6 @@ public class AuctionEntryTest extends TestCase {
 
   public void testGetHighBidder() throws Exception {
     assertEquals("test-jbidwatcher-bids", mAE.getHighBidder());
-  }
-
-  public void testGetHighBidderEmail() throws Exception {
-    assertNull(mAE.getHighBidderEmail());
   }
 
   public void testGetTitle() throws Exception {

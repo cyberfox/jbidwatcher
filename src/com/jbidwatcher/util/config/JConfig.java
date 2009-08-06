@@ -31,7 +31,6 @@ public class JConfig {
   protected static Properties displayProperty = null;
   protected static Properties mAuxProps = null;
   protected static Properties mTempProps = null;
-  protected static Runtime curRuntime = Runtime.getRuntime();
 
   protected static String _configFileName = null;
 

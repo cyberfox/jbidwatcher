@@ -11,7 +11,7 @@ import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.my.MyJBidwatcher;
+//import com.jbidwatcher.my.MyJBidwatcher;
 
 import java.net.URLConnection;
 import java.io.IOException;
@@ -53,9 +53,6 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       mResultHash.put("your bid must be at least ", AuctionServer.BID_ERROR_TOO_LOW); /*?*/
       mResultHash.put("you('ve| have) been outbid by another bidder", AuctionServer.BID_ERROR_OUTBID);
       mResultHash.put("you('ve| have) just been outbid", ebayServer.BID_ERROR_OUTBID);
-      mResultHash.put("your bid is confirmed!", AuctionServer.BID_DUTCH_CONFIRMED);
-      mResultHash.put("you('re| are) bidding on this multiple item auction", AuctionServer.BID_DUTCH_CONFIRMED);
-      mResultHash.put("you('re| are) the high bidder on all items you bid on", AuctionServer.BID_DUTCH_CONFIRMED);
       mResultHash.put("you('re| are) the current high bidder", AuctionServer.BID_WINNING);
       mResultHash.put("you('re| are) the first bidder", AuctionServer.BID_WINNING);
       mResultHash.put("you('re| are) the high bidder and currently in the lead", AuctionServer.BID_WINNING);
@@ -98,15 +95,13 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
    * @param cj - The cookies for the current session.
    * @param inEntry - The auction being bid on.
    * @param inCurr - The amount to bid.
-   * @param inQuant - The quantity to bid on (if it's a dutch auction, 1 otherwise).
-   *
    * @return - A Form object containing all the input fields from the bid-confirmation page's form.
    *
    * @throws BadBidException - If there's some kind of an error on the bid confirmation page.
    */
-  public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr, int inQuant) throws BadBidException {
+  public JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr) throws BadBidException {
     String bidRequest = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file");
-    String bidInfo = getBidInfoURL(inEntry, inCurr, inQuant);
+    String bidInfo = getBidInfoURL(inEntry, inCurr);
     BidFormReturn rval = null;
 
     try {
@@ -135,22 +130,22 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       checkSignOn(rval.getDocument());
       checkBidErrors(rval);
     }
-
-    if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true") &&
-       JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-      String recognize = MyJBidwatcher.getInstance().recognizeBidpage(inEntry.getIdentifier(), rval.getBuffer());
-      Integer remote_result = null;
-      try {
-        remote_result = Integer.parseInt(recognize);
-      } catch(NumberFormatException nfe) {
-        //  Ignore it for now...
-        JConfig.log().logDebug(recognize);
-      }
-
-      if(remote_result != null && remote_result != AuctionServer.BID_ERROR_UNKNOWN) {
-        throw new BadBidException("Remote-checked result", remote_result);
-      }
-    }
+//    TODO -- Move this to a registered 'alternative parsing' class, which iterates over objects calling recognizeBidPage until getting a positive result, or running out.
+//    if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true") &&
+//       JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
+//      String recognize = MyJBidwatcher.getInstance().recognizeBidpage(inEntry.getIdentifier(), rval.getBuffer());
+//      Integer remote_result = null;
+//      try {
+//        remote_result = Integer.parseInt(recognize);
+//      } catch(NumberFormatException nfe) {
+//        //  Ignore it for now...
+//        JConfig.log().logDebug(recognize);
+//      }
+//
+//      if(remote_result != null && remote_result != AuctionServer.BID_ERROR_UNKNOWN) {
+//        throw new BadBidException("Remote-checked result", remote_result);
+//      }
+//    }
 
     if(JConfig.debugging) inEntry.setLastStatus("Failed to bid. 'Show Last Error' from context menu to see the failure page from the bid attempt.");
     JConfig.log().dump2File("unknown-" + inEntry.getIdentifier() + ".html", rval.getBuffer());
@@ -174,11 +169,8 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     return pageName;
   }
 
-  private String getBidInfoURL(AuctionEntry inEntry, Currency inCurr, int inQuant) {
+  private String getBidInfoURL(AuctionEntry inEntry, Currency inCurr) {
     String bidInfo = Externalized.getString("ebayServer.bidCmd") + "&co_partnerid=" + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() + "&fb=2";
-    if(inEntry.isDutch()) {
-      bidInfo += Externalized.getString("ebayServer.quantCGI") + inQuant;
-    }
     bidInfo += Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();
     return bidInfo;
   }
@@ -311,7 +303,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     JHTML.Form bidForm;
 
     try {
-      bidForm = getBidForm(cj, inEntry, inBid, inQuantity);
+      bidForm = getBidForm(cj, inEntry, inBid);
     } catch(BadBidException bbe) {
       UpdateBlocker.endBlocking();
       return bbe.getResult();

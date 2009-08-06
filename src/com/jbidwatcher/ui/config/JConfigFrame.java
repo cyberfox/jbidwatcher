@@ -10,7 +10,6 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.ui.util.JBidFrame;
 import com.jbidwatcher.ui.util.OptionUI;
-import com.jbidwatcher.auction.server.ebay.*;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -129,7 +128,7 @@ public class JConfigFrame implements ActionListener {
 
     //  Add all non-server-specific tabs here.
     allTabs.add(new JConfigGeneralTab());
-    allTabs.add(new JConfigEbayTab(Constants.EBAY_DISPLAY_NAME, Constants.SITE_CHOICES));
+    allTabs.add(new JConfigEbayTab());
 
     //  Stub the browser tab under MacOSX, so they don't try to use it.
     if(Platform.isMac()) {

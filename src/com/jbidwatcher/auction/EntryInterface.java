@@ -5,7 +5,7 @@ package com.jbidwatcher.auction;
  * User: Morgan
  * Date: Jan 14, 2009
  * Time: 4:10:53 AM
- * To change this template use File | Settings | File Templates.
+ * All 'entry' objects have 'getIdentifier' as a method.
  */
 public interface EntryInterface extends Snipeable {
   /**

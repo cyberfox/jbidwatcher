@@ -353,7 +353,6 @@ public class AuctionsUIModel {
    * information that is not the same.
    *
    * @param aeNew - The new auction entry to add to the tables.
-   * @return - true if the auction was added, false if not.
    */
   public void addEntry(EntryInterface aeNew) {
     if (aeNew != null) {
@@ -413,18 +412,6 @@ public class AuctionsUIModel {
 
   public boolean export(String fname) {
     return _export.export(fname);
-  }
-
-  /*!@class JComponentCellRenderer
-   *
-   * @brief Allows components themselves to be added to a JTable, and
-   * allows them to offer themselves as renderers.
-   */
-  static class JComponentCellRenderer implements TableCellRenderer {
-    public Component getTableCellRendererComponent(JTable table, Object value,
-                                                   boolean isSelected, boolean hasFocus, int row, int column) {
-      return (Component) value;
-    }
   }
 
   /**

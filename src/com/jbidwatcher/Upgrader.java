@@ -57,7 +57,7 @@ public class Upgrader {
     return schemaInfo.getDB();
   }
 
-  private static boolean tableExists(Database db, Statement s, String tableName) throws SQLException {
+  private static boolean tableExists(Statement s, String tableName) throws SQLException {
     ResultSet rs = s.getConnection().getMetaData().getTables(null, null, tableName, null);
     boolean result = rs.next();
     rs.close();
@@ -72,8 +72,8 @@ public class Upgrader {
        */
       Statement mS = db.getStatement();
 
-      boolean schema_info_exists = tableExists(db, mS, "schema_info");
-      if(!schema_info_exists) schema_info_exists = tableExists(db, mS, "SCHEMA_INFO");
+      boolean schema_info_exists = tableExists(mS, "schema_info");
+      if(!schema_info_exists) schema_info_exists = tableExists(mS, "SCHEMA_INFO");
 
       if(!schema_info_exists) {
         runFile(db, mS, "/jbidwatcher.sql");

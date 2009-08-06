@@ -798,7 +798,6 @@ class ebayAuction extends SpecificAuction {
 
   private void checkHighBidder() {
     String bidder = null;
-    String email = null;
 
     if(mDocument.grep("This is a private listing.*") != null) {
       bidder = "(private)";
@@ -809,7 +808,6 @@ class ebayAuction extends SpecificAuction {
         if (bidder != null) {
           setNumBids(1);
           bidder = bidder.trim();
-          email = findHighBidderEmail(bidder);
         }
       } else {
         if (getQuantity() > 1) {
@@ -819,7 +817,6 @@ class ebayAuction extends SpecificAuction {
             bidder = mDocument.getNextContentAfterRegex(T.s("ebayServer.highBidder"));
             if (bidder != null) {
               bidder = bidder.trim();
-              email = findHighBidderEmail(bidder);
             } else {
               bidder = "(unknown)"; //  ...but present.
             }
@@ -829,24 +826,6 @@ class ebayAuction extends SpecificAuction {
     }
 
     setHighBidder(bidder == null ? "" : bidder);
-    setHighBidderEmail(email == null ? "(unknown)" : email);
-  }
-
-  private String findHighBidderEmail(String bidder) {
-    String email = null;
-
-    if(bidder != null) {
-      email = mDocument.getNextContentAfterContent(bidder, true, false);
-      if (email != null) {
-        email = email.trim();
-        if (email.charAt(0) == '(' && email.charAt(email.length() - 1) == ')' && email.indexOf('@') != -1) {
-          email = (email.substring(1, email.length() - 1));
-        }
-        if (email.equals("(")) email = null;
-      }
-    }
-
-    return email;
   }
 
   private int getBidCount(JHTML doc, int quantity) {

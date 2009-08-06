@@ -3,7 +3,6 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.auction.AuctionEntry;
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,7 +13,7 @@ import com.jbidwatcher.auction.AuctionEntry;
  * Abstraction of the bidding interface, so it can be replaced with other bidding code, if desired.
  */
 public interface Bidder {
-  JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr, int inQuant) throws com.jbidwatcher.auction.BadBidException;
+  JHTML.Form getBidForm(CookieJar cj, AuctionEntry inEntry, Currency inCurr) throws com.jbidwatcher.auction.BadBidException;
 
   int buy(AuctionEntry ae, int quantity);
 
