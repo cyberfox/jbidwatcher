@@ -22,8 +22,10 @@
             <cell name="app" pattern="com.jbidwatcher.app.?" vexpanded="true" visibility="public" />
          </row>
          <row>
-            <cell name="webserver" pattern="com.jbidwatcher.webserver.?" vexpanded="true" visibility="public" />
             <cell name="jbidwatcher" pattern="com.jbidwatcher.?" vexpanded="true" visibility="public" />
+         </row>
+         <row>
+            <cell name="webserver" pattern="com.jbidwatcher.webserver.?" vexpanded="true" visibility="public" />
          </row>
          <row>
             <cell name="ui" pattern="com.jbidwatcher.ui.*" vexpanded="true" visibility="public">
@@ -43,7 +45,6 @@
          </row>
          <row>
             <cell name="my" pattern="com.jbidwatcher.my.?" vexpanded="true" visibility="public" />
-            <cell name="platform" pattern="com.jbidwatcher.platform.?" vexpanded="true" visibility="public" />
          </row>
          <row>
             <cell name="auction" pattern="com.jbidwatcher.auction.*" vexpanded="true" visibility="public">
@@ -68,6 +69,9 @@
                   </row>
                </grid>
             </cell>
+         </row>
+         <row>
+            <cell name="platform" pattern="com.jbidwatcher.platform.?" vexpanded="true" visibility="public" />
          </row>
          <row>
             <cell name="search" pattern="com.jbidwatcher.search.?" vexpanded="true" visibility="public" />
