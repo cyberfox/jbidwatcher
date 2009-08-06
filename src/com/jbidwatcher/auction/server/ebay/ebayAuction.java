@@ -372,22 +372,34 @@ class ebayAuction extends SpecificAuction {
 
   private void loadFeedback(JHTML doc) {
     String score = doc.getContentBeforeContent(T.s("ebayServer.feedback"));
+    String newPercent = null;
+
     if(score != null && StringTools.isNumberOnly(score)) {
       mSeller.setFeedback(Integer.parseInt(score));
     } else {
       score = doc.getNextContentAfterRegex(T.s("ebayServer.sellerInfoPrequel"));
       if(score != null && score.equals("Seller:")) score = doc.getNextContent();
       if(score != null) score = doc.getNextContent();
-      if(score != null && StringTools.isNumberOnly(score)) mSeller.setFeedback(Integer.parseInt(score));
+      if(score != null && StringTools.isNumberOnly(score)) {
+        mSeller.setFeedback(Integer.parseInt(score));
+        score = doc.getNextContent(); //  Next after the feedback amount is the close parenthesis.
+        if(score != null) score = doc.getNextContent();
+        if (score != null && score.matches("[0-9]+(\\.[0-9])?%")) {
+          newPercent = score;
+        }
+      }
     }
 
-    String newPercent = doc.getContentBeforeContent("&#160;Positive feedback");
+    if(newPercent == null) newPercent = doc.getContentBeforeContent("&#160;Positive feedback");
     if(newPercent != null && newPercent.matches("[0-9]+(\\.[0-9])?%")) {
       mSeller.setPositivePercentage(newPercent);
     } else {
       String percentage = doc.getNextContentAfterContent(T.s("ebayServer.feedback"));
-      if(percentage != null) mSeller.setPositivePercentage(percentage);
-      else mSeller.setPositivePercentage("100");
+      if(percentage != null) {
+        mSeller.setPositivePercentage(percentage);
+      } else {
+        mSeller.setPositivePercentage("100");
+      }
     }
   }
 
