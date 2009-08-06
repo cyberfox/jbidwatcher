@@ -322,7 +322,7 @@ public class JHTML implements JHTMLListener {
       try {
         m_curForm = new Form(newToken.getToken());
       } catch (com.jbidwatcher.util.xml.XMLParseException parseException) {
-        JConfig.log().handleException("Form parsing failure: " + parseException, parseException);
+        JConfig.log().logDebug("Form parsing failure: " + parseException);
       }
     } else if(newToken.getToken().toLowerCase().startsWith("/form")) {
       if(m_curForm != null) m_formList.add(m_curForm);
