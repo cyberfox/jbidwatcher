@@ -65,6 +65,13 @@ public class JTabPopupMenu extends JContext {
   protected void beforePopup(JPopupMenu inPopup, MouseEvent e) {
     super.beforePopup(inPopup, e);
     int curIndex = mTabs.indexAtLocation(e.getX(), e.getY());
+    if(curIndex == -1) {
+      int tabCount = mTabs.getTabCount();
+      for(int i=0; i<tabCount; i++) {
+        Rectangle tabBounds = mTabs.getBoundsAt(i);
+        if(tabBounds != null && tabBounds.contains(e.getPoint())) curIndex = i;
+      }
+    }
     preparePopup(curIndex);
   }
 
