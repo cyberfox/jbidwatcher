@@ -125,6 +125,7 @@ public class JConfig {
   public static void kill(String key) {
     Set ks;
     if(key.startsWith("temp.")) {
+      if(mTempProps == null) return;
       ks = mTempProps.keySet();
     } else {
       ks = soleProperty.keySet();
@@ -574,6 +575,7 @@ public class JConfig {
       System.out.println("Query: " + query);
     }
     if(query.startsWith("temp.")) {
+      if(mTempProps == null) return null;
       return mTempProps.getProperty(query, null);
     }
     return soleProperty.getProperty(query, null);
