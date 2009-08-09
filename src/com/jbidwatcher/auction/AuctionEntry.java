@@ -506,7 +506,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     if(mMultiSnipe != inMS) {
       //  If there was a different MultiSnipe before, remove this from it.
       if(mMultiSnipe != null) {
-        mMultiSnipe.remove(this);
+        mMultiSnipe.remove(getIdentifier());
         //  ...and cancel the current snipe, as long as we're not
         // cancelling this snipe entirely (in which case we cancel
         // it below).
@@ -523,7 +523,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         if(!isSniped()) {
           prepareSnipe(mMultiSnipe.getSnipeValue(getShippingWithInsurance()));
         }
-        mMultiSnipe.add(this);
+        mMultiSnipe.add(getIdentifier());
         addMulti(mMultiSnipe);
       }
     }
@@ -1105,27 +1105,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     checkSeller();
     //  TODO Move all this to 'setComplete' on 'true'...
     if (isComplete()) {
-      //  If the auction is really completed now, and it was part of a
-      //  multisnipe group, let's check if it's been won.  If it has,
-      //  tell the MultiSnipe object that one has been won, so it can
-      //  clear out the others!
-      boolean won = isHighBidder() && (!isReserve() || isReserveMet());
-      if (isMultiSniped()) {
-        MultiSnipe ms = getMultiSnipe();
-        if (won) {
-          ms.setWonAuction(/* this */);
-        } else {
-          ms.remove(this);
-        }
-      }
-      if(won) {
-        JConfig.increment("stats.won");
-      }
-      if (isSniped()) {
-        //  It's okay to cancel the snipe here; if the auction was won, it would be caught above.
-        setLastStatus("Cancelling snipe, auction is reported as ended.");
-        cancelSnipe(true);
-      }
+      onComplete();
     } else {
       Date serverTime = new Date(System.currentTimeMillis() +
                                  getServer().getServerTimeDelta());
@@ -1138,6 +1118,29 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       }
     }
     saveDB();
+  }
+
+  private void onComplete() {//  If the auction is really completed now, and it was part of a
+    //  multisnipe group, let's check if it's been won.  If it has,
+    //  tell the MultiSnipe object that one has been won, so it can
+    //  clear out the others!
+    boolean won = isHighBidder() && (!isReserve() || isReserveMet());
+    if (isMultiSniped()) {
+      MultiSnipe ms = getMultiSnipe();
+      if (won) {
+        ms.setWonAuction(/* this */);
+      } else {
+        ms.remove(getIdentifier());
+      }
+    }
+    if(won) {
+      JConfig.increment("stats.won");
+    }
+    if (isSniped()) {
+      //  It's okay to cancel the snipe here; if the auction was won, it would be caught above.
+      setLastStatus("Cancelling snipe, auction is reported as ended.");
+      cancelSnipe(true);
+    }
   }
 
   public void prepareSnipe(Currency snipe) { prepareSnipe(snipe, 1); }
@@ -2019,5 +2022,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public static int countByCategory(Category c) {
     if(c == null) return 0;
     return getRealDatabase().countBySQL("SELECT COUNT(*) FROM entries WHERE category_id=" + c.getId());
+  }
+
+  public static List<AuctionEntry> findAllBy(String column, String value) {
+    return (List<AuctionEntry>)ActiveRecord.findAllBy(AuctionEntry.class, column, value);
   }
 }

@@ -169,6 +169,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     return pageName;
   }
 
+  //  TODO/FIXME -- Under bad circumstances, inEntry.getIdentifier() can return null.
   private String getBidInfoURL(AuctionEntry inEntry, Currency inCurr) {
     String bidInfo = Externalized.getString("ebayServer.bidCmd") + "&co_partnerid=" + Externalized.getString("ebayServer.itemCGI") + inEntry.getIdentifier() + "&fb=2";
     bidInfo += Externalized.getString("ebayServer.bidCGI") + inCurr.getValue();

@@ -56,8 +56,8 @@ public class Snipe {
     if(mEntry.isMultiSniped()) {
       MultiSnipe ms = mEntry.getMultiSnipe();
       //  Make sure there aren't any update-unfinished items.
-      if(ms.anyEarlier(mEntry.getEndDate())) {
-        mEntry.setLastStatus("An earlier snipe in this multisnipe group has not been updated.");
+      if(ms.anyEarlier(mEntry)) {
+        mEntry.setLastStatus("An earlier snipe in this multisnipe group has not ended, or has not been updated after ending.");
         mEntry.setLastStatus("This snipe is NOT being fired, as it could end up winning two items.");
         UpdateBlocker.endBlocking();
         return RESNIPE;

@@ -42,7 +42,7 @@ public class MultiSnipeTest extends TestCase {
 
     public MockSnipeable(Integer msId, long hours_out, String ident) {
       mGroup = MultiSnipe.find(msId);
-      mGroup.add(this);
+      mGroup.add(getIdentifier());
       mEndDate = new Date(System.currentTimeMillis() + hours_out * 60L * 60L * 1000L);
       mIdentifier = ident;
     }
@@ -57,7 +57,7 @@ public class MultiSnipeTest extends TestCase {
 
     public void cancelSnipe(boolean after_end) {
       mCancelled = true;
-      mGroup.remove(this);
+      mGroup.remove(getIdentifier());
     }
 
     public Date getEndDate() {

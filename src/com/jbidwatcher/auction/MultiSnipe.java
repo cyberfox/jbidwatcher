@@ -17,24 +17,12 @@ import java.util.*;
  *  MultiSnipe class
  */
 public class MultiSnipe extends ActiveRecord {
-  private Color mBackground;
-  private LinkedList<Snipeable> mAuctionEntriesInThisGroup = new LinkedList<Snipeable>();
-  private static final int HEX_BASE = 16;
   private static Map<Integer, MultiSnipe> singleSource = new HashMap<Integer, MultiSnipe>();
-
-  private synchronized void sanitize() {
-    for (Iterator<Snipeable> it = mAuctionEntriesInThisGroup.iterator(); it.hasNext();) {
-      Snipeable s = it.next();
-      boolean reloaded = s.reload();
-      if (!reloaded || s.getMultiSnipe() != this) {
-        it.remove();
-      }
-    }
-  }
+  private static final int HEX_BASE = 16;
+  private Color mBackground;
 
   public synchronized int activeEntries() {
-    sanitize();
-    return mAuctionEntriesInThisGroup.size();
+    return getAuctionEntriesInThisGroup().size();
   }
 
   private void setValues(Color groupColor, Currency snipeValue, long id, boolean subtractShipping) {
@@ -112,23 +100,18 @@ public class MultiSnipe extends ActiveRecord {
     return Long.parseLong(getString("identifier", "0"));
   }
 
-  public synchronized void add(Snipeable aeNew) {
-    boolean ignore = false;
-    for (Snipeable s : mAuctionEntriesInThisGroup) {
-      if (s.getIdentifier().equals(aeNew.getIdentifier())) {
-        ignore = true;
-      }
-    }
-    if (!ignore) mAuctionEntriesInThisGroup.add(aeNew);
+  public synchronized void add(String identifier) {
+    AuctionEntry ae = EntryCorral.getInstance().takeForWrite(identifier);
+    ae.set("multisnipe_id", get("id"));
+    ae.saveDB();
+    EntryCorral.getInstance().release(identifier);
   }
 
-  public synchronized void remove(Snipeable aeOld) {
-    for (Iterator<Snipeable> it = mAuctionEntriesInThisGroup.iterator(); it.hasNext();) {
-      Snipeable s = it.next();
-      if (s.getIdentifier().equals(aeOld.getIdentifier())) {
-        it.remove();
-      }
-    }
+  public synchronized void remove(String identifier) {
+    AuctionEntry ae = EntryCorral.getInstance().takeForWrite(identifier);
+    ae.set("multisnipe_id", null);
+    ae.saveDB();
+    EntryCorral.getInstance().release(identifier);
   }
 
   /**
@@ -138,24 +121,22 @@ public class MultiSnipe extends ActiveRecord {
    * param ae - The auction that was won.
    */
   public synchronized void setWonAuction(/*Snipeable ae*/) {
-    sanitize();
-    List<Snipeable> oldEntries = mAuctionEntriesInThisGroup;
-    mAuctionEntriesInThisGroup = new LinkedList<Snipeable>();
+    List<Snipeable> oldEntries = getAuctionEntriesInThisGroup();
 
     for (Snipeable aeFromList : oldEntries) {
       aeFromList.cancelSnipe(false);
     }
-    oldEntries.clear();
   }
 
-  public synchronized boolean anyEarlier(Date firingDate) {
-    sanitize();
+  public synchronized boolean anyEarlier(AuctionEntry inEntry) {
+    String inIdentifier = inEntry.getIdentifier();
 
-    for (Snipeable ae : mAuctionEntriesInThisGroup) {
+    for (Snipeable ae : getAuctionEntriesInThisGroup()) {
       //  If any auction entry in the list ends BEFORE the one we're
       //  checking, then we really don't want to do anything until
       //  it's no longer in the list.
-      if (ae.getEndDate().before(firingDate)) return true;
+      if (ae.getEndDate().before(inEntry.getEndDate()) &&
+          !inIdentifier.equals(ae.getIdentifier())) return true;
     }
 
     return false;
@@ -188,9 +169,7 @@ public class MultiSnipe extends ActiveRecord {
   }
 
   public synchronized boolean isSafeToAdd(Snipeable ae) {
-    sanitize();
-
-    for (Snipeable fromList : mAuctionEntriesInThisGroup) {
+    for (Snipeable fromList : getAuctionEntriesInThisGroup()) {
       //  It's always safe to 'add' an entry that already exists,
       //  it'll just be reloaded.
       if (!fromList.getIdentifier().equals(ae.getIdentifier())) {
@@ -281,5 +260,15 @@ public class MultiSnipe extends ActiveRecord {
     if(ms == null) ms = new MultiSnipe(bgColor, defaultSnipe, Long.parseLong(identifier), subtractShipping);
 
     return ms;
+  }
+
+  private List<Snipeable> getAuctionEntriesInThisGroup() {
+    List<AuctionEntry> entries = AuctionEntry.findAllBy("multisnipe_id", getString("id"));
+    List<Snipeable> rval = new ArrayList<Snipeable>(entries.size());
+    for(AuctionEntry entry : entries) {
+      AuctionEntry ae = EntryCorral.getInstance().takeForRead(entry.getIdentifier());
+      if(!ae.isComplete()) rval.add(ae);
+    }
+    return rval;
   }
 }
