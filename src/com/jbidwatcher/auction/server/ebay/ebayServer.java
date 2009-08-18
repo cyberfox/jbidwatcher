@@ -109,10 +109,15 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if(htmlDocument.isLoaded()) {
       List<JHTML.Table> bidderTables = htmlDocument.extractTables();
       for (JHTML.Table t : bidderTables) {
-        if (t.rowCellMatches(0, "^Bidder.*")) {
-          int bidCount = t.getRowCount() - 2; // 1 for the header, and 1 for the Starting Price
+        if (t.rowCellMatches(0, "^(Bidder|User ID).*")) {
+          int bidCount = t.getRowCount() - 1; // 1 for the header
+
+          // -1 for the starting price
+          if(t.rowCellMatches(bidCount, "Starting Price")) bidCount -= 1;
+
+          if(ae.getNumBidders() == 0) ae.setNumBids(bidCount);
           int myMostRecentRow = -1;
-          for(int i=1; i<t.getRowCount()-1; i++) {
+          for(int i=1; i < bidCount+1; i++) {
             if(t.getCell(0, i).equals(mLogin.getUserId())) {
               myMostRecentRow = i;
               break;

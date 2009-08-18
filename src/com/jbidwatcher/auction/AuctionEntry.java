@@ -2027,4 +2027,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public static List<AuctionEntry> findAllBy(String column, String value) {
     return (List<AuctionEntry>)ActiveRecord.findAllBy(AuctionEntry.class, column, value);
   }
+
+  public void setNumBids(int bidCount) {
+    mAuction.setNumBids(bidCount);
+  }
 }

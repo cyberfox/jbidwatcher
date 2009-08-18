@@ -469,7 +469,7 @@ class ebayAuction extends SpecificAuction {
     if (checkSeller(ae)) return ParseErrors.SELLER_AWAY;
 
     checkDates(prelimTitle, ae);
-    checkHighBidder();
+//    checkHighBidder();
     checkReserve();
     checkPrivate();
 
