@@ -788,7 +788,8 @@ class ebayAuction extends SpecificAuction {
   }
 
   private void checkPrivate() {
-    if(getHighBidder().indexOf(T.s("ebayServer.keptPrivate")) != -1) { //$NON-NLS-1$
+    String highBidder = getHighBidder();
+    if(highBidder != null && highBidder.indexOf(T.s("ebayServer.keptPrivate")) != -1) { //$NON-NLS-1$
       setPrivate(true);
       setHighBidder("(private)"); //$NON-NLS-1$
     }

@@ -360,6 +360,7 @@ public class UserActions implements MessageQueue.Listener {
 
     if(ae.isSeller()) {
       result = ae.getHighBidder();
+      if(result == null) result = "";
     } else {
       result = ae.getSeller();
     }
@@ -694,7 +695,9 @@ public class UserActions implements MessageQueue.Listener {
     if(ae.getShipping() != null && !ae.getShipping().isNull()) {
       prompt += "<tr><td>Shipping:</td><td>" + ae.getShipping() + "</td></tr>";
     }
-    prompt += "<tr><td>High bidder:</td><td>" + ae.getHighBidder() + "</td></tr>";
+    String highBidder = ae.getHighBidder();
+    if(highBidder == null) highBidder = "(n/a)";
+    prompt += "<tr><td>High bidder:</td><td>" + highBidder + "</td></tr>";
     prompt += "<tr><td>Seller:</td><td>" + ae.getSeller() + "</td></tr>";
     prompt += "</table>";
     if(minBid != null) {

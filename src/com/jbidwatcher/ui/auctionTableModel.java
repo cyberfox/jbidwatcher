@@ -441,9 +441,7 @@ public class auctionTableModel extends BaseTransformation
           return(comment==null?"":comment);
         case TableColumnController.BIDDER:
           String bidder = aEntry.getHighBidder();
-          if(bidder != null && bidder.length() != 0) {
-            return aEntry.getHighBidder();
-          }
+          if(bidder != null && bidder.length() != 0) return bidder;
           return "--";
         case TableColumnController.FIXED_PRICE:
           Currency bin = aEntry.getBuyNow();
