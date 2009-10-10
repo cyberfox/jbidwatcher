@@ -389,7 +389,7 @@ public class AuctionsUIModel {
       defaultHeight = Constants.DEFAULT_ROW_HEIGHT;
     } else {
       FontMetrics metrics = g.getFontMetrics(def);
-      defaultHeight = metrics.getMaxAscent() + metrics.getMaxDescent() + metrics.getLeading();
+      defaultHeight = metrics.getMaxAscent() + metrics.getMaxDescent() + metrics.getLeading()+4;
     }
 
     if (_table.convertColumnIndexToView(TableColumnController.THUMBNAIL) != -1) {
