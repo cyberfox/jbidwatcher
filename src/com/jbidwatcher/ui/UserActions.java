@@ -159,8 +159,10 @@ public class UserActions implements MessageQueue.Listener {
     JFontChooser jfc = new JFontChooser();
     jfc.setSelectedFont(myTableCellRenderer.getDefaultFont());
     Font chosen = jfc.showFontDialog(null, "Please choose the default font for the auction table");
-    myTableCellRenderer.setDefaultFont(chosen);
-    MQFactory.getConcrete("redraw").enqueue("#font");
+    if(chosen != null) {
+      myTableCellRenderer.setDefaultFont(chosen);
+      MQFactory.getConcrete("redraw").enqueue("#font");
+    }
   }
 
   private void DoShowLastError(Component src, AuctionEntry passedAE) {
