@@ -123,21 +123,29 @@ public class TableSorter extends Transformation implements TableModelListener {
   public int getColumnCount() { return m_tm.getColumnCount(); }
   public synchronized Object getValueAt(int row, int col) { return m_tm.getValueAt(row, col); }
 
-  public synchronized boolean delete(Object o) {
-    final int myRow = m_tm.findRow(o);
-//    final Object deleted = o;
+  public boolean delete(Object o) {
+    final int myRow;
+    synchronized(this) {
+      myRow = m_tm.findRow(o);
+    }
+
     final TableSorter sorter = this;
     if(myRow == -1) return false;
     final Selection save = new Selection(_table, _sorted);
     save.delete(myRow);
-    m_tm.delete(myRow);
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-//        int row = m_tm.findRow(deleted);
-        _table.tableChanged(new TableModelEvent(sorter, myRow, myRow, TableModelEvent.ALL_COLUMNS, TableModelEvent.DELETE));
-        restoreSelection(save);
-      }
-    });
+    synchronized (this) {
+      m_tm.delete(myRow);
+    }
+    try {
+      SwingUtilities.invokeAndWait(new Runnable() {
+        public void run() {
+          _table.tableChanged(new TableModelEvent(sorter, myRow, myRow, TableModelEvent.ALL_COLUMNS, TableModelEvent.DELETE));
+          restoreSelection(save);
+        }
+      });
+    } catch (Exception e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
     return true;
   }
 
@@ -198,16 +206,21 @@ public class TableSorter extends Transformation implements TableModelListener {
     }
   }
 
-  public synchronized int insert(Object o) {
+  public int insert(Object o) {
     final Selection save = getSelectionSafely();
-    int myRow = m_tm.insert(o);
-    //final Object inserted = o;
-    final TableSorter sorter = this;
+
+    int myRow;
+    synchronized(this) {
+      myRow = m_tm.insert(o);
+    }
     if(myRow == -1) return -1;
+
+    final TableSorter sorter = this;
+    final int count = m_tm.getRowCount();
+
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        //int row = m_tm.findRow(inserted);
-        _table.tableChanged(new TableModelEvent(sorter, 0, m_tm.getRowCount(), TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT));
+        _table.tableChanged(new TableModelEvent(sorter, 0, count, TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT));
         if(save != null) restoreSelection(save);
       }
     });
@@ -225,14 +238,16 @@ public class TableSorter extends Transformation implements TableModelListener {
   }
 
   public boolean update(final Object updated) {
-    int myRow = m_tm.findRow(updated);
+    final int myRow;
+    synchronized(this) {
+      myRow = m_tm.findRow(updated);
+    }
     final TableSorter sorter = this;
     if (myRow != -1) {
       SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           Selection save = new Selection(_table, _sorted);
-          int row = m_tm.findRow(updated);
-          _table.tableChanged(new TableModelEvent(sorter, row));
+          _table.tableChanged(new TableModelEvent(sorter, myRow));
           restoreSelection(save);
         }
       });
