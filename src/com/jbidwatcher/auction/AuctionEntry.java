@@ -1477,13 +1477,15 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return r_flags;
   }
 
+  private static AuctionInfo sAuction = new AuctionInfo();
+
   public AuctionInfo getAuction() {
-    if(mAuction == null) {
+    if(mAuction == null || mAuction == sAuction) {
       String aid = get("auction_id");
       if(aid != null && aid.length() != 0) {
         mAuction = AuctionInfo.findFirstBy("id", aid);
       }
-      if(mAuction == null && getString("identifier") != null) {
+      if((mAuction == null || mAuction == sAuction) && getString("identifier") != null) {
         mAuction = AuctionInfo.findByIdentifier(getString("identifier"));
       }
 
@@ -1499,6 +1501,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       }
     }
 
+    if(mAuction == null) mAuction = sAuction;
+
     return mAuction;
   }
 
@@ -1510,7 +1514,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @param inAI - The AuctionInfo object to make the new core data.  Must not be null.
    */
   public void setAuctionInfo(AuctionInfo inAI) {
-    if(mAuction == null) {
+    if(mAuction == null || mAuction == sAuction) {
       setDefaultCurrency(inAI.getDefaultCurrency());
     }
 
@@ -1682,7 +1686,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   /*************************/
 
   public String saveDB() {
-    if(mAuction == null) return null;
+    if(mAuction == null || mAuction == sAuction) return null;
 
     String auctionId = mAuction.saveDB();
     if(auctionId != null) set("auction_id", auctionId);
