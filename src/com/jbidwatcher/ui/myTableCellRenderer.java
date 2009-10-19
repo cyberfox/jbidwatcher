@@ -16,6 +16,7 @@ import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.ui.table.TableColumnController;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.HashMap;
@@ -76,55 +77,74 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     } else {
       setHorizontalAlignment(JLabel.LEFT);
     }
-    Component returnComponent = super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
+    JComponent returnComponent = (JComponent)super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
 
     AuctionEntry ae = (AuctionEntry)table.getValueAt(row, -1);
+    returnComponent.setOpaque(false);
     if(ae == null) return returnComponent;
 
     Color foreground = chooseForeground(ae, column, table.getForeground());
-    Color background = chooseBackground(ae, column, table.getBackground());
 
     mRow = row;
 
-    if( (row % 2) == 1) {
-      if(darkBG == null) {
-        int r = background.getRed();
-        int g = background.getGreen();
-        int b = background.getBlue();
-        r = Math.max(0, r - 20);
-        g = Math.max(0, g - 20);
-        b = Math.max(0, b - 20);
-        darkBG = new Color(r, g, b);
-      }
+    if(!Platform.isMac()) {
+      Color background = chooseBackground(ae, column, table.getBackground());
+      if ((row % 2) == 1) {
+        if (darkBG == null) darkBG = darken(background);
 
-      if (column != 2 || !ae.isMultiSniped()) {
-      if ((column != TableColumnController.SNIPE_OR_MAX && column != TableColumnController.SNIPE_TOTAL) || !ae.isMultiSniped()) {
-          if(JConfig.queryConfiguration("display.alternate", "true").equals("true")) {
-        }
-          background = darkBG;
+        if (column != 2 || !ae.isMultiSniped()) {
+          if ((column != TableColumnController.SNIPE_OR_MAX && column != TableColumnController.SNIPE_TOTAL) || !ae.isMultiSniped()) {
+            if (JConfig.queryConfiguration("display.alternate", "true").equals("true")) {
+              background = darkBG;
+            }
+          }
         }
       }
+      if (isSelected) {
+        Colors selectionColors = getSelectionColors(column, ae, foreground, background);
+
+        foreground = selectionColors.getForeground();
+        background = selectionColors.getBackground();
+      }
+      returnComponent.setBackground(background);
     }
 
     mSelected = isSelected;
-    if(isSelected) {
-      Colors selectionColors = getSelectionColors(column, ae, foreground, background);
-
-      foreground = selectionColors.getForeground();
-      background = selectionColors.getBackground();
-    }
 
     Font foo = chooseFont(returnComponent.getFont(), ae, column);
     returnComponent.setFont(foo);
     returnComponent.setForeground(foreground);
-    returnComponent.setBackground(background);
 
     return(returnComponent);
   }
 
+  private Color darken(Color background) {
+    int r = background.getRed();
+    int g = background.getGreen();
+    int b = background.getBlue();
+    r = Math.max(0, r - 20);
+    g = Math.max(0, g - 20);
+    b = Math.max(0, b - 20);
+    return new Color(r, g, b);
+  }
+
+  private Color lighten(Color background) {
+    int r = background.getRed();
+    int g = background.getGreen();
+    int b = background.getBlue();
+    r = Math.min(255, r + 20);
+    g = Math.min(255, g + 20);
+    b = Math.min(255, b + 20);
+    return new Color(r, g, b);
+  }
+
   private Map<Integer, GradientPaint> gradientCache = new HashMap<Integer, GradientPaint>();
 
+  private final static String evenList = "List.evenRowBackgroundPainter";
+  private final static String oddList = "List.oddRowBackgroundPainter";
+
   public void paintComponent(Graphics g) {
+    boolean painted = false;
     if(g != null) {
       if(JConfig.queryDisplayProperty("background.complex", "false").equals("true")) {
         Graphics2D g2d = (Graphics2D) g;
@@ -139,9 +159,40 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
           }
           g2d.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
         }
+      } else {
+        if(Platform.isMac()) {
+          if(mSelected) {
+            Color selected = UIManager.getColor("Table.selectionBackground");
+            renderGradient(g, selected);
+          } else {
+            Border bgPaint = UIManager.getBorder((mRow % 2) == 0 ? evenList : oddList);
+            bgPaint.paintBorder(this, g, 0, 0, getWidth(), getHeight());
+            super.paintComponent(g);
+            painted = true;
+
+            Graphics2D g2d = (Graphics2D) g;
+            float alpha = .1f;
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+            g.setColor(Color.BLACK);
+            g.drawLine(0, getHeight()-1, getWidth(), getHeight()-1);
+          }
+        }
       }
-      super.paintComponent(g);
+      if(!painted) super.paintComponent(g);
     }
+  }
+
+  private void renderGradient(Graphics g, Color selected) {
+    GradientPaint paint;
+    paint = gradientCache.get(cacheMapper());
+    if(paint == null) {
+      paint = new GradientPaint(0, 0, lighten(selected), 0, getHeight(), selected, false);
+      gradientCache.put(cacheMapper(), paint);
+    }
+    Graphics2D g2d = (Graphics2D) g;
+    g2d.setPaint(paint);
+    Rectangle bounds = g2d.getClipBounds();
+    g2d.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
   }
 
   private int cacheMapper() {return 10000 * (mRow % 2) + getHeight();}
