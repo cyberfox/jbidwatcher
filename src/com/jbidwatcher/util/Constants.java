@@ -72,7 +72,7 @@ public class Constants {
   public static final int SYNDICATION_ITEM_COUNT = 15;
   public static final int DEFAULT_COLUMN_WIDTH=75;
   public static final int DEFAULT_ROW_HEIGHT=20;
-  public static final int MICROTHUMBNAIL_ROW_HEIGHT = 70;
+  public static final int MICROTHUMBNAIL_ROW_HEIGHT = 72;
   public final static String[] SITE_CHOICES = {
     "ebay.com",
     "ebay.de",

@@ -73,7 +73,8 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
                                                  int row, int column) {
     column = table.convertColumnIndexToModel(column);
     if(value instanceof Icon) {
-      setHorizontalAlignment(JLabel.CENTER);
+      setHorizontalAlignment(SwingConstants.CENTER);
+      setVerticalAlignment(SwingConstants.CENTER);
     } else {
       setHorizontalAlignment(JLabel.LEFT);
     }
