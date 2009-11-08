@@ -16,12 +16,12 @@ import java.net.*;
 import java.io.*;
 import java.util.Map;
 
-public class Http {
+public class Http implements HttpInterface {
   private String mUsername = null;
   private String mPassword = null;
 
-  private static Http sInstance = new Http();
-  public static Http net() { return sInstance; }
+  private static HttpInterface sInstance = new Http();
+  public static HttpInterface net() { return sInstance; }
 
   public void setAuthInfo(String user, String pass) {
     mUsername = user;
@@ -54,14 +54,14 @@ public class Http {
     }
   }
 
-  public URLConnection postFormPage(String urlToPost, String cgiData, String cookie, String referer, boolean follow_redirects) {
+  public URLConnection postFormPage(String url, String cgiData, String cookie, String referer, boolean followRedirects) {
     URLConnection huc;
 
     try {
       if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
-        JConfig.log().logDebug("postFormPage: " + urlToPost);
+        JConfig.log().logDebug("postFormPage: " + url);
       }
-      URL authURL = new URL(urlToPost);
+      URL authURL = new URL(url);
 
       huc = authURL.openConnection();
       setConnectionInfo(huc);
@@ -70,7 +70,7 @@ public class Http {
       if(huc instanceof HttpURLConnection) {
         HttpURLConnection conn = (HttpURLConnection)huc;
         conn.setRequestMethod("POST");
-        if(!follow_redirects) conn.setInstanceFollowRedirects(false);
+        if(!followRedirects) conn.setInstanceFollowRedirects(false);
       }
       if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) {
         dumpFormHeaders(System.err, cgiData, cookie);
@@ -124,32 +124,32 @@ public class Http {
     return uc;
   }
 
-  public ByteBuffer getURL(URL dataURL) {
-    return getURL(dataURL, null);
+  public ByteBuffer getURL(URL url) {
+    return getURL(url, null);
   }
 
   /** 
    * @brief Retrieve data from HTTP in raw byte form.
    * 
-   * @param dataURL - The URL of the raw data to retrieve.
+   * @param url - The URL of the raw data to retrieve.
    * @param inCookie - Any cookie needed to be passed along.
    * 
    * @return - A result with raw data and the length.
    */
-  private ByteBuffer getURL(URL dataURL, String inCookie) {
+  private ByteBuffer getURL(URL url, String inCookie) {
     ByteBuffer rval;
 
     try {
-      rval = receiveData(makeRequest(dataURL, inCookie));
+      rval = receiveData(makeRequest(url, inCookie));
     } catch(FileNotFoundException fnfe) {
       //  It'd be great if we could pass along something that said, 'not here, never will be'.
       rval = null;
     } catch(IOException e) {
       //  Mostly ignore HTTP 504 error, it's just a temporary 'gateway down' error.
       if(e.getMessage().indexOf("HTTP response code: 504")==-1) {
-        JConfig.log().handleException("Error loading data URL (" + dataURL.toString() + ')', e);
+        JConfig.log().handleException("Error loading data URL (" + url.toString() + ')', e);
       } else {
-        JConfig.log().logMessage("HTTP 504 error loading URL (" + dataURL.toString() + ')');
+        JConfig.log().logMessage("HTTP 504 error loading URL (" + url.toString() + ')');
       }
       rval = null;
     }
@@ -227,27 +227,27 @@ public class Http {
   /**
    * Simplest request, load a URL, no cookie, no referer, follow redirects blindly.
    *
-   * @param urlToGet - The URL to load.
+   * @param url - The URL to load.
    * @return - A URLConnection usable to retrieve the page requested.
    */
-  public URLConnection getPage(String urlToGet) {
-    return(getPage(urlToGet, null, null, true));
+  public URLConnection getPage(String url) {
+    return(getPage(url, null, null, true));
   }
 
-  public URLConnection getPage(String urlToGet, String cookie, String referer, boolean redirect) {
+  public URLConnection getPage(String url, String cookie, String referer, boolean followRedirects) {
     HttpURLConnection huc;
 
     try {
       if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
-        JConfig.log().logDebug("getPage: " + urlToGet);
+        JConfig.log().logDebug("getPage: " + url);
       }
-      URL authURL = new URL(urlToGet);
+      URL authURL = new URL(url);
       URLConnection uc = authURL.openConnection();
       if(!(uc instanceof HttpURLConnection)) {
         return uc;
       }
       huc = (HttpURLConnection)uc;
-      huc.setInstanceFollowRedirects(redirect);
+      huc.setInstanceFollowRedirects(followRedirects);
       setConnectionInfo(huc);
 
       huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);

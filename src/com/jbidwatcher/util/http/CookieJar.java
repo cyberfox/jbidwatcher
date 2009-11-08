@@ -12,22 +12,22 @@ import java.util.*;
 import java.io.IOException;
 
 public class CookieJar {
-  private Map<String, Cookie> _cookies;
-  private boolean m_ignore_redirect_cookies = false;
-  private final static boolean do_uber_debug = false;
+  private Map<String, Cookie> mCookies;
+  private boolean mIgnoreRedirectCookies = false;
+  private final static boolean sUberDebug = false;
 
   public CookieJar() {
-    _cookies = new TreeMap<String, Cookie>();
+    mCookies = new TreeMap<String, Cookie>();
   }
 
   public Cookie getCookie(String keyName) {
-    return _cookies.get(keyName);
+    return mCookies.get(keyName);
   }
 
   public String dump() {
     StringBuffer rval = new StringBuffer();
-    for(String cookieName : _cookies.keySet()) {
-      Cookie value = _cookies.get(cookieName);
+    for(String cookieName : mCookies.keySet()) {
+      Cookie value = mCookies.get(cookieName);
       rval.append(cookieName).append(": ").append(value.getValue()).append('\n');
     }
     return rval.toString();
@@ -163,7 +163,7 @@ public class CookieJar {
     do {
       nextKey = uc.getHeaderFieldKey(i);
       if(nextKey != null) {
-        if(do_uber_debug) {
+        if(sUberDebug) {
           JConfig.log().logDebug(nextKey+": " + uc.getHeaderField(i));
         }
         //  If we're redirected, shortcut to loading the new page.
@@ -179,7 +179,7 @@ public class CookieJar {
         if(nextKey.startsWith("Set-Cookie") ||
            nextKey.startsWith("Set-cookie")) {
           Cookie newCookie = new Cookie(uc.getHeaderField(i));
-          _cookies.put(newCookie.getKey(), newCookie);
+          mCookies.put(newCookie.getKey(), newCookie);
         }
       }
       i++;
@@ -215,29 +215,23 @@ public class CookieJar {
   }
 
   private HttpURLConnection initiateRequest(boolean post, String sendRequest, String cgi, String referer) {
-    HttpURLConnection uc;
+    URLConnection uc;
+    String cookies = mCookies.isEmpty() ? null : this.toString();
 
-    if(!_cookies.isEmpty()) {
-      if(post) {
-        uc = (HttpURLConnection)Http.net().postFormPage(sendRequest, cgi, this.toString(), referer, m_ignore_redirect_cookies);
-      } else {
-        uc = (HttpURLConnection)Http.net().getPage(sendRequest, this.toString(), referer, m_ignore_redirect_cookies);
-      }
+    if(post) {
+      uc = Http.net().postFormPage(sendRequest, cgi, cookies, referer, mIgnoreRedirectCookies);
     } else {
-      if(post) {
-        uc = (HttpURLConnection)Http.net().postFormPage(sendRequest, cgi, null, referer, m_ignore_redirect_cookies);
-      } else {
-        uc = (HttpURLConnection)Http.net().getPage(sendRequest, null, referer, m_ignore_redirect_cookies);
-      }
+      uc = Http.net().getPage(sendRequest, cookies, referer, mIgnoreRedirectCookies);
     }
-    return uc;
+
+    return (HttpURLConnection)uc;
   }
 
   public String toString() {
     boolean firstThrough = true;
     StringBuffer outBuf = null;
 
-    for (Cookie cookie : _cookies.values()) {
+    for (Cookie cookie : mCookies.values()) {
       if (cookie.getValue().length() != 0) {
         if (!firstThrough) {
           outBuf.append("; ");

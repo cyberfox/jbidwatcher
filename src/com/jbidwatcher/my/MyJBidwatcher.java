@@ -15,6 +15,7 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLInterface;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.http.ClientHttpRequest;
+import com.jbidwatcher.util.http.HttpInterface;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.EntryCorral;
 
@@ -35,7 +36,7 @@ import java.util.Date;
  */
 public class MyJBidwatcher {
   private static MyJBidwatcher sInstance = null;
-  private Http mNet = null;
+  private HttpInterface mNet = null;
   private static String LOG_UPLOAD_URL =  "my.jbidwatcher.com/upload/log";
   private static String ITEM_UPLOAD_URL = "my.jbidwatcher.com/upload/listing";
   private static String SYNC_UPLOAD_URL = "my.jbidwatcher.com/upload/sync";
@@ -53,7 +54,7 @@ public class MyJBidwatcher {
     return "http://" + url;
   }
 
-  private Http http() {
+  private HttpInterface http() {
     if(mNet == null) {
       mNet = new Http();
     }
