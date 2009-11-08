@@ -54,7 +54,7 @@ public class JBidToolBar {
     establishMenu(inFrame, inAction);
 
     mBidBarPanel = new JPanel(new BorderLayout());
-    mBidBarPanel.setBorder(BorderFactory.createEtchedBorder());
+    if(!Platform.isMac()) mBidBarPanel.setBorder(BorderFactory.createEtchedBorder());
 
     mHeaderStatus = new JLabel("", SwingConstants.RIGHT);
     mBidBarPanel.add(mHeaderStatus, BorderLayout.EAST);
@@ -96,6 +96,10 @@ public class JBidToolBar {
 
     if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
       bidBar.setFloatable(false);
+    }
+
+    if(Platform.isMac()) {
+      bidBar.putClientProperty("Quaqua.ToolBar.style", "title");
     }
 
     bidBar.setRollover(true);
