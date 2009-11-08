@@ -120,8 +120,15 @@ public class XMLElement implements XMLSerialize, XMLInterface {
   /**
    * Conversion table for &amp;...; tags.
    */
-  protected HashMap<String, String> _conversionTable;
-
+  protected static HashMap<String, String> _conversionTable = new HashMap<String, String>(10);
+  static {
+    _conversionTable.put("lt", "<");
+    _conversionTable.put("gt", ">");
+    _conversionTable.put("quot", "\"");
+    _conversionTable.put("apos", "'");
+    _conversionTable.put("amp", "&");
+    _conversionTable.put("pound", "#");
+  }
 
   /**
    * Whether to skip leading whitespace in CDATA.
@@ -135,7 +142,6 @@ public class XMLElement implements XMLSerialize, XMLInterface {
   protected int _lineNr;
   private static final int INITIAL_BLOCKSIZE = 20480;
 
-
   /**
    * Creates a new XML element. The following settings are used:
    * <DL><DT>Conversion table</DT>
@@ -145,75 +151,11 @@ public class XMLElement implements XMLSerialize, XMLInterface {
    *     <DD><CODE>false</CODE></DD>
    * </DL>
    *
-   * @see XMLElement#XMLElement(HashMap)
    * @see XMLElement#XMLElement(boolean)
-   * @see XMLElement#XMLElement(HashMap,boolean)
    */
   public XMLElement() {
-    this(null, false, true);
+    this(false);
   }
-
-
-  /**
-   * Creates a new XML element. The following settings are used:
-   * <DL><DT>Conversion table</DT>
-   *     <DD><I>conversionTable</I> combined with the minimal XML
-   *         conversions: <CODE>&amp;amp; &amp;lt; &amp;gt;
-   *         &amp;apos; &amp;quot;</CODE></DD>
-   *     <DT>Skip whitespace in contents</DT>
-   *     <DD><CODE>false</CODE></DD>
-   * </DL>
-   *
-   * @see XMLElement#XMLElement()
-   * @see XMLElement#XMLElement(boolean)
-   * @see XMLElement#XMLElement(HashMap,boolean)
-   * @param conversionTable - Quoted string to character conversion table.
-   */
-  public XMLElement(HashMap<String, String> conversionTable) {
-    this(conversionTable, false, true);
-  }
-
-
-  /**
-   * Creates a new XML element. The following settings are used:
-   * <DL><DT>Conversion table</DT>
-   *     <DD>Minimal XML conversions: <CODE>&amp;amp; &amp;lt; &amp;gt;
-   *         &amp;apos; &amp;quot;</CODE></DD>
-   *     <DT>Skip whitespace in contents</DT>
-   *     <DD><I>skipLeadingWhitespace</I></DD>
-   * </DL>
-   *
-   * @see XMLElement#XMLElement()
-   * @see XMLElement#XMLElement(HashMap)
-   * @see XMLElement#XMLElement(HashMap,boolean)
-   * @param skipLeadingWhitespace - Ignore white space that starts the tag content.
-   */
-  public XMLElement(boolean skipLeadingWhitespace) {
-    this(null, skipLeadingWhitespace, true);
-  }
-
-
-  /**
-   * Creates a new XML element. The following settings are used:
-   * <DL><DT>Conversion table</DT>
-   *     <DD><I>conversionTable</I> combined with the minimal XML
-   *         conversions: <CODE>&amp;amp; &amp;lt; &amp;gt;
-   *         &amp;apos; &amp;quot;</CODE></DD>
-   *     <DT>Skip whitespace in contents</DT>
-   *     <DD><I>skipLeadingWhitespace</I></DD>
-   * </DL>
-   *
-   * @see XMLElement#XMLElement()
-   * @see XMLElement#XMLElement(boolean)
-   * @see XMLElement#XMLElement(HashMap)
-   * @param conversionTable - Quoted string to character conversion table.
-   * @param skipLeadingWhitespace - Ignore white space that starts the tag content.
-   */
-  public XMLElement(HashMap<String, String> conversionTable,
-                    boolean    skipLeadingWhitespace) {
-    this(conversionTable, skipLeadingWhitespace, true);
-  }
-
 
   /**
    * Creates a new XML element. The following settings are used:
@@ -231,36 +173,19 @@ public class XMLElement implements XMLSerialize, XMLInterface {
    *
    * @see XMLElement#XMLElement()
    * @see XMLElement#XMLElement(boolean)
-   * @see XMLElement#XMLElement(HashMap)
-   * @see XMLElement#XMLElement(HashMap,boolean)
-   * @param conversionTable - Quoted string to character conversion table.
    * @param skipLeadingWhitespace - Ignore white space that starts the tag content.
-   * @param fillBasicConversionTable - Add in the fundamental HTML quoted entities if this is true.
    */
-  private XMLElement(HashMap<String, String> conversionTable,
-                     boolean   skipLeadingWhitespace,
-                     boolean   fillBasicConversionTable) {
+  public XMLElement(boolean skipLeadingWhitespace) {
     _skipLeadingWhitespace = skipLeadingWhitespace;
     _tagName = null;
     _contents = null;
     _attributes = new HashMap<String, String>(10);
     mChildren = new ArrayList<XMLInterface>(10);
-    _conversionTable = conversionTable==null?new HashMap<String, String>(10):new HashMap<String, String>(conversionTable);
     _lineNr = 0;
-
-    if (fillBasicConversionTable)
-      {
-        _conversionTable.put("lt", "<");
-        _conversionTable.put("gt", ">");
-        _conversionTable.put("quot", "\"");
-        _conversionTable.put("apos", "'");
-        _conversionTable.put("amp", "&");
-        _conversionTable.put("pound", "#");
-      }
   }
 
   public XMLElement(String elementName) {
-    this(null, false, true);
+    this(false);
 
     _tagName = elementName;
   }
@@ -788,7 +713,7 @@ public class XMLElement implements XMLSerialize, XMLInterface {
         return;
       }
 
-      XMLElement child = new XMLElement(_conversionTable, _skipLeadingWhitespace, false);
+      XMLElement child = new XMLElement(_skipLeadingWhitespace);
       offset = child.parseCharArray(input, offset, end, lineNr);
       mChildren.add(child);
     }
@@ -1272,7 +1197,7 @@ public class XMLElement implements XMLSerialize, XMLInterface {
   /**
    * Converts &amp;...; sequences to "normal" chars.
    */
-  public String decodeString(String s) {
+  public static String decodeString(String s) {
     if(s == null) return "";
     StringBuffer result = new StringBuffer(s.length());
     int index = 0;
