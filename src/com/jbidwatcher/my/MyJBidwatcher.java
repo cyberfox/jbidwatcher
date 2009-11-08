@@ -265,7 +265,7 @@ public class MyJBidwatcher {
     if(expires != null) {
       String date = expires.getContents();
       mExpiry = StringTools.figureDate(date, "yyyy-MM-dd'T'HH:mm:ssZ");
-      if(mExpiry.getDate().before(new Date())) {
+      if(mExpiry == null || mExpiry.getDate() == null || mExpiry.getDate().before(new Date())) {
         JConfig.setConfiguration("my.jbidwatcher.enabled", "false");
       } else {
         JConfig.setConfiguration("my.jbidwatcher.enabled", "true");
