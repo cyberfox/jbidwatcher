@@ -136,9 +136,12 @@ public class JBidToolBar {
     return bidBar;
   }
 
-  private JComponent establishSearchBox(final JTabManager inAction) { /**
-     * Add selection/search bar.
+  /**
+   * Add selection/search bar.
+   * @param inAction - The action to be triggered by the search/select process.
+   * @return - A component containing the search / select field.
    */
+  private JComponent establishSearchBox(final JTabManager inAction) {
     DocumentListener selectListener = new DocumentListener() {
         public void insertUpdate(DocumentEvent de) {
         }
@@ -154,6 +157,8 @@ public class JBidToolBar {
         }
       };
     mSelectBox.addActionListener(doSearch);
+    mSelectBox.putClientProperty("JTextField.variant", "search");
+
     JPanel compact = new JPanel();
     compact.setLayout(new BoxLayout(compact, BoxLayout.X_AXIS));
     compact.setPreferredSize(new Dimension(100, 24));
