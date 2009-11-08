@@ -53,16 +53,28 @@ public class JBidToolBar {
   public JPanel buildHeaderBar(JFrame inFrame, final JTabManager inAction) {
     establishMenu(inFrame, inAction);
 
-    mBidBarPanel = new JPanel(new BorderLayout());
-    if(!Platform.isMac()) mBidBarPanel.setBorder(BorderFactory.createEtchedBorder());
-
-    mHeaderStatus = new JLabel("", SwingConstants.RIGHT);
-    mBidBarPanel.add(mHeaderStatus, BorderLayout.EAST);
+    mBidBarPanel = new JPanel();
+    mBidBarPanel.setLayout(new BoxLayout(mBidBarPanel, BoxLayout.X_AXIS));
+    if(!Platform.isMac()) {
+      mBidBarPanel.setBorder(BorderFactory.createEtchedBorder());
+    } else {
+      mBidBarPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
+    }
 
     JToolBar bidBar = establishToolbar(inAction);
-    mBidBarPanel.add(bidBar, BorderLayout.WEST);
+    mBidBarPanel.add(bidBar);
 
-    mBidBarPanel.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
+    mBidBarPanel.add(Box.createHorizontalGlue());
+
+    mHeaderStatus = new JLabel("", SwingConstants.RIGHT);
+    Dimension boxSize = new Dimension(250, 32);
+    mHeaderStatus.setMinimumSize(boxSize);
+    mHeaderStatus.setPreferredSize(boxSize);
+    mHeaderStatus.setMaximumSize(boxSize);
+
+    mBidBarPanel.add(mHeaderStatus);
+
+    bidBar.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
 
     mBidBarPanel.setVisible(JConfig.queryConfiguration("display.toolbar", "true").equals("true"));
     if (!mBidBarPanel.isVisible() && !Platform.isMac()) {
@@ -116,14 +128,15 @@ public class JBidToolBar {
     // Synchronize the time
     // Exit?
 
-    JPanel searchBox = establishSearchBox(inAction);
+    JComponent searchBox = establishSearchBox(inAction);
     bidBar.addSeparator();
     bidBar.add(searchBox);
+    bidBar.addSeparator();
     bidBar.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
     return bidBar;
   }
 
-  private JPanel establishSearchBox(final JTabManager inAction) { /**
+  private JComponent establishSearchBox(final JTabManager inAction) { /**
      * Add selection/search bar.
    */
     DocumentListener selectListener = new DocumentListener() {
@@ -141,9 +154,11 @@ public class JBidToolBar {
         }
       };
     mSelectBox.addActionListener(doSearch);
-    JPanel jp = new JPanel(new GridBagLayout());
-    jp.add(mSelectBox, new GridBagConstraints());
-    return jp;
+    JPanel compact = new JPanel();
+    compact.setLayout(new BoxLayout(compact, BoxLayout.X_AXIS));
+    compact.setPreferredSize(new Dimension(100, 24));
+    compact.add(mSelectBox);
+    return compact;
   }
 
   private void establishMenu(JFrame inFrame, JTabManager inAction) {
