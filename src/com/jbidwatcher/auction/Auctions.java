@@ -92,9 +92,9 @@ public class Auctions implements TimerHandler.WakeupProcess {
       ae.setUpdating();
       MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
       Thread.yield();
-      XMLInterface before = ae.toXML();
+      XMLInterface before = ae.toXML(false);
       ae.update();
-      XMLInterface after = ae.toXML();
+      XMLInterface after = ae.toXML(false);
       ae.clearUpdating();
       if (!(after.toString().equals(before.toString()))) {
         MQFactory.getConcrete("upload").enqueue(ae.getIdentifier());

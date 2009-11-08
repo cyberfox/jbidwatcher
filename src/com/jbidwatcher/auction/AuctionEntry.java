@@ -892,6 +892,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     }
   }
 
+  public XMLElement toXML() {
+    return toXML(true);
+  }
+
   /**
    * @brief Check everything and build an XML element that contains as
    * children all of the values that need storing for this item.
@@ -901,7 +905,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @return An XMLElement containing as children, all of the key
    * values associated with this auction entry.
    */
-  public XMLElement toXML() {
+  public XMLElement toXML(boolean includeEvents) {
     XMLElement xmlResult = new XMLElement("auction");
 
     xmlResult.setProperty("id", getIdentifier());
@@ -957,7 +961,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       xmlResult.addChild(xshipping);
     }
 
-    if(mEntryEvents != null) {
+    if(includeEvents && mEntryEvents != null) {
       XMLElement xlog = mEntryEvents.toXML();
       if (xlog != null) {
         xmlResult.addChild(xlog);
