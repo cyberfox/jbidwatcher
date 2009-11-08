@@ -1864,11 +1864,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public static final String endRow = "</td></tr>";
 
   // TODO -- Extract this crap out to a EntryHTMLBuilder class, which gets instantiated with an AuctionEntry object.
-  public String buildInfoHTML() {
-    return buildInfoHTML(false);
+  public String buildInfoHTML(boolean includeEvents) {
+    return buildInfoHTML(includeEvents, false);
   }
 
-  public String buildInfoHTML(boolean forRSS) {
+  public String buildInfoHTML(boolean includeEvents, boolean forRSS) {
     String prompt = "";
 
     if(forRSS) {
@@ -1893,7 +1893,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         addedThumbnail = true;
       }
     }
-    prompt = buildInfoBody(prompt, addedThumbnail);
+    prompt = buildInfoBody(prompt, includeEvents, addedThumbnail);
 
   	return(prompt);
   }
@@ -1902,7 +1902,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return newRow + label + newCol + value.toString() + endRow;
   }
 
-  private String buildInfoBody(String prompt, boolean addedThumbnail) {
+  private String buildInfoBody(String prompt, boolean includeEvents, boolean addedThumbnail) {
     if(!isFixed()) {
       prompt += buildRow("Currently", getCurBid() + " (" + getNumBidders() + " Bids)");
       prompt += buildRow("High bidder", getHighBidder());
@@ -1964,7 +1964,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       prompt += "<b>" + getComment() + "</b><br>";
     }
 
-    prompt += "<b><u>Events</u></b><blockquote>" + getStatusHistory() + "</blockquote>";
+    if(includeEvents) prompt += "<b><u>Events</u></b><blockquote>" + getStatusHistory() + "</blockquote>";
     return prompt;
   }
 

@@ -349,7 +349,11 @@ public class OptionUI {
     otherFrame.setMinimumSize(inSize);
     otherFrame.getContentPane().add(insidePanel);
     insidePanel.add(jsp, BorderLayout.CENTER);
-    insidePanel.setBorder(BorderFactory.createTitledBorder(borderTitle));
+    if(borderTitle != null) {
+      insidePanel.setBorder(BorderFactory.createTitledBorder(borderTitle));
+    } else {
+      insidePanel.setBorder(BorderFactory.createEmptyBorder());
+    }
     JPanel bottomPanel = new JPanel();
     bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 

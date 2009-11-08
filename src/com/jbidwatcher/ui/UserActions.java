@@ -480,7 +480,7 @@ public class UserActions implements MessageQueue.Listener {
     StringBuffer prompt = new StringBuffer();
     for (int aRowList : rowList) {
       AuctionEntry stepAE = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
-      prompt.append(stepAE.buildInfoHTML()).append("<hr>");
+      prompt.append(stepAE.buildInfoHTML(true)).append("<hr>");
     }
     int width = getInteger("info.width", 480);
     int height = getInteger("info.height", Math.min(372, rowList.length * 30 + 200));
@@ -495,7 +495,7 @@ public class UserActions implements MessageQueue.Listener {
         }
       };
 
-    final JFrame newFrame = _oui.showChoiceTextDisplay(new JHTMLOutput("Information", prompt).getStringBuffer(), statusBox, "Information...", buttons, "Information...", al);
+    final JFrame newFrame = _oui.showChoiceTextDisplay(new JHTMLOutput("Information", prompt).getStringBuffer(), statusBox, "Information...", buttons, null, al);
     newFrame.addComponentListener(new ComponentAdapter() {
       public void componentResized(ComponentEvent e) {
         JConfig.setDisplayConfiguration("info.width", Integer.toString(newFrame.getWidth()));
@@ -798,7 +798,7 @@ public class UserActions implements MessageQueue.Listener {
       return;
     }
 
-    String prompt = "<html><body>" + ae.buildInfoHTML();
+    String prompt = "<html><body>" + ae.buildInfoHTML(false);
     prompt += "<br><b>How much is shipping?</b></body></html>";
     String endResult[] = promptString(src, prompt, "Shipping", null, null, null);
 
