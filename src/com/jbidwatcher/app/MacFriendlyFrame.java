@@ -5,21 +5,23 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.OptionUI;
+import com.jbidwatcher.ui.util.ButtonMaker;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.search.SearchManager;
 
 import javax.swing.*;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import javax.swing.border.Border;
+import java.awt.event.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Color;
 import java.net.URL;
 import java.util.Properties;
 
@@ -33,6 +35,7 @@ import java.util.Properties;
  */
 class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, com.apple.mrj.MRJAboutHandler, com.apple.mrj.MRJPrefsHandler {
   private JLabel mStatusBar;
+  private JLabel mPrices;
 
   /**
    * @brief Constructs a new window frame, with all the sorted tables,
@@ -61,9 +64,10 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
 
     JPanel headerBar = JBidToolBar.getInstance().buildHeaderBar(this, tabManager);
 
-    mStatusBar = new JLabel("Ready!", SwingConstants.LEFT);
+    JPanel statusPane = buildStatusLine(tabManager);
+
     getContentPane().add(tabManager.getTabs());
-    getContentPane().add(mStatusBar, BorderLayout.SOUTH);
+    getContentPane().add(statusPane, BorderLayout.SOUTH);
     getContentPane().add(headerBar, BorderLayout.NORTH);
 
     pack();
@@ -84,6 +88,67 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
         MQFactory.getConcrete("Swing").enqueue(UIBackbone.QUIT_MSG);
       }
     });
+  }
+
+  private JPanel buildStatusLine(JTabManager tabManager) {
+    final JPanel statusPane = new JPanel();
+    Border myBorder = BorderFactory.createCompoundBorder(
+        BorderFactory.createCompoundBorder(
+            BorderFactory.createEmptyBorder(0, 2, 0, 2),
+            BorderFactory.createMatteBorder(1, 0, 0, 0, Color.DARK_GRAY)),
+        BorderFactory.createEmptyBorder(1, 5, 1, 5));
+    statusPane.setBorder(myBorder);
+    statusPane.setLayout(new BoxLayout(statusPane, BoxLayout.X_AXIS));
+
+    JButton rssButton = ButtonMaker.makeButton("icons/xml.png", "Show RSS feed information", "RSS", tabManager, true);
+    rssButton.setMinimumSize(new Dimension(rssButton.getIcon().getIconWidth()+2, rssButton.getIcon().getIconHeight()));
+    statusPane.add(rssButton);
+
+    JSeparator vert1 = new JSeparator(SwingConstants.VERTICAL);
+    vert1.setForeground(Color.DARK_GRAY);
+    vert1.setMinimumSize(new Dimension(10, 5));
+    vert1.setMaximumSize(new Dimension(10, 20));
+    statusPane.add(vert1);
+
+    mStatusBar = new JLabel("Ready!");
+//    mStatusBar.setBorder(BorderFactory.createCompoundBorder(
+//        BorderFactory.createLineBorder(Color.red),
+//        mStatusBar.getBorder()));
+    final Dimension statusBarSize = new Dimension(600, 16);
+//    mStatusBar.setPreferredSize(statusBarSize);
+    mStatusBar.setMaximumSize(statusBarSize);
+    mStatusBar.setMinimumSize(statusBarSize);
+    mStatusBar.setPreferredSize(statusBarSize);
+    statusPane.add(mStatusBar);
+
+    statusPane.add(Box.createHorizontalGlue());
+
+    JSeparator vert2 = new JSeparator(SwingConstants.VERTICAL);
+    vert2.setForeground(Color.DARK_GRAY);
+    vert2.setMinimumSize(new Dimension(10, 5));
+    vert2.setMaximumSize(new Dimension(10, 20));
+    statusPane.add(vert2);
+
+    mPrices = new JLabel(" ");
+    Dimension priceSize = new Dimension(300, 16);
+    mPrices.setMinimumSize(priceSize);
+    mPrices.setPreferredSize(priceSize);
+    statusPane.add(mPrices);
+
+    statusPane.add(Box.createHorizontalStrut(10));
+
+    final int baseSize = 14 + rssButton.getIcon().getIconWidth() + 2 + 10 + 10 + 300 + 10;
+    addComponentListener(new ComponentAdapter() {
+      public void componentResized(ComponentEvent e) {
+        int textWidthAllowed = statusPane.getWidth() - baseSize;
+        statusBarSize.setSize(textWidthAllowed - 15, 16);
+        mStatusBar.setMaximumSize(statusBarSize);
+        mStatusBar.setMinimumSize(statusBarSize);
+        mStatusBar.setPreferredSize(statusBarSize);
+      }
+    });
+
+    return statusPane;
   }
 
   public void handleQuit() {
@@ -121,8 +186,13 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
   }
 
   public void setStatus(String status) {
-    mStatusBar.setText("<html><body>" + status + "</body></html>");
+    mStatusBar.setText(XMLElement.decodeString(status));
     mStatusBar.paintImmediately(mStatusBar.getVisibleRect());
+  }
+
+  public void setPrice(String price) {
+    mPrices.setText(price);
+    mPrices.paintImmediately(mPrices.getVisibleRect());
   }
 
   /**

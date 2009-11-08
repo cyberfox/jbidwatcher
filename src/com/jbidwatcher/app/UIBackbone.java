@@ -87,7 +87,7 @@ public final class UIBackbone implements MessageQueue.Listener {
   private void setStatus(String newStatus) {
     mNow.setTime(System.currentTimeMillis());
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
-    String bracketed = " [" + defaultServerTime + '/' + Constants.localClockFormat.format(mNow) + ']';
+    String bracketed = " [" + defaultServerTime + ']';
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("false")) {
       TimeZone tz = AuctionServerManager.getInstance().getServer().getOfficialServerTimeZone();
       if (tz != null && tz.hasSameRules(mCal.getTimeZone())) {
@@ -122,6 +122,7 @@ public final class UIBackbone implements MessageQueue.Listener {
   private final static String VALID_LOGIN_MSG = "VALID LOGIN";
   private final static String START_UPDATING = "ALLOW_UPDATES";
   private static final String NOACCOUNT_MSG = "NOACCOUNT ";
+  private static final String PRICE = "PRICE ";
 
   /**
    * @brief Handle messages to tell the UI to do something.
@@ -200,6 +201,8 @@ public final class UIBackbone implements MessageQueue.Listener {
           "Version check failed", JOptionPane.PLAIN_MESSAGE);
     } else if (msg.equals("TOOLBAR")) {
       JBidToolBar.getInstance().togglePanel();
+    } else if (msg.startsWith(PRICE)) {
+      mFrame.setPrice(msg.substring(PRICE.length()));
     } else {
       logActivity(msg);
       setStatus(msg);

@@ -8,6 +8,7 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.EntryInterface;
@@ -23,7 +24,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -40,7 +40,6 @@ public class AuctionsUIModel {
   private Color _bgColor;
   private JPrintable _print;
   private CSVExporter _export;
-  private JLabel _prices;
   private JPanel mPanel;
 
   private static final myTableCellRenderer _myRenderer = new myTableCellRenderer();
@@ -116,8 +115,7 @@ public class AuctionsUIModel {
     mPanel = new JPanel();
     mPanel.setLayout(new BorderLayout());
     mPanel.add(_scroller, BorderLayout.CENTER);
-    JPanel jp2 = buildBottomPanel(tableContextMenu);
-    mPanel.add(jp2, BorderLayout.SOUTH);
+    addSumMonitor(_table, _tSort);
     JPanel statusPanel = new TabStatusPanel(_dataModel.getName());
     mPanel.add(statusPanel, BorderLayout.NORTH);
   }
@@ -126,36 +124,28 @@ public class AuctionsUIModel {
     return mPanel;
   }
 
-  private JPanel buildBottomPanel(JContext tableContextMenu) {
-    JPanel jp2 = new JPanel();
-    jp2.setLayout(new BorderLayout());
-    _prices = new JLabel(" ");
-    jp2.add(_prices, BorderLayout.EAST);
-    jp2.add(ButtonMaker.makeButton("icons/xml.png", "Show RSS feed information", "RSS", tableContextMenu, true), BorderLayout.WEST);
-    _table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+  private void addSumMonitor(JTable table, TableSorter sort) {
+    table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent event) {
         updateSum();
       }
     });
-    _tSort.addTableModelListener(new TableModelListener() {
+
+    sort.addTableModelListener(new TableModelListener() {
       public void tableChanged(TableModelEvent tableModelEvent) {
         updateSum();
       }
     });
-    return jp2;
   }
 
   private void updateSum() {
     int[] rowList = _table.getSelectedRows();
-    if(rowList.length == 0) {
-      _prices.setText(" ");
+    String total = sum(rowList);
+
+    if(total == null) {
+      MQFactory.getConcrete("Swing").enqueue("PRICE  "); // A blank space to clear the price
     } else {
-      String total = sum(rowList);
-      if(total != null) {
-        _prices.setText(rowList.length + " items, price total: " + total);
-      } else {
-        _prices.setText(" ");
-      }
+      MQFactory.getConcrete("Swing").enqueue("PRICE " + rowList.length + " / " + total);
     }
   }
 
@@ -303,9 +293,9 @@ public class AuctionsUIModel {
     if(approx) {
       String result;
       if(withShipping != null && !accum.equals(withShipping)) {
-        result = "Approximately " + accum.toString() + " (" + withShipping + " with " + sAndH + ')';
+        result = "About " + accum.toString() + " (" + withShipping + " with " + sAndH + ')';
       } else {
-        result = "Approximately " + accum.toString();
+        result = "About " + accum.toString();
       }
       return result;
     }
