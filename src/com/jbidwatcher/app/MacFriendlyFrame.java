@@ -57,7 +57,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     setIconImage(new ImageIcon(iconURL).getImage());
 
-    getRootPane().putClientProperty("apple.awt.brushMetalLook", "true");
+    if (JConfig.queryConfiguration("mac.useMetal", "true").equals("true")) getRootPane().putClientProperty("apple.awt.brushMetalLook", "true");
 
     JPanel headerBar = JBidToolBar.getInstance().buildHeaderBar(this, tabManager);
 
