@@ -81,7 +81,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     JComponent returnComponent = (JComponent)super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
 
     AuctionEntry ae = (AuctionEntry)table.getValueAt(row, -1);
-    returnComponent.setOpaque(false);
+    returnComponent.setOpaque(!Platform.isMac());
     if(ae == null) return returnComponent;
 
     Color foreground = chooseForeground(ae, column, table.getForeground());
