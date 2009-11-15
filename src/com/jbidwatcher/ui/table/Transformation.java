@@ -34,6 +34,10 @@ public class Transformation extends BaseTransformation
       initializeRows(m_tm);
       postInitialize();
     }
+
+    //  If the row is later than the current max rows, then ignore it; it shouldn't be rendered anyway.  This may be a bug. :(
+    if(row >= m_row_xform.size()) return "";
+
     int newrow = m_row_xform.get(row);
     int newcol = col;
     if(col != -1) {
