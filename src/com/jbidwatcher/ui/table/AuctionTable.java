@@ -9,6 +9,7 @@ import com.jbidwatcher.util.queue.SuperQueue;
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableCellEditor;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Point;
@@ -23,6 +24,10 @@ import java.util.*;
 * Handle tooltips, at least.  A very cool feature.
 */
 public class AuctionTable extends JTable {
+  private static TableCellEditor FAUX = new FauxEditor();
+  public TableCellEditor getCellEditor() {
+    return FAUX;
+  }
 
   /**
    * @brief Constructs a JTable out of a prefix to search for in the
