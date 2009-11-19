@@ -1903,7 +1903,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   private String buildRow(String label, Object value) {
-    return newRow + label + newCol + value.toString() + endRow;
+    return newRow + label + newCol + (value != null ? value.toString() : "null") + endRow;
   }
 
   private String buildInfoBody(String prompt, boolean includeEvents, boolean addedThumbnail) {
