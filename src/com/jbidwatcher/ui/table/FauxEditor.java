@@ -20,15 +20,15 @@ import java.util.EventObject;
  */
 public class FauxEditor implements TableCellEditor {
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
+    return null;
   }
 
   public Object getCellEditorValue() {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
+    return null;
   }
 
   public boolean isCellEditable(EventObject anEvent) {
-    return false;  //To change body of implemented methods use File | Settings | File Templates.
+    return false;
   }
 
   public boolean shouldSelectCell(EventObject anEvent) {
@@ -37,18 +37,10 @@ public class FauxEditor implements TableCellEditor {
   }
 
   public boolean stopCellEditing() {
-    return false;  //To change body of implemented methods use File | Settings | File Templates.
+    return false;
   }
 
-  public void cancelCellEditing() {
-    //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  public void addCellEditorListener(CellEditorListener l) {
-    //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  public void removeCellEditorListener(CellEditorListener l) {
-    //To change body of implemented methods use File | Settings | File Templates.
-  }
+  public void cancelCellEditing() { }
+  public void addCellEditorListener(CellEditorListener l) { }
+  public void removeCellEditorListener(CellEditorListener l) { }
 }
