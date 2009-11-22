@@ -81,6 +81,62 @@ public class XMLElement implements XMLSerialize, XMLInterface {
 
   private static boolean mRejectBadHTML = false;
 
+  private class Scanner {
+    private char[] mInput;
+    private int mEnd;
+    private int[] mLineNr;
+    private int mOffset;
+    private String mKey;
+    private String mValue;
+
+    public Scanner(char[] input, int end, int[] lineNr, int offset, String key) {
+      mInput = input;
+      mEnd = end;
+      mLineNr = lineNr;
+      mOffset = offset;
+      mKey = key;
+    }
+
+    public int getOffset() {
+      return mOffset;
+    }
+
+    public String getValue() {
+      return mValue;
+    }
+
+    public Scanner invoke() {
+      if (mInput[mOffset] == '=') {
+        mOffset = skipWhitespace(mInput, mOffset + 1, mEnd, mLineNr);
+
+        mValue = scanString(mInput, mOffset, mEnd, mLineNr);
+
+        if (mValue == null) {
+          throw syntaxError("an attribute value (" + new String(mInput) + ")", mLineNr[0]);
+        }
+
+        //  If some idiot forgot to put quotes around a value, and it has an '=' in it, try and recover.
+        if (mInput[mOffset + mValue.length()] == '=') {
+          Scanner scanner = new Scanner(mInput, mEnd, mLineNr, mOffset+mValue.length(), mKey).invoke();
+          mValue = mValue + "=" + scanner.getValue();
+        }
+
+        if (mValue.charAt(0) == '"') {
+          mValue = mValue.substring(1, mValue.length() - 1);
+          mOffset += 2;
+        }
+      } else {
+        mValue = "";
+        if(!mKey.equals("disabled") && !mKey.equals("checked") && !mKey.equals("/")) {
+          if(mRejectBadHTML) {
+            throw valueMissingForAttribute(mKey, mLineNr[0]);
+          }
+        }
+      }
+      return this;
+    }
+  }
+
   public static void rejectBadHTML(boolean rejectBadHtml) {
     mRejectBadHTML = rejectBadHtml;
   }
@@ -912,29 +968,10 @@ public class XMLElement implements XMLSerialize, XMLInterface {
 
     offset = skipWhitespace(input, offset + key.length(), end, lineNr);
     key = key.toLowerCase(); // toUpperCase();
-    String value;
 
-    if (input[offset] == '=') {
-      offset = skipWhitespace(input, offset + 1, end, lineNr);
-
-      value = scanString(input, offset, end, lineNr);
-
-      if (value == null) {
-        throw syntaxError("an attribute value (" + new String(input) + ")", lineNr[0]);
-      }
-
-      if (value.charAt(0) == '"') {
-        value = value.substring(1, value.length() - 1);
-        offset += 2;
-      }
-    } else {
-      value = "";
-      if(!key.equals("disabled") && !key.equals("checked") && !key.equals("/")) {
-        if(mRejectBadHTML) {
-          throw valueMissingForAttribute(key, lineNr[0]);
-        }
-      }
-    }
+    Scanner scanner = new Scanner(input, end, lineNr, offset, key).invoke();
+    String value = scanner.getValue();
+    offset = scanner.getOffset();
 
     if(!key.equals("/")) _attributes.put(key, decodeString(value));
     return offset + value.length();
