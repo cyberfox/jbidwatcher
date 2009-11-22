@@ -199,28 +199,27 @@ public class ebaySearches {
   }
 
   private int pullWatchingItems(String curUser, String userCookie, Map<String, String> collatedItems) {
-    int page = 0;
+    int page = 1;
     int newWatchCount = 0;
     ItemResults rval;
-    boolean done_watching = false;
-    while (!done_watching) {
+    boolean doneWatching = false;
+    while (!doneWatching) {
       //  First load items that the user is watching (!)
       //    String watchingURL = Externalized.getString("ebayServer.watchingURL");
       String watchingURL = generateWatchedItemsURL(curUser, page);
       JHTML htmlDocument = getWatchedItemsPage(userCookie, watchingURL);
-      rval = getAllItemsOnPage(htmlDocument);
-      collatedItems.putAll(rval.getLast());
+      String nextPage = null;
+      if(htmlDocument.isLoaded()) {
+        rval = getAllItemsOnPage(htmlDocument);
+        collatedItems.putAll(rval.getLast());
 
-      newWatchCount += rval.getFirst().size();
+        newWatchCount += rval.getFirst().size();
 
-      String ofX = htmlDocument.getNextContentAfterRegex("Page " + (page + 1));
-      if (ofX == null || !ofX.startsWith("of ")) done_watching = true;
-      else try {
-        done_watching = (page + 1) == Integer.parseInt(ofX.substring(3));
-      } catch (NumberFormatException ignored) {
-        done_watching = true;
+        nextPage = htmlDocument.getLinkForContent("Next");
+        page++;
       }
-      if (!done_watching) page++;
+
+      if (nextPage == null) doneWatching = true;
     }
     return newWatchCount;
   }
@@ -266,9 +265,9 @@ public class ebaySearches {
   }
 
   private String generateWatchedItemsURL(String curUser, int page) {
-    String watchingURL = Externalized.getString("ebayServer.bigWatchingURL1") + curUser +
-        Externalized.getString("ebayServer.bigWatchingURL2") + page +
-        Externalized.getString("ebayServer.bigWatchingURL3") + (page + 1);
+    String watchingURL = Externalized.getString("ebayServer.watchingURLPaginated");
+    watchingURL = watchingURL.replace("{page}", Integer.toString(page));
+
     JConfig.log().logDebug("Loading page " + page + " of My eBay for user " + curUser);
     JConfig.log().logDebug("URL: " + watchingURL);
     return watchingURL;
@@ -276,24 +275,26 @@ public class ebaySearches {
 
   private JHTML getWatchedItemsPage(String userCookie, String watchingURL) {
     JHTML htmlDocument = new JHTML(watchingURL, userCookie, mCleaner);
-    if(htmlDocument.getTitle().equals("eBay Message")) {
-      JConfig.log().logDebug("eBay is presenting an interstitial 'eBay Message' page!");
-      JHTML.Form f = htmlDocument.getFormWithInput("MfcISAPICommand");
-      if(f != null) {
-        try {
-          JConfig.log().logDebug("Navigating to the 'Continue to My eBay' page.");
-          htmlDocument = new JHTML(f.getCGI(), userCookie, mCleaner);
-        } catch(UnsupportedEncodingException uee) {
-          JConfig.log().handleException("Failed to get the real My eBay page", uee);
+    if(htmlDocument.isLoaded()) {
+      if (htmlDocument.getTitle().equals("eBay Message")) {
+        JConfig.log().logDebug("eBay is presenting an interstitial 'eBay Message' page!");
+        JHTML.Form f = htmlDocument.getFormWithInput("MfcISAPICommand");
+        if (f != null) {
+          try {
+            JConfig.log().logDebug("Navigating to the 'Continue to My eBay' page.");
+            htmlDocument = new JHTML(f.getCGI(), userCookie, mCleaner);
+          } catch (UnsupportedEncodingException uee) {
+            JConfig.log().handleException("Failed to get the real My eBay page", uee);
+          }
         }
       }
-    }
-    //  If there's a link with content '200', then it's the new My eBay
-    //  page, and the 200 is to show that many watched items on the page.
-    String biggestLink = htmlDocument.getLinkForContent("200");
-    if(biggestLink != null) {
-      JConfig.log().logDebug("Navigating to the '200 at a time' watching page: " + biggestLink);
-      htmlDocument = new JHTML(biggestLink, userCookie, mCleaner);
+      //  If there's a link with content '200', then it's the new My eBay
+      //  page, and the 200 is to show that many watched items on the page.
+//      String biggestLink = htmlDocument.getLinkForContent("200");
+//      if (biggestLink != null) {
+//        JConfig.log().logDebug("Navigating to the '200 at a time' watching page: " + biggestLink);
+//        htmlDocument = new JHTML(biggestLink, userCookie, mCleaner);
+//      }
     }
     return htmlDocument;
   }

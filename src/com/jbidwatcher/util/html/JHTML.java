@@ -541,7 +541,7 @@ public class JHTML implements JHTMLListener {
         }
         case htmlToken.HTML_ENDTAG: {
           String tag = curToken.getToken();
-          if(tag.equalsIgnoreCase("a")) {
+          if(tag.equalsIgnoreCase("/a")) {
             lastTag = null;
           }
         }
