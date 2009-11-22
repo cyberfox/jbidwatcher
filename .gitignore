@@ -9,3 +9,7 @@ JBid*.jar
 jbidwatcher*.tar.gz
 jbidwatcher*.tar.bz2
 META-INF/*
+*.iml
+*.ipr
+*.iws
+s101plugin*
