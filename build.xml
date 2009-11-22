@@ -10,10 +10,11 @@
   <property name="main.dir" value="." />
   <property name="log.dir" value="logs" />
   <property name="lib.dir" value="lib" />
+  <property name="sparkle.dir" value="platform/sparkle" />
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidwatcher" />
-  <property name="VER" value="2.1pre4" />
+  <property name="VER" value="2.1pre5" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
@@ -116,7 +117,7 @@
   </target>
 
   <target name="tar" description="Building source .tar file.">
-    <tar destfile="${TARFILE}" compression="bzip2">
+    <tar destfile="${TARFILE}" compression="bzip2" longfile="gnu">
       <tarfileset prefix="${TARSRC}" dir="${src.dir}" includes="**/*.java" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.sql" />
@@ -145,6 +146,20 @@
   <target name="jar-real" depends="compile">
     <echo level="info" message="Building primary .jar file." />
     <copy todir="help/" file="COPYING.html" />
+
+    <exec executable="git" outputproperty="GITVERSION">
+      <arg line="describe --long"/>
+    </exec>
+
+    <mkdir dir="META-INF"/>
+
+    <manifest file="${MANIFEST}">
+      <attribute name="Manifest-Version" value="1.0"/>
+      <attribute name="Created-By" value="Morgan Schweers @ Cyberfox Software, Inc"/>
+      <attribute name="Main-Class" value="com.jbidwatcher.app.JBidWatch"/>
+      <attribute name="Built-By" value="${user.name}"/>
+      <attribute name="Implementation-Version" value="${GITVERSION}"/>
+    </manifest>
 
     <jar jarfile="${INTERMEDIATE}" manifest="${MANIFEST}" index="true">
       <fileset dir="${main.dir}" includes="*.jpg" />
@@ -273,12 +288,25 @@
     <mkdir dir="${osx.app.path}/Contents/MacOS" />
     <mkdir dir="${osx.app.path}/Contents/Resources" />
     <mkdir dir="${osx.app.path}/Contents/Resources/Java" />
+    <mkdir dir="${osx.app.path}/Contents/Frameworks"/>
+
+    <!-- The Sparkle Framework must also be copied into the application package -->
+    <unzip src="${sparkle.dir}/Sparkle.framework.zip" dest="${osx.app.path}/Contents/Frameworks"/>
+    <!-- The Ant unzip task does not preserve symlinks, so we recreate them -->
+    <symlink link="${osx.app.path}/Contents/Frameworks/Sparkle.framework/Versions/Current" resource="./A"/>
+    <symlink link="${osx.app.path}/Contents/Frameworks/Sparkle.framework/Headers" resource="./Versions/Current/Headers"/>
+    <symlink link="${osx.app.path}/Contents/Frameworks/Sparkle.framework/Resources" resource="./Versions/Current/Resources"/>
+    <symlink link="${osx.app.path}/Contents/Frameworks/Sparkle.framework/Sparkle" resource="./Versions/Current/Sparkle"/>
+    <symlink link="${osx.app.path}/Contents/Frameworks/Sparkle.framework/Resources/fr_CA.lproj" resource="./fr.lproj"/>
+    <!-- Restore the file permissions to the Sparkle relaunch tool -->
+    <chmod file="${osx.app.path}/Contents/Frameworks/Sparkle.framework/Resources/relaunch" perm="ugo+rx"></chmod>
 
     <copy file="${packaging}/Info.plist" todir="${osx.app.path}/Contents">
       <filterchain>
         <replacetokens begintoken="`" endtoken="`">
           <token key="binary" value="${INTERMEDIATE}" />
-	  <token key="version" value="${VER}" />
+	  <token key="version" value="${GITVERSION}" />
+          <token key="friendly_version" value="${VER}" />
 	  <token key="appname" value="${app.name}" />
         </replacetokens>
       </filterchain>
@@ -288,10 +316,12 @@
     <chmod file="${osx.app.path}/Contents/MacOS/JavaApplicationStub" perm="755" />
     <copy file="${packaging}/Info.plist" todir="${osx.app.path}/Contents" />
     <copy file="${packaging}/PkgInfo" todir="${osx.app.path}/Contents" />
+    <copy file="${sparkle.dir}/dsa_pub.pem" todir="${osx.app.path}/Contents/Resources/"/>
     <copy file="${packaging}/jbidicon.icns" todir="${osx.app.path}/Contents/Resources" />
     <copy file="${packaging}/quaqua.jar" todir="${osx.app.path}/Contents/Resources/Java" />
     <copy file="${packaging}/libquaqua.jnilib" todir="${osx.app.path}/Contents/Resources/Java" />
     <copy file="${packaging}/libquaqua64.jnilib" todir="${osx.app.path}/Contents/Resources/Java" />
+    <copy file="${packaging}/libsparkle_init.dylib" todir="${osx.app.path}/Contents/Resources/Java/"/>
     <chmod file="${osx.app.path}/Contents/Resources/Java/libquaqua.jnilib" perm="755" />
     <chmod file="${osx.app.path}/Contents/Resources/Java/libquaqua64.jnilib" perm="755" />
     <copy file="${dest.dir}/${INTERMEDIATE}" todir="${osx.app.path}/Contents/Resources/Java" />
@@ -307,11 +337,12 @@
   </target>
 
   <target name="osx-app">
-    <tar destfile="${APPFILE}" compression="gzip">
+    <tar destfile="${APPFILE}" compression="gzip" longfile="gnu">
       <tarfileset dir="${osx.app.path}" prefix="${app.name}.app" mode="755">
 	<include name="Contents/MacOS/JavaApplicationStub" />
 	<include name="Contents/Resources/Java/libquaqua.jnilib" />
       </tarfileset>
+
       <tarfileset dir="${osx.app.path}" prefix="${app.name}.app">
 	<include name="**" />
 	<exclude name="Contents" />

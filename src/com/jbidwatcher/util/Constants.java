@@ -14,8 +14,12 @@ public class Constants {
  * in just one place.
  */
   public static final String PROGRAM_NAME = "JBidwatcher";
-  public static final String PROGRAM_VERS = "2.1pre4";
-  public static final String SVN_REVISION = "1010";
+  public static final String PROGRAM_VERS = "2.1pre5";
+  public static String REVISION() {
+    String rval = Constants.class.getPackage().getImplementationVersion();
+    if(rval == null) return "debug";
+    return rval.substring(rval.indexOf('-')+1);
+  }
 /** The clock format to use everywhere, when referring to remote times.
  */
   public static final SimpleDateFormat remoteClockFormat = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss z");

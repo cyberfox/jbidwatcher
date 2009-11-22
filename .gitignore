@@ -8,3 +8,4 @@ classes
 JBid*.jar
 jbidwatcher*.tar.gz
 jbidwatcher*.tar.bz2
+META-INF/*

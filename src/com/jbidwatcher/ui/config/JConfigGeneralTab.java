@@ -74,7 +74,7 @@ public class JConfigGeneralTab extends JConfigTab {
   public boolean apply() {
     boolean firstrun = JConfig.queryConfiguration("config.firstrun", "false").equals("true");
 
-    JConfig.setConfiguration("updates.enabled", doVersionUpdateCheckBox.isSelected() ? "true" : "false");
+    if(!Platform.usingSparkle()) JConfig.setConfiguration("updates.enabled", doVersionUpdateCheckBox.isSelected() ? "true" : "false");
     JConfig.setConfiguration("debugging", debuggingBox.isSelected() ? "true" : "false");
     JConfig.setConfiguration("logging", loggingBox.isSelected() ? "true" : "false");
     if(!loggingBox.isSelected()) {
@@ -96,7 +96,7 @@ public class JConfigGeneralTab extends JConfigTab {
       JConfig.setConfiguration("doubleclick.action", dclick_options[clickAction]);
     }
 
-    JConfig.setConfiguration("updates.allowConfig", allowConfigUpdateBox.isSelected() ? "true" : "false");
+    if(!Platform.usingSparkle()) JConfig.setConfiguration("updates.allowConfig", allowConfigUpdateBox.isSelected() ? "true" : "false");
     JConfig.setConfiguration("store.auctionHTML", allowArchival.isSelected() ? "true" : "false");
 
     String restartMessage = null;
@@ -157,11 +157,11 @@ public class JConfigGeneralTab extends JConfigTab {
     String doTimeSync = JConfig.queryConfiguration("timesync.enabled", "true");
     String doDisableThumbnails = JConfig.queryConfiguration("display.thumbnail", "true");
 
-    doVersionUpdateCheckBox.setSelected(doUpdates.equals("true"));
+    if(!Platform.usingSparkle()) doVersionUpdateCheckBox.setSelected(doUpdates.equals("true"));
     debuggingBox.setSelected(doDebugging.equals("true"));
     loggingBox.setSelected(doLogging.equals("true"));
     ignoreDeletedBox.setSelected(doIgnoreDeleted.equals("true"));
-    allowConfigUpdateBox.setSelected(doAllowConfigUpdates.equals("true"));
+    if (!Platform.usingSparkle()) allowConfigUpdateBox.setSelected(doAllowConfigUpdates.equals("true"));
     allowArchival.setSelected(doArchival.equals("true"));
     timeSyncBox.setSelected(doTimeSync.equals("true"));
     disableThumbnailBox.setSelected(doDisableThumbnails.equals("true"));
@@ -230,22 +230,24 @@ public class JConfigGeneralTab extends JConfigTab {
     tp.setBorder(BorderFactory.createTitledBorder("General Options"));
     tp.setLayout(new GridLayout(0, 2));
 
-    doVersionUpdateCheckBox = new JCheckBox("Regularly check for new versions");
-    doVersionUpdateCheckBox.setToolTipText("Once a day check for updates, config changes or notices necessary to keep JBidwatcher running smoothly.");
-    tp.add(doVersionUpdateCheckBox);
+    if(!Platform.usingSparkle()) {
+      doVersionUpdateCheckBox = new JCheckBox("Regularly check for new versions");
+      doVersionUpdateCheckBox.setToolTipText("Once a day check for updates, config changes or notices necessary to keep JBidwatcher running smoothly.");
+      tp.add(doVersionUpdateCheckBox);
 
-    allowConfigUpdateBox = new JCheckBox("Allow live configuration updates");
-    allowConfigUpdateBox.setToolTipText("<html><body>Some eBay changes may be fixable with simple updates to configuration values,<br>" +
-                                        "or search strings.  This option allows JBidwatcher to look for those updates<br>" +
-                                        "during the new version check.  This only works if 'Regularly check for new versions'<br>" +
-                                        "is enabled.  This is <b>strongly</b> recommended.</body></html>");
-    tp.add(allowConfigUpdateBox);
-    //  allowConfigUpdate relies on doVersionUpdate.
-    doVersionUpdateCheckBox.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        allowConfigUpdateBox.setEnabled(doVersionUpdateCheckBox.isSelected());
-      }
-    });
+      allowConfigUpdateBox = new JCheckBox("Allow live configuration updates");
+      allowConfigUpdateBox.setToolTipText("<html><body>Some eBay changes may be fixable with simple updates to configuration values,<br>" +
+          "or search strings.  This option allows JBidwatcher to look for those updates<br>" +
+          "during the new version check.  This only works if 'Regularly check for new versions'<br>" +
+          "is enabled.  This is <b>strongly</b> recommended.</body></html>");
+      tp.add(allowConfigUpdateBox);
+      //  allowConfigUpdate relies on doVersionUpdate.
+      doVersionUpdateCheckBox.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          allowConfigUpdateBox.setEnabled(doVersionUpdateCheckBox.isSelected());
+        }
+      });
+    }
 
     debuggingBox = new JCheckBox("Debugging");
     debuggingBox.setToolTipText("Enable tracking a lot more information about the state of the program as it's working.");
@@ -278,7 +280,7 @@ public class JConfigGeneralTab extends JConfigTab {
     }
 
     if(Platform.supportsTray()) {
-      winTrayBox = new JCheckBox("Use Windows System Tray");
+      winTrayBox = new JCheckBox("Use System Tray");
       winTrayBox.setToolTipText("Allow JBidwatcher to put an icon in the system tray with some statistics on hover and some messages will use balloon-style popups.");
       tp.add(winTrayBox);
       minimizeTrayBox = new JCheckBox("Minimize to System Tray");

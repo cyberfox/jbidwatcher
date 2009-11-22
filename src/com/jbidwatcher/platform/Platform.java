@@ -47,6 +47,12 @@ public class Platform {
     return System.getProperty("os.name").startsWith("Windows Vista");
   }
 
+  public static boolean usingSparkle() {
+    return Platform.isMac() &&
+        (JConfig.queryConfiguration("config.firstrun", "false").equals("true") ||
+            JConfig.queryConfiguration("temp.sparkle", "false").equals("true"));
+  }
+
   /**
    * @brief Set up the Mac UI information, based on the configuration.
    */

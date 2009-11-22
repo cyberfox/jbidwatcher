@@ -15,6 +15,7 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.platform.Tray;
+import com.jbidwatcher.platform.Sparkle;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.ui.AuctionsManager;
@@ -394,7 +395,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
     setUI(null, null, UIManager.getInstalledLookAndFeels());
 
-    JConfig.log().logMessage(Constants.PROGRAM_NAME + " " + Constants.PROGRAM_VERS + "-" + Constants.SVN_REVISION);
+    JConfig.log().logMessage(Constants.PROGRAM_NAME + " " + Constants.PROGRAM_VERS + "-" + Constants.REVISION());
     JConfig.log().logMessage(System.getProperty("java.vendor") + " Java, version " + System.getProperty("java.version") + " on " + System.getProperty("os.name"));
     if(JConfig.queryConfiguration("mac", "false").equals("true")) {
       JConfig.setConfiguration("temp.cfg.load", JConfig.getCanonicalFile("JBidWatch.cfg", "jbidwatcher", false));
@@ -644,9 +645,25 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  and I can't control the version numbers everywhere, this
     //  should monitor a certain location once a day and look for an
     //  update.  The user has the option to turn this off!
-    TimerHandler updateTimer = new TimerHandler(UpdateManager.getInstance(), HOURS_IN_DAY * MINUTES_IN_HOUR * Constants.ONE_MINUTE);
-    updateTimer.setName("VersionChecker");
-    updateTimer.start();
+    boolean updaterStarted = false;
+    if(Platform.isMac()) {
+      Sparkle sparkle = new Sparkle();
+      try {
+        sparkle.start();
+        updaterStarted = true;
+        JConfig.setConfiguration("temp.sparkle", "true");
+      } catch(Exception e) {
+        JConfig.log().handleDebugException("Couldn't start Sparkle", e);
+        updaterStarted = false;
+        JConfig.setConfiguration("temp.sparkle", "false");
+      }
+    }
+
+    if(!updaterStarted) {
+      TimerHandler updateTimer = new TimerHandler(UpdateManager.getInstance(), HOURS_IN_DAY * MINUTES_IN_HOUR * Constants.ONE_MINUTE);
+      updateTimer.setName("VersionChecker");
+      updateTimer.start();
+    }
 
     com.jbidwatcher.util.services.AudioPlayer.start();
 

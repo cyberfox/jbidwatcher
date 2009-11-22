@@ -11,6 +11,21 @@
     <key>CFBundleName</key>
     <string>`appname`</string>
 
+    <key>SUCheckAtStartup</key>
+    <string>YES</string>
+
+    <key>SUScheduledCheckInterval</key>
+    <string>86400</string>
+
+    <key>SUPublicDSAKeyFile</key>
+    <string>dsa_pub.pem</string>
+
+    <key>SUFeedURL</key>
+    <string>http://www.jbidwatcher.com/sparkle/updates.xml</string>
+
+    <key>SUShowReleaseNotes</key>
+    <string>YES</string>
+
     <key>CFBundleSignature</key>
     <string>JBid</string>
 
@@ -21,13 +36,16 @@
     <string>English</string>
 
     <key>CFBundleShortVersionString</key>
-    <string>`version`</string>
+    <string>`friendly_version`</string>
 
     <key>CFBundleVersion</key>
     <string>`version`</string>
 
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>com.jbidwatcher.JBidwatcher</string>
 
     <key>Java</key>
     <dict>
