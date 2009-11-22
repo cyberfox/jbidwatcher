@@ -237,9 +237,12 @@ public class JBidMenuBar extends JMenuBar {
   protected void establishHelpMenu(JMenu inMenu) {
     makeMenuItem(inMenu, "Explain Colors And Icons", 'E');
     makeMenuItem(inMenu, "FAQ", 'F', KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
+    makeMenuItem(inMenu, "User Community", "Forum", 'C');
     makeMenuItem(inMenu, "Donate", 'D');
     makeMenuItem(inMenu, "License Details", "License", 'D');
+    if(JConfig.debugging()) makeMenuItem(inMenu, "Report a Bug", "Report Bug", 'R');
     inMenu.add(new JSeparator());
+    makeMenuItem(inMenu, "My JBidwatcher", 'M');
     makeMenuItem(inMenu, "About " + Constants.PROGRAM_NAME, 'A');
   }
 

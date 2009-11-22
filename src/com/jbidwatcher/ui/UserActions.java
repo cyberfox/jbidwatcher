@@ -1384,7 +1384,7 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Paste")) DoPasteFromClipboard();
     else if(actionString.equals("CopyURL")) DoCopyURL(c_src, whichAuction);
     else if(actionString.equals("CopyID")) DoCopyID(c_src, whichAuction);
-    else if(actionString.equals("Add")) DoAdd(c_src);
+    else if(actionString.equals("Add") || actionString.equals("Add New")) DoAdd(c_src);
     else if(actionString.equals("Delete")) DoDelete(c_src, whichAuction);
 
     else if(actionString.equals("UpdateAll")) DoUpdateAll();
