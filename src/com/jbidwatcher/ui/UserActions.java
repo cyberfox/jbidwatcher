@@ -1423,6 +1423,7 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Scripting")) DoScripting();
     else if(actionString.equals("Dump")) JConfig.log().logDebug("Dump requested.");
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
+    else if(actionString.equals("My JBidwatcher")) MQFactory.getConcrete("browse").enqueue("http://my.jbidwatcher.com");
     else if(actionString.equals("View Log")) DoViewLog();
     else if(actionString.equals("Mark as Won")) DoDebugWin(whichAuction);
     else if(actionString.equals("View Activity")) DoViewActivity();

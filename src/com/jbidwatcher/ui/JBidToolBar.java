@@ -105,6 +105,7 @@ public class JBidToolBar {
     bidBar.addSeparator();
     ButtonMaker.addbutton(bidBar, inAction, "Forum", getSource("forum.png"), "JBidwatcher forums");
     if (JConfig.debugging) ButtonMaker.addbutton(bidBar, inAction, "Report Bug", getSource("report_bug.png"), "Report bug");
+    ButtonMaker.addbutton(bidBar, inAction, "My JBidwatcher", getSource("home.png"), "My JBidwatcher");
 
     if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
       bidBar.setFloatable(false);
