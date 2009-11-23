@@ -271,6 +271,7 @@ class ebayAuction extends SpecificAuction {
     setBuyNowUS(zeroDollars);
 
     String altBuyNowString1 = mDocument.getNextContentAfterRegexIgnoring(T.s("ebayServer.price"), "([Ii]tem.[Nn]umber|^\\s*[0-9]+\\s*$)");
+    if(mDocument.getPrevContent(3).equals("Estimated delivery*")) return;
     if(altBuyNowString1 != null) {
       altBuyNowString1 = altBuyNowString1.trim();
     }
