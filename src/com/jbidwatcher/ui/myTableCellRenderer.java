@@ -88,6 +88,11 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
 
     mRow = row;
 
+    if ((column == TableColumnController.SNIPE_OR_MAX || column == TableColumnController.SNIPE_TOTAL) && ae.isSniped()) {
+      returnComponent.setBackground(snipeBidBackground(ae));
+      returnComponent.setOpaque(true);
+    }
+
     if(!Platform.isMac()) {
       Color background = chooseBackground(ae, column, table.getBackground());
       if ((row % 2) == 1) {
