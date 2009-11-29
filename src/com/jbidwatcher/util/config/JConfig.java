@@ -18,6 +18,8 @@ package com.jbidwatcher.util.config;//  -*- Java -*-
 //  mrs: 22-July-1999 23:57 - First version.  Contains the  configuration
 //                            information, theoretically loaded once on startup.
 
+import com.jbidwatcher.util.Constants;
+
 import java.io.*;
 import java.util.*;
 import java.util.List;
@@ -631,5 +633,9 @@ public class JConfig {
     }
     count++;
     setConfiguration(key, Long.toString(count));
+  }
+
+  public static String getVersion() {
+    return Constants.PROGRAM_VERS;
   }
 }

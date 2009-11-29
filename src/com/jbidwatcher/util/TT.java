@@ -65,7 +65,7 @@ public class TT {
    * @return - The value of the provided key in the properties file, or the overridden value if override.{key} is set.
    */
   public String s(String key) {
-    String override = JConfig.queryConfiguration("override." + key);
+    String override = JConfig.queryConfiguration("replace." + JConfig.getVersion() + '.' + key);
     if(override == null && countryProperties != null) override = countryProperties.getProperty(key);
     if(override != null) {
       return override;

@@ -30,7 +30,7 @@ public class Externalized {
 	 * @return - The value of the provided key in the properties file, or the overridden value if override.{key} is set.
 	 */
 	public static String getString(String key) {
-    String override = JConfig.queryConfiguration("override." + key);
+    String override = JConfig.queryConfiguration("replace." + JConfig.getVersion() + '.' + key);
     if(override != null) {
       return override;
     }

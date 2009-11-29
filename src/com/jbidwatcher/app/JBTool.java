@@ -227,7 +227,7 @@ public class JBTool implements ToolInterface {
       if(option.equals("logconfig")) JConfig.setConfiguration("config.logging", "true");
       if(option.equals("logurls")) JConfig.setConfiguration("debug.urls", "true");
       if(option.equals("myebay")) mJustMyeBay = true;
-      if(option.equals("sandbox")) JConfig.setConfiguration("override.ebayServer.viewHost", "cgi.sandbox.ebay.com");
+      if(option.equals("sandbox")) JConfig.setConfiguration("replace." + JConfig.getVersion() + ".ebayServer.viewHost", "cgi.sandbox.ebay.com");
       if(option.startsWith("country=")) {
         mCountry = option.substring(8);
         if(getSiteNumber(mCountry) == -1) JConfig.log().logMessage("That country is not recognized by JBidwatcher's eBay Server.");

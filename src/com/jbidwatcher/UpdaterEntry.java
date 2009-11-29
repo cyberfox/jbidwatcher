@@ -162,7 +162,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
       } else if (type.equals("string")) {
         String cfgVar = cfg.getProperty("STRING");
         if (cfgVar != null) {
-          JConfig.setConfiguration("override." + cfgVar, cfg.getContents());
+          JConfig.setConfiguration("replace." + JConfig.getVersion() + "." + cfgVar, cfg.getContents());
           cfgChanged = true;
         }
       } else if (type.equals("restore")) {
