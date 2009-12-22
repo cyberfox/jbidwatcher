@@ -75,7 +75,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private final Object memInfoSynch = new Object();
   private MacFriendlyFrame mainFrame;
   private JTabManager jtmAuctions;
-  private static Sparkle mSparkle;
+  private static Sparkle mSparkle = null;
 
   private RuntimeInfo _rti = null;
   private static final int HOURS_IN_DAY = 24;
@@ -648,8 +648,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  update.  The user has the option to turn this off!
     boolean updaterStarted = false;
     if(Platform.isMac()) {
-      mSparkle = new Sparkle();
       try {
+        mSparkle = new Sparkle();
         mSparkle.start();
         updaterStarted = true;
         JConfig.setConfiguration("temp.sparkle", "true");

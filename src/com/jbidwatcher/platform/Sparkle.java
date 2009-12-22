@@ -34,7 +34,11 @@ public class Sparkle {
    * LD_LIBRARY_PATH
    */
   static {
-    System.loadLibrary("sparkle_init");
+    try {
+      System.loadLibrary("sparkle_init");
+    } catch(UnsatisfiedLinkError ule) {
+      //  Non-mac or pre-10.5 version
+    }
   }
 
   /**
