@@ -359,10 +359,10 @@ public class auctionTableModel extends BaseTransformation
   public Object getValueAt(int rowIndex, int columnIndex) {
     try {
       AuctionEntry aEntry = dispList.get(rowIndex);
-      if(aEntry == null) return (columnIndex == -1) ? null : "*";
+      if(columnIndex == -1) return aEntry;
+      if(aEntry == null) return "*";
       String errorNote = aEntry.getErrorPage()==null?"":"*";
       switch(columnIndex) {
-        case -1: return aEntry;
         case TableColumnController.ID: return aEntry.getIdentifier();
         case TableColumnController.CUR_BID:
           if(aEntry.isFixed()) {
