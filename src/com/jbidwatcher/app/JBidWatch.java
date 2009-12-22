@@ -654,7 +654,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
         updaterStarted = true;
         JConfig.setConfiguration("temp.sparkle", "true");
       } catch(Throwable e) {
-        JConfig.log().handleDebugException("Couldn't start Sparkle", e);
+        JConfig.log().handleDebugException("Couldn't start Sparkle - This message is normal under OS X 10.4", e);
         updaterStarted = false;
         JConfig.setConfiguration("temp.sparkle", "false");
       }
