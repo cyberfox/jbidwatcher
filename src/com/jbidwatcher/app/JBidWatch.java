@@ -653,7 +653,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
         mSparkle.start();
         updaterStarted = true;
         JConfig.setConfiguration("temp.sparkle", "true");
-      } catch(Exception e) {
+      } catch(Throwable e) {
         JConfig.log().handleDebugException("Couldn't start Sparkle", e);
         updaterStarted = false;
         JConfig.setConfiguration("temp.sparkle", "false");
