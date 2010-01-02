@@ -11,6 +11,14 @@
     <key>CFBundleName</key>
     <string>`appname`</string>
 
+    <key>LSArchitecturePriority</key>
+    <array>
+      <string>i386</string>
+      <string>x86_64</string>
+      <string>ppc64</string>
+      <string>ppc</string>
+    </array>
+
     <key>SUCheckAtStartup</key>
     <string>YES</string>
 
