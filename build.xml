@@ -148,7 +148,7 @@
     <copy todir="help/" file="COPYING.html" />
 
     <exec executable="git" outputproperty="GITVERSION">
-      <arg line="describe --long"/>
+      <arg line="describe --tags --long"/>
     </exec>
 
     <mkdir dir="META-INF"/>
