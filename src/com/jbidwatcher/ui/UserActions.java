@@ -662,7 +662,7 @@ public class UserActions implements MessageQueue.Listener {
       sd.setVisible(true);
 
       if(sd.isCancelled() || sd.getAmount().length() == 0) {
-        JOptionPane.showMessageDialog(src, "Establishing multi-auction snipe canceled.", "Multisnipe canceled", JOptionPane.PLAIN_MESSAGE);
+        JConfig.log().logDebug("Establishing multi-auction snipe canceled during snipe dialog");
         return;
       }
 
@@ -673,7 +673,7 @@ public class UserActions implements MessageQueue.Listener {
       //  group of related snipes.
       Color groupColor = JColorChooser.showDialog(src, "Select a background color for this multi-snipe group", null);
       if(groupColor == null) {
-        JOptionPane.showMessageDialog(src, "Establishing multi-auction snipe canceled.", "Multisnipe canceled", JOptionPane.PLAIN_MESSAGE);
+        JConfig.log().logDebug("Establishing multi-auction snipe canceled during color selection");
         return;
       }
 
