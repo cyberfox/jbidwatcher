@@ -438,10 +438,23 @@ public class JHTML implements JHTMLListener {
   }
 
   public String grep(String match) {
+    Pattern matchPat = Pattern.compile(match);
     for (String nextContent : contentList) {
-      if (nextContent.matches(match)) {
+      Matcher m = matchPat.matcher(nextContent);
+      if (m.matches()) {
         //  This might not be safe...
         return nextContent;
+      }
+    }
+    return null;
+  }
+
+  public Matcher realGrep(String match) {
+    Pattern matchPat = Pattern.compile(match);
+    for (String nextContent : contentList) {
+      Matcher m = matchPat.matcher(nextContent);
+      if (m.matches()) {
+        return m;
       }
     }
     return null;

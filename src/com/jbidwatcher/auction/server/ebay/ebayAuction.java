@@ -391,6 +391,12 @@ class ebayAuction extends SpecificAuction {
       }
     }
 
+    if(newPercent == null) {
+      Matcher percentMatched = doc.realGrep("(?i)([0-9]+(\\.[0-9])?%)(.|&#160;)positive.feedback");
+      if(percentMatched != null) {
+        newPercent = percentMatched.group(1);
+      }
+    }
     if(newPercent == null) newPercent = doc.getContentBeforeContent("&#160;Positive feedback");
     if(newPercent != null && newPercent.matches("[0-9]+(\\.[0-9])?%")) {
       mSeller.setPositivePercentage(newPercent);
