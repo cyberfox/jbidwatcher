@@ -36,7 +36,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private static final Color medBlue = new Color(0, 0, 191);
   private static final Color linuxSelection = new Color(204,204,255);
   private int mRow = 0;
-  private boolean mSelected = false;
+  private boolean mSelected;
 
   private static class Colors {
     Color mForeground;
@@ -149,9 +149,12 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private final static String evenList = "List.evenRowBackgroundPainter";
   private final static String oddList = "List.oddRowBackgroundPainter";
 
+  private final static Color evenDefault = new Color(0x0f1, 0x0f6, 0x0fe);
+  private final static Color oddDefault = new Color(0x0ff, 0x0ff, 0x0ff);
+
   public void paintComponent(Graphics g) {
-    boolean painted = false;
     if(g != null) {
+      boolean painted = false;
       if(JConfig.queryDisplayProperty("background.complex", "false").equals("true")) {
         Graphics2D g2d = (Graphics2D) g;
         Rectangle bounds = g2d.getClipBounds();
@@ -172,9 +175,15 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
             renderGradient(g, selected);
           } else {
             Border bgPaint = UIManager.getBorder((mRow % 2) == 0 ? evenList : oddList);
-            bgPaint.paintBorder(this, g, 0, 0, getWidth(), getHeight());
-            super.paintComponent(g);
-            painted = true;
+            if(bgPaint != null) {
+              bgPaint.paintBorder(this, g, 0, 0, getWidth(), getHeight());
+              super.paintComponent(g);
+              painted = true;
+            } else {
+              renderColor(g, (mRow % 2) == 0 ? evenDefault : oddDefault);
+              super.paintComponent(g);
+              painted = true;
+            }
 
             Graphics2D g2d = (Graphics2D) g;
             float alpha = .1f;
@@ -189,9 +198,8 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   }
 
   private void renderGradient(Graphics g, Color selected) {
-    GradientPaint paint;
-    paint = gradientCache.get(cacheMapper());
-    if(paint == null) {
+    GradientPaint paint = gradientCache.get(cacheMapper());
+    if (paint == null) {
       paint = new GradientPaint(0, 0, lighten(selected), 0, getHeight(), selected, false);
       gradientCache.put(cacheMapper(), paint);
     }
@@ -199,6 +207,12 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     g2d.setPaint(paint);
     Rectangle bounds = g2d.getClipBounds();
     g2d.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
+  }
+
+  private void renderColor(Graphics g, Color color) {
+    g.setColor(color);
+    Rectangle bounds = g.getClipBounds();
+    g.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
   }
 
   private int cacheMapper() {return 10000 * (mRow % 2) + getHeight();}
