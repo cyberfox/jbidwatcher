@@ -105,7 +105,7 @@ public class AutoCompletion extends PlainDocument {
         if (hitBackspaceOnSelection) offs--;
       } else {
         // User hit backspace with the cursor positioned on the start => beep
-        comboBox.getToolkit().beep(); // when available use: UIManager.getLookAndFeel().provideErrorFeedback(comboBox);
+        UIManager.getLookAndFeel().provideErrorFeedback(comboBox);
       }
       highlightCompletedText(offs);
     } else {
@@ -131,7 +131,7 @@ public class AutoCompletion extends PlainDocument {
         // imitate no insert (later on offs will be incremented by str.length(): selection won't move forward)
         offs = offs-str.length();
         // provide feedback to the user that his input has been received but can not be accepted
-        comboBox.getToolkit().beep(); // when available use: UIManager.getLookAndFeel().provideErrorFeedback(comboBox);
+        UIManager.getLookAndFeel().provideErrorFeedback(comboBox);
       }
       setText(item.toString());
       // select the completed part
