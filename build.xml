@@ -265,7 +265,7 @@
     <copy todir="${osx.app.path}/../" file="COPYING.html" />
 
     <exec executable="mkisofs">
-      <arg line='-V JBidwatcher -r -apple -o ${DMGFILE} "${osx.app.path}/.."'/>
+      <arg line='-V JBidwatcher -r -hide-rr-moved -apple -o ${DMGFILE} "${osx.app.path}/.."'/>
     </exec>
 
     <delete file="${osx.app.path}/../COPYING.html"/>
