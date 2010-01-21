@@ -397,7 +397,7 @@
   <target name="apps" depends="tar,osx,exe,dmg" />
 
   <target name="release" depends="apps" description="Build for a full release.">
-    <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/htdocs/rdl" />
+    <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/enhanced/downloads" />
     <antcall target="upload" />
   </target>
 
@@ -412,7 +412,7 @@
   </target>
 
   <target name="enhanced" depends="apps" description="Build a pre-release for the enhanced site.">
-    <property name="server.path" value="jbidwatcher@jbidwatcher.com:www2/enhanced/downloads" />
+    <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/enhanced/downloads" />
     <antcall target="upload" />
   </target>
 
