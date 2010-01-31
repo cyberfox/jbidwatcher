@@ -282,6 +282,7 @@ public class MyJBidwatcher {
       }
       userInfo.setProperty("user", user);
       userInfo.setProperty("password", Base64.encodeString(password));
+      userInfo.setEmpty();
       gixen.addChild(userInfo);
       postXML(mGixenQueueURL, gixen);
     }
