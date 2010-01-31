@@ -5,6 +5,7 @@ package com.jbidwatcher.search;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.platform.Path;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -124,7 +125,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
 
     StringBuffer saveData = this.toXML().toStringBuffer();
 
-    saveFile = JConfig.getCanonicalFile(saveFile, "jbidwatcher", false);
+    saveFile = Path.getCanonicalFile(saveFile, "jbidwatcher", false);
     if(!saveFile.equals(oldSave)) {
       JConfig.setConfiguration("search.savefile", saveFile);
     }
@@ -152,7 +153,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     String loadFile = JConfig.queryConfiguration("search.savefile", "searches.xml");
     String oldLoad = loadFile;
 
-    loadFile = JConfig.getCanonicalFile(loadFile, "jbidwatcher", true);
+    loadFile = Path.getCanonicalFile(loadFile, "jbidwatcher", true);
 
     if(!loadFile.equals(oldLoad)) {
       JConfig.setConfiguration("search.savefile", loadFile);

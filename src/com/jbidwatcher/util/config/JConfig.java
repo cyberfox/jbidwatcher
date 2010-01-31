@@ -57,7 +57,6 @@ public class JConfig {
 
   //  Were there any configuration changes since the last updateComplete()?
   private static boolean _anyUpdates = false;
-  private static String sHomeDirectory = null;
   private static boolean mScripting = false;
   private static LoggerInterface mLogger = new NullLogger();
 
@@ -89,14 +88,14 @@ public class JConfig {
     return mScripting;
   }
 
-  public static void fixupPaths() {
+  public static void fixupPaths(String homeDirectory) {
     String[][] s = { { "auctions.savepath", "auctionsave" },
         { "platform.path", "platform" },
         {  "savefile", "auctions.xml" },
         {  "search.savefile", "searches.xml" } };
     String sep = System.getProperty("file.separator");
     for(String[] pair : s) {
-      JConfig.setConfiguration(pair[0], getHomeDirectory("jbidwatcher") + sep + pair[1]);
+      JConfig.setConfiguration(pair[0], homeDirectory + sep + pair[1]);
     }
   }
 
@@ -248,82 +247,8 @@ public class JConfig {
     return(null);
   }
 
-  public static void setHome(String newHome) {
-    sHomeDirectory = newHome;
-  }
-
-  public static String getHome() {
-    if(sHomeDirectory == null) return System.getProperty("user.home");
-    return sHomeDirectory;
-  }
-
-  public static String getMacHomeDirectory(String dirname) {
-    String sep = System.getProperty("file.separator");
-    if (dirname.equals("jbidwatcher")) dirname = "JBidwatcher";
-    return getHome() + sep + "Library" + sep + "Preferences" + sep + dirname;
-  }
-
-  /**
-   * @brief Gets a path to the 'optimal' place to put application-specific files.
-   *
-   * @param dirname - The directory to add to the app-specific location.
-   * 
-   * @return - A String containing the OS-specific place to put our files.
-   */
-  public static String getHomeDirectory(String dirname) {
-    String sep = System.getProperty("file.separator");
-    String homePath;
-
-    if(queryConfiguration("mac", "false").equals("true")) {
-      homePath = getMacHomeDirectory(dirname);
-    } else {
-      homePath = getHome() + sep + '.' + dirname;
-    }
-
-    File fp = new File(homePath);
-    if(!fp.exists()) fp.mkdirs();
-
-    return homePath;
-  }
-
-  /** 
-   * @brief Find the 'best' location for a file.
-   *
-   * If the file has a path, presume it's correct.
-   * If it's just a filename, try to find it at the users (application) home directory.
-   * If it's not there, just load it from the current directory.
-   * 
-   * @param fname - The file name to hunt for.
-   * @param dirname - The ending directory for this application.
-   * @param mustExist - false if we just want to find out the best place to put it.
-   * 
-   * @return - A string containing the 'best' version of a given file.
-   */
-  public static String getCanonicalFile(String fname, String dirname, boolean mustExist) {
-    String outName = fname;
-    String pathSeparator = System.getProperty("file.separator");
-
-    //  Is it a path?  If so, we don't want to override it!
-    if(fname.indexOf(pathSeparator) == -1) {
-      String configPathFile = getHomeDirectory(dirname) + pathSeparator + fname;
-
-      if(mustExist) {
-        File centralConfig = new File(configPathFile);
-
-        if(centralConfig.exists() && centralConfig.isFile()) {
-          outName = configPathFile;
-        }
-      } else {
-        outName = configPathFile;
-      }
-    }
-
-    return outName;
-  }
-
-  public static void saveDisplayConfig(Properties displayProps, Properties auxProps) {
+  public static void saveDisplayConfig(String dispFile, Properties displayProps, Properties auxProps) {
     try {
-      String dispFile = getCanonicalFile("display.cfg", "jbidwatcher", false);
       File fd = new File(dispFile);
       if(fd.canWrite() || !fd.exists()) {
         FileOutputStream fos = new FileOutputStream(fd);
@@ -421,10 +346,9 @@ public class JConfig {
     return configStream;
   }
 
-  public static void loadDisplayConfig(ClassLoader urlCL, int screenwidth, int screenheight) {
-    String loadName = "display.cfg";
+  public static void loadDisplayConfig(String dispFile, ClassLoader urlCL, int screenwidth, int screenheight) {
     Properties displayProps = new Properties();
-    InputStream dispIS = getExternalWithFallback(urlCL, loadName);
+    InputStream dispIS = getExternalWithFallback(urlCL, dispFile);
 
     //  Preset to zero, because we check this later.
     height = 0;
@@ -478,9 +402,8 @@ public class JConfig {
     displayProperty = displayProps;
   }
 
-  private static InputStream getExternalWithFallback(ClassLoader urlCL, String loadName) {
+  private static InputStream getExternalWithFallback(ClassLoader urlCL, String dispFile) {
     boolean fileLoadFailed = false;
-    String dispFile = getCanonicalFile(loadName, "jbidwatcher", true);
 
     File checkExistence = new File(dispFile);
     InputStream dispIS = null;
@@ -496,7 +419,7 @@ public class JConfig {
     }
 
     if(fileLoadFailed) {
-      dispIS = urlCL.getResourceAsStream("/" + loadName);
+      dispIS = urlCL.getResourceAsStream("/display.cfg");
     }
     return dispIS;
   }

@@ -1,5 +1,6 @@
 package com.jbidwatcher.app;
 
+import com.jbidwatcher.platform.Path;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
@@ -111,11 +112,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     statusPane.add(vert1);
 
     mStatusBar = new JLabel("Ready!");
-//    mStatusBar.setBorder(BorderFactory.createCompoundBorder(
-//        BorderFactory.createLineBorder(Color.red),
-//        mStatusBar.getBorder()));
     final Dimension statusBarSize = new Dimension(600, 16);
-//    mStatusBar.setPreferredSize(statusBarSize);
     mStatusBar.setMaximumSize(statusBarSize);
     mStatusBar.setMinimumSize(statusBarSize);
     mStatusBar.setPreferredSize(statusBarSize);
@@ -231,12 +228,13 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     Properties colProps = getColumnProperties();
     SearchManager.getInstance().saveSearchDisplay();
     Properties displayProps = UISnapshot.snapshotLocation(this);
-    JConfig.saveDisplayConfig(displayProps, colProps);
+    String dispFile = Path.getCanonicalFile("display.cfg", "jbidwatcher", false);
+    JConfig.saveDisplayConfig(dispFile, displayProps, colProps);
 
     //  Save it to the original file, if it was provided at runtime,
     //  otherwise to the appropriate default.
     String cfgLoad = JConfig.queryConfiguration("temp.cfg.load", "JBidWatch.cfg");
-    String cfgFilename = cfgLoad.equals("JBidWatch.cfg") ? JConfig.getCanonicalFile(cfgLoad, "jbidwatcher", false) : cfgLoad;
+    String cfgFilename = cfgLoad.equals("JBidWatch.cfg") ? Path.getCanonicalFile(cfgLoad, "jbidwatcher", false) : cfgLoad;
 
     //  TODO -- Need to save searches in the database too...  Right now they're still hanging around in XML form.
     SearchManager.getInstance().saveSearches();

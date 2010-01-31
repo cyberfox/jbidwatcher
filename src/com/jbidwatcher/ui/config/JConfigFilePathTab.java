@@ -5,6 +5,7 @@ package com.jbidwatcher.ui.config;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.platform.Path;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.util.config.JConfig;
 
@@ -26,7 +27,7 @@ public class JConfigFilePathTab extends JConfigTab {
   }
 
   public void updateValues() {
-    filePath.setText(JConfig.queryConfiguration("savefile", JConfig.getCanonicalFile("auctions.xml", "jbidwatcher", false)));
+    filePath.setText(JConfig.queryConfiguration("savefile", Path.getCanonicalFile("auctions.xml", "jbidwatcher", false)));
   }
 
   private JPanel buildFilePathSettings() {
@@ -56,7 +57,7 @@ public class JConfigFilePathTab extends JConfigTab {
         public void actionPerformed(ActionEvent ae) {
           if(ae.getActionCommand().equals("Browse...")) {
             JFileChooser jfc = new JFileChooser();
-            jfc.setCurrentDirectory(new File(JConfig.getHomeDirectory("jbidwatcher")));
+            jfc.setCurrentDirectory(new File(Path.getHomeDirectory("jbidwatcher")));
             jfc.setApproveButtonText("Choose");
             int rval = jfc.showOpenDialog(null);
             if(rval == JFileChooser.APPROVE_OPTION) {

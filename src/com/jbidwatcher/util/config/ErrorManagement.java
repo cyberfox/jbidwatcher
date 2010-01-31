@@ -5,6 +5,8 @@ package com.jbidwatcher.util.config;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.platform.Path;
+
 import java.io.*;
 import java.util.Date;
 import java.util.List;
@@ -32,7 +34,7 @@ public class ErrorManagement implements LoggerInterface {
     if(mLogWriter != null) return;
 
     String sep = System.getProperty("file.separator");
-    String home = JConfig.getHomeDirectory("jbidwatcher");
+    String home = Path.getHomeDirectory("jbidwatcher");
 
     String doLogging = JConfig.queryConfiguration("logging", "true");
     if(doLogging.equals("true")) {

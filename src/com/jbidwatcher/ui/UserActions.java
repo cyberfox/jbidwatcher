@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
+import com.jbidwatcher.platform.Path;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.*;
@@ -1172,7 +1173,7 @@ public class UserActions implements MessageQueue.Listener {
       canonicalFName = JConfig.queryConfiguration("savefile", "auctions.xml");
       String oldFname = canonicalFName;
 
-      canonicalFName = JConfig.getCanonicalFile(canonicalFName, "jbidwatcher", true);
+      canonicalFName = Path.getCanonicalFile(canonicalFName, "jbidwatcher", true);
 
       if(!canonicalFName.equals(oldFname)) {
         JConfig.setConfiguration("savefile", canonicalFName);

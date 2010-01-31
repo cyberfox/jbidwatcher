@@ -14,6 +14,7 @@ package com.jbidwatcher.ui;
  * verifying, adding, and retrieving auctions, and similar features
  */
 
+import com.jbidwatcher.platform.Path;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.xml.XMLElement;
@@ -169,7 +170,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     String loadFile = JConfig.queryConfiguration("savefile", "auctions.xml");
     String oldLoad = loadFile;
 
-    loadFile = JConfig.getCanonicalFile(loadFile, "jbidwatcher", true);
+    loadFile = Path.getCanonicalFile(loadFile, "jbidwatcher", true);
     if(!loadFile.equals(oldLoad)) {
       JConfig.setConfiguration("savefile", loadFile);
     }
@@ -274,7 +275,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   public String saveAuctions() {
     XMLElement auctionsData = AuctionServerManager.getInstance().toXML();
     String oldSave = JConfig.queryConfiguration("savefile", "auctions.xml");
-    String saveFilename = JConfig.getCanonicalFile(JConfig.queryConfiguration("savefile", "auctions.xml"), "jbidwatcher", false);
+    String saveFilename = Path.getCanonicalFile(JConfig.queryConfiguration("savefile", "auctions.xml"), "jbidwatcher", false);
     String newSave=saveFilename;
 
     //  If there's no data to save, then pretend we did it.

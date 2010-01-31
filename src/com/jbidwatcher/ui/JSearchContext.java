@@ -5,6 +5,7 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.platform.Path;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.search.Searcher;
@@ -83,7 +84,7 @@ public class JSearchContext extends JBidTableContext {
       JOptionPane.showMessageDialog(null, "Searches Saved!", "Save Complete", JOptionPane.INFORMATION_MESSAGE);
     } else {
       String saveFile = JConfig.queryConfiguration("search.savefile", "searches.xml");
-      saveFile = JConfig.getCanonicalFile(saveFile, "jbidwatcher", false);
+      saveFile = Path.getCanonicalFile(saveFile, "jbidwatcher", false);
 
       MQFactory.getConcrete("Swing").enqueue("ERROR Failed to save searches.  Check that the directory for\n" + saveFile + " exists, and is writable.");
     }

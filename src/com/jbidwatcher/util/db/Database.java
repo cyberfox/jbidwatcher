@@ -6,6 +6,7 @@ package com.jbidwatcher.util.db;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.platform.Path;
 import com.jbidwatcher.util.config.JConfig;
 
 import java.sql.*;
@@ -38,7 +39,7 @@ public class Database {
     protocol = JConfig.queryConfiguration("db.protocol", "jdbc:derby:");
     mysql = driver.toLowerCase().contains("mysql");
 
-    if(base == null) base = JConfig.getHomeDirectory("jbidwatcher");
+    if(base == null) base = Path.getHomeDirectory("jbidwatcher");
     if(!mysql) {
       System.setProperty("derby.system.home", base);
       System.setProperty("derby.storage.pageCacheSize", "500");
