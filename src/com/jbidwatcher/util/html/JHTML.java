@@ -660,7 +660,7 @@ public class JHTML implements JHTMLListener {
       }
     } catch(IOException e) {
       loadedPage = null;
-      JConfig.log().handleException("JHTML.loadPage: " + e, e);
+      JConfig.log().handleException("JHTML.loadPage: (" + newURL + ") " + e, e);
     }
     if(loadedPage == null) m_loaded = false;
   }
