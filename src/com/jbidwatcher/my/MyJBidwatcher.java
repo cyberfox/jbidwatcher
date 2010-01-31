@@ -151,19 +151,17 @@ public class MyJBidwatcher {
   }
 
   public void postXML(String queue, XMLSerialize ae) {
-    if(canSync()) {
-      XMLElement xmlWrapper = new XMLElement("message");
-      XMLElement user = new XMLElement("user");
-      XMLElement access_key = new XMLElement("key");
-      user.setContents(JConfig.queryConfiguration("my.jbidwatcher.id"));
-      access_key.setContents(JConfig.queryConfiguration("my.jbidwatcher.key"));
-      xmlWrapper.addChild(user);
-      xmlWrapper.addChild(access_key);
-      xmlWrapper.addChild(ae.toXML());
-      String aucXML = xmlWrapper.toString();
+    XMLElement xmlWrapper = new XMLElement("message");
+    XMLElement user = new XMLElement("user");
+    XMLElement access_key = new XMLElement("key");
+    user.setContents(JConfig.queryConfiguration("my.jbidwatcher.id"));
+    access_key.setContents(JConfig.queryConfiguration("my.jbidwatcher.key"));
+    xmlWrapper.addChild(user);
+    xmlWrapper.addChild(access_key);
+    xmlWrapper.addChild(ae.toXML());
+    String aucXML = xmlWrapper.toString();
 
-      if (queue != null) http().putTo(queue, aucXML);
-    }
+    if (queue != null) http().putTo(queue, aucXML);
   }
 
   private MyJBidwatcher() {
@@ -193,7 +191,7 @@ public class MyJBidwatcher {
 
     MQFactory.getConcrete("upload").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
-        if(JConfig.queryConfiguration("my.jbidwatcher.id") != null && mSyncQueueURL != null && canUploadHTML()) {
+        if(JConfig.queryConfiguration("my.jbidwatcher.id") != null && mSyncQueueURL != null && canSync()) {
           AuctionEntry ae = EntryCorral.getInstance().takeForRead((String) deQ);
           postXML(mSyncQueueURL, ae);
           uploadAuctionHTML(ae, "uploadhtml");
@@ -263,7 +261,7 @@ public class MyJBidwatcher {
   private void doGixen(String identifier, boolean cancel) {
     if(canSendSnipeToGixen() && mGixenQueueURL != null) {
       AuctionEntry ae = EntryCorral.getInstance().takeForRead(identifier);
-      if(!ae.isSniped()) {
+      if(!cancel && !ae.isSniped()) {
         JConfig.log().logMessage("Submitted auction " + identifier + " to snipe on Gixen, but doesn't have any snipe information set!");
         return;
       }
@@ -284,6 +282,7 @@ public class MyJBidwatcher {
       }
       userInfo.setProperty("user", user);
       userInfo.setProperty("password", Base64.encodeString(password));
+      gixen.addChild(userInfo);
       postXML(mGixenQueueURL, gixen);
     }
   }
