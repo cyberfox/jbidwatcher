@@ -541,16 +541,10 @@ public class AuctionInfo extends ActiveRecord
   public static List<AuctionInfo> findLostAuctions() {
     List<AuctionInfo> resultSet;
     try {
-      resultSet = (List<AuctionInfo>) findAllBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE identifier NOT IN (SELECT DISTINCT(identifier) FROM user1.entries)");
+      resultSet = (List<AuctionInfo>) findAllBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE identifier NOT IN (SELECT DISTINCT(identifier) FROM entries)");
     } catch(Exception e) {
+      JConfig.log().handleDebugException("Failed to find lost auctions.", e);
       resultSet = null;
-    }
-    if(resultSet == null) {
-      try {
-        resultSet = (List<AuctionInfo>) findAllBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE identifier NOT IN (SELECT DISTINCT(identifier) FROM entries)");
-      } catch(Exception e) {
-        JConfig.log().handleDebugException("Failed to find lost auctions.", e);
-      }
     }
     return resultSet;
   }
