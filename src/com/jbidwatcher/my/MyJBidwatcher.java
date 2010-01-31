@@ -65,8 +65,12 @@ public class MyJBidwatcher {
   }
 
   public String sendLogFile(String email, String desc) {
+    JConfig.log().pause();
     File fp = JConfig.log().closeLog();
-    return sendFile(fp, url(LOG_UPLOAD_URL), email, desc);
+    String result = sendFile(fp, url(LOG_UPLOAD_URL), email, desc);
+    JConfig.log().openLog(fp);
+    JConfig.log().resume();
+    return result;
   }
 
   private String createFormSource(String formBase, String email, String desc) {
