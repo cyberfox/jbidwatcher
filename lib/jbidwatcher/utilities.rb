@@ -3,6 +3,7 @@ require 'net/http'
 require 'cgi'
 
 import com.jbidwatcher.util.config.JConfig
+import com.jbidwatcher.platform.Path
 import com.jbidwatcher.util.Currency
 import com.jbidwatcher.util.queue.MQFactory
 import com.jbidwatcher.auction.AuctionEntry
@@ -111,7 +112,7 @@ class JBidwatcherUtilities
   end
 
   def load_scripts
-    script_dir = JConfig.getCanonicalFile "scripts","jbidwatcher",false
+    script_dir = Path.getCanonicalFile "scripts","jbidwatcher",false
     if File.exist?(script_dir) && File.directory?(script_dir)
       sd = Dir.new script_dir
       scripts = sd.reject do |filename|
