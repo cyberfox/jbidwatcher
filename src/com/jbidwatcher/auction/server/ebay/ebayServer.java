@@ -284,11 +284,17 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta));
       _etqm.add(identifier, "drop",       endDate.getTime() + THIRTY_SECONDS);
     }
+
+    MQFactory.getConcrete("my").enqueue("SNIPE " + identifier);
   }
 
+  /**
+   * Erase the pending snipe
+   * @param identifier - The auction identifier of the listing whose snipe to cancel.
+   */
   public void cancelSnipe(String identifier) {
-    //  Erase the pending snipe
     _etqm.erase(identifier);
+    MQFactory.getConcrete("my").enqueue("CANCEL " + identifier);
   }
 
   public ebayServer(String site, String username, String password) {
