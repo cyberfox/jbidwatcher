@@ -177,10 +177,10 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
 
         mCreateOrUpdate.setEnabled(selected);
         for(JCheckBox cb : mEnabledMap.keySet()) {
-          cb.setEnabled(selected && JConfig.queryConfiguration(mEnabledMap.get(cb), "false").equals("true"));
+          if(cb != mEnable) cb.setEnabled(selected && JConfig.queryConfiguration(mEnabledMap.get(cb), "false").equals("true"));
         }
         for (JCheckBox cb : mConfigurationMap.keySet()) {
-          cb.setSelected(selected && JConfig.queryConfiguration(mConfigurationMap.get(cb), "false").equals("true"));
+          if (cb != mEnable) cb.setSelected(selected && JConfig.queryConfiguration(mConfigurationMap.get(cb), "false").equals("true"));
         }
       }
     });
@@ -214,9 +214,10 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
 
     innerPanel.add(createSettingsCheckbox("Upload item info to My JBidwatcher", "sync"));
     innerPanel.add(createSettingsCheckbox("Upload item HTML", "uploadhtml"));
-//    innerPanel.add(createSettingsCheckbox("Upload snipes to Gixen", "gixen"));
+    innerPanel.add(createSettingsCheckbox("Upload snipes to Gixen", "gixen"));
     innerPanel.add(createSettingsCheckbox("Allow setting snipes in My JBidwatcher", "snipes"));
     innerPanel.add(createSettingsCheckbox("Use My JBidwatcher as a fallback parser", "parser"));
+    innerPanel.add(new JLabel());
 
     mListingStats = new JLabel(left("listings"));
     mListingStats.setFont(mListingStats.getFont().deriveFont(Font.BOLD));
@@ -232,7 +233,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     JPanel tmp = new JPanel(new BorderLayout());
     tmp.add(mSSLEnabled, BorderLayout.EAST);
     innerPanel.add(tmp);
-    SpringUtilities.makeCompactGrid(innerPanel, 4, 2, 6, 6, 6, 1);
+    SpringUtilities.makeCompactGrid(innerPanel, 5, 2, 6, 6, 6, 1);
 
     jp.add(innerPanel, BorderLayout.CENTER);
     return jp;
