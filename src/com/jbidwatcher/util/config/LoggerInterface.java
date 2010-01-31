@@ -26,6 +26,11 @@ public interface LoggerInterface {
   void dump2File(String fname, StringBuffer sb);
 
   File closeLog();
+  boolean openLog(File fp);
+
+  void pause();
+  void resume();
+
 
   void addHandler(ErrorHandler eh);
 

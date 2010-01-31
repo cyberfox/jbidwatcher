@@ -18,6 +18,12 @@ class NullLogger implements LoggerInterface {
   public void logFile(String msgtop, StringBuffer dumpsb) { }
   public void dump2File(String fname, StringBuffer sb) { }
   public void dumpFile(StringBuffer sb) { }
+
   public File closeLog() { return null; }
+  public boolean openLog(File fp) { return true; }
+
+  public void pause() { }
+  public void resume() { }
+
   public void addHandler(ErrorHandler eh) { }
 }

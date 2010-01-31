@@ -18,6 +18,7 @@ public class ErrorManagement implements LoggerInterface {
   private List<ErrorHandler> sHandlers = new ArrayList<ErrorHandler>();
   private File mFP;
   private int fileNumber = 1;
+  private boolean mPaused = false;
 
   public void addHandler(ErrorHandler eh) {
     sHandlers.add(eh);
@@ -31,6 +32,7 @@ public class ErrorManagement implements LoggerInterface {
   public ErrorManagement() { }
 
   private void initLog() {
+    if(mPaused) return;
     if(mLogWriter != null) return;
 
     String sep = System.getProperty("file.separator");
@@ -55,6 +57,21 @@ public class ErrorManagement implements LoggerInterface {
         }
       }
     }
+  }
+
+  public void pause() { mPaused = true; }
+  public void resume() { mPaused = false; }
+
+  public boolean openLog(File fp) {
+    try {
+      mFP = fp;
+      mLogWriter = new PrintWriter(new FileOutputStream(fp));
+      return true;
+    } catch (IOException ioe) {
+      System.err.println("FAILED TO OPEN AN ERROR LOG.");
+      ioe.printStackTrace();
+    }
+    return false;
   }
 
   public File closeLog() {
