@@ -1,5 +1,6 @@
 package com.jbidwatcher.my;
 
+import com.jbidwatcher.util.config.Base64;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.config.ErrorHandler;
 import com.jbidwatcher.util.Parameters;
@@ -42,6 +43,7 @@ public class MyJBidwatcher {
   private static String SYNC_UPLOAD_URL = "my.jbidwatcher.com/upload/sync";
   private String mSyncQueueURL = null;
   private String mReportQueueURL = null;
+  private String mGixenQueueURL = null;
   private boolean mUseSSL = false;
   private boolean mUploadHTML = false;
   private boolean mUseServerParser = false;
@@ -165,22 +167,33 @@ public class MyJBidwatcher {
   }
 
   private MyJBidwatcher() {
-    MQFactory.getConcrete("my").registerListener(new MessageQueue.Listener() {
+    MQFactory.getConcrete("my_account").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
-        String cmd = (String)deQ;
-        if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true")) {
-          if (cmd.equals("ACCOUNT")) getAccountInfo();
-          if (cmd.startsWith("SYNC ")) uploadAuctionList(cmd.substring(5));
+        String cmd = (String) deQ;
+        if(cmd.equals("ACCOUNT")) {
+          getAccountInfo();
+
+          MQFactory.getConcrete("my").registerListener(new MessageQueue.Listener() {
+            public void messageAction(Object deQ) {
+              String cmd = (String) deQ;
+              if (JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true")) {
+                if (cmd.equals("ACCOUNT")) getAccountInfo();
+                if (cmd.startsWith("SYNC ")) uploadAuctionList(cmd.substring(5));
+                if (cmd.startsWith("SNIPE ")) doGixen(cmd.substring(6), false);
+                if (cmd.startsWith("CANCEL ")) doGixen(cmd.substring(7), true);
+              }
+            }
+          });
         }
       }
     });
 
     //  Get the URLs to POST stuff to, and get a new one every 12 hours.
-    SuperQueue.getInstance().preQueue("ACCOUNT", "my", System.currentTimeMillis(), Constants.ONE_DAY);
+    SuperQueue.getInstance().preQueue("ACCOUNT", "my_account", System.currentTimeMillis(), Constants.ONE_DAY);
 
     MQFactory.getConcrete("upload").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
-        if(JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
+        if(JConfig.queryConfiguration("my.jbidwatcher.id") != null && mSyncQueueURL != null && canUploadHTML()) {
           AuctionEntry ae = EntryCorral.getInstance().takeForRead((String) deQ);
           postXML(mSyncQueueURL, ae);
           uploadAuctionHTML(ae, "uploadhtml");
@@ -247,6 +260,34 @@ public class MyJBidwatcher {
            JConfig.queryConfiguration("my.jbidwatcher." + type, "false").equals("true");
   }
 
+  private void doGixen(String identifier, boolean cancel) {
+    if(canSendSnipeToGixen() && mGixenQueueURL != null) {
+      AuctionEntry ae = EntryCorral.getInstance().takeForRead(identifier);
+      if(!ae.isSniped()) {
+        JConfig.log().logMessage("Submitted auction " + identifier + " to snipe on Gixen, but doesn't have any snipe information set!");
+        return;
+      }
+      XMLElement gixen = new XMLElement(cancel ? "cancelsnipe" : "snipe");
+      gixen.setProperty("AUCTION", identifier);
+
+      if (!cancel) {
+        String bid = ae.getSnipeAmount().getValueString();
+        gixen.setProperty("AMOUNT", bid);
+      }
+
+      XMLElement userInfo = new XMLElement("credentials");
+      String user = JConfig.queryConfiguration(ae.getServer().getName() + ".user");
+      String password = JConfig.queryConfiguration(ae.getServer().getName() + ".password");
+      if(user == null || password == null) {
+        JConfig.log().logMessage("Failed to submit snipe to Gixen; one or both of username and password are not set.");
+        return;
+      }
+      userInfo.setProperty("user", user);
+      userInfo.setProperty("password", Base64.encodeString(password));
+      postXML(mGixenQueueURL, gixen);
+    }
+  }
+
   public boolean getAccountInfo() {
     String suffix = JConfig.queryConfiguration("ebay.browse.site");
     if(suffix != null && !suffix.equals("0")) {
@@ -257,6 +298,7 @@ public class MyJBidwatcher {
     XMLElement xml = new XMLElement();
     xml.parseString(sb.toString());
     XMLInterface sync = xml.getChild("syncq");
+    XMLInterface snipe = xml.getChild("snipeq");
     XMLInterface expires = xml.getChild("expiry");
     XMLInterface listingsRemaining = xml.getChild("listings");
     XMLInterface categoriesRemaining = xml.getChild("categories");
@@ -293,6 +335,7 @@ public class MyJBidwatcher {
     JConfig.setConfiguration("my.jbidwatcher.allow.parser", Boolean.toString(mUseServerParser));
     mGixen = getBoolean(gixen);
     JConfig.setConfiguration("my.jbidwatcher.allow.gixen", Boolean.toString(mGixen));
+    mGixenQueueURL = snipe == null ? null : snipe.getContents();
 
     return mSyncQueueURL != null && mReportQueueURL != null;
   }
