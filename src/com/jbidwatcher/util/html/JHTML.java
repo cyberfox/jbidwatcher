@@ -730,23 +730,32 @@ public class JHTML implements JHTMLListener {
   }
 
   public List<Table> extractTables() {
-    List<List<htmlToken>> tableList = new ArrayList<List<htmlToken>>(1);
     List<Table> tableContents = new ArrayList<Table>(1);
-    List<htmlToken> currentTable = null;
-    Table currentTableContents = null;
-    List<String> headers = null;
-    String curHdr = null;
 
     htmlToken tok = nextToken();
     while (tok != null) {
       if (isToken(tok, htmlToken.HTML_TAG, "table")) {
-        currentTable = new ArrayList<htmlToken>();
-        currentTableContents = new Table();
-        tableList.add(currentTable);
-        headers = new ArrayList<String>();
+        tableContents.add(extractTable(tableContents));
       }
+      tok = nextToken();
+    }
+    return tableContents;
+  }
 
-      if (currentTable != null) {
+  public Table extractTable(List<Table> tableContents) {
+    List<htmlToken> currentTable = new ArrayList<htmlToken>();
+    Table currentTableContents = new Table();
+    List<String> headers = new ArrayList<String>();
+
+    List<List<htmlToken>> tableList = new ArrayList<List<htmlToken>>(1);
+    tableList.add(currentTable);
+
+    htmlToken tok = nextToken();
+    String curHdr = null;
+    while(!isToken(tok, htmlToken.HTML_ENDTAG, "/table")) {
+      if (isToken(tok, htmlToken.HTML_TAG, "table")) {
+        tableContents.add(extractTable(tableContents));
+      } else {
         if (isToken(tok, htmlToken.HTML_ENDTAG, "/tr")) {
           boolean first = true;
           List<String> curRow = null;
@@ -758,7 +767,7 @@ public class JHTML implements JHTMLListener {
             }
             curRow.add(hdr);
           }
-          if (headers.size() != 0) {
+          if (!headers.isEmpty()) {
             currentTableContents.addRow(curRow);
           }
           headers = new ArrayList<String>();
@@ -776,12 +785,8 @@ public class JHTML implements JHTMLListener {
         }
         currentTable.add(tok);
       }
-      if (isToken(tok, htmlToken.HTML_ENDTAG, "/table")) {
-        tableContents.add(currentTableContents);
-        currentTable = null;
-      }
       tok = nextToken();
     }
-    return tableContents;
+    return currentTableContents;
   }
 }
