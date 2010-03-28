@@ -13,3 +13,4 @@ META-INF/*
 *.ipr
 *.iws
 s101plugin*
+.idea
