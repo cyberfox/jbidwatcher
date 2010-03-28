@@ -1954,7 +1954,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         prompt += "<b>You could have used Buy It Now for " + getBuyNow() + "</b><br>";
       } else {
         prompt += "<b>Or you could buy it now, for " + getBuyNow() + ".</b><br>";
-        prompt += "Note: <i>To 'Buy Now' through this program,<br>      select 'Buy from the context menu.</i><br>";
+        prompt += "Note: <i>To 'Buy Now' through this program,<br>      select 'Buy' from the context menu.</i><br>";
       }
     }
 
