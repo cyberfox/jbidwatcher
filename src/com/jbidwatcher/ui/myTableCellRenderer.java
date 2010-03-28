@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class myTableCellRenderer extends DefaultTableCellRenderer {
-  private static Color darkBG = null;
   private static Font boldFont = null;
   private static Font fixedFont = null;
 
@@ -31,7 +30,6 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private static Color selectionColor = null;
 
   private static final Color darkGreen = new Color(0, 127, 0);
-//  private static final Color darkBlue = new Color(0, 0, 127);
   private static final Color darkRed = new Color(127, 0, 0);
   private static final Color medBlue = new Color(0, 0, 191);
   private static final Color linuxSelection = new Color(204,204,255);
@@ -47,17 +45,9 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
       mForeground = foreground;
       mBackground = background;
     }
-
-    public Color getForeground() {
-      return mForeground;
-    }
-
-    public Color getBackground() {
-      return mBackground;
-    }
   }
 
-  public static void resetBehavior() { darkBG = null; boldFont = null; fixedFont = null; }
+  public static void resetBehavior() { boldFont = null; fixedFont = null; }
 
   public void setValue(Object o) {
     if(o instanceof Icon) {
@@ -82,7 +72,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     JComponent returnComponent = (JComponent)super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
 
     AuctionEntry ae = (AuctionEntry)table.getValueAt(row, -1);
-    returnComponent.setOpaque(!Platform.isMac());
+    returnComponent.setOpaque(false);
     if(ae == null) return returnComponent;
 
     Color foreground = chooseForeground(ae, column, table.getForeground());
@@ -96,28 +86,6 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
       returnComponent.setOpaque(true);
     }
 
-    if(!Platform.isMac()) {
-      Color background = chooseBackground(ae, column, table.getBackground());
-      if ((row % 2) == 1) {
-        if (darkBG == null) darkBG = darken(background);
-
-        if (column != 2 || !ae.isMultiSniped()) {
-          if ((column != TableColumnController.SNIPE_OR_MAX && column != TableColumnController.SNIPE_TOTAL) || !ae.isMultiSniped()) {
-            if (JConfig.queryConfiguration("display.alternate", "true").equals("true")) {
-              background = darkBG;
-            }
-          }
-        }
-      }
-      if (isSelected) {
-        Colors selectionColors = getSelectionColors(column, ae, foreground, background);
-
-        foreground = selectionColors.getForeground();
-        background = selectionColors.getBackground();
-      }
-      returnComponent.setBackground(background);
-    }
-
     mSelected = isSelected;
 
     Font foo = chooseFont(returnComponent.getFont(), ae, column);
@@ -125,16 +93,6 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     returnComponent.setForeground(foreground);
 
     return(returnComponent);
-  }
-
-  private Color darken(Color background) {
-    int r = background.getRed();
-    int g = background.getGreen();
-    int b = background.getBlue();
-    r = Math.max(0, r - 20);
-    g = Math.max(0, g - 20);
-    b = Math.max(0, b - 20);
-    return new Color(r, g, b);
   }
 
   private Color lighten(Color background) {
@@ -163,7 +121,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
    * we use a custom gradient render.  If it's not selected, we use the Mac
    * default even/odd row background painters.  (If those defaults aren't available,
    * we use some default colors that are similar to those painters under Snow
-   * Leopard.  @see drawCustomMacBackgrounds)
+   * Leopard.  @see drawCustomBackground)
    *
    * @param g - The Graphics context into which to draw the row background.
    */
@@ -173,13 +131,14 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
       if(JConfig.queryDisplayProperty("background.complex", "false").equals("true")) {
         drawComplexBackground(g);
       } else {
-        if(Platform.isMac()) {
-          if(mSelected) {
-            Color selected = UIManager.getColor("Table.selectionBackground");
-            renderGradient(g, selected);
-          } else {
-            painted = drawCustomMacBackgrounds(g);
-          }
+        if (mSelected) {
+          Color selected = UIManager.getColor("Table.selectionBackground");
+          renderGradient(g, selected);
+        } else {
+          painted = drawCustomBackground(g);
+        }
+        if (mThumbnail) {
+          drawThumbnailBox(g);
         }
       }
       if(!painted) super.paintComponent(g);
@@ -196,7 +155,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
    * @param g - The Graphics context into which to draw the row background.
    * @return - true if the super.paintComponent() method was called (always true currently).
    */
-  private boolean drawCustomMacBackgrounds(Graphics g) {
+  private boolean drawCustomBackground(Graphics g) {
     boolean painted;
     Border bgPaint = UIManager.getBorder((mRow % 2) == 0 ? evenList : oddList);
     if(bgPaint != null) {
@@ -215,14 +174,26 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     g.setColor(Color.BLACK);
     g.drawLine(0, getHeight()-1, getWidth(), getHeight()-1);
 
-    if(mThumbnail) {
-      int top = getHeight() / 2 - 32;
-      int left = getWidth() / 2 - 32;
-      ((Graphics2D) g).setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, new float[]{4}, 0));
-      g.drawRoundRect(left, top, 64, 64, 4, 4);
-    }
-
     return painted;
+  }
+
+  private void drawThumbnailBox(Graphics g) {
+    int top = getHeight() / 2 - 32;
+    int left = getWidth() / 2 - 32;
+    float alpha = .1f;
+    Graphics2D g2d = (Graphics2D) g;
+    Color oldColor = g2d.getColor();
+    Stroke oldStroke = g2d.getStroke();
+    Composite oldComp= g2d.getComposite();
+
+    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+    g2d.setColor(Color.BLACK);
+    g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, new float[]{4}, 0));
+    g2d.drawRoundRect(left, top, 64, 64, 4, 4);
+
+    g2d.setStroke(oldStroke);
+    g2d.setColor(oldColor);
+    g2d.setComposite(oldComp);
   }
 
   private void drawComplexBackground(Graphics g) {
@@ -315,19 +286,6 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
       default:
         return (foreground == null) ? Color.BLACK : foreground;
     }
-  }
-
-  private Color chooseBackground(AuctionEntry ae, int col, Color default_color) {
-    Color ret = null;
-
-    if(ae != null) {
-      if ((col == TableColumnController.SNIPE_OR_MAX || col == TableColumnController.SNIPE_TOTAL) && ae.isSniped()) {
-        ret = snipeBidBackground(ae);
-      }
-    }
-
-    if(ret != null) return ret;
-    return default_color;
   }
 
   private static Font sDefaultFont = null;
