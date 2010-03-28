@@ -36,6 +36,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private static final Color medBlue = new Color(0, 0, 191);
   private static final Color linuxSelection = new Color(204,204,255);
   private int mRow = 0;
+  private boolean mThumbnail = false;
   private boolean mSelected;
 
   private static class Colors {
@@ -87,6 +88,8 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     Color foreground = chooseForeground(ae, column, table.getForeground());
 
     mRow = row;
+
+    mThumbnail = column == TableColumnController.THUMBNAIL;
 
     if ((column == TableColumnController.SNIPE_OR_MAX || column == TableColumnController.SNIPE_TOTAL) && ae.isSniped()) {
       returnComponent.setBackground(snipeBidBackground(ae));
@@ -152,48 +155,88 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private final static Color evenDefault = new Color(0x0f1, 0x0f6, 0x0fe);
   private final static Color oddDefault = new Color(0x0ff, 0x0ff, 0x0ff);
 
+  /**
+   * Paint a row prior to drawing the components on it.  There are four core
+   * paths.  If complex backgrounds are enabled (my hackery from a while ago)
+   * then they are rendered.  Otherwise, if it's not a Mac, then the compoent's
+   * default rendered is painted with.  If it's a Mac and the row is selected,
+   * we use a custom gradient render.  If it's not selected, we use the Mac
+   * default even/odd row background painters.  (If those defaults aren't available,
+   * we use some default colors that are similar to those painters under Snow
+   * Leopard.  @see drawCustomMacBackgrounds)
+   *
+   * @param g - The Graphics context into which to draw the row background.
+   */
   public void paintComponent(Graphics g) {
     if(g != null) {
       boolean painted = false;
       if(JConfig.queryDisplayProperty("background.complex", "false").equals("true")) {
-        Graphics2D g2d = (Graphics2D) g;
-        Rectangle bounds = g2d.getClipBounds();
-        if (bounds != null) {
-          if (!mSelected) {
-            setOpaque(false);
-            GradientPaint paint = getGradientPaint();
-            g2d.setPaint(paint);
-          } else {
-            g.setColor(getBackground());
-          }
-          g2d.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
-        }
+        drawComplexBackground(g);
       } else {
         if(Platform.isMac()) {
           if(mSelected) {
             Color selected = UIManager.getColor("Table.selectionBackground");
             renderGradient(g, selected);
           } else {
-            Border bgPaint = UIManager.getBorder((mRow % 2) == 0 ? evenList : oddList);
-            if(bgPaint != null) {
-              bgPaint.paintBorder(this, g, 0, 0, getWidth(), getHeight());
-              super.paintComponent(g);
-              painted = true;
-            } else {
-              renderColor(g, (mRow % 2) == 0 ? evenDefault : oddDefault);
-              super.paintComponent(g);
-              painted = true;
-            }
-
-            Graphics2D g2d = (Graphics2D) g;
-            float alpha = .1f;
-            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-            g.setColor(Color.BLACK);
-            g.drawLine(0, getHeight()-1, getWidth(), getHeight()-1);
+            painted = drawCustomMacBackgrounds(g);
           }
         }
       }
       if(!painted) super.paintComponent(g);
+    }
+  }
+
+  /**
+   * Retrieve the default Mac border painters, or use default colors
+   * if the painters aren't available.  The component is painted across
+   * the entire row, and then a 0.1 Alpha + Black component line is drawn
+   * over the bottom line, darkening it slightly, but leaving whatever
+   * color it was in place.
+   *
+   * @param g - The Graphics context into which to draw the row background.
+   * @return - true if the super.paintComponent() method was called (always true currently).
+   */
+  private boolean drawCustomMacBackgrounds(Graphics g) {
+    boolean painted;
+    Border bgPaint = UIManager.getBorder((mRow % 2) == 0 ? evenList : oddList);
+    if(bgPaint != null) {
+      bgPaint.paintBorder(this, g, 0, 0, getWidth(), getHeight());
+      super.paintComponent(g);
+      painted = true;
+    } else {
+      renderColor(g, (mRow % 2) == 0 ? evenDefault : oddDefault);
+      super.paintComponent(g);
+      painted = true;
+    }
+
+    Graphics2D g2d = (Graphics2D) g;
+    float alpha = .1f;
+    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+    g.setColor(Color.BLACK);
+    g.drawLine(0, getHeight()-1, getWidth(), getHeight()-1);
+
+    if(mThumbnail) {
+      int top = getHeight() / 2 - 32;
+      int left = getWidth() / 2 - 32;
+      ((Graphics2D) g).setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, new float[]{4}, 0));
+      g.drawRoundRect(left, top, 64, 64, 4, 4);
+    }
+
+    return painted;
+  }
+
+  private void drawComplexBackground(Graphics g) {
+    Graphics2D g2d = (Graphics2D) g;
+    Rectangle bounds = g2d.getClipBounds();
+    if (bounds != null) {
+      if (!mSelected) {
+        setOpaque(false);
+        GradientPaint paint = getGradientPaint();
+        g2d.setPaint(paint);
+      } else {
+        g.setColor(getBackground());
+      }
+      g2d.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
     }
   }
 
