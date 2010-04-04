@@ -141,6 +141,8 @@ public class XMLElement implements XMLSerialize, XMLInterface {
     mRejectBadHTML = rejectBadHtml;
   }
 
+  public static boolean rejectingBadHTML() { return mRejectBadHTML; }
+
   /**
    * The attributes given to the object.
    */
