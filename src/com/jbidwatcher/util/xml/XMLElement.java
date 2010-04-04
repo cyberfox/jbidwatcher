@@ -1000,7 +1000,7 @@ public class XMLElement implements XMLSerialize, XMLInterface {
     int offset = startLoc;
     char delim = input[offset];
 
-    if (delim == '"') {
+    if (delim == '"' || delim == '\'') {
       int begin = offset;
       offset++;
 
