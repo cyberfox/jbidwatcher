@@ -15,6 +15,7 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLInterface;
 import com.jbidwatcher.util.http.Http;
+import com.jbidwatcher.util.xml.XMLParseException;
 
 public class JHTML implements JHTMLListener {
   protected boolean m_loaded = false;
@@ -181,7 +182,13 @@ public class JHTML implements JHTMLListener {
     public void addInput(String newTag) {
       XMLElement inputTag = new XMLElement();
 
-      inputTag.parseString('<' + newTag + "/>");
+      try {
+        inputTag.parseString('<' + newTag + "/>");
+      } catch (XMLParseException e) {
+        if(XMLElement.rejectingBadHTML()) throw e;
+        JConfig.log().handleException("Bad input tag", e);
+        return;
+      }
       String inputType = inputTag.getProperty("type", "text").toLowerCase();
       if(inputTag.getTagName().equals("button")) {
         XMLElement tempTag = new XMLElement();
