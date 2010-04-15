@@ -70,9 +70,11 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
       setHorizontalAlignment(JLabel.LEFT);
     }
     JComponent returnComponent = (JComponent)super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
-
-    AuctionEntry ae = (AuctionEntry)table.getValueAt(row, -1);
     returnComponent.setOpaque(false);
+
+    Object rowData = table.getValueAt(row, -1);
+    if(rowData instanceof String) return returnComponent;
+    AuctionEntry ae = (AuctionEntry)rowData;
     if(ae == null) return returnComponent;
 
     Color foreground = chooseForeground(ae, column, table.getForeground());
