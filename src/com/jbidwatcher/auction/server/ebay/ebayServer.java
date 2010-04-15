@@ -114,6 +114,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
           // -1 for the starting price
           if(t.rowCellMatches(bidCount, "Starting Price")) bidCount -= 1;
+          if(t.rowCellMatches(bidCount, "No purchases have been made.")) {
+            ae.setNumBids(0);
+            ae.saveDB();
+            return;
+          }
 
           if(ae.getNumBidders() == 0) ae.setNumBids(bidCount);
           int myMostRecentRow = -1;
