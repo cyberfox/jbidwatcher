@@ -49,14 +49,14 @@ public class FilterManager implements MessageQueue.Listener {
     mDefaultSellingTab = mList.add(new AuctionListHolder("selling", false, false));
 
     String tabName;
-    int i = 2;
+    int i = 0;
 
     do {
       tabName = JConfig.queryDisplayProperty("tabs.name." + i++);
       if (tabName != null && mList.findCategory(tabName) == null) {
         mList.add(new AuctionListHolder(tabName));
       }
-    } while (tabName != null);
+    } while (i < 3 || tabName != null);  //  Do at least the first three, and then keep going until we miss an index.
   }
 
   /**

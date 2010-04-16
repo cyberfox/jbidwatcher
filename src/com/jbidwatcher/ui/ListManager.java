@@ -22,7 +22,8 @@ public class ListManager {
   private static ListManager sInstance = null;
 
   private ListManager() {
-    mCategoryMap = Collections.synchronizedMap(new HashMap<String, AuctionListHolder>(3));
+    // the LinkedHashMap fixes the random order of tabs
+    mCategoryMap = Collections.synchronizedMap(new LinkedHashMap<String, AuctionListHolder>(3));
   }
 
   public boolean toggleField(String tabName, String field) {
@@ -103,9 +104,7 @@ public class ListManager {
       step.getUI().getColumnWidthsToProperties(outProps);
 
       String tab = step.getList().getName();
-      if (i > 2) {
-        outProps.setProperty("tabs.name." + (i - 2), tab);
-      }
+      outProps.setProperty("tabs.name." + i, tab);
 
       String KEEP_ENDED = tab + ".end.keep";
       String DELETE_NOT_MY_BID = tab + ".end.delete.notmybid";

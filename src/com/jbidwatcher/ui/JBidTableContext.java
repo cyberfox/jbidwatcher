@@ -89,7 +89,8 @@ public class JBidTableContext extends JBidContext {
 
       JTabbedPane tabbedPane = JTabManager.getInstance().getTabs();
       String currentTitle = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
-      List<String> tabs = Category.categories();
+      // shows the list of tabs in the same order as the tabs
+      List<String> tabs = ListManager.getInstance().allCategories();
       if (tabs == null) {
         tabMenu.setEnabled(false);
       } else {
