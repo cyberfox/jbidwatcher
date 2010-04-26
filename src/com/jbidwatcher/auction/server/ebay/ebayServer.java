@@ -417,6 +417,15 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
     }
 
+    try {
+      URL pieces = new URL(urlStyle);
+      String path = pieces.getPath();
+      String digits = path.substring(path.lastIndexOf('/')+1);
+      if(StringTools.isNumberOnly(digits)) return(digits);
+    } catch (Exception e) {
+      JConfig.log().logDebug("Failed to parse " + urlStyle + " as a URL");
+    }
+
     JConfig.log().logDebug("extractIdentifierFromURLString failed.");
     return null;
   }
