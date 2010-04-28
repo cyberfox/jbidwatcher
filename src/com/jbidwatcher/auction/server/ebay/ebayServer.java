@@ -40,7 +40,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   /** @noinspection FieldAccessedSynchronizedAndUnsynchronized*/
   private eBayTimeQueueManager _etqm;
-  private Searcher mSellerSearch = null;
+  private Searcher mSellerSearch;
   private ebaySearches mSearcher;
   private ebayLoginManager mLogin;
   private SnipeListener mSnipeQueue;
@@ -49,13 +49,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private TimerHandler eQueue;
 
   /**< The full amount of time it takes to request a single page from this site. */
-  private long mPageRequestTime =0;
+  private long mPageRequestTime;
 
   /**< The amount of time to adjust the system clock by, to make it be nearly second-accurate to eBay time. */
-  private long mOfficialServerTimeDelta =0;
+  private long mOfficialServerTimeDelta;
 
   /**< The time zone the auction server is in (for eBay this will be PST or PDT). */
-  private TimeZone mOfficialServerTimeZone = null;
+  private TimeZone mOfficialServerTimeZone;
   private Date mNow = new Date();
   private GregorianCalendar mCal;
   private ebayCleaner mCleaner;
@@ -82,6 +82,20 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   private class eBayTimeQueueManager extends TimeQueueManager {
+    /**
+     * Don't start checking until the server time delta becomes non-zero, i.e. we've done a time-check.
+     *
+     * @return false.  Always false.
+     */
+    public boolean check() {
+      return getServerTimeDelta() != 0 && super.check();
+    }
+
+    /**
+     * Adjust the current time by the difference in time between localtime and servertime, including page request time.
+     *
+     * @return As close an approximation of 'time at the eBay server' as can be done.
+     */
     public long getCurrentTime() {
       return super.getCurrentTime() + getServerTimeDelta();
     }
@@ -691,7 +705,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       mPageRequestTime = 0;
       //  This is bad...
       JConfig.log().logMessage(getName() + ": Error, can't accurately set delta to server's official time.");
-      mOfficialServerTimeDelta = 0;
+      mOfficialServerTimeDelta = 1;
       return null;
     } else {
       long localDateAfterPage = System.currentTimeMillis();
@@ -701,6 +715,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       //  tells how far off our system clock is to eBay.
       //noinspection MultiplyOrDivideByPowerOfTwo
       mOfficialServerTimeDelta = (result.getDate().getTime() - localDateBeforePage) - (reqTime / 2);
+      //  mOSTD of 0 is a sentinel that we haven't gotten the official time yet, so if we magically get it, make it 1ms instead.
+      if(mOfficialServerTimeDelta == 0) mOfficialServerTimeDelta = 1;
       if (result.getZone() != null) mOfficialServerTimeZone = (result.getZone());
       if(Math.abs(mOfficialServerTimeDelta) > Constants.ONE_DAY * 7) {
         MQFactory.getConcrete("Swing").enqueue("NOTIFY Your system time is off from eBay's by more than a week.");
