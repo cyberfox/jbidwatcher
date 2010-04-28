@@ -57,7 +57,7 @@ public class JConfigFilePathTab extends JConfigTab {
         public void actionPerformed(ActionEvent ae) {
           if(ae.getActionCommand().equals("Browse...")) {
             JFileChooser jfc = new JFileChooser();
-            jfc.setCurrentDirectory(new File(Path.getHomeDirectory("jbidwatcher")));
+            jfc.setCurrentDirectory(new File(JConfig.getHomeDirectory()));
             jfc.setApproveButtonText("Choose");
             int rval = jfc.showOpenDialog(null);
             if(rval == JFileChooser.APPROVE_OPTION) {

@@ -165,7 +165,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     String dispFile = Path.getCanonicalFile("display.cfg", "jbidwatcher", true);
     JConfig.loadDisplayConfig(dispFile, urlCL, screensize.width, screensize.height);
-    if(sUSB) JConfig.fixupPaths(Path.getHomeDirectory("jbidwatcher"));
+    if(sUSB) JConfig.fixupPaths(JConfig.getHomeDirectory());
 
     String aucSave = makeSaveDirectory(JConfig.queryConfiguration("auctions.savepath"));
     if(aucSave != null) {
@@ -342,6 +342,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
     if(checkArguments(args)) {
       System.exit(0);
     }
+
+    Path.setHomeDirectory("jbidwatcher");
 
     JConfig.setVersion(Constants.PROGRAM_VERS);
 

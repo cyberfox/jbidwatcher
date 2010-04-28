@@ -36,7 +36,7 @@ public class ErrorManagement implements LoggerInterface {
     if(mLogWriter != null) return;
 
     String sep = System.getProperty("file.separator");
-    String home = Path.getHomeDirectory("jbidwatcher");
+    String home = JConfig.getHomeDirectory();
 
     String doLogging = JConfig.queryConfiguration("logging", "true");
     if(doLogging.equals("true")) {

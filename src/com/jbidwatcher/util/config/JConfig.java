@@ -561,4 +561,14 @@ public class JConfig {
   public static String getVersion() {
     return Constants.PROGRAM_VERS;
   }
+
+  private static String sHomeDirectory = null;
+
+  public static void setHomeDirectory(String homeDirectory) {
+    sHomeDirectory = homeDirectory;
+  }
+
+  public static String getHomeDirectory() {
+    return sHomeDirectory;
+  }
 }

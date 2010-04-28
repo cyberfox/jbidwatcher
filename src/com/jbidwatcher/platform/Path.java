@@ -1,5 +1,7 @@
 package com.jbidwatcher.platform;
 
+import com.jbidwatcher.util.config.JConfig;
+
 import java.io.File;
 
 /**
@@ -25,6 +27,10 @@ public class Path {
       return System.getProperty("user.home");
     }
     return sHomeDirectory;
+  }
+
+  public static void setHomeDirectory(String dirname) {
+    JConfig.setHomeDirectory(getHomeDirectory(dirname));
   }
 
   /**
