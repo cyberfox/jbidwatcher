@@ -35,6 +35,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.InputStream;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.*;
 
@@ -242,6 +244,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
         inProps.setProperty("proxySet", "true");
         inProps.setProperty("proxyHost", webProxyHost);
         inProps.setProperty("proxyPort", webProxyPort);
+        setProxyAuthenticator();
         return true;
       }
     }
@@ -256,6 +259,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
         inProps.setProperty("https.proxySet", "true");
         inProps.setProperty("https.proxyHost", secureProxyHost);
         inProps.setProperty("https.proxyPort", secureProxyPort);
+        setProxyAuthenticator();
         return true;
       }
     }
@@ -276,12 +280,37 @@ public final class JBidWatch implements JConfig.ConfigListener {
       if(socksHost != null) {
         inProps.setProperty("socksProxyHost", socksHost);
         inProps.setProperty("socksProxyPort", socksPort);
-
+        setProxyAuthenticator();
         return true;
       }
     }
     return false;
   }
+
+  private static void setProxyAuthenticator() {
+    if (!sProxyAuthenticatorAlreadySet) {
+      final String user = JConfig.queryConfiguration("proxy.user", null);
+      final String pass = JConfig.queryConfiguration("proxy.pass", null);
+      if (user != null && pass != null) {
+        Authenticator.setDefault(new Authenticator() {
+          @SuppressWarnings({"RefusedBequest"})
+          protected PasswordAuthentication getPasswordAuthentication() {
+            String host = getRequestingHost();
+
+            //  If talking to my.jbidwatcher.com, JBidwatcher handles authentication itself.
+            if(host == null || host.indexOf("jbidwatcher") == -1) {
+              return (new PasswordAuthentication(user, pass.toCharArray()));
+            }
+            return null;
+          }
+        });
+        sProxyAuthenticatorAlreadySet = true;
+      }
+    }
+
+  }
+
+  private static boolean sProxyAuthenticatorAlreadySet = false;
 
   /**
    * @brief Set the UI to be used for the Swing L&F.
