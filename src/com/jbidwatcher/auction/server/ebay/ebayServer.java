@@ -297,6 +297,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     long snipeDelta = snipeOn.getSnipeTime();
     //  If we already have a snipe set for it, first cancel the old one, and then set up the new.
     _etqm.erase(identifier);
+    //  Delete the identifier from the snipe queue, as it _may_ have already loaded the pre-snipe information,
+    //  in which case the first snipe (the - TWO_MINUTES) one will actually _fire_ the snipe.  This would be bad.
+    mSnipeQueue.delSnipe(identifier);
 
     if (endDate != null && endDate != Constants.FAR_FUTURE) {
       _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta) - TWO_MINUTES);
@@ -313,6 +316,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   public void cancelSnipe(String identifier) {
     _etqm.erase(identifier);
+    mSnipeQueue.delSnipe(identifier);
     MQFactory.getConcrete("my").enqueue("CANCEL " + identifier);
   }
 
@@ -561,7 +565,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   private class SnipeListener implements MessageQueue.Listener {
+    //  mSnipeMap maps identifiers to Snipe objects which contain sniping state.
     private Map<String, Snipe> mSnipeMap = new HashMap<String, Snipe>();
+
+    public void delSnipe(String identifier) {
+      mSnipeMap.remove(identifier);
+    }
 
     /**
      * Retrieve a stored Snipe object if one exists (containing the cookie information),
