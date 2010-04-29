@@ -48,16 +48,14 @@ public class JDropListener implements DropTargetListener {
   }
 
   private DataFlavor getDataFlavor(DataFlavor inFlavor, String whichFlavor) {
-    DataFlavor df;
-    int i;
-
     if(inFlavor != null) return inFlavor;
 
-    for(i=0; i<_str_flavors.length; i++) {
-      if(whichFlavor.equals(_str_flavors[i][0])) {
+    for (String[] _str_flavor : _str_flavors) {
+      if (whichFlavor.equals(_str_flavor[0])) {
+        DataFlavor df;
         try {
-          df = new DataFlavor(_str_flavors[i][1]);
-        } catch(ClassNotFoundException e) {
+          df = new DataFlavor(_str_flavor[1]);
+        } catch (ClassNotFoundException e) {
           JConfig.log().logDebug("Failed to initialize " + whichFlavor);
           df = null;
         }
@@ -88,13 +86,11 @@ public class JDropListener implements DropTargetListener {
   }
 
   private void dumpDataFlavors(DataFlavor[] dfa) {
-    int j;
-
     if(dfa != null) {
       if(dfa.length == 0) {
         System.err.println("Length is still zero!");
       }
-      for(j=0; j<dfa.length; j++) {
+      for(int j = 0; j<dfa.length; j++) {
         System.err.println("Flavah " + j + " == " + dfa[j].getHumanPresentableName());
         System.err.println("Flavah/mime " + j + " == " + dfa[j].getMimeType());
       }
@@ -221,9 +217,7 @@ public class JDropListener implements DropTargetListener {
         try {
           Clipboard sysClip = Toolkit.getDefaultToolkit().getSystemClipboard();
           Transferable t2 = sysClip.getContents(null);
-          StringBuffer stBuff;
-
-          stBuff = getTransferData(t2);
+          StringBuffer stBuff = getTransferData(t2);
           JConfig.log().logVerboseDebug("Check out: " + stBuff);
         } catch(Exception e) {
           JConfig.log().handleException("Caught: " + e, e);
@@ -236,7 +230,6 @@ public class JDropListener implements DropTargetListener {
 
   private BufferedReader useNewAPI(Transferable t, DataFlavor dtf) {
     Reader dropReader = null;
-    BufferedReader br;
 
     try {
       //  Oddly enough, this appears to dump the text out to the
@@ -249,7 +242,7 @@ public class JDropListener implements DropTargetListener {
     }
 
     if (dropReader != null) {
-      br = new BufferedReader(dropReader);
+      BufferedReader br = new BufferedReader(dropReader);
       return (br);
     }
     return null;
@@ -257,10 +250,10 @@ public class JDropListener implements DropTargetListener {
 
   private StringBuffer getDataFromReader(Reader br) {
     StringBuffer xferData = null;
-    char[] buf = new char[513];
-    int charsRead;
 
     try {
+      char[] buf = new char[513];
+      int charsRead;
       do {
         charsRead = br.read(buf, 0, 512);
         if(charsRead != -1) {
@@ -285,43 +278,42 @@ public class JDropListener implements DropTargetListener {
   }
 
   private StringBuffer getInputStreamData(Transferable t, DataFlavor dtf, InputStream dropStream) {
+    BufferedReader br = useNewAPI(t, dtf);
     StringBuffer xferData;
-    BufferedReader br;
+    try {
 
-    br = useNewAPI(t, dtf);
+      //  If the 'new' API failed...
+      if (br == null) {
+        if (JConfig.queryConfiguration("debug.uber", "false").equals("true"))
+          JConfig.log().logDebug("Non-getReaderForText: " + dropStream);
+        try {
+          InputStreamReader isr = new InputStreamReader(dropStream, "utf-16le");
 
-    //  If the 'new' API failed...
-    if(br == null) {
-      if(JConfig.queryConfiguration("debug.uber", "false").equals("true")) JConfig.log().logDebug("Non-getReaderForText: " + dropStream);
-      try {
-        InputStreamReader isr = new InputStreamReader(dropStream,"utf-16le");
-
-        xferData = getDataFromStream(dropStream);
-        if(xferData != null) {
-          return xferData;
-        } else {
-          br = new BufferedReader(isr);
+          xferData = getDataFromStream(dropStream);
+          if (xferData != null) {
+            return xferData;
+          } else {
+            br = new BufferedReader(isr);
+          }
+        } catch (UnsupportedEncodingException uee) {
+          JConfig.log().logDebug("Unicode encoding unsupported.");
+          br = new BufferedReader(new InputStreamReader(dropStream));
         }
-      } catch(UnsupportedEncodingException uee) {
-        JConfig.log().logDebug("Unicode encoding unsupported.");
-        br = new BufferedReader(new InputStreamReader(dropStream));
       }
+      xferData = getDataFromReader(br);
+    } finally {
+      if (br != null) try { br.close(); } catch (IOException ignored) { }
     }
-
-    xferData = getDataFromReader(br);
 
     return xferData;
   }
 
   public StringBuffer getTransferData(Transferable t) {
-    StringBuffer xferData = null;
-    Object dropped;
-    DataFlavor dtf;
-
-    dtf = testAllFlavors(t);
+    DataFlavor dtf = testAllFlavors(t);
 
     JConfig.log().logVerboseDebug("dtf == " + dtf);
 
+    Object dropped;
     try {
       if(dtf == _htmlFlavor || dtf == _utf8HtmlFlavor || dtf == _thtmlFlavor) {
         /*
@@ -343,6 +335,7 @@ public class JDropListener implements DropTargetListener {
     }
 
     if(dropped != null) {
+      StringBuffer xferData = null;
       if(dropped instanceof InputStream) {
         JConfig.log().logVerboseDebug("Dropped an InputStream");
         xferData = getInputStreamData(t, dtf, (InputStream)dropped);
@@ -366,19 +359,15 @@ public class JDropListener implements DropTargetListener {
 
   public void drop(DropTargetDropEvent dtde) {
     Transferable t = dtde.getTransferable();
-    StringBuffer dropData=null;
-    DataFlavor dtf;
 
     JConfig.log().logVerboseDebug("Dropping!");
 
     if(t.getTransferDataFlavors().length == 0) {
       Clipboard sysClip = Toolkit.getDefaultToolkit().getSystemClipboard();
       Transferable t2 = sysClip.getContents(null);
-      DataFlavor[] dfa2;
-      int j;
 
       JConfig.log().logDebug("Dropped 0 data flavors, trying clipboard.");
-      dfa2 = null;
+      DataFlavor[] dfa2 = null;
 
       if(t2 != null) {
         JConfig.log().logVerboseDebug("t2 is not null: " + t2);
@@ -388,24 +377,13 @@ public class JDropListener implements DropTargetListener {
         JConfig.log().logVerboseDebug("t2 is null!");
       }
 
-      if(JConfig.queryConfiguration("debug.uber", "false").equals("true")) {
-        if(dfa2 != null) {
-          if(dfa2.length == 0) {
-            JConfig.log().logVerboseDebug("Length is still zero!");
-          }
-          for(j=0; j<dfa2.length; j++) {
-            JConfig.log().logVerboseDebug("Flavah " + j + " == " + dfa2[j].getHumanPresentableName());
-            JConfig.log().logVerboseDebug("Flavah/mime " + j + " == " + dfa2[j].getMimeType());
-          }
-        } else {
-          JConfig.log().logVerboseDebug("Flavahs supported: none!\n");
-        }
-      }
+      dumpAllFlavorsSupported(dfa2);
     }
 
     if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) dumpFlavorsOld(t);
 
-    dtf = testAllFlavors(t);
+    DataFlavor dtf = testAllFlavors(t);
+    StringBuffer dropData = null;
     if(dtf != null) {
       JConfig.log().logVerboseDebug("Accepting!");
       acceptDrop(dtde);
@@ -422,6 +400,22 @@ public class JDropListener implements DropTargetListener {
       JConfig.log().logVerboseDebug("Rejecting!");
       dtde.rejectDrop();
       handler.receiveDropString(dropData);
+    }
+  }
+
+  private void dumpAllFlavorsSupported(DataFlavor[] dfa2) {
+    if(JConfig.queryConfiguration("debug.uber", "false").equals("true")) {
+      if(dfa2 != null) {
+        if(dfa2.length == 0) {
+          JConfig.log().logVerboseDebug("Length is still zero!");
+        }
+        for(int j = 0; j<dfa2.length; j++) {
+          JConfig.log().logVerboseDebug("Flavah " + j + " == " + dfa2[j].getHumanPresentableName());
+          JConfig.log().logVerboseDebug("Flavah/mime " + j + " == " + dfa2[j].getMimeType());
+        }
+      } else {
+        JConfig.log().logVerboseDebug("Flavahs supported: none!\n");
+      }
     }
   }
 }
