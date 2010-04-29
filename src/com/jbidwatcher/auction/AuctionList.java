@@ -1,7 +1,6 @@
 package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.Comparison;
-import com.jbidwatcher.util.SortedList;
 import com.jbidwatcher.util.Task;
 
 import java.util.List;
