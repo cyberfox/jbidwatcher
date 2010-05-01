@@ -82,8 +82,8 @@ public class JDropListener implements DropTargetListener {
     _ascFlavor = getDataFlavor(_ascFlavor, "ascFlavor");
     _pl2Flavor = getDataFlavor(_pl2Flavor, "pl2Flavor");
     _htmlFlavor= getDataFlavor(_htmlFlavor,"htmlFlavor");
-    _utf8HtmlFlavor = getDataFlavor(_htmlFlavor,"UTF8Html");
-    _thtmlFlavor = getDataFlavor(_htmlFlavor,"thtmlFlavor");
+    _utf8HtmlFlavor = getDataFlavor(_utf8HtmlFlavor,"UTF8Html");
+    _thtmlFlavor = getDataFlavor(_thtmlFlavor,"thtmlFlavor");
     _urlFlavor = getDataFlavor(_urlFlavor, "urlFlavor");
   }
 
