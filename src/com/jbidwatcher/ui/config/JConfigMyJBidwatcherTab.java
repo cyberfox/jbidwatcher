@@ -41,11 +41,9 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     String email = mEmail.getText();
     String password = mPassword.getText();
 
-    if(email != null && password != null) {
-      if(MyJBidwatcher.getInstance().getAccountInfo()) {
-        JConfig.setConfiguration("my.jbidwatcher.id", email);
-        JConfig.setConfiguration("my.jbidwatcher.key", password);
-      }
+    if (MyJBidwatcher.getInstance().getAccountInfo(email, password)) {
+      JConfig.setConfiguration("my.jbidwatcher.id", email);
+      JConfig.setConfiguration("my.jbidwatcher.key", password);
     }
 
     if(JConfig.queryConfiguration("my.jbidwatcher.allow.sync") != null)
@@ -123,13 +121,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
         String action = event.getActionCommand();
         if(action == null) return;
 
-        String oldId = JConfig.queryConfiguration("my.jbidwatcher.id");
-        String oldKey= JConfig.queryConfiguration("my.jbidwatcher.key");
-
-        JConfig.setConfiguration("my.jbidwatcher.id", mEmail.getText());
-        JConfig.setConfiguration("my.jbidwatcher.key", mPassword.getText());
-
-        if(MyJBidwatcher.getInstance().getAccountInfo()) {
+        if(MyJBidwatcher.getInstance().getAccountInfo(mEmail.getText(), mPassword.getText())) {
           mStatusLabel.setIcon(successIcon);
           mStatusLabel.setText("success!");
           if(JConfig.queryConfiguration("my.jbidwatcher.sync") == null) JConfig.setConfiguration("my.jbidwatcher.sync", "true");
@@ -138,9 +130,6 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
           mStatusLabel.setIcon(failIcon);
           mStatusLabel.setText("failed.");
         }
-
-        JConfig.setConfiguration("my.jbidwatcher.id", oldId);
-        JConfig.setConfiguration("my.jbidwatcher.key", oldKey);
       }
     });
     button.add(mCreateOrUpdate);

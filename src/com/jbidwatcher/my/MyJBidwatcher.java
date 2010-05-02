@@ -289,12 +289,20 @@ public class MyJBidwatcher {
   }
 
   public boolean getAccountInfo() {
+    return getAccountInfo(JConfig.queryConfiguration("my.jbidwatcher.id"), JConfig.queryConfiguration("my.jbidwatcher.key"));
+  }
+
+  public boolean getAccountInfo(String username, String password) {
+    if(username == null || password == null) return false;
     String suffix = JConfig.queryConfiguration("ebay.browse.site");
     if(suffix != null && !suffix.equals("0")) {
       suffix = "?browse_to=" + suffix;
     } else suffix = "";
-    StringBuffer sb = http().get("https://my.jbidwatcher.com/services/account" + suffix);
+    HttpInterface http = new Http();
+    http.setAuthInfo(username, password);
+    StringBuffer sb = http.get("https://my.jbidwatcher.com/services/account" + suffix);
     if(sb == null) return false;
+
     XMLElement xml = new XMLElement();
     xml.parseString(sb.toString());
     XMLInterface sync = xml.getChild("syncq");
