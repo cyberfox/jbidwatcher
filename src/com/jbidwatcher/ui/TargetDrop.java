@@ -31,14 +31,13 @@ public class TargetDrop implements JDropHandler
     mTargetName = null;
   }
 
-  private String stripNewlines(String instr) {
-    int index;
+  private String cleanText(String instr) {
     String outstr = instr;
 
-    index = outstr.indexOf('\n');
+    int index = Math.min(outstr.indexOf('\n'), outstr.indexOf('\0'));
     while(index != -1) {
       outstr = outstr.substring(0, index) + outstr.substring(index+1);
-      index = outstr.indexOf('\n');
+      index = Math.min(outstr.indexOf('\n'), outstr.indexOf('\0'));
     }
     return outstr;
   }
@@ -49,7 +48,7 @@ public class TargetDrop implements JDropHandler
       return;
     }
 
-    dropped = new StringBuffer(stripNewlines(dropped.toString()));
+    dropped = new StringBuffer(cleanText(dropped.toString()));
     if(sUberDebug) JConfig.log().logDebug("Dropping :" + dropped + ":");
 
     //  Is it an 'HTML Fragment' as produced by Mozilla, NS6, and IE5+?
