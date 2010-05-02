@@ -123,8 +123,8 @@ public class JDropListener implements DropTargetListener {
   }
 
   private DataFlavor testAllFlavors(Transferable t) {
+    if (testFlavor(_htmlFlavor, t)) return _htmlFlavor;
     if(testFlavor(_utf8HtmlFlavor, t)) return _utf8HtmlFlavor;
-    if(testFlavor(_htmlFlavor, t)) return _htmlFlavor;
     if(testFlavor(_thtmlFlavor, t)) return _thtmlFlavor;
 
     if(testFlavor(_urlFlavor, t)) return _urlFlavor;
@@ -140,8 +140,8 @@ public class JDropListener implements DropTargetListener {
   }
 
   private DataFlavor testAllFlavors(DropTargetDragEvent dtde) {
+    if (testFlavor(_htmlFlavor, dtde)) return _htmlFlavor;
     if(testFlavor(_utf8HtmlFlavor, dtde)) return _utf8HtmlFlavor;
-    if(testFlavor(_htmlFlavor, dtde)) return _htmlFlavor;
     if(testFlavor(_thtmlFlavor, dtde)) return _thtmlFlavor;
 
     if(testFlavor(_urlFlavor, dtde)) return _urlFlavor;

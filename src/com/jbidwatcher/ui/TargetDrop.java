@@ -31,15 +31,15 @@ public class TargetDrop implements JDropHandler
     mTargetName = null;
   }
 
-  private String cleanText(String instr) {
-    String outstr = instr;
-
-    int index = Math.min(outstr.indexOf('\n'), outstr.indexOf('\0'));
-    while(index != -1) {
-      outstr = outstr.substring(0, index) + outstr.substring(index+1);
-      index = Math.min(outstr.indexOf('\n'), outstr.indexOf('\0'));
+  private StringBuffer cleanString(StringBuffer instr) {
+    int i = 0;
+    int len = instr.length();
+    StringBuffer s = new StringBuffer(len);
+    for (i = 0; i < len; i++) {
+      char c = instr.charAt(i);
+      if (c != '\u0000' && c != '\n') s.append(c);
     }
-    return outstr;
+    return s;
   }
 
   public void receiveDropString(StringBuffer dropped) {
@@ -48,7 +48,7 @@ public class TargetDrop implements JDropHandler
       return;
     }
 
-    dropped = new StringBuffer(cleanText(dropped.toString()));
+    dropped = new StringBuffer(cleanString(dropped));
     if(sUberDebug) JConfig.log().logDebug("Dropping :" + dropped + ":");
 
     //  Is it an 'HTML Fragment' as produced by Mozilla, NS6, and IE5+?
@@ -59,12 +59,10 @@ public class TargetDrop implements JDropHandler
     if(dropped.charAt(0) == '<') {
       JHTML tinyDocument = new JHTML(dropped);
       List<String> allItemsOnPage = tinyDocument.getAllURLsOnPage(true);
-      String auctionURL;
 
       if(allItemsOnPage == null) return;
 
-      for (String anAllItemsOnPage : allItemsOnPage) {
-        auctionURL = anAllItemsOnPage;
+      for (String auctionURL : allItemsOnPage) {
         if (auctionURL != null) {
           JConfig.log().logDebug("Adding: " + auctionURL.trim());
           MQFactory.getConcrete("drop").enqueueBean(new DropQObject(auctionURL.trim(), mTargetName, true));
