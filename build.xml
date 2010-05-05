@@ -24,7 +24,7 @@
   <property name="TARFILE" value="${TARSRC}.tar.bz2" />
   <property name="APPSCRIPTING" value="${app.name}-${VER}-script.app.tar.gz" />
   <property name="APPFILE" value="${app.name}-${VER}.app.tar.gz" />
-  <property name="osx.app.name" value="${app.name}-${VER}.app" />
+  <property name="osx.app.name" value="${app.name}.app" />
   <property name="build.path" value="/tmp/building" />
   <property name="osx.app.path" value="/tmp/building/${osx.app.name}" />
   <property name="DMGFILE" value="${app.name}-${VER}.dmg" />
