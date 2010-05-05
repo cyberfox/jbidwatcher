@@ -6,6 +6,7 @@ import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.SearchField;
 import com.jbidwatcher.ui.util.ButtonMaker;
 import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.util.queue.MQFactory;
 
 import javax.swing.*;
 import javax.swing.event.DocumentListener;
@@ -13,6 +14,8 @@ import javax.swing.event.DocumentEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * Created by IntelliJ IDEA.
@@ -71,6 +74,12 @@ public class JBidToolBar {
     mHeaderStatus.setMinimumSize(boxSize);
     mHeaderStatus.setPreferredSize(boxSize);
     mHeaderStatus.setMaximumSize(boxSize);
+    mHeaderStatus.addMouseListener(new MouseAdapter() {
+      public void mouseClicked(MouseEvent e) {
+        super.mouseClicked(e);
+        MQFactory.getConcrete("Swing").enqueue("TOGGLE_SMALL");
+      }
+    });
 
     mBidBarPanel.add(mHeaderStatus);
 

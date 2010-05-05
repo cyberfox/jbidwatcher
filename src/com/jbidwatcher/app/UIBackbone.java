@@ -35,6 +35,7 @@ public final class UIBackbone implements MessageQueue.Listener {
   private Date mNow = new Date();
   private Calendar mCal = new GregorianCalendar();
   private MacFriendlyFrame mFrame;
+  private boolean mSmall;
 
   private static final ImageIcon redStatus = new ImageIcon(JConfig.getResource("/icons/status_red.png"));
   private static final ImageIcon redStatus16 = new ImageIcon(JConfig.getResource("/icons/status_red_16.png"));
@@ -123,6 +124,7 @@ public final class UIBackbone implements MessageQueue.Listener {
   private final static String START_UPDATING = "ALLOW_UPDATES";
   private static final String NOACCOUNT_MSG = "NOACCOUNT ";
   private static final String PRICE = "PRICE ";
+  private static final String SMALL_USERINFO = "TOGGLE_SMALL";
 
   /**
    * @brief Handle messages to tell the UI to do something.
@@ -190,6 +192,8 @@ public final class UIBackbone implements MessageQueue.Listener {
     } else if (msg.startsWith(INVALID_LOGIN_MSG)) {
       String rest = msg.substring(INVALID_LOGIN_MSG.length());
       handleInvalidLogin(rest);
+    } else if (msg.equals(SMALL_USERINFO)) {
+      mSmall = !mSmall;
     } else if (msg.equals(START_UPDATING)) {
       startUpdating();
     } else if (msg.equals(VALID_LOGIN_MSG)) {
@@ -412,8 +416,8 @@ public final class UIBackbone implements MessageQueue.Listener {
 
     if (!_userValid) defaultServerTime = "Not logged in...";
     String headerLine = _linkUp ? defaultServerTime : "<strike>" + defaultServerTime + "</strike>";
-
-    headerLine = "<html>" + headerLine + "</html>";
+    if(mSmall) headerLine = "<small>" + headerLine + "</small>";
+    headerLine = "<html><body>" + headerLine + "</body></html>";
 
     MQFactory.getConcrete("Swing").enqueue("HEADER " + headerLine);
   }
