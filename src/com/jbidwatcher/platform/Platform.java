@@ -32,7 +32,7 @@ public class Platform {
    * @return - true if we are running on a Mac, false otherwise.
    */
   public static boolean isMac() {
-    return JConfig.queryConfiguration("mac", "false").equals("true");
+    return System.getProperty("mrj.version") != null;
   }
 
   public static boolean isLinux() {
