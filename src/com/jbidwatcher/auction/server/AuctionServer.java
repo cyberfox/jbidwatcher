@@ -55,7 +55,10 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
   public abstract void cancelSearches();
   public abstract void addSearches(SearchManagerInterface searchManager);
 
-  //  Exposed to AuctionEntry for checking high bidder status.
+  //  Exposed to AuctionEntry for checking how many folks are watching.
+  public abstract void updateWatchers(AuctionEntry ae);
+
+    //  Exposed to AuctionEntry for checking high bidder status.
   public abstract void updateHighBid(AuctionEntry ae);
 
   public abstract void setSnipe(AuctionEntry snipeOn);

@@ -473,6 +473,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     saveDB();
   }
 
+  public int getWatchers() { Integer cnt = getInteger("watcher_count"); return (cnt == null) ? -1 : cnt; }
+
+  public void setWatchers(int watcherCount) {
+    setInteger("watcher_count", watcherCount);
+    saveDB();
+  }
+
   /**
    * @brief What was the most recent number of items actually
    * submitted to the server as part of a bid?
@@ -1101,6 +1108,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     mLastUpdatedAt = System.currentTimeMillis();
     mAddedRecently = 0;
     try {
+      getServer().updateWatchers(this);
       updateHighBid();
       checkHighBidder();
     } catch(Exception e) {

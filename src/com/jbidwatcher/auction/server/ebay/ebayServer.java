@@ -14,6 +14,7 @@ package com.jbidwatcher.auction.server.ebay;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.auction.server.ServerMenu;
+import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.html.JHTML;
@@ -111,6 +112,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     esm.initialize();
 
     return esm;
+  }
+
+  public void updateWatchers(AuctionEntry ae) {
+    StringBuffer json = Http.net().get("http://cgi1.ebay.com/ws/eBayISAPI.dll?ViewItemMakeTrack&item=" + ae.getIdentifier());
+    Pattern p = Pattern.compile("\"watcherCount\":([0-9]+)");
+    Matcher m = p.matcher(json);
+    if(m.find()) {
+      String watcherCount = m.group(1);
+      ae.setWatchers(Integer.parseInt(watcherCount));
+    }
   }
 
   public void updateHighBid(AuctionEntry ae) {

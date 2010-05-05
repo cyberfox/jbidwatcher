@@ -94,6 +94,10 @@ class MockAuctionServerInterface implements AuctionServerInterface {
     return false;
   }
 
+  public void updateWatchers(AuctionEntry ae) {
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
   public void updateHighBid(AuctionEntry eEntry) { }
 
   public String stripId(String source) {

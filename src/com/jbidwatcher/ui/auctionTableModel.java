@@ -56,6 +56,7 @@ public class auctionTableModel extends BaseTransformation
        i==TableColumnController.THUMBNAIL ||
        i==TableColumnController.SELLER_FEEDBACK ||
        i==TableColumnController.BIDCOUNT ||
+       i==TableColumnController.WATCHERS ||
        i==TableColumnController.SELLER_POSITIVE_FEEDBACK) return Integer.class;
 
     if(i==-1 || i > TableColumnController.MAX_FIXED_COLUMN) return String.class;
@@ -109,6 +110,7 @@ public class auctionTableModel extends BaseTransformation
       case TableColumnController.ITEM_LOCATION:
       case TableColumnController.BIDCOUNT:
       case TableColumnController.SNIPE_TOTAL:
+      case TableColumnController.WATCHERS:
       default:
         return("");
     }
@@ -222,6 +224,8 @@ public class auctionTableModel extends BaseTransformation
             JConfig.log().handleException("Threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
             return Currency.NoValue();
           }
+        case TableColumnController.WATCHERS:
+          return aEntry.getWatchers();
         case TableColumnController.SNIPE_TOTAL: {
           Currency shipping2 = aEntry.getShippingWithInsurance();
           if (shipping2.getCurrencyType() == Currency.NONE) {
@@ -476,6 +480,8 @@ public class auctionTableModel extends BaseTransformation
             JConfig.log().handleException("Currency addition threw a bad currency exception, which is odd...", e); //$NON-NLS-1$
           }
           return "--";
+        case TableColumnController.WATCHERS:
+          if(aEntry.getWatchers() == -1) return "none"; else return aEntry.getWatchers();
         case TableColumnController.SNIPE_TOTAL:
           return formatTotalSnipe(aEntry, errorNote);
         default: {
