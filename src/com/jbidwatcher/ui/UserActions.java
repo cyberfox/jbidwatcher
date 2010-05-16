@@ -109,6 +109,7 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
+  //  TODO - Doesn't set the category
   private void cmdAddAuction(String auctionSource) {
     if(auctionSource.regionMatches(true, 0, "<html>", 0, 6)) {
       auctionSource = JHTML.getFirstContent(auctionSource);

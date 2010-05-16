@@ -1597,8 +1597,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   public Date getEndDate() {
     if(getAuction() != null && getAuction().getEndDate() != null) {
-      Date end = getAuction().getEndDate();
-      if(end != null) return end;
+      return getAuction().getEndDate();
     }
 
     return Constants.FAR_FUTURE;

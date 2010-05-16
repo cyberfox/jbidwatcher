@@ -316,6 +316,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta) - TWO_MINUTES);
       _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta));
       _etqm.add(identifier, "drop",       endDate.getTime() + THIRTY_SECONDS);
+    } else {
+      JConfig.log().logMessage("Failing to set snipe for " + identifier + ", endDate is null or in the far future (" + endDate + ")");
     }
 
     MQFactory.getConcrete("my").enqueue("SNIPE " + identifier);
