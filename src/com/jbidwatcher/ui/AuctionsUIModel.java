@@ -225,6 +225,8 @@ public class AuctionsUIModel {
         AuctionEntry ae2;
         try {
           ae2 = (AuctionEntry) _table.getValueAt(aRowList, -1);
+        } catch (ClassCastException cce) {
+          ae2 = null;
         } catch (IndexOutOfBoundsException bounds) {
           ae2 = null;
           approx = true;
