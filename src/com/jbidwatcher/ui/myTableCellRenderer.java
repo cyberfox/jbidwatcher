@@ -135,6 +135,10 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
       } else {
         if (mSelected) {
           Color selected = UIManager.getColor("Table.selectionBackground");
+          String userColor = JConfig.queryConfiguration("selection.color");
+          if(userColor != null) {
+            selected = MultiSnipe.reverseColor(userColor);
+          }
           renderGradient(g, selected);
         } else {
           painted = drawCustomBackground(g);
@@ -244,35 +248,6 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     }
     gradientCache.put(cacheMapper(), paint);
     return paint;
-  }
-
-  private Colors getSelectionColors(int column, AuctionEntry ae, Color foreground, Color background) {
-    if (JConfig.queryConfiguration("selection.invert", "false").equals("true")) {
-      Color tmp = foreground;
-      foreground = background;
-      background = tmp;
-    } else {
-      if (JConfig.queryConfiguration("selection.color") != null) {
-        if (selectionColorString == null || !selectionColorString.equals(JConfig.queryConfiguration("selection.color"))) {
-          selectionColorString = JConfig.queryConfiguration("selection.color");
-          selectionColor = MultiSnipe.reverseColor(selectionColorString);
-        }
-        background = selectionColor;
-      } else {
-        if (Platform.isMac() || Platform.isLinux()) {
-          if (column == 2 && ae.isMultiSniped()) foreground = background;
-          background = linuxSelection;
-        } else {
-          if (column == 2 && ae.isMultiSniped()) {
-            foreground = background;
-          } else if (foreground.equals(Color.BLACK)) {
-            foreground = SystemColor.textHighlightText;
-          }
-          background = SystemColor.textHighlight;
-        }
-      }
-    }
-    return new Colors(foreground, background);
   }
 
   private Color chooseForeground(AuctionEntry ae, int col, Color foreground) {
