@@ -114,6 +114,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return esm;
   }
 
+  public void deleteWatch(String itemId) {
+    String body = "LineID=" + itemId + "&CurrentPage=MyeBayNextWatching&View=WatchingNext&copagenum=1&coentrypage=myebay&SubmitAction.BulkDelete=Delete&coaction=compare&WatchingNext.Filter=All&tagname=";
+    Http.net().postFormPage("http://my.ebay.com/ws/eBayISAPI.dll?MyEbayBeta&f=f#GoTo240",
+        body, mLogin.getNecessaryCookie(false).toString(), null, false);
+  }
+
   public void updateWatchers(AuctionEntry ae) {
     StringBuffer json = Http.net().get("http://cgi1.ebay.com/ws/eBayISAPI.dll?ViewItemMakeTrack&item=" + ae.getIdentifier());
     Pattern p = Pattern.compile("\"watcherCount\":([0-9]+)");
