@@ -326,6 +326,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     //  in which case the first snipe (the - TWO_MINUTES) one will actually _fire_ the snipe.  This would be bad.
     mSnipeQueue.delSnipe(identifier);
 
+    JConfig.log().logDebug("Establishing a snipe on " + identifier);
     if (endDate != null && endDate != Constants.FAR_FUTURE) {
       _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta) - TWO_MINUTES);
       _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta));
