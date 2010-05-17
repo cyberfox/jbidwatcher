@@ -1108,7 +1108,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     mLastUpdatedAt = System.currentTimeMillis();
     mAddedRecently = 0;
     try {
-      getServer().updateWatchers(this);
+//      getServer().updateWatchers(this);
       updateHighBid();
       checkHighBidder();
     } catch(Exception e) {

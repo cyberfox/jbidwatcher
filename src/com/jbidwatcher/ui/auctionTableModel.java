@@ -481,7 +481,7 @@ public class auctionTableModel extends BaseTransformation
           }
           return "--";
         case TableColumnController.WATCHERS:
-          if(aEntry.getWatchers() == -1) return "none"; else return aEntry.getWatchers();
+          if(aEntry.getWatchers() == -1) return "(not available)"; else return aEntry.getWatchers();
         case TableColumnController.SNIPE_TOTAL:
           return formatTotalSnipe(aEntry, errorNote);
         default: {
