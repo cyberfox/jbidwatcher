@@ -399,7 +399,7 @@ public class AuctionInfo extends ActiveRecord
 
   public boolean isDutch() { return getBoolean("isDutch"); }
   boolean isReserve() { return getBoolean("isReserve"); }
-  protected boolean isPrivate() { return getBoolean("isPrivate"); }
+  public boolean isPrivate() { return getBoolean("isPrivate"); }
   protected boolean isFixedPrice() { return getBoolean("fixed_price"); }
   boolean isReserveMet() { return getBoolean("reserveMet"); }
   protected boolean hasPaypal() { return getBoolean("paypal"); }
@@ -482,7 +482,7 @@ public class AuctionInfo extends ActiveRecord
   protected void setNumBids(int numBids) { setInteger("numBids", numBids); }
 
   protected void setReserve(boolean isReserve) { setBoolean("isReserve", isReserve); }
-  protected void setPrivate(boolean isPrivate) { setBoolean("private", isPrivate); }
+  public void setPrivate(boolean isPrivate) { setBoolean("private", isPrivate); }
   protected void setReserveMet(boolean reserveMet) { setBoolean("reserveMet", reserveMet); }
   protected void setHasThumb(boolean hasThumb) { setBoolean("hasThumb", hasThumb); }
   protected void setOutbid(boolean outbid) { setBoolean("outbid", outbid); }

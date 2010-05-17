@@ -175,7 +175,15 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
             if(feedbackStart != -1) {
               highBidder = highBidder.substring(0, feedbackStart);
             }
-            ai.setHighBidder(highBidder);
+            if(highBidder.startsWith("private listing")) {
+              ai.setPrivate(true);
+              ai.setHighBidder("(private)");
+            } else {
+              Pattern p = Pattern.compile("Member Id: (.*)");
+              Matcher m = p.matcher(highBidder);
+              if(m.matches()) highBidder = m.group(1);
+              ai.setHighBidder(highBidder);
+            }
             ai.saveDB();
           }
         }

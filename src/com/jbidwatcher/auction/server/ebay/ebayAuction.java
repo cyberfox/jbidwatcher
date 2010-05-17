@@ -476,7 +476,6 @@ class ebayAuction extends SpecificAuction {
     if (checkSeller(ae)) return ParseErrors.SELLER_AWAY;
 
     checkDates(prelimTitle, ae);
-//    checkHighBidder();
     checkReserve();
     checkPrivate();
 
@@ -796,7 +795,8 @@ class ebayAuction extends SpecificAuction {
 
   private void checkPrivate() {
     String highBidder = getHighBidder();
-    if(highBidder != null && highBidder.indexOf(T.s("ebayServer.keptPrivate")) != -1) { //$NON-NLS-1$
+    if ((highBidder != null && highBidder.indexOf(T.s("ebayServer.keptPrivate")) != -1) ||
+        mDocument.grep("This is a private listing.*") != null) {
       setPrivate(true);
       setHighBidder("(private)"); //$NON-NLS-1$
     }
@@ -814,38 +814,6 @@ class ebayAuction extends SpecificAuction {
         setReserveMet(true);
       }
     }
-  }
-
-  private void checkHighBidder() {
-    String bidder = null;
-
-    if(mDocument.grep("This is a private listing.*") != null) {
-      bidder = "(private)";
-      setPrivate(true);
-    } else {
-      if (isFixedPrice()) {
-        bidder = mDocument.getNextContentAfterRegex(T.s("ebayServer.buyer"));
-        if (bidder != null) {
-          setNumBids(1);
-          bidder = bidder.trim();
-        }
-      } else {
-        if (getQuantity() > 1) {
-          bidder = "(multiple)";
-        } else {
-          if (getNumBids() != 0) {
-            bidder = mDocument.getNextContentAfterRegex(T.s("ebayServer.highBidder"));
-            if (bidder != null) {
-              bidder = bidder.trim();
-            } else {
-              bidder = "(unknown)"; //  ...but present.
-            }
-          }
-        }
-      }
-    }
-
-    setHighBidder(bidder == null ? "" : bidder);
   }
 
   private int getBidCount(JHTML doc, int quantity) {
