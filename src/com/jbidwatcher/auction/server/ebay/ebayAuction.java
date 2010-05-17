@@ -28,8 +28,8 @@ class ebayAuction extends SpecificAuction {
   String mStartComment = null;
   private static final int TITLE_LENGTH = 60;
   private static final int HIGH_BIT_SET = 0x80;
-  private final Pattern p = Pattern.compile(Externalized.getString("ebayServer.thumbSearch"), Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-  private final Pattern p2 = Pattern.compile(Externalized.getString("ebayServer.thumbSearch2"), Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+  private final Pattern thumbnailPattern1 = Pattern.compile(Externalized.getString("ebayServer.thumbSearch"), Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+  private final Pattern thumbnailPattern2 = Pattern.compile(Externalized.getString("ebayServer.thumbSearch2"), Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
   private String potentialThumbnail = null;
   private TT T;
 
@@ -39,11 +39,11 @@ class ebayAuction extends SpecificAuction {
   }
 
   private void checkThumb(StringBuffer sb) {
-    Matcher imgMatch = p.matcher(sb);
+    Matcher imgMatch = thumbnailPattern1.matcher(sb);
     if(imgMatch.find()) {
       potentialThumbnail = imgMatch.group(1);
     } else {
-      imgMatch = p2.matcher(sb);
+      imgMatch = thumbnailPattern2.matcher(sb);
       if(imgMatch.find()) {
         potentialThumbnail = imgMatch.group(1);
       }
