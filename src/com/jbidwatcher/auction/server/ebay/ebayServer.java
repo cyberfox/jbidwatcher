@@ -84,12 +84,14 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   private class eBayTimeQueueManager extends TimeQueueManager {
     /**
-     * Don't start checking until the server time delta becomes non-zero, i.e. we've done a time-check.
+     * Don't start checking until the server time delta becomes non-zero,
+     * i.e. we've done a time-check.  Unless the user has disabled time
+     * check, in which case, just...go with it. :)
      *
-     * @return false.  Always false.
+     * @return Should be false.  Always false.
      */
     public boolean check() {
-      return getServerTimeDelta() != 0 && super.check();
+      return (JConfig.queryConfiguration("timesync.enabled", "true").equals("false") || getServerTimeDelta() != 0) && super.check();
     }
 
     /**
