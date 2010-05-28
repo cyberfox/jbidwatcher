@@ -94,6 +94,10 @@ class MockAuctionServerInterface implements AuctionServerInterface {
     return false;
   }
 
+  public AuctionServerInterface getBackupServer() {
+    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
   public void updateWatchers(AuctionEntry ae) {
     //To change body of implemented methods use File | Settings | File Templates.
   }
