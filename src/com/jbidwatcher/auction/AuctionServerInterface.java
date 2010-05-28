@@ -113,6 +113,8 @@ public interface AuctionServerInterface {
 
   boolean isCurrentUser(String checkUser);
 
+  public AuctionServerInterface getBackupServer();
+
   void updateWatchers(AuctionEntry ae);
 
   void updateHighBid(AuctionEntry eEntry);

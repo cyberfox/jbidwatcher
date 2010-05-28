@@ -90,7 +90,7 @@ public final class UIBackbone implements MessageQueue.Listener {
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
     String bracketed = " [" + defaultServerTime + ']';
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("false")) {
-      TimeZone tz = AuctionServerManager.getInstance().getServer().getOfficialServerTimeZone();
+      TimeZone tz = AuctionServerManager.getInstance().getServer().getOfficialServerTimeZone();  // TODO mrs -- What about the backup server?
       if (tz != null && tz.hasSameRules(mCal.getTimeZone())) {
         bracketed = " [" + Constants.localClockFormat.format(mNow) + ']';
       }
@@ -439,7 +439,7 @@ public final class UIBackbone implements MessageQueue.Listener {
       if (foundSnipe) status += "  One or more snipes may not have been fired.";
       MQFactory.getConcrete("Swing").enqueue(NOTIFY_MSG + status);
     }
-    SuperQueue.getInstance().getQueue().add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), System.currentTimeMillis() + (10 * Constants.ONE_SECOND));
+    SuperQueue.getInstance().getQueue().add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), System.currentTimeMillis() + (10 * Constants.ONE_SECOND));  // TODO mrs -- What about the backup server?
   }
 
   public void setMainFrame(MacFriendlyFrame frame) {

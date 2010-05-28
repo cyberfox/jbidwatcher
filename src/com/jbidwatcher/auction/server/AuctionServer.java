@@ -212,6 +212,7 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
    */
   private AuctionInfo loadAuction(String item_id, AuctionEntry ae) {
     StringBuffer sb = retrieveAuctionAlternatives(item_id, ae);
+    JConfig.log().logMessage("LOADURL: " + getURLFromItem(item_id).toString());
     SpecificAuction curAuction = null;
 
     if(sb != null) {

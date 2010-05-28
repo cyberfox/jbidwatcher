@@ -41,7 +41,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     /**
      * Build a simple hashtable of results that bidding might get.
      * Not the greatest solution, but it's working okay.  A better one
-     * would be great.
+     * would be great.  -- "you didn't win the item." Post-close message?
      */
     if(mResultHash == null) {
       mResultHash = new HashMap<String, Integer>();

@@ -284,9 +284,10 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     String cmd = (String)deQ;
 
     if(cmd.equals("TIMECHECK")) {
-      com.jbidwatcher.auction.AuctionServerInterface defaultServer = getServer();
+      AuctionServerInterface defaultServer = getServer();
 
       defaultServer.reloadTime();
+      if(defaultServer.getBackupServer() != null) defaultServer.getBackupServer().reloadTime();
 
       long servTime = defaultServer.getServerTimeDelta();
       Date now = new Date(System.currentTimeMillis() + servTime);
