@@ -1187,7 +1187,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @brief Refresh the snipe, so it picks up a potentially changed end time, or when initially loading items.
    */
   public void refreshSnipe() {
-    getServer().cancelSnipe(getIdentifier());
     getServer().setSnipe(this);
   }
 

@@ -41,6 +41,7 @@ public class MyJBidwatcher {
   private static String LOG_UPLOAD_URL =  "my.jbidwatcher.com/upload/log";
   private static String ITEM_UPLOAD_URL = "my.jbidwatcher.com/upload/listing";
   private static String SYNC_UPLOAD_URL = "my.jbidwatcher.com/upload/sync";
+  private static String THUMBNAIL_UPLOAD_URL = "my.jbidwatcher.com/upload/thumbnail";
   private String mSyncQueueURL = null;
   private String mReportQueueURL = null;
   private String mGixenQueueURL = null;
@@ -75,7 +76,7 @@ public class MyJBidwatcher {
     return result;
   }
 
-  private String createFormSource(String formBase, String email, String desc) {
+  private static String createFormSource(String formBase, String email, String desc) {
     try {
       String parameters = "";
       if(email != null && email.length() != 0) {
@@ -193,7 +194,8 @@ public class MyJBidwatcher {
       public void messageAction(Object deQ) {
         if(JConfig.queryConfiguration("my.jbidwatcher.id") != null && mSyncQueueURL != null && canSync()) {
           AuctionEntry ae = EntryCorral.getInstance().takeForRead((String) deQ);
-          postXML(mSyncQueueURL, ae);
+          uploadSync(ae);
+          uploadThumbnail(ae);
           uploadAuctionHTML(ae, "uploadhtml");
         }
       }
@@ -222,6 +224,15 @@ public class MyJBidwatcher {
     });
   }
 
+  private void uploadSync(AuctionEntry ae) {
+    postXML(mSyncQueueURL, ae);
+    String identifier = ae.getIdentifier();
+    My status = My.findByIdentifier(identifier);
+    if (status == null) status = new My(identifier);
+    status.setDate("last_synced_at", new Date());
+    status.saveDB();
+  }
+
   private void uploadAuctionList(String fname) {
     if(canSync()) {
       File fp = new File(fname);
@@ -236,6 +247,28 @@ public class MyJBidwatcher {
     }
   }
 
+  private void uploadThumbnail(AuctionEntry ae) {
+    if(canSync()) {
+      String identifier = ae.getIdentifier();
+      My status = My.findByIdentifier(identifier);
+      if (status == null) status = new My(identifier);
+      String thumbnailFile = ae.getThumbnail();
+      if(!status.getBoolean("thumbnail_uploaded") && thumbnailFile != null) {
+        thumbnailFile = thumbnailFile.substring(5); //  Strip "file:" off the thumbnail path
+        File fp = new File(thumbnailFile);
+        if (fp.exists()) {
+          String result = sendFile(fp, url(THUMBNAIL_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), "thumbnail");
+          if(result == null) {
+            JConfig.log().logMessage("Failed to upload thumbnail for " + identifier);
+          } else {
+            status.setBoolean("thumbnail_uploaded", true);
+            status.saveDB();
+          }
+        }
+      }
+    }
+  }
+
   private void uploadAuctionHTML(AuctionEntry ae, String uploadType) {
     if(canUploadHTML()) {
       String s3Result = sendFile(ae.getContentFile(), url(ITEM_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), ae.getLastStatus());
@@ -244,16 +277,22 @@ public class MyJBidwatcher {
       s3Key.setContents(s3Result);
       root.addChild(ae.toXML());
       postXML(mReportQueueURL, root);
+      My status = My.findByIdentifier(ae.getIdentifier());
+      String identifier = ae.getIdentifier();
+      if (status == null) status = new My(identifier);
+
+      status.setDate("last_uploaded_html", new Date());
+      status.saveDB();
     }
   }
 
-  private boolean canUploadHTML() { return allow("uploadhtml"); }
-  private boolean canSync() { return allow("sync"); }
-  private boolean canParse() { return allow("parser"); }
-  private boolean canGetSnipes() { return allow("snipes"); }
-  private boolean canSendSnipeToGixen() { return allow("gixen"); }
+  private static boolean canUploadHTML() { return allow("uploadhtml"); }
+  private static boolean canSync() { return allow("sync"); }
+  private static boolean canParse() { return allow("parser"); }
+  private static boolean canGetSnipes() { return allow("snipes"); }
+  private static boolean canSendSnipeToGixen() { return allow("gixen"); }
 
-  private boolean allow(String type) {
+  private static boolean allow(String type) {
     return JConfig.queryConfiguration("my.jbidwatcher.allow." + type, "false").equals("true") &&
            JConfig.queryConfiguration("my.jbidwatcher." + type, "false").equals("true");
   }
@@ -261,31 +300,53 @@ public class MyJBidwatcher {
   private void doGixen(String identifier, boolean cancel) {
     if(canSendSnipeToGixen() && mGixenQueueURL != null) {
       AuctionEntry ae = EntryCorral.getInstance().takeForRead(identifier);
+
+      //  If we're being asked to set a snipe, and one isn't assigned to the entry, punt.
       if(!cancel && !ae.isSniped()) {
         JConfig.log().logMessage("Submitted auction " + identifier + " to snipe on Gixen, but doesn't have any snipe information set!");
         return;
       }
-      XMLElement gixen = new XMLElement(cancel ? "cancelsnipe" : "snipe");
-      gixen.setProperty("AUCTION", identifier);
 
-      if (!cancel) {
-        String bid = ae.getSnipeAmount().getValueString();
-        gixen.setProperty("AMOUNT", bid);
-      }
+      //  If we've already submitted a snipe for this listing, don't send it again.
+      My status = My.findByIdentifier(identifier);
+      if (status != null && ae.getSnipeAmount().equals(status.getMonetary("snipe_amount"))) return;
+      if (status == null) status = new My(identifier);
 
-      XMLElement userInfo = new XMLElement("credentials");
-      String user = JConfig.queryConfiguration(ae.getServer().getName() + ".user");
-      String password = JConfig.queryConfiguration(ae.getServer().getName() + ".password");
-      if(user == null || password == null) {
-        JConfig.log().logMessage("Failed to submit snipe to Gixen; one or both of username and password are not set.");
-        return;
-      }
-      userInfo.setProperty("user", user);
-      userInfo.setProperty("password", Base64.encodeString(password));
-      userInfo.setEmpty();
-      gixen.addChild(userInfo);
+      XMLElement gixen = generateGixenXML(identifier, cancel, ae);
+      if (gixen == null) return;
       postXML(mGixenQueueURL, gixen);
+      if (cancel) {
+        status.setDate("snipe_submitted_at", null);
+        status.setMonetary("snipe_amount", null);
+      } else {
+        status.setDate("snipe_submitted_at", new Date());
+        status.setMonetary("snipe_amount", ae.getSnipeAmount());
+      }
+      status.saveDB();
     }
+  }
+
+  private static XMLElement generateGixenXML(String identifier, boolean cancel, AuctionEntry ae) {
+    XMLElement gixen = new XMLElement(cancel ? "cancelsnipe" : "snipe");
+    gixen.setProperty("AUCTION", identifier);
+
+    if (!cancel) {
+      String bid = ae.getSnipeAmount().getValueString();
+      gixen.setProperty("AMOUNT", bid);
+    }
+
+    XMLElement userInfo = new XMLElement("credentials");
+    String user = JConfig.queryConfiguration(ae.getServer().getName() + ".user");
+    String password = JConfig.queryConfiguration(ae.getServer().getName() + ".password");
+    if(user == null || password == null) {
+      JConfig.log().logMessage("Failed to submit snipe to Gixen; one or both of username and password are not set.");
+      return null;
+    }
+    userInfo.setProperty("user", user);
+    userInfo.setProperty("password", Base64.encodeString(password));
+    userInfo.setEmpty();
+    gixen.addChild(userInfo);
+    return gixen;
   }
 
   public boolean getAccountInfo() {
@@ -294,13 +355,7 @@ public class MyJBidwatcher {
 
   public boolean getAccountInfo(String username, String password) {
     if(username == null || password == null) return false;
-    String suffix = JConfig.queryConfiguration("ebay.browse.site");
-    if(suffix != null && !suffix.equals("0")) {
-      suffix = "?browse_to=" + suffix;
-    } else suffix = "";
-    HttpInterface http = new Http();
-    http.setAuthInfo(username, password);
-    StringBuffer sb = http.get("https://my.jbidwatcher.com/services/account" + suffix);
+    StringBuffer sb = getRawAccountXML(username, password);
     if(sb == null) return false;
 
     XMLElement xml = new XMLElement();
@@ -317,15 +372,7 @@ public class MyJBidwatcher {
     XMLInterface serverParser = xml.getChild("parser");
     XMLInterface gixen = xml.getChild("gixen");
 
-    if(expires != null) {
-      String date = expires.getContents();
-      mExpiry = StringTools.figureDate(date, "yyyy-MM-dd'T'HH:mm:ssZ");
-      if(mExpiry == null || mExpiry.getDate() == null || mExpiry.getDate().before(new Date())) {
-        JConfig.setConfiguration("my.jbidwatcher.enabled", "false");
-      } else {
-        JConfig.setConfiguration("my.jbidwatcher.enabled", "true");
-      }
-    }
+    checkExpiration(expires);
 
     JConfig.setConfiguration("my.jbidwatcher.allow.listings", listingsRemaining.getContents());
     JConfig.setConfiguration("my.jbidwatcher.allow.categories", categoriesRemaining.getContents());
@@ -348,7 +395,29 @@ public class MyJBidwatcher {
     return mSyncQueueURL != null && mReportQueueURL != null;
   }
 
-  private boolean getBoolean(XMLInterface x) {
+  private void checkExpiration(XMLInterface expires) {
+    if(expires != null) {
+      String date = expires.getContents();
+      mExpiry = StringTools.figureDate(date, "yyyy-MM-dd'T'HH:mm:ssZ");
+      if(mExpiry == null || mExpiry.getDate() == null || mExpiry.getDate().before(new Date())) {
+        JConfig.setConfiguration("my.jbidwatcher.enabled", "false");
+      } else {
+        JConfig.setConfiguration("my.jbidwatcher.enabled", "true");
+      }
+    }
+  }
+
+  private static StringBuffer getRawAccountXML(String username, String password) {
+    String suffix = JConfig.queryConfiguration("ebay.browse.site");
+    if(suffix != null && !suffix.equals("0")) {
+      suffix = "?browse_to=" + suffix;
+    } else suffix = "";
+    HttpInterface http = new Http();
+    http.setAuthInfo(username, password);
+    return http.get("https://my.jbidwatcher.com/services/account" + suffix);
+  }
+
+  private static boolean getBoolean(XMLInterface x) {
     boolean rval = false;
     if(x != null) {
       String contents = x.getContents();

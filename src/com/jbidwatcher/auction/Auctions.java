@@ -6,6 +6,7 @@ package com.jbidwatcher.auction;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.my.My;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.Comparison;
@@ -96,8 +97,15 @@ public class Auctions implements TimerHandler.WakeupProcess {
       ae.update();
       XMLInterface after = ae.toXML(false);
       ae.clearUpdating();
-      if (!(after.toString().equals(before.toString()))) {
+
+      boolean changed = !(after.toString().equals(before.toString()));
+
+      My status = My.findByIdentifier(ae.getIdentifier());
+      if (status == null || status.getDate("last_synced_at") == null || changed) {
         MQFactory.getConcrete("upload").enqueue(ae.getIdentifier());
+      }
+
+      if(changed) {
         String category = ae.getCategory();
         MQFactory.getConcrete("redraw").enqueue(category);
       }
