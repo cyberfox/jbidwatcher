@@ -14,3 +14,5 @@ META-INF/*
 *.iws
 s101plugin*
 .idea
+sign_in*
+error*
