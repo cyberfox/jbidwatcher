@@ -515,7 +515,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   public StringBuffer getAuction(String id) throws FileNotFoundException {
     long pre = System.currentTimeMillis();
-    JConfig.log().logMessage(getURLFromItem(id).toString());
     StringBuffer sb = getAuction(getURLFromItem(id));
     long post = System.currentTimeMillis();
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
