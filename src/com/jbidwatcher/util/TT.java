@@ -24,6 +24,7 @@ public class TT {
   private ResourceBundle sResource = ResourceBundle.getBundle("ebay_com");
   private Properties countryProperties = null;
   private String mBundle;
+  private String mCountrySiteName = null;
 
   public int hashCode() {
     return mBundle.hashCode();
@@ -80,8 +81,13 @@ public class TT {
   }
 
   public boolean setCountrySite(String country) {
+    mCountrySiteName = country;
     String bundle = country.replace('.', '_');
     return setBundle(bundle);
+  }
+
+  public String getCountrySiteName() {
+    return mCountrySiteName;
   }
 
   public String getBundle() {

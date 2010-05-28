@@ -73,6 +73,13 @@ public interface AuctionServerInterface {
   String getName();
 
   /**
+   * @brief Get the specific site name for this AuctionServer instance.
+   *
+   * @return - A String with the site name this server refers to; generally associated with the string bundle being used by the server.
+   */
+  String getFriendlyName();
+
+  /**
    * @brief Returns the difference in time between the local machine's
    * normalized time, and the auction site's normalized time.
    *

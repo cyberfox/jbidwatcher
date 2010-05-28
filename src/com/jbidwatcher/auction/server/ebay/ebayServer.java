@@ -708,6 +708,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return Constants.EBAY_SERVER_NAME;
   }
 
+  public String getFriendlyName() {
+    return T.getCountrySiteName();
+  }
+
   public boolean validate(String username, String password) {
     return mLogin.validate(username, password);
   }

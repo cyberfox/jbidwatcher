@@ -30,7 +30,7 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 
-public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionServerInterface {
+public abstract class AuctionServer implements AuctionServerInterface {
   private static long sLastUpdated = 0;
   private AuctionServer mBackupServer = null;
 
@@ -126,10 +126,10 @@ public abstract class AuctionServer implements com.jbidwatcher.auction.AuctionSe
    */
   public void reloadTime() {
     if (getOfficialTime() != null) {
-      MQFactory.getConcrete("Swing").enqueue("Successfully synchronized time with " + getName() + '.');
-      JConfig.log().logMessage("Time delta with " + getName() + " is " + getServerTimeDelta());
+      MQFactory.getConcrete("Swing").enqueue("Successfully synchronized time with " + getFriendlyName() + '.');
+      JConfig.log().logMessage("Time delta with " + getFriendlyName() + " is " + getServerTimeDelta());
     } else {
-      MQFactory.getConcrete("Swing").enqueue("Failed to synchronize time with " + getName() + '!');
+      MQFactory.getConcrete("Swing").enqueue("Failed to synchronize time with " + getFriendlyName() + '!');
     }
   }
 

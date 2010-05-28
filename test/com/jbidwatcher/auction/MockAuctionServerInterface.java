@@ -52,6 +52,10 @@ class MockAuctionServerInterface implements AuctionServerInterface {
     return "mock";
   }
 
+  public String getFriendlyName() {
+    return "ebay.mock";
+  }
+
   public long getServerTimeDelta() {
     return 0;
   }
