@@ -169,12 +169,11 @@ public class MyJBidwatcher {
     String[] params = pair.split(",");
     String identifier = params[0];
     boolean changed = Boolean.parseBoolean(params[1]);
-    AuctionEntry ae = AuctionEntry.findByIdentifier(identifier);
-    My status = My.findByIdentifier(ae.getIdentifier());
+    My status = My.findByIdentifier(identifier);
 
     if (status == null || status.getDate("last_synced_at") == null || changed) {
       EntryCorral.getInstance().erase(identifier);
-      MQFactory.getConcrete("upload").enqueue(ae.getIdentifier());
+      MQFactory.getConcrete("upload").enqueue(identifier);
     }
   }
 
@@ -190,7 +189,7 @@ public class MyJBidwatcher {
               String cmd = (String) deQ;
               if (JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true")) {
                 if (cmd.equals("ACCOUNT")) getAccountInfo();
-                if (cmd.startsWith("UPDATE ")) checkUpdated(cmd.substring(8));
+                if (cmd.startsWith("UPDATE ")) checkUpdated(cmd.substring(7));
                 if (cmd.startsWith("SYNC ")) uploadAuctionList(cmd.substring(5));
                 if (cmd.startsWith("SNIPE ")) doGixen(cmd.substring(6), false);
                 if (cmd.startsWith("CANCEL ")) doGixen(cmd.substring(7), true);
