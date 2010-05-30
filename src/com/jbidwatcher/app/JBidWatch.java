@@ -29,6 +29,7 @@ import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.services.AudioPlayer;
+import com.jbidwatcher.util.services.SyncService;
 import com.jbidwatcher.util.webserver.SimpleProxy;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.*;
@@ -76,6 +77,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private MacFriendlyFrame mainFrame;
   private JTabManager jtmAuctions;
   private static Sparkle mSparkle = null;
+  private SyncService mServiceAdvertiser;
 
   private RuntimeInfo _rti = null;
   private static final int HOURS_IN_DAY = 24;
@@ -541,13 +543,16 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  Enable the internal server, if it's set.
     if(JConfig.queryConfiguration("server.enabled", "false").equals("true")) {
       if(sp == null) {
-        sp = new SimpleProxy(localServer_port, JBidProxy.class, null);
+        sp = new SimpleProxy(localServer_port, com.jbidwatcher.app.JBidProxy.class, null);
       }
 
       sp.go();
+      mServiceAdvertiser = new SyncService(localServer_port);
+      mServiceAdvertiser.advertise();
     } else {
       if(sp != null) {
         sp.halt();
+        mServiceAdvertiser.stopAdvertising();
       }
     }
     loadProxySettings();
@@ -761,6 +766,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  Shut down internal timers
     int accum = 0;
     try {
+      mServiceAdvertiser.stop();
       for (Object o : JConfig.getTimers()) {
         ((TimerHandler) o).interrupt();
         try { ((TimerHandler) o).join(); } catch (InterruptedException ie) {}

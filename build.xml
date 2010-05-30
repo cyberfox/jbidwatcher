@@ -52,9 +52,11 @@
     <pathelement path="${src.dir}" />
     <pathelement path="${lib.dir}/apple.jar" />
     <pathelement path="${lib.dir}/derby.jar" />
+    <pathelement path="${lib.dir}/mahalo.jar" />
     <pathelement path="${lib.dir}/jdesktop.jar" />
     <pathelement path="${lib.dir}/mp3codec.jar" />
     <pathelement path="${lib.dir}/jruby-complete.jar" />
+    <pathelement path="${lib.dir}/json_simple-1.1.jar" />
     <pathelement path="${lib.dir}/l2fprod-common-fontchooser.jar" />
     <pathelement path="${lib.dir}/mysql-connector-java-5.1.7-bin.jar" />
   </path>
@@ -193,8 +195,10 @@
       <fileset dir="${build.path}" includes="main/main.jar" />
       <fileset dir="${main.dir}" includes="lib/apple.jar" />
       <fileset dir="${main.dir}" includes="lib/derby.jar" />
+      <fileset dir="${main.dir}" includes="lib/mahalo.jar" />
       <fileset dir="${main.dir}" includes="lib/jdesktop.jar" />
       <fileset dir="${main.dir}" includes="lib/mp3codec.jar" />
+      <fileset dir="${main.dir}" includes="lib/json_simple-1.1.jar" />
       <fileset dir="${main.dir}" includes="lib/l2fprod-common-fontchooser.jar" />
       <fileset dir="${main.dir}" includes="lib/mysql-connector-java-5.1.7-bin.jar" />
     </jar>
@@ -333,6 +337,8 @@
       <fileset dir="${lib.dir}" includes="derby.jar" />
       <fileset dir="${lib.dir}" includes="jdesktop.jar" />
       <fileset dir="${lib.dir}" includes="mp3codec.jar" />
+      <fileset dir="${lib.dir}" includes="mahalo.jar" />
+      <fileset dir="${lib.dir}" includes="json_simple-1.1.jar" />
       <fileset dir="${lib.dir}" includes="l2fprod-common-fontchooser.jar" />
       <fileset dir="${lib.dir}" includes="mysql-connector-java-5.1.7-bin.jar" />
     </copy>
