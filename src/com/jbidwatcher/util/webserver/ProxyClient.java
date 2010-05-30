@@ -1,4 +1,4 @@
-package com.jbidwatcher.webserver;
+package com.jbidwatcher.util.webserver;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -51,7 +51,7 @@ public abstract class ProxyClient extends Thread {
         if(buf[0] != null) {
           os.write(buf[0], 0, buf[0].length);
         }
-        bw.flush();
+        bw.close();
       }
 
       clientSock.close();

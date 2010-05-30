@@ -1,4 +1,4 @@
-package com.jbidwatcher.webserver;
+package com.jbidwatcher.util.webserver;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -102,6 +102,8 @@ public abstract class HTTPProxyClient extends ProxyClient {
         if (builtDocument != null) {
           totalResponse.append('\n');
           totalResponse.append(builtDocument);
+          totalResponse.append('\n');
+        } else {
           totalResponse.append('\n');
         }
 

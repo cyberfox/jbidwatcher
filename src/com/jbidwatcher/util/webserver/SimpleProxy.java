@@ -1,4 +1,4 @@
-package com.jbidwatcher.webserver;
+package com.jbidwatcher.util.webserver;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -39,6 +39,7 @@ public class SimpleProxy extends Thread {
   }
 
   public void go() {
+    setDaemon(true);
     if(mServerSock == null) {
       try {
         mServerSock = new ServerSocket(mSocketNumber);
