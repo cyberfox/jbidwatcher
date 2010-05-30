@@ -88,7 +88,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * @return True if it's time to update in one of the auction
    * collections.
    */
-  public boolean check() {
+  public boolean check() throws InterruptedException {
     //  The auctions themselves will decide which action this is,
     //  snipe-checks, or updating.
     boolean retval = ListManager.getInstance().checkEachList();

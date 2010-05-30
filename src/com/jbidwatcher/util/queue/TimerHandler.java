@@ -31,16 +31,18 @@ public class TimerHandler extends Thread {
   private long _sleep_ms = ALMOST_A_SECOND;
 
   public interface WakeupProcess {
-    boolean check();
+    boolean check() throws InterruptedException;
   }
 
   public TimerHandler(WakeupProcess inWake, long sleeptime) {
     _toWake = inWake;
     _sleep_ms = sleeptime;
+    setDaemon(true);
   }
 
   public TimerHandler(WakeupProcess inWake) {
     _toWake = inWake;
+    setDaemon(true);
   }
 
   public void pause() { _remainAsleep = true; }
@@ -48,10 +50,14 @@ public class TimerHandler extends Thread {
   public boolean isPaused() { return _remainAsleep; }
 
   public void run() {
+    JConfig.registerTimer(this);
     boolean interrupted = false;
     while(!interrupted) {
-      try {
-        sleep(_sleep_ms);
+      if(Thread.interrupted())
+        interrupted = true;
+      else
+        try {
+          sleep(_sleep_ms);
         if(!_remainAsleep) {
             _toWake.check();
         }

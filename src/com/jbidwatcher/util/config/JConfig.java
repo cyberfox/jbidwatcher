@@ -571,4 +571,13 @@ public class JConfig {
   public static String getHomeDirectory() {
     return sHomeDirectory;
   }
+
+  private static Set sTimers = new HashSet();
+  public static void registerTimer(Object o) {
+    sTimers.add(o);
+  }
+
+  public static Set getTimers() {
+    return sTimers;
+  }
 }
