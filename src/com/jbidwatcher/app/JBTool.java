@@ -17,7 +17,7 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.ToolInterface;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.webserver.SimpleProxy;
+import com.jbidwatcher.util.webserver.SimpleProxy;
 import com.jbidwatcher.my.MyJBidwatcher;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;

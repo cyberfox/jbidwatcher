@@ -1,16 +1,14 @@
 package com.jbidwatcher.app;
 
-import com.jbidwatcher.webserver.HTTPProxyClient;
+import com.jbidwatcher.util.webserver.AbstractMiniServer;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.ToolInterface;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.*;
 
-import java.net.Socket;
 import java.io.FileNotFoundException;
+import java.net.Socket;
 import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-import java.lang.reflect.*;
 
 /**
  * User: mrs
@@ -19,7 +17,7 @@ import java.lang.reflect.*;
  *
  * This is a simple, small server, used by the JBTool to listen for simple commands.
  */
-public class MiniServer extends HTTPProxyClient {
+public class MiniServer extends AbstractMiniServer {
   private ToolInterface mTool;
 
   public MiniServer(Socket talkSock) {
@@ -47,6 +45,11 @@ public class MiniServer extends HTTPProxyClient {
       {"shutdown", Pattern.compile("^shutdown$")},
       {"login", Pattern.compile("^login$")}
   };
+
+  @Override
+  protected Object[][] getRoutes() {
+    return sRoutes;
+  }
 
   public StringBuffer login() {
     mTool.forceLogin();
@@ -112,46 +115,4 @@ public class MiniServer extends HTTPProxyClient {
     }
   }
 
-  protected StringBuffer buildHTML(String whatDocument) throws FileNotFoundException {
-    if(whatDocument.indexOf("/") != -1) {
-      whatDocument = whatDocument.substring(whatDocument.indexOf("/") +1);
-    }
-
-    StringBuffer sb = processRoutes(whatDocument);
-
-    if(sb == null) throw new FileNotFoundException(whatDocument);
-
-    return sb;
-  }
-
-  private StringBuffer processRoutes(String whatDocument) {
-    for(Object[] route : sRoutes) {
-      Pattern routePattern = (Pattern) route[1];
-      String method = (String) route[0];
-      Matcher match = routePattern.matcher(whatDocument);
-
-      if(match.find()) {
-        int count = match.groupCount();
-        Object[] matched = new Object[count];
-        Class[] matchedClass = new Class[count];
-        for(int i=1; i<= count; i++) {
-          matched[i-1] = match.group(i);
-          matchedClass[i-1] = String.class;
-        }
-
-        try {
-          Method m = getClass().getMethod(method, matchedClass);
-          return (StringBuffer)m.invoke(this, matched);
-        } catch (NoSuchMethodException e) {
-          JConfig.log().handleException("Failed to resolve route method for " + route[0], e);
-        } catch (IllegalAccessException e) {
-          JConfig.log().handleException("Security prevented running route method " + route[0], e);
-        } catch (InvocationTargetException e) {
-          JConfig.log().handleException("Invokation of route method " + route[0] + " failed.", e);
-        }
-      }
-    }
-
-    return null;
-  }
 }
