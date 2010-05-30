@@ -337,7 +337,6 @@ public class AuctionInfo extends ActiveRecord
     String outPath = JConfig.queryConfiguration("auctions.savepath");
     if(outPath != null && outPath.length() != 0) {
       String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
-      JConfig.log().logDebug("filePath = " + filePath);
       fp = new File(filePath);
     }
     return fp;

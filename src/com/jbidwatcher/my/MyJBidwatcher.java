@@ -117,7 +117,7 @@ public class MyJBidwatcher {
           HttpURLConnection huc = chr.post();
           InputStream resp = http().getStream(huc);
           result = StringTools.cat(resp);
-          JConfig.log().logDebug(result);
+//          JConfig.log().logDebug(result);
           resp.close();
         }
       }
