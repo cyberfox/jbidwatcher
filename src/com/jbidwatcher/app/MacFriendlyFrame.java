@@ -1,21 +1,15 @@
 package com.jbidwatcher.app;
 
-import com.jbidwatcher.platform.Path;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.db.ActiveRecord;
-import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.xml.XMLElement;
-import com.jbidwatcher.auction.server.AuctionStats;
-import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.ButtonMaker;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.platform.Platform;
-import com.jbidwatcher.search.SearchManager;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -24,7 +18,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Color;
 import java.net.URL;
-import java.util.Properties;
 
 /**
  * Created by IntelliJ IDEA.
@@ -155,7 +148,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
       //  Please wait, we'll be ready to quit shortly.
       throw new IllegalStateException("Ne changez pas mains, il viendra bient?t.");
     } else {
-      internal_shutdown();
+      MQFactory.getConcrete("jbidwatcher").enqueue("EXIT");
     }
   }
 
@@ -193,61 +186,23 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
   }
 
   /**
-   * @return A property table of all the table column header information, suitable for saving.
-   * @brief Obtains a 'property list' of all the column widths, names,
-   * etc., in order to save them off so the UI can remain
-   * approximately the same between executions.
-   */
-  public static Properties getColumnProperties() {
-    Properties colProps = new Properties();
-
-    colProps = ListManager.getInstance().extractProperties(colProps);
-
-    return (colProps);
-  }
-
-  /**
    * @brief Save the display properties, the configuration, the
    * auctions, and exit.  This exists to prompt for shutdown
    * if there are any outstanding snipes.
    */
   public void shutdown() {
-    if (AuctionEntry.snipedCount() != 0) {
-      OptionUI oui = new OptionUI();
-      //  Use the right parent!  FIXME -- mrs: 17-February-2003 23:53
-      int rval = oui.promptWithCheckbox(null, "There are outstanding snipes that will not be able to fire while " + Constants.PROGRAM_NAME +
-          " is not running.  Are you sure you want to quit?", "Pending Snipes confirmation",
-          "prompt.snipe_quit");
-      if (rval == JOptionPane.CANCEL_OPTION) return;
+    try {
+      if (AuctionEntry.snipedCount() != 0) {
+        OptionUI oui = new OptionUI();
+        //  Use the right parent!  FIXME -- mrs: 17-February-2003 23:53
+        int rval = oui.promptWithCheckbox(null, "There are outstanding snipes that will not be able to fire while " + Constants.PROGRAM_NAME +
+            " is not running.  Are you sure you want to quit?", "Pending Snipes confirmation",
+            "prompt.snipe_quit");
+        if (rval == JOptionPane.CANCEL_OPTION) return;
+      }
+    } catch(Exception e) {
+      JConfig.log().logDebug("Skipping snipe check due to exception!");
     }
-
-    internal_shutdown();
-  }
-
-  public void internal_shutdown() {
-    Properties colProps = getColumnProperties();
-    SearchManager.getInstance().saveSearchDisplay();
-    Properties displayProps = UISnapshot.snapshotLocation(this);
-    String dispFile = Path.getCanonicalFile("display.cfg", "jbidwatcher", false);
-    JConfig.saveDisplayConfig(dispFile, displayProps, colProps);
-
-    //  Save it to the original file, if it was provided at runtime,
-    //  otherwise to the appropriate default.
-    String cfgLoad = JConfig.queryConfiguration("temp.cfg.load", "JBidWatch.cfg");
-    String cfgFilename = cfgLoad.equals("JBidWatch.cfg") ? Path.getCanonicalFile(cfgLoad, "jbidwatcher", false) : cfgLoad;
-
-    //  TODO -- Need to save searches in the database too...  Right now they're still hanging around in XML form.
-    SearchManager.getInstance().saveSearches();
-    AuctionStats as = AuctionServerManager.getInstance().getStats();
-    JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
-    if(Database.saveDBConfig()) {
-      // If we're changing databases, we'll need the auction information saved so we can load it into the new database.
-      AuctionsManager.getInstance().saveAuctions();
-    }
-    JConfig.saveConfiguration(cfgFilename);
-    ActiveRecord.shutdown(); //  TODO -- Can this be put before the saveDBConfig?
-    JConfig.log().logMessage("Shutting down JBidwatcher.");
-    JConfig.log().closeLog();
-    System.exit(0);
+    MQFactory.getConcrete("jbidwatcher").enqueue("EXIT");
   }
 }

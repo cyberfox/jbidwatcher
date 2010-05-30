@@ -6,6 +6,7 @@ package com.jbidwatcher.app;
  */
 
 import com.jbidwatcher.auction.*;
+import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.platform.*;
 import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServer;
@@ -20,13 +21,15 @@ import com.jbidwatcher.ui.util.JBidFrame;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.RuntimeInfo;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.services.ActivityMonitor;
 import com.jbidwatcher.util.ErrorMonitor;
 import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
-import com.jbidwatcher.webserver.JBidProxy;
-import com.jbidwatcher.webserver.SimpleProxy;
+import com.jbidwatcher.util.services.AudioPlayer;
+import com.jbidwatcher.util.webserver.SimpleProxy;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.*;
 import com.jbidwatcher.my.MyJBidwatcher;
@@ -35,9 +38,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.InputStream;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.net.URL;
+import java.net.*;
 import java.util.*;
 
 /**
@@ -669,7 +670,14 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     SuperQueue sq = SuperQueue.getInstance();
     preQueueServices(sq);
-    TimerHandler timeQueue = sq.start();
+    final TimerHandler timeQueue = sq.start();
+
+    //  This is how we shut down cleanly.
+    MQFactory.getConcrete("jbidwatcher").registerListener(new MessageQueue.Listener() {
+      public void messageAction(Object deQ) {
+        timeQueue.interrupt();
+      }
+    });
 
     //  Because the program is starting to get widely spread around,
     //  and I can't control the version numbers everywhere, this
@@ -695,7 +703,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       updateTimer.start();
     }
 
-    com.jbidwatcher.util.services.AudioPlayer.start();
+    AudioPlayer.start();
 
     synchronized(memInfoSynch) { if(_rti == null && JConfig.queryConfiguration("debug.memory", "false").equals("true")) _rti = new RuntimeInfo(); }
     try {
@@ -704,6 +712,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
     } catch (InterruptedException e) {
       JConfig.log().handleException("timeQueue interrupted", e);
     }
+    internal_shutdown();
+    System.exit(0);
   }
 
   private void preQueueServices(SuperQueue q) {
@@ -731,5 +741,57 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //q.preQueue(UserActions.ADD_AUCTION + "5582606163", "user", System.currentTimeMillis() + (Constants.ONE_MINUTE / 2));
     //q.preQueue("http://www.jbidwatcher.com", "browse", System.currentTimeMillis() + (Constants.ONE_MINUTE / 4));
     //q.preQueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), AuctionServerManager.getInstance().getServer(), System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
+  }
+
+  /**
+   * @return A property table of all the table column header information, suitable for saving.
+   * @brief Obtains a 'property list' of all the column widths, names,
+   * etc., in order to save them off so the UI can remain
+   * approximately the same between executions.
+   */
+  public static Properties getColumnProperties() {
+    Properties colProps = new Properties();
+
+    colProps = ListManager.getInstance().extractProperties(colProps);
+
+    return (colProps);
+  }
+
+  public void internal_shutdown() {
+    //  Shut down internal timers
+    int accum = 0;
+    try {
+      for (Object o : JConfig.getTimers()) {
+        ((TimerHandler) o).interrupt();
+        try { ((TimerHandler) o).join(); } catch (InterruptedException ie) {}
+      }
+
+      Properties colProps = getColumnProperties();
+      SearchManager.getInstance().saveSearchDisplay();
+      Properties displayProps = UISnapshot.snapshotLocation(mainFrame);
+      String dispFile = Path.getCanonicalFile("display.cfg", "jbidwatcher", false);
+      JConfig.saveDisplayConfig(dispFile, displayProps, colProps);
+
+      //  Save it to the original file, if it was provided at runtime,
+      //  otherwise to the appropriate default.
+      String cfgLoad = JConfig.queryConfiguration("temp.cfg.load", "JBidWatch.cfg");
+      String cfgFilename = cfgLoad.equals("JBidWatch.cfg") ? Path.getCanonicalFile(cfgLoad, "jbidwatcher", false) : cfgLoad;
+
+      //  TODO -- Need to save searches in the database too...  Right now they're still hanging around in XML form.
+      SearchManager.getInstance().saveSearches();
+      AuctionStats as = AuctionServerManager.getInstance().getStats();
+      JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
+      if (Database.saveDBConfig()) {
+        // If we're changing databases, we'll need the auction information saved so we can load it into the new database.
+        AuctionsManager.getInstance().saveAuctions();
+      }
+      JConfig.saveConfiguration(cfgFilename);
+      ActiveRecord.shutdown(); //  TODO -- Can this be put before the saveDBConfig?
+    } catch(Exception e) {
+      JConfig.log().handleException("Threw an error during shutdown!  Shutting down anyway!", e);
+    } finally {
+      JConfig.log().logMessage("Shutting down JBidwatcher.");
+      JConfig.log().closeLog();
+    }
   }
 }
