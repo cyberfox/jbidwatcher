@@ -19,6 +19,7 @@ import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.util.webserver.AbstractMiniServer;
+import com.jbidwatcher.util.xml.XMLElement;
 import org.json.simple.JSONValue;
 
 import java.net.*;
@@ -132,25 +133,51 @@ public class JBidProxy extends AbstractMiniServer {
       {"show", "^(cached_)?([0-9]+)$"},
       {"favicon", "^favico.ico$"},
       {"snipePage", "^snipe?id=([0-9]+)$"},
-      {"showXML", "^([0-9]+)\\.xml$"},
-      {"categories", "^categories.json$"},
       {"addAuction", "^addAuction?id=([0-9]+)$"},
       {"cancelSnipe", "^cancelSnipe?id=([0-9]+)$"},
       {"fireEvent", "^event?name=([^&]+)&param=(.*)$"},
       {"index", "(?i)^jbidwatcher$"},
       {"synchronize", "synchronize"},
-      {"doSnipe", "^activateSnipe?id=([0-9]+)&snipeamount=(.*)$"}
+      {"doSnipe", "^activateSnipe?id=([0-9]+)&snipeamount=(.*)$"},
+      // APIs
+      {"categories", "^categories.json$"},
+      {"auctionsInCategory", "^category/(.*).xml$"},
+      {"showXML", "^([0-9]+)\\.xml$"},
   };
 
   protected Object[][] getRoutes() {
     return sRoutes;
   }
 
+  public StringBuffer auctionsInCategory(String categoryName) {
+    String serviceURL = JConfig.queryConfiguration("tmp.service.url");
+
+    try {
+      String category = URLDecoder.decode(categoryName, "UTF-8");
+      Category tab = Category.findFirstByName(category);
+      List<AuctionEntry> auctions = AuctionEntry.findAllBy("category_id", tab.get("id"));
+      XMLElement xauctions = new XMLElement("auctions");
+      for(AuctionEntry ae : auctions) {
+        XMLElement child = ae.toXML();
+        if(ae.getAuction().hasThumbnail()) {
+          XMLElement thumbnail = new XMLElement("thumbnail");
+          thumbnail.setContents(serviceURL + "/" + ae.getIdentifier() + ".jpg");
+          child.addChild(thumbnail);
+        }
+        xauctions.addChild(child);
+      }
+      return xauctions.toStringBuffer();
+    } catch(UnsupportedEncodingException crazy) {
+      JConfig.log().logDebug("Couldn't decode the category name.");
+    }
+    return null;
+  }
+
   public StringBuffer snipePage(String identifier) { return checkError(setupSnipePage(identifier)); }
 
   public StringBuffer favicon() { return sIcon; }
 
-  public StringBuffer returnNull() { return null; }
+  public StringBuffer returnNull(String identifier) { return new StringBuffer(); }
 
   public StringBuffer show(String cached, String identifier) {
     boolean isCached = cached != null && cached.isEmpty();
@@ -181,7 +208,9 @@ public class JBidProxy extends AbstractMiniServer {
   }
 
   public StringBuffer categories() {
-    return (new StringBuffer(JSONValue.toJSONString(Category.categories())));
+    String json = JSONValue.toJSONString(Category.categories());
+    JConfig.log().logMessage("Returning: " + json);
+    return (new StringBuffer(json));
   }
 
   public StringBuffer index() {

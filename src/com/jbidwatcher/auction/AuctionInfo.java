@@ -238,7 +238,7 @@ public class AuctionInfo extends ActiveRecord
     mThumbnailPath = thumbPath;
   }
 
-  protected boolean hasThumbnail() {
+  public boolean hasThumbnail() {
     String imgPath = mThumbnailPath;
 
     if(imgPath == null) {

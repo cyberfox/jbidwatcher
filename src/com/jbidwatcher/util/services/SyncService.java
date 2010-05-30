@@ -67,6 +67,7 @@ public class SyncService {
       }
       servicePort = port;
       serviceURL = "http://" + hostIP + ":" + servicePort;
+      JConfig.setConfiguration("tmp.service.url", serviceURL);
       mDNS = new Mahalo(null, hostName);
       mDNS.start();
     } catch (Exception ignored) {
