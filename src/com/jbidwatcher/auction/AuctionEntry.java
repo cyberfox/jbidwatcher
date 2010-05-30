@@ -1612,6 +1612,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public StringBuffer getContent() { return getAuction().getContent(); }
   public File getContentFile() { return getAuction().getContentFile(); }
   public String getThumbnail() { return getAuction().getThumbnail(); }
+  public String getBrowseableURL() { return getServer().getBrowsableURLFromItem(getIdentifier()); }
 
   public boolean hasPaypal() { return getAuction().hasPaypal(); }
   public String getItemLocation() { return getAuction().getItemLocation(); }

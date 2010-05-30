@@ -932,7 +932,7 @@ public class UserActions implements MessageQueue.Listener {
     String browseTo;
 
     if (doLocalServer.equals("false")) {
-      browseTo = inEntry.getServer().getBrowsableURLFromItem(entryId);
+      browseTo = inEntry.getBrowseableURL();
     } else {
       String localServerPort = JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING);
       if (inEntry.isInvalid()) {
@@ -1222,7 +1222,7 @@ public class UserActions implements MessageQueue.Listener {
   private String getActionValue(int action, AuctionEntry ae) {
     switch(action) {
       case DO_COPY_URL:
-        return ae.getServer().getBrowsableURLFromItem(ae.getIdentifier());
+        return ae.getBrowseableURL();
       case DO_COPY_ID:
         return ae.getIdentifier();
       case DO_COPY_DATA:

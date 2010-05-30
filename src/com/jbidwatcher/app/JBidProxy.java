@@ -192,7 +192,7 @@ public class JBidProxy extends AbstractMiniServer {
 
     if (isCached) {
       sbOut = new StringBuffer("<html><head><title>").append(ae.getTitle()).append("<link rel=\"shortcut icon\" href=\"/favicon.ico\"/></head><body><b>This is <a href=\"http://www.jbidwatcher.com\">JBidwatcher</a>'s cached copy.</b><br>");
-      sbOut.append("Click here for the <a href=\"").append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier())).append("\">current page</a>.<hr>");
+      sbOut.append("Click here for the <a href=\"").append(ae.getBrowseableURL()).append("\">current page</a>.<hr>");
       sbOut.append(ae.getContent());
     } else {
       sbOut = getAuctionHTMLFromServer(ae);
@@ -326,13 +326,13 @@ public class JBidProxy extends AbstractMiniServer {
 
   private StringBuffer getAuctionHTMLFromServer(AuctionEntry ae) {
     StringBuffer sbOut = new StringBuffer("<html><head><title>").append(ae.getTitle()).append("<link rel=\"shortcut icon\" href=\"/favicon.ico\"/></head><body><b>JBidwatcher View</b><br>");
-    sbOut.append("Click here for the <a href=\"").append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier())).append("\">current page</a>.<br>");
+    sbOut.append("Click here for the <a href=\"").append(ae.getBrowseableURL()).append("\">current page</a>.<br>");
 
     sbOut.append("<hr><br>");
     AuctionServerInterface aucServ = ae.getServer();
     try {
       //  TODO -- This is nauseating.  Fix it.
-      sbOut.append(checkError(aucServ.getAuction(StringTools.getURLFromString(aucServ.getBrowsableURLFromItem(ae.getIdentifier())))));
+      sbOut.append(checkError(aucServ.getAuction(StringTools.getURLFromString(ae.getBrowseableURL()))));
     } catch (FileNotFoundException ignored) {
       sbOut.append("<b><i>Item no longer appears on the server.</i></b><br>\n");
     }
@@ -382,7 +382,7 @@ public class JBidProxy extends AbstractMiniServer {
       sb.append("]]></title>\n");
 
       sb.append("<link><![CDATA[");
-      sb.append(ae.getServer().getBrowsableURLFromItem(ae.getIdentifier()));
+      sb.append(ae.getBrowseableURL());
       sb.append("]]></link>\n");
 
       DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
