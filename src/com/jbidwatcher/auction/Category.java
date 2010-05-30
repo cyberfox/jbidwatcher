@@ -46,14 +46,22 @@ public class Category extends ActiveRecord
 
   public String getName() { return getString("name"); }
 
-  private static Table sDB;
   protected static String getTableName() { return "categories"; }
-  protected Table getDatabase() {
-    if (sDB == null) {
-      sDB = openDB(getTableName());
+
+  private static ThreadLocal<Table> tDB = new ThreadLocal<Table>() {
+    protected synchronized Table initialValue() {
+      return openDB(getTableName());
     }
-    return sDB;
+  };
+
+  public static Table getRealDatabase() {
+    return tDB.get();
   }
+
+  protected Table getDatabase() {
+    return getRealDatabase();
+  }
+
   public static Category findFirstBy(String key, String value) {
     return (Category) findFirstBy(Category.class, key, value);
   }
