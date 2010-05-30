@@ -164,6 +164,9 @@ public class JBidProxy extends AbstractMiniServer {
           thumbnail.setContents(serviceURL + "/" + ae.getIdentifier() + ".jpg");
           child.addChild(thumbnail);
         }
+        XMLElement url = new XMLElement("url");
+        url.setContents(ae.getBrowseableURL());
+        child.addChild(url);
         xauctions.addChild(child);
       }
       return xauctions.toStringBuffer();
