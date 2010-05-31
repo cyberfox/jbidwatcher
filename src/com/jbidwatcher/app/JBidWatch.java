@@ -548,11 +548,11 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
       sp.go();
       mServiceAdvertiser = new SyncService(localServer_port);
-      mServiceAdvertiser.advertise();
+//      mServiceAdvertiser.advertise();
     } else {
       if(sp != null) {
         sp.halt();
-        mServiceAdvertiser.stopAdvertising();
+//        mServiceAdvertiser.stopAdvertising();
       }
     }
     loadProxySettings();
