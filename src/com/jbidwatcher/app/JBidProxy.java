@@ -183,7 +183,7 @@ public class JBidProxy extends AbstractMiniServer {
   public StringBuffer returnNull(String identifier) { return new StringBuffer(); }
 
   public StringBuffer show(String cached, String identifier) {
-    boolean isCached = cached != null && cached.isEmpty();
+    boolean isCached = cached != null && cached.length() != 0;
 
     AuctionEntry ae = AuctionEntry.findByIdentifier(identifier);
 
