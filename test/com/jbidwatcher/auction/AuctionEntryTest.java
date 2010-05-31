@@ -93,10 +93,6 @@ public class AuctionEntryTest extends TestCase {
     assertEquals("12345678", mAE.getIdentifier());
   }
 
-  public void testGetNextUpdate() throws Exception {
-    assertTrue(mAE.getNextUpdate() > System.currentTimeMillis());
-  }
-
   public void testSetInvalid() throws Exception {
     assertFalse(mAE.isInvalid());
   }

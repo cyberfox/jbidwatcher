@@ -152,11 +152,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private long mBidAt =0;
 
   /**
-   * The last time this auction was updated from the server.
-   */
-  private long mLastUpdatedAt =0;
-
-  /**
    * Starting mQuickerUpdateStart milliseconds from the end of the
    * auction, it will start triggering an update of the auction from
    * the server once every minute.  Currently set so that at half an
@@ -208,7 +203,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *                            is used to key the auction.
    */
   private synchronized void prepareAuctionEntry(String auctionIdentifier) {
-    mLastUpdatedAt = 0;
     mNeedsUpdate = true;
 
     if (mServer != null) {
@@ -716,7 +710,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
               mNeedsUpdate = true;
             }
           }
-          if( (mLastUpdatedAt + mUpdateFrequency) < curTime) {
+          Date updatedAt = getDate("updated_at");
+          if( updatedAt == null || (updatedAt.getTime() + mUpdateFrequency) < curTime) {
             mNeedsUpdate = true;
           }
         }
@@ -725,13 +720,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
     return mNeedsUpdate;
   }
-
-  /**
-   * @brief Get the next update time.
-   *
-   * @return The last time it was updated, plus the update frequency.
-   */
-  public long getNextUpdate() { return ((mLastUpdatedAt ==0)?System.currentTimeMillis(): mLastUpdatedAt) + mUpdateFrequency; }
 
   /**
    * @brief Mark this entry as being not-invalid.
@@ -992,8 +980,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
       mLoaded = false;
 
-      mLastUpdatedAt = 0;
-
       if(!isComplete()) setNeedsUpdate();
 
       saveDB();
@@ -1105,7 +1091,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     } catch(Exception e) {
       JConfig.log().handleException("Unexpected exception during auction reload/update.", e);
     }
-    mLastUpdatedAt = System.currentTimeMillis();
     mAddedRecently = 0;
     try {
 //      getServer().updateWatchers(this);
@@ -1303,7 +1288,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    */
   public void clearNeedsUpdate() {
     mNeedsUpdate = false;
-    mLastUpdatedAt = System.currentTimeMillis();
   }
 
   /**

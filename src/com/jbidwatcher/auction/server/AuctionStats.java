@@ -42,8 +42,4 @@ public class AuctionStats {
   public EntryInterface getNextEnd() {
     return _nextEnd;
   }
-
-  public EntryInterface getNextUpdate() {
-    return _nextUpdate;
-  }
 }
