@@ -60,8 +60,11 @@ public class ebaySearches {
       String hasId = aucServ.extractIdentifierFromURLString(url);
 
       if(hasId != null && StringTools.isNumberOnly(hasId)) {
-        if(allItemsOnPage.put(hasId, url) == null) {
-          if (EntryCorral.getInstance().takeForRead(hasId) == null) newItems.add(url);
+        if(allItemsOnPage.containsKey(hasId)) {
+          if (EntryCorral.getInstance().takeForRead(hasId) == null) {
+            allItemsOnPage.put(hasId, url);
+            newItems.add(url);
+          }
         }
       }
     }
@@ -334,6 +337,7 @@ public class ebaySearches {
       } else {
         fullSearch = Externalized.getString("ebayServer.searchURL1") + encodedSearch + sacur + Externalized.getString("ebayServer.searchURL2");
       }
+      String baseSearch = fullSearch;
       int skipCount = 0;
       boolean done;
 
@@ -350,7 +354,7 @@ public class ebaySearches {
           if (pageResults != 0) {
             if (pageResults >= ITEMS_PER_PAGE) {
               skipCount += ITEMS_PER_PAGE;
-              fullSearch = new StringBuffer(Externalized.getString("ebayServer.searchURL1")).append(encodedSearch).append(sacur).append(title_only ? Externalized.getString("ebayServer.searchURLNoDesc") : Externalized.getString("ebayServer.searchURL2")).append("&skip=").append(skipCount).toString();
+              fullSearch = baseSearch + "&skip=" + skipCount;
               done = false;
             }
 
