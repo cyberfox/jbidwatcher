@@ -443,15 +443,31 @@ class ebayAuction extends SpecificAuction {
     //  Get the integer values (Quantity, Bidcount)
     setQuantity(quant == null ? 1 : quant);
 
+    boolean buyNowSet = false;
+
     setFixedPrice(false);
     setNumBids(getBidCount(mDocument, getQuantity()));
     //  Once upon a time, quantity could mean 'dutch', but that listing format is gone.
-    if(quant != null) setFixedPrice(true);
+//    if(quant != null) setFixedPrice(true);
+    String postPrice;
+    if((postPrice = mDocument.getNextContentAfterContent("Price:")) != null) {
+      if(mDocument.getNextContent().equals("Buy It Now")) {
+        setFixedPrice(true);
+      } else if(postPrice.equals("Original price")) {
+        setFixedPrice(true);
+        String price = mDocument.getNextContentAfterContent("Discounted price");
+        setBuyNow(Currency.getCurrency(price));
+        setBuyNowUS(getUSCurrency(getBuyNow(), mDocument));
+        buyNowSet = true;
+      }
+    }
 
-    try {
-      loadBuyNow();
-    } catch(Exception e) {
-      JConfig.log().handleException("Buy It Now Loading error", e);
+    if(!buyNowSet) {
+      try {
+        loadBuyNow();
+      } catch (Exception e) {
+        JConfig.log().handleException("Buy It Now Loading error", e);
+      }
     }
 
     if (isFixedPrice()) {
