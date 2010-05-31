@@ -46,7 +46,7 @@ public class Database {
       if (JConfig.debugging) {
         System.setProperty("derby.locks.monitor", "true");
         System.setProperty("derby.locks.deadlockTrace", "true");
-        System.setProperty("derby.language.logStatementText", "true");
+//        System.setProperty("derby.language.logStatementText", "true");
       }
     }
     setup();
