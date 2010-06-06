@@ -443,32 +443,7 @@ class ebayAuction extends SpecificAuction {
     //  Get the integer values (Quantity, Bidcount)
     setQuantity(quant == null ? 1 : quant);
 
-    boolean buyNowSet = false;
-
-    setFixedPrice(false);
-    setNumBids(getBidCount(mDocument, getQuantity()));
-    //  Once upon a time, quantity could mean 'dutch', but that listing format is gone.
-//    if(quant != null) setFixedPrice(true);
-    String postPrice;
-    if((postPrice = mDocument.getNextContentAfterContent("Price:")) != null) {
-      if(mDocument.getNextContent().equals("Buy It Now")) {
-        setFixedPrice(true);
-      } else if(postPrice.equals("Original price")) {
-        setFixedPrice(true);
-        String price = mDocument.getNextContentAfterContent("Discounted price");
-        setBuyNow(Currency.getCurrency(price));
-        setBuyNowUS(getUSCurrency(getBuyNow(), mDocument));
-        buyNowSet = true;
-      }
-    }
-
-    if(!buyNowSet) {
-      try {
-        loadBuyNow();
-      } catch (Exception e) {
-        JConfig.log().handleException("Buy It Now Loading error", e);
-      }
-    }
+    checkBuyNowOrFixedPrice();
 
     if (isFixedPrice()) {
       establishCurrentBidFixedPrice(ae);
@@ -501,6 +476,38 @@ class ebayAuction extends SpecificAuction {
     finish();
     this.saveDB();
     return ParseErrors.SUCCESS;
+  }
+
+  private void checkBuyNowOrFixedPrice() {
+    setFixedPrice(false);
+    setNumBids(getBidCount(mDocument, getQuantity()));
+    String postPrice;
+    boolean buyNowSet = false;
+    if((postPrice = mDocument.getNextContentAfterContent("Price:")) != null) {
+      if(mDocument.getNextContent().equals("Buy It Now")) {
+        String startingPrice = mDocument.getNextContentAfterContent("Starting bid:");
+        if(startingPrice == null || !Currency.isCurrency(startingPrice)) setFixedPrice(true);
+        if(Currency.isCurrency(postPrice)) {
+          setBuyNow(Currency.getCurrency(postPrice));
+          setBuyNowUS(getUSCurrency(Currency.getCurrency(postPrice), mDocument));
+          buyNowSet = true;
+        }
+      } else if(postPrice.equals("Original price")) {
+        setFixedPrice(true);
+        String price = mDocument.getNextContentAfterContent("Discounted price");
+        setBuyNow(Currency.getCurrency(price));
+        setBuyNowUS(getUSCurrency(getBuyNow(), mDocument));
+        buyNowSet = true;
+      }
+    }
+
+    if(!buyNowSet) {
+      try {
+        loadBuyNow();
+      } catch (Exception e) {
+        JConfig.log().handleException("Buy It Now Loading error", e);
+      }
+    }
   }
 
   private void parseIdentifier() {
