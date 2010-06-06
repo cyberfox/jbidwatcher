@@ -60,7 +60,7 @@ public class ebaySearches {
       String hasId = aucServ.extractIdentifierFromURLString(url);
 
       if(hasId != null && StringTools.isNumberOnly(hasId)) {
-        if(allItemsOnPage.containsKey(hasId)) {
+        if(!allItemsOnPage.containsKey(hasId)) {
           if (EntryCorral.getInstance().takeForRead(hasId) == null) {
             allItemsOnPage.put(hasId, url);
             newItems.add(url);
