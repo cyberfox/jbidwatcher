@@ -484,7 +484,13 @@ class ebayAuction extends SpecificAuction {
     String postPrice;
     boolean buyNowSet = false;
     if((postPrice = mDocument.getNextContentAfterContent("Price:")) != null) {
-      if(mDocument.getNextContent().equals("Buy It Now")) {
+      String nextContent = mDocument.getNextContent();
+      if(nextContent.matches("(?i).*approx.*")) {
+        // If it's 'Approximately', then skip the next value because it's the non-local price.
+        mDocument.getNextContent();
+        nextContent = mDocument.getNextContent();
+      }
+      if(nextContent.matches("(?i).*Buy.It.Now.*")) {
         String startingPrice = mDocument.getNextContentAfterContent("Starting bid:");
         if(startingPrice == null || !Currency.isCurrency(startingPrice)) setFixedPrice(true);
         if(Currency.isCurrency(postPrice)) {
