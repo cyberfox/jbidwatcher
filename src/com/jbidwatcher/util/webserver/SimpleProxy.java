@@ -39,7 +39,7 @@ public class SimpleProxy extends Thread {
   }
 
   public void go() {
-    setDaemon(true);
+    if(!isDaemon()) setDaemon(true);
     if(mServerSock == null) {
       try {
         mServerSock = new ServerSocket(mSocketNumber);
