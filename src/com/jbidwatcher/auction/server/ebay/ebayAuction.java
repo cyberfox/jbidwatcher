@@ -98,7 +98,7 @@ class ebayAuction extends SpecificAuction {
     return false;
   }
 
-  private Currency getUSCurrency(Currency val, JHTML htmlDoc) {
+  private static Currency getUSCurrency(Currency val, JHTML htmlDoc) {
     Currency newCur = zeroDollars;
 
     if(val != null && !val.isNull()) {
@@ -119,7 +119,7 @@ class ebayAuction extends SpecificAuction {
    * @param html   - The document to search.
    * @return - Either zeroDollars or the approximate USD equivalent of the value of the item.
    */
-  private Currency walkForUSCurrency(JHTML html) {
+  private static Currency walkForUSCurrency(JHTML html) {
     Currency newCur = zeroDollars;
     int count = 0;
 
@@ -175,7 +175,7 @@ class ebayAuction extends SpecificAuction {
    *
    * @return - A string consisting of just the title part of the page, with tags stripped.
    */
-  private String buildTitle(JHTML doc) {
+  private static String buildTitle(JHTML doc) {
     //  This is an HTML title...  Suck.
     doc.reset();
     doc.getNextTag();
@@ -226,22 +226,10 @@ class ebayAuction extends SpecificAuction {
     //  You don't want to make people think it's required if it's not.
     setInsuranceOptional(insuranceOptionalCheck == null || (insuranceOptionalCheck.toLowerCase().indexOf(T.s("ebayServer.requiredInsurance")) == -1));
 
-    if(insureString != null) {
-      if(insureString.equals("-") || insureString.equals("--")) {
-        insureString = null;
-      } else {
-        insureString = insureString.trim();
-      }
-    }
+    insureString = sanitizeOptionalPrices(insureString);
 
     if(shipStringCheck != null && !shipStringCheck.equals(T.s("ebayServer.paymentInstructions"))) {
-      if(shipString != null) {
-        if(shipString.equals("-")) {
-          shipString = null;
-        } else {
-          shipString = shipString.trim();
-        }
-      }
+      shipString = sanitizeOptionalPrices(shipString);
     } else {
       shipString = null;
     }
@@ -264,6 +252,17 @@ class ebayAuction extends SpecificAuction {
     } catch(NumberFormatException nfe) {
       setInsurance(Currency.NoValue());
     }
+  }
+
+  private static String sanitizeOptionalPrices(String insureString) {
+    if(insureString != null) {
+      if(insureString.equals("-") || insureString.equals("--")) {
+        insureString = null;
+      } else {
+        insureString = insureString.trim();
+      }
+    }
+    return insureString;
   }
 
   private void loadBuyNow() {
@@ -309,11 +308,11 @@ class ebayAuction extends SpecificAuction {
    * @return - preferred if it's not bad, alternate if the preferred object is bad.
    * @noinspection ObjectEquality
    **/
-  private Object ensureSafeValue(Object preferred, Object alternate, Currency bad) {
+  private static Object ensureSafeValue(Object preferred, Object alternate, Currency bad) {
     return (preferred == bad)?alternate:preferred;
   }
 
-  private String getResult(JHTML doc, String regex, int match) {
+  private static String getResult(JHTML doc, String regex, int match) {
     String rval = doc.grep(regex);
     if(rval != null) {
       if(match == 0) return rval;
@@ -710,7 +709,7 @@ class ebayAuction extends SpecificAuction {
    * @param ae - The auction entry, so we can set the max bid value.
    * @param maxBid - The max bid extracted from eBay.
    */
-  private void setMaxBidFromServer(AuctionEntry ae, Currency maxBid) {
+  private static void setMaxBidFromServer(AuctionEntry ae, Currency maxBid) {
     // This is dangerously intimate with the AuctionEntry class,
     // and it won't work the first time, since the first time ae
     // is null.
@@ -895,7 +894,7 @@ class ebayAuction extends SpecificAuction {
     return getThumbnailById(getIdentifier() + "6464");
   }
 
-  private String getThumbnailById(String id) {
+  private static String getThumbnailById(String id) {
     return "http://thumbs.ebaystatic.com/pict/" + id + ".jpg";
   }
 
