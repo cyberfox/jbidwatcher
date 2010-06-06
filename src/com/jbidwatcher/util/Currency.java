@@ -183,6 +183,10 @@ public class Currency implements Comparable {
     return(ch>='0' && ch<='9');
   }
 
+  public static boolean isCurrency(String test) {
+    return !getCurrency(test).isNull();
+  }
+
   public static Currency getCurrency(String wholeValue) {
     if(wholeValue == null || wholeValue.length() == 0 || wholeValue.startsWith("UNK")) return NoValue();
 
