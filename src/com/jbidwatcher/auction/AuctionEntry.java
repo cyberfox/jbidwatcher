@@ -1921,7 +1921,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private String buildInfoBody(String prompt, boolean includeEvents, boolean addedThumbnail) {
     if(!isFixed()) {
       prompt += buildRow("Currently", getCurrentPrice() + " (" + getNumBidders() + " Bids)");
-      prompt += buildRow("High bidder", getHighBidder());
+      String bidder = getHighBidder();
+      prompt += buildRow("High bidder", bidder == null ? "(n/a)" : bidder);
     } else {
       prompt += buildRow("Price", getCurrentPrice());
     }

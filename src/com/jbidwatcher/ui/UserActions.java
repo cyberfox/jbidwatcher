@@ -701,7 +701,7 @@ public class UserActions implements MessageQueue.Listener {
       prompt += "<tr><td>Shipping:</td><td>" + ae.getShipping() + "</td></tr>";
     }
     String highBidder = ae.getHighBidder();
-    if(highBidder == null) highBidder = "(n/a)";
+    if(highBidder == null || highBidder.equals("null")) highBidder = "(n/a)";
     prompt += "<tr><td>High bidder:</td><td>" + highBidder + "</td></tr>";
     prompt += "<tr><td>Seller:</td><td>" + ae.getSeller() + "</td></tr>";
     prompt += "</table>";
