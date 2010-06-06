@@ -172,18 +172,19 @@ public class AuctionsUIModel {
 
   private static Currency addUSD(Currency inCurr, AuctionEntry ae) {
     boolean newCurrency = (inCurr == null || inCurr.isNull());
+    Currency currentUSPrice = ae.getCurrentUSPrice();
     try {
       if(ae.getShippingWithInsurance().isNull()) {
         if(newCurrency) {
-          return ae.getUSCurBid();
+          return currentUSPrice;
         }
-        return inCurr.add(ae.getUSCurBid());
+        return inCurr.add(currentUSPrice);
       }
 
       if(newCurrency) {
-        inCurr = ae.getUSCurBid().add(Currency.convertToUSD(ae.getUSCurBid(), ae.getCurBid(), ae.getShippingWithInsurance()));
+        inCurr = currentUSPrice.add(Currency.convertToUSD(currentUSPrice, ae.getCurrentPrice(), ae.getShippingWithInsurance()));
       } else {
-        inCurr = inCurr.add(ae.getUSCurBid().add(Currency.convertToUSD(ae.getUSCurBid(), ae.getCurBid(), ae.getShippingWithInsurance())));
+        inCurr = inCurr.add(currentUSPrice.add(Currency.convertToUSD(currentUSPrice, ae.getCurrentPrice(), ae.getShippingWithInsurance())));
       }
     } catch(Currency.CurrencyTypeException cte) {
       JConfig.log().handleException("This should have been cleaned up.", cte);
@@ -196,15 +197,15 @@ public class AuctionsUIModel {
     try {
       if(ae.getShippingWithInsurance().isNull()) {
         if(newCurrency) {
-          return ae.getCurBid();
+          return ae.getCurrentPrice();
         }
-        return inCurr.add(ae.getCurBid());
+        return inCurr.add(ae.getCurrentPrice());
       }
 
       if(newCurrency) {
-        inCurr = ae.getCurBid().add(ae.getShippingWithInsurance());
+        inCurr = ae.getCurrentPrice().add(ae.getShippingWithInsurance());
       } else {
-        inCurr = inCurr.add(ae.getCurBid().add(ae.getShippingWithInsurance()));
+        inCurr = inCurr.add(ae.getCurrentPrice().add(ae.getShippingWithInsurance()));
       }
     } catch(Currency.CurrencyTypeException cte) {
       JConfig.log().handleException("This should have been cleaned up.", cte);
@@ -232,15 +233,16 @@ public class AuctionsUIModel {
           approx = true;
         }
         if (ae2 != null) {
+          Currency currentUSPrice = ae2.getCurrentUSPrice();
+
           if (accum == null) {
-            accum = ae2.getUSCurBid();
+            accum = currentUSPrice;
             realAccum = getBestBidValue(ae2);
             withShipping = addUSD(withShipping, ae2);
             withRealShipping = addNonUSD(withRealShipping, ae2);
           } else {
-            Currency stepVal = ae2.getUSCurBid();
-            if (!stepVal.isNull() && !accum.isNull() && stepVal.getCurrencyType() != Currency.NONE) {
-              accum = accum.add(stepVal);
+            if (!currentUSPrice.isNull() && !accum.isNull() && currentUSPrice.getCurrencyType() != Currency.NONE) {
+              accum = accum.add(currentUSPrice);
               withShipping = addUSD(withShipping, ae2);
 
               //  If we're still trying to do the internationalization
@@ -258,7 +260,7 @@ public class AuctionsUIModel {
               }
             }
           }
-          if (ae2.getCurBid().getCurrencyType() != Currency.US_DOLLAR) approx = true;
+          if (ae2.getCurrentPrice().getCurrencyType() != Currency.US_DOLLAR) approx = true;
         }
       }
     } catch(Currency.CurrencyTypeException e) {

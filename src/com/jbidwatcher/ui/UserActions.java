@@ -360,6 +360,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private String makeUsefulString(AuctionEntry ae) {
+    Currency currentPrice = ae.getCurrentPrice();
     String result;
 
     if(ae.isSeller()) {
@@ -368,7 +369,7 @@ public class UserActions implements MessageQueue.Listener {
     } else {
       result = ae.getSeller();
     }
-    result += "  " + ae.getIdentifier() + "  " + ae.getCurBid() + " (" + ae.getTitle() + ")\n";
+    result += "  " + ae.getIdentifier() + "  " + currentPrice + " (" + ae.getTitle() + ")\n";
 
     return result;
   }
@@ -812,7 +813,7 @@ public class UserActions implements MessageQueue.Listener {
     Currency shippingAmount;
     try {
       if(endResult[0] != null) endResult[0] = endResult[0].replace(',', '.');
-      shippingAmount = Currency.getCurrency(ae.getCurBid().fullCurrencyName(), endResult[0]);
+      shippingAmount = Currency.getCurrency(ae.getCurrentPrice().fullCurrencyName(), endResult[0]);
     } catch(NumberFormatException nfe) {
       JOptionPane.showMessageDialog(src, "You have entered a bad shipping amount.\n" +
                                     endResult[0] + " is not a valid shipping cost.\n" +

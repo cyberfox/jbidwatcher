@@ -175,29 +175,29 @@ public class auctionTableModel extends BaseTransformation
         case TableColumnController.CUR_BID:
           Currency rval = aEntry.getUSCurBid();
           if(rval.getValue() == 0.0 && rval.getCurrencyType() == Currency.US_DOLLAR) {
-            return Currency.convertToUSD(null, null, aEntry.getCurBid());
+            return aEntry.getCurrentUSPrice();
           }
           return rval;
         case TableColumnController.SNIPE_OR_MAX:
-          return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), getMaxOrSnipe(aEntry));
+          return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), getMaxOrSnipe(aEntry));
         case TableColumnController.TIME_LEFT: return aEntry.getEndDate();
         case TableColumnController.TITLE: return aEntry.getTitle();
         case TableColumnController.STATUS: return buildEntryFlags(aEntry);
         case TableColumnController.THUMBNAIL: return aEntry.getThumbnail().hashCode();
         case TableColumnController.SELLER: return aEntry.getSeller();
         case TableColumnController.FIXED_PRICE:
-          return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getBuyNow());
+          return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), aEntry.getBuyNow());
         case TableColumnController.SHIPPING_INSURANCE:
           Currency si = (!aEntry.getShipping().isNull())?aEntry.getShippingWithInsurance(): Currency.NoValue();
           //  This is crack.  I'm insane to even think about doing this, but it works...
-          return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), si);
+          return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), si);
         case TableColumnController.BIDDER: return aEntry.getHighBidder();
         case TableColumnController.MAX:
           Currency bid = aEntry.isBidOn()?aEntry.getBid(): Currency.NoValue();
-          return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), bid);
+          return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), bid);
         case TableColumnController.SNIPE:
           Currency snipe = aEntry.getSnipeAmount();
-          return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), snipe);
+          return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), snipe);
         case TableColumnController.COMMENT:String s = aEntry.getComment(); return (s==null?"":s);
         case TableColumnController.END_DATE:return aEntry.getEndDate();
         case TableColumnController.SELLER_FEEDBACK: if(aEntry.getFeedbackScore()==0) return Zero; else return aEntry.getFeedbackScore();
@@ -217,7 +217,7 @@ public class auctionTableModel extends BaseTransformation
             return shipping; // shipping not set so cannot add up values
           }
 
-          Currency shippingUSD = Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getShippingWithInsurance());
+          Currency shippingUSD = Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), aEntry.getShippingWithInsurance());
           try {
             return aEntry.getUSCurBid().add(shippingUSD);
           } catch (Currency.CurrencyTypeException e) {
@@ -232,9 +232,9 @@ public class auctionTableModel extends BaseTransformation
             return shipping2; // shipping not set so cannot add up values
           }
 
-          Currency shippingUSD2 = Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getShippingWithInsurance());
+          Currency shippingUSD2 = Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), aEntry.getShippingWithInsurance());
           try {
-            return Currency.convertToUSD(aEntry.getUSCurBid(), aEntry.getCurBid(), aEntry.getSnipeAmount()).add(shippingUSD2);
+            return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), aEntry.getSnipeAmount()).add(shippingUSD2);
           } catch (Currency.CurrencyTypeException e) {
             JConfig.log().handleException("Currency addition or conversion threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
             return Currency.NoValue();
@@ -371,13 +371,14 @@ public class auctionTableModel extends BaseTransformation
       switch(columnIndex) {
         case TableColumnController.ID: return aEntry.getIdentifier();
         case TableColumnController.CUR_BID:
+          Currency curPrice = aEntry.getCurrentPrice();
           if(aEntry.isFixed()) {
-            return aEntry.getCurBid() + " (FP" + ((aEntry.getQuantity() > 1) ? " x " + aEntry.getQuantity() + ")" : ")");
+            return curPrice + " (FP" + ((aEntry.getQuantity() > 1) ? " x " + aEntry.getQuantity() + ")" : ")");
           } else {
             if(aEntry.isDutch()) {
-              return aEntry.getCurBid() + " x " + Integer.toString(aEntry.getQuantity());
+              return curPrice + " x " + Integer.toString(aEntry.getQuantity());
             } else {
-              return aEntry.getCurBid() + " (" + Integer.toString(aEntry.getNumBidders()) + ')';
+              return curPrice + " (" + Integer.toString(aEntry.getNumBidders()) + ')';
             }
           }
         case TableColumnController.SNIPE_OR_MAX: return formatSnipeAndBid(aEntry);
@@ -463,7 +464,7 @@ public class auctionTableModel extends BaseTransformation
           if(aEntry.getNumBidders() < 0) return "(FP)";
           return Integer.toString(aEntry.getNumBidders());
         case TableColumnController.JUSTPRICE:
-          return aEntry.getCurBid();
+          return aEntry.getCurrentPrice();
         case TableColumnController.SELLER_FEEDBACK:
           return aEntry.getFeedbackScore();
         case TableColumnController.SELLER_POSITIVE_FEEDBACK:
@@ -475,7 +476,7 @@ public class auctionTableModel extends BaseTransformation
             return "--"; // shipping not set so cannot add up values
           }
           try {
-            return aEntry.getCurBid().add(shipping);
+            return aEntry.getCurrentPrice().add(shipping);
           } catch (Currency.CurrencyTypeException e) {
             JConfig.log().handleException("Currency addition threw a bad currency exception, which is odd...", e); //$NON-NLS-1$
           }

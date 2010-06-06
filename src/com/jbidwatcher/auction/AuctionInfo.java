@@ -86,7 +86,7 @@ public class AuctionInfo extends ActiveRecord
   protected String[] infoTags = { "title", "seller", "highbidder", "bidcount", "start", "end",
                                 "currently", "dutch", "reserve", "private", "content",
                                 "shipping", "insurance", "buynow", "usprice", "fixed", "minimum",
-                                "paypal", "location", "feedback", "percentage", "sellerinfo"};
+                                "paypal", "location", "feedback", "percentage", "sellerinfo", "buy_now_us"};
   protected String[] getTags() { return infoTags; }
 
   protected void handleTag(int i, XMLElement curElement) {
@@ -116,11 +116,15 @@ public class AuctionInfo extends ActiveRecord
       case 11: //  Shipping cost
       case 12: //  Insurance cost
       case 13: //  Buy Now price
+      case 22: //  Buy Now US price
       case 14: //  Current US price
       case 16: //  Minimum price/bid
         Currency amount = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
         setMonetary(infoTags[i], amount);
         switch(i) {
+          case 13:
+            setDefaultCurrency(amount);
+            break;
           case 6:
             if (amount.getCurrencyType() == Currency.US_DOLLAR) {
               setMonetary("us_cur", amount);
@@ -207,13 +211,16 @@ public class AuctionInfo extends ActiveRecord
     XMLElement xinsurance = addCurrencyChild(xmlResult, "insurance");
     if(xinsurance != null) xinsurance.setProperty("optional", isInsuranceOptional() ?"true":"false");
 
-    if(getCurBid().getCurrencyType() != Currency.US_DOLLAR) {
-      addCurrencyChild(xmlResult, "usprice", Currency.US_DOLLAR);
+    if(getCurBid() != null && !getCurBid().isNull()) {
+      if (getCurBid().getCurrencyType() != Currency.US_DOLLAR) {
+        addCurrencyChild(xmlResult, "usprice", Currency.US_DOLLAR);
+      }
     }
 
     addCurrencyChild(xmlResult, "currently");
     addCurrencyChild(xmlResult, "shipping");
     addCurrencyChild(xmlResult, "buynow");
+    addCurrencyChild(xmlResult, "buy_now_us");
     addCurrencyChild(xmlResult, "minimum");
 
     XMLElement xdutch = addBooleanChild(xmlResult, "dutch");

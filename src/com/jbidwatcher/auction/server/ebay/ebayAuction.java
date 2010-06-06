@@ -458,6 +458,7 @@ class ebayAuction extends SpecificAuction {
     try {
       Currency sample = getCurBid();
       if(sample.isNull()) sample = getMinBid();
+      if(sample.isNull()) sample = getBuyNow();
       loadShippingInsurance(sample);
     } catch(Exception e) {
       JConfig.log().handleException("Shipping / Insurance Loading Failed", e);

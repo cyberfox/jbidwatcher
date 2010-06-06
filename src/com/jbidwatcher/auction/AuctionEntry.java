@@ -59,7 +59,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       return getSnipe().getAmount();
     }
 
-    return isBidOn() && !isComplete() ? getBid() : getCurBid();
+    return isBidOn() && !isComplete() ? getBid() : getCurrentPrice();
   }
 
   public Currency getSnipeAmount() {
@@ -219,7 +219,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
      */
     if (mLoaded) {
       if(mAuction.getServer() != null) setServer((AuctionServerInterface)mAuction.getServer());
-      setDefaultCurrency(mAuction.getCurBid());
+      Currency currentPrice = mAuction.getCurBid();
+      if(currentPrice == null || currentPrice.isNull()) {
+        currentPrice = mAuction.getBuyNow();
+      }
+      setDefaultCurrency(currentPrice);
       updateHighBid();
       checkHighBidder();
       checkSeller();
@@ -1552,6 +1556,23 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public Currency getMinBid() { return getAuction().getMinBid(); }
 
   /**
+   * Check current price, and fall back to buy-now price if 'current' isn't set.
+   *
+   * @return - The current price, or the buy now if current isn't set.
+   */
+  public Currency getCurrentPrice() {
+    Currency curPrice = getCurBid();
+    if (curPrice == null || curPrice.isNull()) return getBuyNow();
+    return curPrice;
+  }
+
+  public Currency getCurrentUSPrice() {
+    Currency curPrice = getCurBid();
+    if (curPrice == null || curPrice.isNull()) return getAuction().getBuyNowUS();
+    return getUSCurBid();
+  }
+
+  /**
    * @return - Shipping amount, overrides AuctionInfo shipping amount if present.
    */
   public Currency getShipping() {
@@ -1899,10 +1920,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   private String buildInfoBody(String prompt, boolean includeEvents, boolean addedThumbnail) {
     if(!isFixed()) {
-      prompt += buildRow("Currently", getCurBid() + " (" + getNumBidders() + " Bids)");
+      prompt += buildRow("Currently", getCurrentPrice() + " (" + getNumBidders() + " Bids)");
       prompt += buildRow("High bidder", getHighBidder());
     } else {
-      prompt += buildRow("Price", getCurBid());
+      prompt += buildRow("Price", getCurrentPrice());
     }
     if(isDutch()) {
       prompt += buildRow("Quantity", getQuantity());
