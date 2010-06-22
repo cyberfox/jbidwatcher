@@ -133,16 +133,16 @@ public class JBidProxy extends AbstractMiniServer {
       {"show", "^(cached_)?([0-9]+)$"},
       {"favicon", "^favico.ico$"},
       {"snipePage", "^snipe\\?id=([0-9]+)$"},
-      {"addAuction", "^addAuction\\?id=([0-9]+)$"},
-      {"cancelSnipe", "^cancelSnipe\\?id=([0-9]+)$"},
+      {"addAuction", "^addAuction\\?id=([0-9]+)[^0-9]*$"},
+      {"cancelSnipe", "^cancelSnipe\\?id=([0-9]+)[^0-9]*$"},
       {"fireEvent", "^event?name=([^&]+)&param=(.*)$"},
       {"index", "(?i)^jbidwatcher$"},
       {"synchronize", "synchronize"},
-      {"doSnipe", "^activateSnipe\\?id=([0-9]+)&snipeamount=(.*)$"},
+      {"doSnipe", "^activateSnipe\\?id=([0-9]+)&snipeamount=(.*)(?:&[a-zA-Z]*)?$"},
       // APIs
       {"categories", "^categories.json$"},
       {"auctionsInCategory", "^category/(.*).xml$"},
-      {"showXML", "^([0-9]+)\\.xml$"},
+      {"showXML", "^([0-9]+)\\.xml$"}
   };
 
   protected Object[][] getRoutes() {
