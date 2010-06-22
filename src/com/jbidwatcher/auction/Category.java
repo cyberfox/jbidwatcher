@@ -66,6 +66,11 @@ public class Category extends ActiveRecord
     return (Category) findFirstBy(Category.class, key, value);
   }
 
+  public static List<Category> all() {
+    List<Category> categories = (List<Category>) findAllBySQL(Category.class, "SELECT * FROM " + getTableName());
+    return categories;
+  }
+
   public static List<String> categories() {
     List<Category> categories = (List<Category>) findAllBySQL(Category.class, "SELECT name FROM " + getTableName());
     if(categories.isEmpty()) return null;
