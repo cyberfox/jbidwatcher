@@ -211,7 +211,12 @@ public class JBidProxy extends AbstractMiniServer {
   }
 
   public StringBuffer categories() {
-    String json = JSONValue.toJSONString(Category.categories());
+    Map<String, Integer> nameCountMap = new TreeMap<String, Integer>();
+    List<Category> allCategories = Category.all();
+    for(Category c : allCategories) {
+      nameCountMap.put(c.getName(), AuctionEntry.countByCategory(c));
+    }
+    String json = JSONValue.toJSONString(nameCountMap);
     JConfig.log().logMessage("Returning: " + json);
     return (new StringBuffer(json));
   }
