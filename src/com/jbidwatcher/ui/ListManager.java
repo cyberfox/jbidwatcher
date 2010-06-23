@@ -154,16 +154,4 @@ public class ListManager {
       step.getUI().adjustRowHeight();
     }
   }
-
-  public boolean checkEachList() throws InterruptedException {
-    boolean retval = false;
-    List<AuctionListHolder> categories = new ArrayList<AuctionListHolder>(mCategoryMap.values());
-
-    for (AuctionListHolder step : categories) {
-      if(Thread.interrupted()) throw new InterruptedException();
-      if (step.getList().check()) retval = true;
-    }
-
-    return retval;
-  }
 }

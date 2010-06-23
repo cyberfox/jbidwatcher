@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat;
 public class HashBacked extends XMLSerializeSimple {
   private static final Record EMPTY = new Record();
   private Record mBacking = EMPTY;
-  private static String DB_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+  protected static String DB_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
   private SimpleDateFormat mDateFormat = new SimpleDateFormat(DB_DATE_FORMAT);
   private Map<String, String> mTranslationTable;
   private String mDefaultCurrency;

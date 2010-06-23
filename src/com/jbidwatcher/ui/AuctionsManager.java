@@ -89,13 +89,17 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * collections.
    */
   public boolean check() throws InterruptedException {
-    //  The auctions themselves will decide which action this is,
-    //  snipe-checks, or updating.
-    boolean retval = ListManager.getInstance().checkEachList();
+    List<AuctionEntry> needUpdate = AuctionEntry.findAllNeedingUpdates(Constants.ONE_MINUTE * 40);
+//    System.err.println("Got " + needUpdate.size() + " listings needing update.");
+    for(AuctionEntry ae : needUpdate) {
+      boolean forced = ae.isUpdateForced();
+      Auctions.doUpdate(ae);
+      if(forced) MQFactory.getConcrete("redraw").enqueue(ae.getCategory()); // Redraw a tab that has a forced update.
+    }
 
     checkSnapshot();
 
-    return retval;
+    return !needUpdate.isEmpty();
   }
 
   /**

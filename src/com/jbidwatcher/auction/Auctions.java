@@ -7,9 +7,6 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.queue.TimerHandler;
-import com.jbidwatcher.util.Comparison;
-import com.jbidwatcher.util.UpdateBlocker;
 import com.jbidwatcher.util.Task;
 import com.jbidwatcher.util.xml.XMLInterface;
 
@@ -24,7 +21,7 @@ import com.jbidwatcher.util.xml.XMLInterface;
  *  in fact.  We'd need to export the auctionVector, so a UI-specific
  *  class could build it's own atm and tablesorter.  --  BUGBUG
  */
-public class Auctions implements TimerHandler.WakeupProcess {
+public class Auctions {
   boolean _complete = false;
 //  private volatile TableSorter _tSort;
   private AuctionList mList;
@@ -84,7 +81,7 @@ public class Auctions implements TimerHandler.WakeupProcess {
    * 
    * @param ae - The auction to update.
    */
-  private void doUpdate(AuctionEntry ae) {
+  public static void doUpdate(AuctionEntry ae) {
     String titleWithComment = getTitleAndComment(ae);
 
     if(!ae.isComplete() || ae.isUpdateForced()) {
@@ -107,48 +104,6 @@ public class Auctions implements TimerHandler.WakeupProcess {
       MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
       MQFactory.getConcrete("Swing").enqueue("Done updating " + Auctions.getTitleAndComment(ae));
     }
-  }
-
-  /** 
-   * Iterate over the auctions, starting from the last one we checked,
-   * and check if it's time to update that auction.  If it's a forced
-   * update, we will always change the display.  Basically, this
-   * function checks each auction until it finds one it needs to
-   * update, then it updates, and returns.
-   * 
-   * @return - True if any updating occured, false otherwise.
-   */
-  private boolean doNextUpdate() {
-    AuctionEntry result = mList.find(new Comparison() {
-      public boolean match(Object o) { return o != null && ((AuctionEntry) o).checkUpdate();  }
-    });
-    if (result != null) {
-      boolean forcedUpdate = result.isUpdateForced();
-
-      doUpdate(result);
-      if(forcedUpdate) {
-        MQFactory.getConcrete("redraw").enqueue(getName());
-      }
-    }
-    return result != null;
-  }
-
-  /**
-   * Check all snipes, then check up to one auction to update.  Snipes
-   * are more important, and should be checked in toto every second.
-   * Updates can wait a few seconds, based on the number of other
-   * auctions that need updates at the exact same time.  Over time,
-   * this will spread out auction update times, so they don't collide.
-   * If NO auctions were updated, set back to the start of the list of
-   * auctions to check.
-   * 
-   * @return - true if an update occurred or the display needs to be
-   * refreshed, either because of a snipe or an auction update ocurred.
-   * False if nothing has happened.
-   */
-  public boolean check() {
-    //  Don't allow updates to interfere with sniping.
-    return !(UpdateBlocker.isBlocked() || !doNextUpdate());
   }
 
   public void each(Task task) {

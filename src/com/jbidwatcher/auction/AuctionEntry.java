@@ -19,6 +19,7 @@ import com.jbidwatcher.util.xml.XMLInterface;
 
 import java.io.File;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -1073,6 +1074,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public void update() {
     mNeedsUpdate = false;
     mForceUpdate = false;
+    setDate("last_updated_at", new Date());
 
     // We REALLY don't want to leave an auction in the 'updating'
     // state.  It does bad things.
@@ -1093,9 +1095,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     if (isComplete()) {
       onComplete();
     } else {
-      Date serverTime = new Date(System.currentTimeMillis() +
-                                 getServer().getServerTimeDelta());
+      long now = System.currentTimeMillis() + getServer().getServerTimeDelta();
+      Date serverTime = new Date(now);
 
+      if(now > getEndDate().getTime())
       //  If we're past the end time, update once, and never again.
       if (serverTime.after(getEndDate())) {
         setComplete(true);
@@ -1208,7 +1211,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   /**
    * @brief This auction entry needs to be updated.
    */
-  public void setNeedsUpdate() { mNeedsUpdate = true; }
+  public void setNeedsUpdate() { setDate("last_updated_at", null); saveDB(); mNeedsUpdate = true; }
 
   /**
    * @brief Make this auction update despite being ended.
@@ -1767,6 +1770,17 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findAllSniped() {
     return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT * FROM " + getTableName() + " WHERE (snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL)");
+  }
+
+  private static Date updateSince = new Date();
+  private static SimpleDateFormat mDateFormat = new SimpleDateFormat(DB_DATE_FORMAT);
+
+  //  SELECT * FROM entries WHERE completed = 0 AND (updated_at IS NULL OR updated_at < NOW()-40 minutes);
+  @SuppressWarnings({"unchecked"})
+  public static List<AuctionEntry> findAllNeedingUpdates(long since) {
+    long fortyMinutesAgo = System.currentTimeMillis() - since;
+    updateSince.setTime(fortyMinutesAgo);
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE e.ended = 0 AND (e.last_updated_at IS NULL OR e.updated_at IS NULL OR e.updated_at < '" + mDateFormat.format(updateSince) + "') ORDER BY a.ending_at ASC");
   }
 
   @SuppressWarnings({"unchecked"})
