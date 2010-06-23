@@ -359,7 +359,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
 
   private Color chooseIDColor(AuctionEntry ae) {
     if(ae != null) {
-      boolean recent = ae.getJustAdded() != 0;
+      boolean recent = ae.isJustAdded();
       boolean isUpdating = ae.isUpdating();
 
       if (recent) {

@@ -85,8 +85,8 @@ public class AuctionEntryTest extends TestCase {
     assertEquals(1000 * 30, mAE.getSnipeTime());
   }
 
-  public void testGetJustAdded() throws Exception {
-    assertTrue(mAE.getJustAdded() > System.currentTimeMillis());
+  public void testIsJustAdded() throws Exception {
+    assertTrue(mAE.isJustAdded());
   }
 
   public void testGetIdentifier() throws Exception {

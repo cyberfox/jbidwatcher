@@ -180,12 +180,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private static long sDefaultSnipeAt = Constants.THIRTY_SECONDS;
 
   /**
-   * The time at which this will cease being a 'recently added'
-   * auction.  Usually set to five minutes after the construction.
-   */
-  private long mAddedRecently = 0;
-
-  /**
    * The time at which this wll cease being paused for update.  This
    * allows the 'Stop' button to work properly.
    */
@@ -244,7 +238,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private AuctionEntry(String auctionIdentifier, AuctionServerInterface server) {
     mServer = server;
     checkConfigurationSnipeTime();
-    mAddedRecently = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
     prepareAuctionEntry(auctionIdentifier);
   }
 
@@ -615,8 +608,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *
    * @return The time at which this entry is no longer new.
    */
-  public long getJustAdded() {
-    return mAddedRecently;
+  public boolean isJustAdded() {
+    return getDate("created_at").getTime() > System.currentTimeMillis() - Constants.ONE_MINUTE * 5;
   }
 
   public String getIdentifier() {
@@ -680,18 +673,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   /**
    * @brief Determine if it's time to update this auction.
    *
-   * PMD bitches long and hard about assigning to null repeatedly in
-   * this function.  Any way to clean that up? -- mrs: 23-February-2003 22:28
-   *
    * @return Whether or not it's time to retrieve the updated state of
    * this auction.
    */
   public synchronized boolean checkUpdate() {
     long curTime = System.currentTimeMillis();
-    if(mAddedRecently != 0) {
-      if(curTime > mAddedRecently) mAddedRecently = 0;
-    }
-
     if(mDontUpdate != 0) {
       if(curTime > mDontUpdate) {
         mDontUpdate = 0;
@@ -1095,7 +1081,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     } catch(Exception e) {
       JConfig.log().handleException("Unexpected exception during auction reload/update.", e);
     }
-    mAddedRecently = 0;
     try {
 //      getServer().updateWatchers(this);
       updateHighBid();
