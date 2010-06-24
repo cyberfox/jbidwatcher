@@ -119,7 +119,7 @@ public class JBidMenuBar extends JMenuBar {
     }
 
     makeMenuItem(inMenu, "Scripting Manager", "Scripting", 'M');
-    makeMenuItem(inMenu, "Check For Updates", KeyEvent.VK_U);
+    if(!Platform.isMac()) makeMenuItem(inMenu, "Check For Updates", KeyEvent.VK_U);
     makeMenuItem(inMenu, "Clear Deleted Tracking", "Clear Deleted", KeyEvent.VK_D, KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     if(!Platform.isMac()) inMenu.add(new JSeparator());
     makeMenuItem(
