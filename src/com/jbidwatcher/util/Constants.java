@@ -60,7 +60,7 @@ public class Constants {
   public static final String DEFAULT_SERVER_PORT_STRING = Integer.toString(Constants.DEFAULT_SERVER_PORT);
 /** What browser to pretend to be, when talking to the auction servers.
  */
-  public static final String FAKE_BROWSER = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2";
+  public static final String FAKE_BROWSER = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.4) Gecko/20100611 Firefox/3.6.4 ( .NET CLR 3.5.30729; .NET4.0C)";
 /** Indicates that there is no popup context for this action.  Used to
  * prepend to menu and button actions which do the same as popup
  * actions, but need to operate on selection lists.;
