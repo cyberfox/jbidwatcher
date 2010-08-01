@@ -636,7 +636,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  Register the handler for all 'drop' events.
     JBWDropHandler.start();
     Browser.start();
-    UserActions.start();
+    MQFactory.getConcrete("user").registerListener(UserActions.getInstance());
+    //    class.getClass().getClassLoader().find('com.jbidwatcher.ui.commands.*').loadAll();
 
     inSplash.message("Building Interface");
     jtmAuctions = JTabManager.getInstance();

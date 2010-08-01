@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 import com.jbidwatcher.platform.Path;
+import com.jbidwatcher.ui.commands.AbstractCommand;
+import com.jbidwatcher.ui.commands.FAQCommand;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.*;
@@ -33,6 +35,7 @@ import com.jbidwatcher.auction.AuctionServerInterface;
 import com.l2fprod.common.swing.JFontChooser;
 
 public class UserActions implements MessageQueue.Listener {
+  private static Map<String,AbstractCommand> commands = new HashMap<String,AbstractCommand>();
   private static JTabManager mTabs = JTabManager.getInstance();
   private static JConfigFrame jcf = null;
   private static SearchFrame _searchFrame = null;
@@ -41,31 +44,32 @@ public class UserActions implements MessageQueue.Listener {
   private static StringBuffer _colorHelp = null;
   private static StringBuffer _aboutText = null;
   private static StringBuffer _licenseText = null;
-  private static StringBuffer _faqText = null;
   private static StringBuffer _needHelp = null;
 
   private boolean _in_deleting = false;
   private ScriptManager mScriptFrame;
+
+  private static AbstractCommand[] sCommands = { new FAQCommand() };
+
+  // Singleton stuff
   private static UserActions sInstance = null;
+
+  public static synchronized UserActions getInstance() {
+    if (sInstance == null) sInstance = new UserActions();
+    if (sCommands == null) JConfig.log().logMessage("Interactive commands not loaded!");
+    return sInstance;
+  }
+
+  public void addCommand(String cmdName, AbstractCommand commandObject) {
+    commands.put(cmdName, commandObject);
+  }
 
   private UserActions() { }
 
+  //  Message Listener stuff
   public static final String ADD_AUCTION="ADD ";
   private static final String GET_SERVER_TIME="GETTIME";
   private static final String SEARCH="SEARCH";
-
-  private EntryInterface addAuction(String auctionSource) {
-    AuctionEntry aeNew = AuctionEntry.construct(auctionSource);
-    if(aeNew != null && aeNew.isLoaded()) {
-      aeNew.clearNeedsUpdate();
-      AuctionsManager.getInstance().addEntry(aeNew);
-      MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
-      return aeNew;
-    } else {
-      if(aeNew != null) aeNew.delete();
-      return null;
-    }
-  }
 
   public void messageAction(Object deQ) {
     if(deQ instanceof String) {
@@ -98,14 +102,30 @@ public class UserActions implements MessageQueue.Listener {
       DoSearch();
     } else if(commandStr.equals("About " + Constants.PROGRAM_NAME)) {
       DoAbout();
-    } else if(commandStr.equals("FAQ")) {
-      DoFAQ();
     } else if(commandStr.equals("Donate")) {
       DoNeedHelp();
     } else if(commandStr.equals("Configure")) {
       DoConfigure();
     } else if(commandStr.equals("Upload")) {
       DoUploadAuctions();
+    } else {
+      AbstractCommand cmd = commands.get(commandStr);
+      if(cmd != null) cmd.execute();
+      else {
+        JConfig.log().logDebug("Recevied unrecognized 'user' message: " + commandStr);
+      }
+    }
+  }
+
+  private EntryInterface addAuction(String auctionSource) {
+    AuctionEntry aeNew = AuctionEntry.construct(auctionSource);
+    if (aeNew != null && aeNew.isLoaded()) {
+      AuctionsManager.getInstance().addEntry(aeNew);
+      MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
+      return aeNew;
+    } else {
+      if (aeNew != null) aeNew.delete();
+      return null;
     }
   }
 
@@ -118,16 +138,15 @@ public class UserActions implements MessageQueue.Listener {
     auctionSource = auctionSource.trim();
 
     EntryInterface aeNew = addAuction(auctionSource);
-    if(aeNew == null) {
-      AuctionsManager am = AuctionsManager.getInstance();
+    if (aeNew == null) {
       String id = AuctionServerManager.getInstance().getServer().stripId(auctionSource);
       //  For user-interactive adds, always override the deleted state.
-      if(DeletedEntry.exists(id)) {
+      if (DeletedEntry.exists(id)) {
         DeletedEntry.remove(id);
         aeNew = addAuction(auctionSource);
       }
-      if(aeNew == null) {
-        if(am.verifyEntry(id)) {
+      if (aeNew == null) {
+        if (AuctionEntry.findByIdentifier(id) != null) {
           MQFactory.getConcrete("Swing").enqueue("ERROR " + "Cannot add auction " + auctionSource + ", it is already in your auction list.");
         } else {
           MQFactory.getConcrete("Swing").enqueue("ERROR " + "Cannot add auction " + auctionSource + ", either invalid or\ncommunication error talking to server.");
@@ -1046,7 +1065,6 @@ public class UserActions implements MessageQueue.Listener {
 
   private final static StringBuffer badAbout = new StringBuffer("Error loading About text!  (D'oh!)  Email <a href=\"mailto:cyberfox@jbidwatcher.com\">me</a>!");
   private final static StringBuffer badLicense = new StringBuffer("Error loading License text!  Please visit <a href=\"http://www.jbidwatcher.com/by-nc-sa-amended.shtml\">http://http://www.jbidwatcher.com/by-nc-sa-amended.shtml</a>!");
-  private final static StringBuffer badFAQ = new StringBuffer("Error loading FAQ text!  (D'oh!)  Email <a href=\"mailto:cyberfox@jbidwatcher.com\">me</a>!");
 
   static private JFrame aboutFrame = null;
   private void DoAbout() {
@@ -1128,21 +1146,6 @@ public class UserActions implements MessageQueue.Listener {
   private void DoViewActivity() {
     StringBuffer logText = com.jbidwatcher.util.services.ActivityMonitor.getInstance().getLog();
     showLog(logText, "Activity Log");
-  }
-
-  private static JFrame faqFrame = null;
-  private void DoFAQ() {
-    if(faqFrame == null) {
-      Dimension faqBoxSize = new Dimension(625, 500);
-
-      if(_faqText == null) {
-        _faqText = JBHelp.loadHelp("/help/faq.jbh", "FAQ for " + Constants.PROGRAM_NAME + "...");
-      }
-
-      faqFrame = _oui.showTextDisplay(_faqText!=null?_faqText:badFAQ, faqBoxSize, Constants.PROGRAM_NAME + " FAQ");
-    } else {
-      faqFrame.setVisible(true);
-    }
   }
 
   private void DoSerialize() {
@@ -1356,31 +1359,49 @@ public class UserActions implements MessageQueue.Listener {
     } else {
       c_src = null;
     }
-    if(actionString.equals("Save")) DoSave(c_src);
+
+    AbstractCommand cmd = commands.get(actionString);
+    if(cmd != null) {
+      cmd.setSource(c_src);
+      cmd.setAuction(whichAuction);
+      cmd.setSelected(mTabs.getPossibleRows());
+      cmd.execute();
+    } else if(actionString.equals("Save")) DoSave(c_src);
+    else if (actionString.equals("Clear Deleted")) DoClearDeleted(c_src);
+    else if (actionString.equals("Add") || actionString.equals("Add New")) DoAdd(c_src);
+    else if (actionString.equals("StopUpdating")) DoStopUpdating(c_src);
+    else if (actionString.equals("Help")) DoHelp(c_src);
+    else if (actionString.equals("Multiple Snipe")) DoMultiSnipe(c_src);
+    else if (actionString.equals("Set Background Color")) DoSetBackgroundColor(c_src);
+
     else if(actionString.equals("Load")) DoLoad(null);
-    else if(actionString.equals("Clear Deleted")) DoClearDeleted(c_src);
     else if(actionString.equals("Configure")) DoConfigure();
     else if(actionString.equals("Check Updates")) DoCheckUpdates();
     else if(actionString.equals("Check For Updates")) DoCheckUpdates();
     else if(actionString.equals("Exit")) DoCloseDown();
-    else if(actionString.equals("Help")) DoHelp(c_src);
     else if(actionString.equals("Explain Colors And Icons")) DoHelpColors();
     else if(actionString.equals("RSS")) DoRSS();
-
     else if(actionString.equals("Serialize")) DoSerialize();
     else if(actionString.equals("Upload")) DoUploadAuctions();
-
     else if(actionString.equals("Paste")) DoPasteFromClipboard();
-    else if(actionString.equals("CopyURL")) DoCopyURL(c_src, whichAuction);
-    else if(actionString.equals("CopyID")) DoCopyID(c_src, whichAuction);
-    else if(actionString.equals("Add") || actionString.equals("Add New")) DoAdd(c_src);
-    else if(actionString.equals("Delete")) DoDelete(c_src, whichAuction);
-
     else if(actionString.equals("UpdateAll")) DoUpdateAll();
-    else if(actionString.equals("StopUpdating")) DoStopUpdating(c_src);
-
     else if(actionString.equals("Resync")) DoResetServerTime();
+    else if (actionString.equals("About " + Constants.PROGRAM_NAME)) DoAbout();
+    else if (actionString.equals("About")) DoAbout();
+    else if (actionString.equals("Donate")) DoNeedHelp();
+    else if (actionString.equals("License")) DoLicense();
+    else if (actionString.equals("Toolbar")) DoHideShowToolbar();
+    else if (actionString.equals("Search")) DoSearch();
+    else if (actionString.equals("Scripting")) DoScripting();
+    else if (actionString.equals("View Log")) DoViewLog();
+    else if (actionString.equals("View Activity")) DoViewActivity();
+    else if (actionString.equals("Submit Log File")) DoSubmitLogFile();
+    else if (actionString.equals("Restart")) DoRestart();
+    else if (actionString.equals("Font")) DoChooseFont();
 
+    else if (actionString.equals("CopyURL")) DoCopyURL(c_src, whichAuction);
+    else if (actionString.equals("CopyID")) DoCopyID(c_src, whichAuction);
+    else if (actionString.equals("Delete")) DoDelete(c_src, whichAuction);
     else if(actionString.equals("Information")) DoInformation(c_src, whichAuction);
     else if(actionString.equals("Update")) DoUpdate(c_src, whichAuction);
     else if(actionString.equals("Browse")) DoShowInBrowser(c_src, whichAuction);
@@ -1391,35 +1412,21 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Bid")) DoBid(c_src, whichAuction);
     else if(actionString.equals("Buy")) DoBuy(c_src, whichAuction);
     else if(actionString.equals("Shipping")) DoShipping(c_src, whichAuction);
+    else if (actionString.equals("Cancel Snipe")) CancelSnipe(c_src, whichAuction);
+    else if (actionString.equals("Add Comment")) DoComment(c_src, whichAuction);
+    else if (actionString.equals("View Comment")) ShowComment(c_src, whichAuction);
+    else if (actionString.equals("Copy")) DoCopy(c_src, whichAuction);
+    else if (actionString.equals("Snipe")) DoSnipe(c_src, whichAuction);
+
     else if(actionString.equals("NotEnded")) DoSetNotEnded(whichAuction);
-    else if(actionString.equals("Snipe")) DoSnipe(c_src, whichAuction);
-    else if(actionString.equals("Multiple Snipe")) DoMultiSnipe(c_src);
-
-    else if(actionString.equals("About " + Constants.PROGRAM_NAME)) DoAbout();
-    else if(actionString.equals("About")) DoAbout();
-    else if(actionString.equals("Donate")) DoNeedHelp();
-    else if(actionString.equals("FAQ")) DoFAQ();
-    else if(actionString.equals("License")) DoLicense();
-
-    else if(actionString.equals("Cancel Snipe")) CancelSnipe(c_src, whichAuction);
-    else if(actionString.equals("Add Comment")) DoComment(c_src, whichAuction);
-    else if(actionString.equals("View Comment")) ShowComment(c_src, whichAuction);
     else if(actionString.equals("Remove Comment")) DeleteComment(whichAuction);
-    else if(actionString.equals("Copy")) DoCopy(c_src, whichAuction);
-    else if(actionString.equals("Set Background Color")) DoSetBackgroundColor(c_src);
-    else if(actionString.equals("Toolbar")) DoHideShowToolbar();
-    else if(actionString.equals("Search")) DoSearch();
-    else if(actionString.equals("Scripting")) DoScripting();
+    else if (actionString.equals("Mark as Won")) DoDebugWin(whichAuction);
+
     else if(actionString.equals("Dump")) JConfig.log().logDebug("Dump requested.");
     else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
     else if(actionString.equals("My JBidwatcher")) MQFactory.getConcrete("browse").enqueue("http://my.jbidwatcher.com");
-    else if(actionString.equals("View Log")) DoViewLog();
-    else if(actionString.equals("Mark as Won")) DoDebugWin(whichAuction);
-    else if(actionString.equals("View Activity")) DoViewActivity();
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
-    else if(actionString.equals("Submit Log File")) DoSubmitLogFile();
-    else if(actionString.equals("Restart")) DoRestart();
-    else if(actionString.equals("Font")) DoChooseFont();
+
     else JConfig.log().logDebug('[' + actionString + ']');
   }
 
@@ -1453,9 +1460,5 @@ public class UserActions implements MessageQueue.Listener {
 
     auction.setLastStatus(endResult);
     MQFactory.getConcrete("report").enqueue(auction.getIdentifier());
-  }
-
-  public static void start() {
-    if (sInstance == null) MQFactory.getConcrete("user").registerListener(sInstance = new UserActions());
   }
 }
