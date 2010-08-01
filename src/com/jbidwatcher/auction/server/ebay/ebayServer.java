@@ -317,6 +317,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   private static final int THIRTY_SECONDS = 30 * Constants.ONE_SECOND;
   private static final long TWO_MINUTES = Constants.ONE_MINUTE * 2;
+  private static final long FIVE_MINUTES = Constants.ONE_MINUTE * 5;
 
   public void setSnipe(AuctionEntry snipeOn) {
     String identifier = snipeOn.getIdentifier();
@@ -330,6 +331,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     JConfig.log().logDebug("Establishing a snipe on " + identifier);
     if (endDate != null && endDate != Constants.FAR_FUTURE) {
+      _etqm.add("TIMECHECK", "auction_manager", (endDate.getTime() - snipeDelta) - FIVE_MINUTES);
       _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta) - TWO_MINUTES);
       _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta));
       _etqm.add(identifier, "drop",       endDate.getTime() + THIRTY_SECONDS);
