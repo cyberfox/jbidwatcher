@@ -39,7 +39,9 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   private long mLastCheckpointed = 0;
   private static final int AUCTIONCOUNT = 100;
   private static final int MAX_PERCENT = AUCTIONCOUNT;
-  private static TimerHandler sTimer;
+  private static TimerHandler sTimer = null;
+  private long mPausedUntil = 0;
+  private AuctionEntry mCurrentlyUpdating = null;
 
   /**
    * @brief AuctionsManager is a singleton, there should only be one
@@ -67,6 +69,11 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     return mInstance;
   }
 
+  public void pause() {
+    //  Pause until 5 minutes from now.
+    mPausedUntil = System.currentTimeMillis() + Constants.ONE_MINUTE * 5;
+  }
+
   /////////////////////////////////////////////////////////
   //  Mass-equivalents for Auction-list specific operations
 
@@ -85,34 +92,56 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * @brief Check all the auctions for active events, and check if we
    * should snapshot the auctions off to disk.
    * 
-   * @return True if it's time to update in one of the auction
-   * collections.
+   * @return True if any auctions updated.
    */
   public boolean check() throws InterruptedException {
-    List<AuctionEntry> needUpdate = AuctionEntry.findAllNeedingUpdates(Constants.ONE_MINUTE * 40);
-//    System.err.println("Got " + needUpdate.size() + " listings needing update.");
-    for(AuctionEntry ae : needUpdate) {
-      boolean forced = ae.isUpdateForced();
-      Auctions.doUpdate(ae);
-      if(forced) MQFactory.getConcrete("redraw").enqueue(ae.getCategory()); // Redraw a tab that has a forced update.
+    boolean neededUpdate = false;
+    List<AuctionEntry> needUpdate;
+    if(mPausedUntil == 0 || mPausedUntil <= System.currentTimeMillis()) {
+      mPausedUntil = 0;
+
+      needUpdate = AuctionEntry.findAllNeedingUpdates(Constants.ONE_MINUTE * 69);
+      updateList(needUpdate);
+      neededUpdate = !needUpdate.isEmpty();
+
+      //  These could be two separate threads, doing slow and fast updates.
+      needUpdate = AuctionEntry.findEndingNeedingUpdates(Constants.ONE_MINUTE);
+      updateList(needUpdate);
+      neededUpdate |= !needUpdate.isEmpty();
     }
+
+    //  Or three, doing slow, fast, and manual...
+    needUpdate = AuctionEntry.findManualUpdates();
+    updateList(needUpdate);
+    neededUpdate |= !needUpdate.isEmpty();
 
     checkSnapshot();
 
-    return !needUpdate.isEmpty();
+    return neededUpdate;
+  }
+
+  private void updateList(List<AuctionEntry> needUpdate) throws InterruptedException {
+    for(AuctionEntry ae : needUpdate) {
+      if (Thread.interrupted()) throw new InterruptedException();
+      boolean forced = ae.isUpdateRequired();
+      mCurrentlyUpdating = ae;
+      Auctions.doUpdate(ae);
+      mCurrentlyUpdating = null;
+      if(forced) MQFactory.getConcrete("redraw").enqueue(ae.getCategory()); // Redraw a tab that has a forced update.
+    }
+  }
+
+  public boolean isCurrentlyUpdating(String identifier) {
+    try {
+      return mCurrentlyUpdating != null && mCurrentlyUpdating.getIdentifier().equals(identifier);
+    } catch(NullPointerException npe) {
+      return false;
+    }
   }
 
   /**
    * @brief Verify that an auction entry exists.
    *
-   * This should query the filter manager instead of doing it itself.
-   * This would let FilterManager handle all this, and AuctionsManager
-   * wouldn't need to know anything too much about the items in the
-   * auction lists.
-   *
-   * @note Both Verify and Get should proxy to FilterManager!
-   * FUTURE FEATURE -- mrs: 29-September-2001 14:59
-   * 
    * @param id - The auction id to search for.
    * 
    * @return - True if the item exists someplace in our list of Auctions.

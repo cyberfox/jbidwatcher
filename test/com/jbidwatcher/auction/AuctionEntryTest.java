@@ -125,17 +125,6 @@ public class AuctionEntryTest extends TestCase {
     assertNull(mAE.getCancelledSnipe());
   }
 
-  public void testSetNeedsUpdate() throws Exception {
-    MQFactory.getConcrete("redraw").registerListener(new MessageQueue.Listener() {
-      public void messageAction(Object deQ) {
-        assertSame(deQ, mAE);
-      }
-    });
-    assertTrue(mAE.checkUpdate());
-    mAE.update();
-    assertFalse(mAE.checkUpdate());
-  }
-
   public void testSetGetCategory() throws Exception {
     //  By default w/o a category (and not complete yet), it's in 'current'.
     assertEquals("current", mAE.getCategory());

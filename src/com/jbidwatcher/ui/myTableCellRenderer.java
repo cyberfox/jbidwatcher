@@ -360,12 +360,12 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private Color chooseIDColor(AuctionEntry ae) {
     if(ae != null) {
       boolean recent = ae.isJustAdded();
-      boolean isUpdating = ae.isUpdating();
+      boolean isUpdating = AuctionsManager.getInstance().isCurrentlyUpdating(ae.getIdentifier());
 
-      if (recent) {
-        return darkGreen;
-      } else if (isUpdating) {
+      if(isUpdating) {
         return darkRed;
+      } else if(recent) {
+        return darkGreen;
       }
     }
     return Color.BLACK;

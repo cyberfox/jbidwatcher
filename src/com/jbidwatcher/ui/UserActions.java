@@ -1001,15 +1001,7 @@ public class UserActions implements MessageQueue.Listener {
       //  Clear all dropped or programmatically added auctions.
       MQFactory.getConcrete("drop").clear();
 
-      Iterator<AuctionEntry> stepThrough = AuctionsManager.getAuctionIterator();
-
-      while(stepThrough.hasNext()) {
-        AuctionEntry ae = stepThrough.next();
-        if(!ae.isComplete()) {
-          ae.clearNeedsUpdate();
-          ae.pauseUpdate();
-        }
-      }
+      AuctionsManager.getInstance().pause();
     }
   }
 
@@ -1021,18 +1013,12 @@ public class UserActions implements MessageQueue.Listener {
         AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
 
         tempEntry.setNeedsUpdate();
-        if (tempEntry.isComplete() || tempEntry.isPaused()) {
-          tempEntry.forceUpdate();
-        }
       }
     } else {
       if(inAuction == null) {
         JOptionPane.showMessageDialog(src, "No auction selected to update.", "No auction to update", JOptionPane.INFORMATION_MESSAGE);
       } else {
         inAuction.setNeedsUpdate();
-        if(inAuction.isPaused()) {
-          inAuction.forceUpdate();
-        }
       }
     }
   }

@@ -85,7 +85,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return mSnipe;
   }
 
-  /** All the auction-independant information like high bidder's name,
+  /** All the auction-independent information like high bidder's name,
    * seller's name, etc...  This is directly queried when this object
    * is queried about any of those fields.
    *
@@ -100,24 +100,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private EventLogger mEntryEvents = null;
 
   /**
-   * Are we in the middle of updating?  This should probably be
-   * synchronized, and therefore a Boolean.  BUGBUG -- mrs: 01-January-2003 23:59
-   */
-  private boolean mUpdating =false;
-
-  /**
-   * Is it time to update this AuctionEntry?  This is used for things
-   * like sniping, where we want an immediate update afterwards.
-   */
-  private boolean mNeedsUpdate =false;
-
-  /**
-   * Force an update despite ended status, for the post-end update,
-   * and for user-initiated updates of ended auctions.
-   */
-  private boolean mForceUpdate =false;
-
-  /**
    * Have we ever obtained this auction data from the server?
    */
   private boolean mLoaded =false;
@@ -127,11 +109,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * be null, and will point to a MultiSnipe object.
    */
   private MultiSnipe mMultiSnipe =null;
-
-  /**
-   * Is the current user the seller?  Same caveats as mHighBidder.
-   */
-  private boolean mSeller =false;
 
   private AuctionSnipe mSnipe = null;
 
@@ -153,20 +130,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private long mBidAt =0;
 
   /**
-   * Starting mQuickerUpdateStart milliseconds from the end of the
-   * auction, it will start triggering an update of the auction from
-   * the server once every minute.  Currently set so that at half an
-   * hour from the end of the auction, start updating every minute.
-   */
-  private long mQuickerUpdateStart = Constants.THIRTY_MINUTES;
-
-  /**
-   * Every mUpdateFrequency milliseconds it will trigger an update of
-   * the auction from the server.
-   */
-  private long mUpdateFrequency = Constants.FORTY_MINUTES;
-
-  /**
    * Delta in time from the end of the auction that sniping will
    * occur at.  It's possible to set a different snipe time for each
    * auction, although it's not presently implemented through any UI.
@@ -180,12 +143,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    */
   private static long sDefaultSnipeAt = Constants.THIRTY_SECONDS;
 
-  /**
-   * The time at which this wll cease being paused for update.  This
-   * allows the 'Stop' button to work properly.
-   */
-  private long mDontUpdate = 0;
-
   private StringBuffer mLastErrorPage = null;
 
   /**
@@ -198,8 +155,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *                            is used to key the auction.
    */
   private synchronized void prepareAuctionEntry(String auctionIdentifier) {
-    mNeedsUpdate = true;
-
     if (mServer != null) {
       mAuction = mServer.create(auctionIdentifier);
     }
@@ -218,10 +173,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       if(currentPrice == null || currentPrice.isNull()) {
         currentPrice = mAuction.getBuyNow();
       }
+      setDate("last_updated_at", new Date());
       setDefaultCurrency(currentPrice);
       updateHighBid();
       checkHighBidder();
-      checkSeller();
       checkEnded();
     }
   }
@@ -302,6 +257,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   /**
    * @brief Return the server associated with this entry.
+   *
+   * TODO mrs -- This needs to be set in the data record.
    *
    * @return The server that this auction entry is associated with.
    */
@@ -401,18 +358,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public boolean isBidOn() { return(getBid() != null && !getBid().isNull()); }
 
   /**
-   * @brief Check if we are in the midst of updating this auction.
-   *
-   * Not necessary, as the only place it should be used is internally,
-   * but it's now being used by auctionTableModel to identify when a
-   * specific item is being updated.  It lets the item # be a nice red,
-   * momentarily, while the update happens.
-   *
-   * @return Whether the update for this auction is in progress.
-   */
-  public boolean isUpdating()  { return(mUpdating); }
-
-  /**
    * @brief Check if the current user is the high bidder on this
    * auction.
    *
@@ -435,7 +380,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *
    * @return Whether the current user is the seller.
    */
-  public boolean isSeller() { return mSeller; }
+  public boolean isSeller() { return getServer().isCurrentUser(getSeller()); }
 
   /**
    * @brief What was the highest amount actually submitted to the
@@ -575,7 +520,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @brief Check if the configuration has a 'snipemilliseconds'
    * entry, and update the default if it does.
    */
-  private void checkConfigurationSnipeTime() {
+  private static void checkConfigurationSnipeTime() {
     sDefaultSnipeAt = getGlobalSnipeTime();
   }
 
@@ -661,56 +606,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     }
   }
 
-  /**
-   * @brief Set the flags if the current user is the seller in this auction.
-   */
-  private void checkSeller() {
-    mSeller = getServer().isCurrentUser(getSeller());
-  }
-
   ////////////////////////////
   //  Periodic logic functions
-
-  /**
-   * @brief Determine if it's time to update this auction.
-   *
-   * @return Whether or not it's time to retrieve the updated state of
-   * this auction.
-   */
-  public synchronized boolean checkUpdate() {
-    long curTime = System.currentTimeMillis();
-    if(mDontUpdate != 0) {
-      if(curTime > mDontUpdate) {
-        mDontUpdate = 0;
-      } else {
-        return false;
-      }
-    }
-
-    if(!mNeedsUpdate) {
-      if(!isUpdating() && !isComplete()) {
-        long serverTime = curTime + getServer().getServerTimeDelta();
-
-        //  If we're past the end time, update once, and never again.
-        if(serverTime > getEndDate().getTime()) {
-          mNeedsUpdate = true;
-        } else {
-          if( mUpdateFrequency != Constants.ONE_MINUTE ) {
-            if( (getEndDate().getTime() - mQuickerUpdateStart) < serverTime) {
-              mUpdateFrequency = Constants.ONE_MINUTE;
-              mNeedsUpdate = true;
-            }
-          }
-          Date updatedAt = getDate("updated_at");
-          if( updatedAt == null || (updatedAt.getTime() + mUpdateFrequency) < curTime) {
-            mNeedsUpdate = true;
-          }
-        }
-      }
-    }
-
-    return mNeedsUpdate;
-  }
 
   /**
    * @brief Mark this entry as being not-invalid.
@@ -978,7 +875,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         getEvents();
       }
       checkHighBidder();
-      checkSeller();
       saveDB();
     }
   }
@@ -997,7 +893,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *
    * @param newMS - The newly created multisnipe to add.
    */
-  private void addMulti(MultiSnipe newMS) {
+  private static void addMulti(MultiSnipe newMS) {
     long newId = newMS.getIdentifier();
 
     if(!allMultiSnipes.containsKey(newId)) {
@@ -1048,11 +944,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public void snipeCompleted() {
     setBid(getSnipe().getAmount());
     setBidQuantity(getSnipe().getQuantity());
-    mNeedsUpdate = true;
     getSnipe().delete();
     setInteger("snipe_id", null);
     mSnipe = null;
     setDirty();
+    setNeedsUpdate();
     saveDB();
   }
 
@@ -1063,8 +959,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    */
   public void snipeFailed() {
     handleCancel(true);
-    mNeedsUpdate = true;
     setDirty();
+    setNeedsUpdate();
     saveDB();
   }
 
@@ -1072,8 +968,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @brief Completely update auction info from the server for this auction.
    */
   public void update() {
-    mNeedsUpdate = false;
-    mForceUpdate = false;
     setDate("last_updated_at", new Date());
 
     // We REALLY don't want to leave an auction in the 'updating'
@@ -1090,7 +984,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     } catch(Exception e) {
       JConfig.log().handleException("Unexpected exception during high bidder check.", e);
     }
-    checkSeller();
     //  TODO Move all this to 'setComplete' on 'true'...
     if (isComplete()) {
       onComplete();
@@ -1102,8 +995,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       //  If we're past the end time, update once, and never again.
       if (serverTime.after(getEndDate())) {
         setComplete(true);
-        mNeedsUpdate = true;
-        mForceUpdate = true;
+        setNeedsUpdate();
       }
     }
     saveDB();
@@ -1211,15 +1103,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   /**
    * @brief This auction entry needs to be updated.
    */
-  public void setNeedsUpdate() { setDate("last_updated_at", null); saveDB(); mNeedsUpdate = true; }
-
-  /**
-   * @brief Make this auction update despite being ended.
-   *
-   * Clear the 'dont update' flag for this, because this is always a
-   * user-forced update message.
-   */
-  public void forceUpdate() { mForceUpdate = true; mDontUpdate = 0; mNeedsUpdate = true; }
+  public void setNeedsUpdate() { setDate("last_updated_at", null); saveDB(); }
 
   /**
    * @brief Get the category this belongs in, usually used for tab names, and fitting in search results.
@@ -1275,28 +1159,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    */
   public void setSticky(boolean beSticky) { setBoolean("sticky", beSticky); saveDB(); }
 
-  /**
-   * @brief This auction entry does NOT need to be updated.
-   */
-  public void clearNeedsUpdate() {
-    mNeedsUpdate = false;
-  }
-
-  /**
-   * @brief Pause updating this item, including things like moving to
-   * completed, etc.
-   */
-  public void pauseUpdate() {
-    mDontUpdate = System.currentTimeMillis() + 5 * Constants.ONE_MINUTE;
-  }
-
-  /**
-   * @brief Is this entry paused?
-   *
-   * @return - Whether updates for this item are paused.
-   */
-  public boolean isPaused() { return mDontUpdate != 0; }
-
+  // TODO mrs -- Move this to a TimeLeftBuilder class.
   public static final String endedAuction = "Auction ended.";
   private static final String mf_min_sec = "{6}{2,number,##}m, {7}{3,number,##}s";
   private static final String mf_hrs_min = "{5}{1,number,##}h, {6}{2,number,##}m";
@@ -1359,7 +1222,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return endedAuction;
   }
 
-  private String getTimeFormatter(long days, long hours) {
+  private static String getTimeFormatter(long days, long hours) {
     String mf;
     boolean use_detailed = JConfig.queryConfiguration("timeleft.detailed", "false").equals("true");
     String cfg;
@@ -1381,11 +1244,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return mf;
   }
 
-  private String pad(long x) {
+  private static String pad(long x) {
     return (x < 10) ? " " : "";
   }
-
-  public boolean isUpdateForced() { return mForceUpdate; }
 
   /**
    * @brief Do a 'standard' compare to another AuctionEntry object.
@@ -1528,7 +1389,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     }
 
     checkHighBidder();
-    checkSeller();
     checkEnded();
     saveDB();
   }
@@ -1773,14 +1633,25 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   private static Date updateSince = new Date();
+  private static Date endingSoon = new Date();
   private static SimpleDateFormat mDateFormat = new SimpleDateFormat(DB_DATE_FORMAT);
 
-  //  SELECT * FROM entries WHERE completed = 0 AND (updated_at IS NULL OR updated_at < NOW()-40 minutes);
   @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findAllNeedingUpdates(long since) {
-    long fortyMinutesAgo = System.currentTimeMillis() - since;
-    updateSince.setTime(fortyMinutesAgo);
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE e.ended = 0 AND (e.last_updated_at IS NULL OR e.updated_at IS NULL OR e.updated_at < '" + mDateFormat.format(updateSince) + "') ORDER BY a.ending_at ASC");
+    long timeRange = System.currentTimeMillis() - since;
+    updateSince.setTime(timeRange);
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE e.ended = 0 AND (e.last_updated_at IS NULL OR e.last_updated_at < '" + mDateFormat.format(updateSince) + "') ORDER BY a.ending_at ASC");
+  }
+
+  @SuppressWarnings({"unchecked"})
+  public static List<AuctionEntry> findEndingNeedingUpdates(long since) {
+    long timeRange = System.currentTimeMillis() - since;
+    updateSince.setTime(timeRange);
+
+    //  Update more frequently in the last 25 minutes.
+    endingSoon.setTime(System.currentTimeMillis() + 25 * Constants.ONE_MINUTE);
+
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE a.ending_at < '" + mDateFormat.format(endingSoon) + "' AND e.ended = 0 AND (e.last_updated_at IS NULL OR e.last_updated_at < '" + mDateFormat.format(updateSince) + "') ORDER BY a.ending_at ASC");
   }
 
   @SuppressWarnings({"unchecked"})
@@ -1874,6 +1745,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return super.delete();
   }
 
+  //  TODO mrs -- Move this to an AuctionEntryBuilder class
   public static final String newRow = "<tr><td>";
   public static final String newCol = "</td><td>";
   public static final String endRow = "</td></tr>";
@@ -2031,24 +1903,26 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     ms.setWonAuction(/* this */);
   }
 
-  public void setUpdating() {
-    mUpdating = true;
-  }
-
-  public void clearUpdating() {
-    mUpdating = false;
-  }
-
   public static int countByCategory(Category c) {
     if(c == null) return 0;
     return getRealDatabase().countBySQL("SELECT COUNT(*) FROM entries WHERE category_id=" + c.getId());
   }
 
+  @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findAllBy(String column, String value) {
     return (List<AuctionEntry>)ActiveRecord.findAllBy(AuctionEntry.class, column, value);
   }
 
   public void setNumBids(int bidCount) {
     mAuction.setNumBids(bidCount);
+  }
+
+  @SuppressWarnings({"unchecked"})
+  public static List<AuctionEntry> findManualUpdates() {
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE e.last_updated_at IS NULL ORDER BY a.ending_at ASC");
+  }
+
+  public boolean isUpdateRequired() {
+    return getDate("last_updated_at") == null;
   }
 }

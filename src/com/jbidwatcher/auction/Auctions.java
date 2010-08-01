@@ -84,15 +84,13 @@ public class Auctions {
   public static void doUpdate(AuctionEntry ae) {
     String titleWithComment = getTitleAndComment(ae);
 
-    if(!ae.isComplete() || ae.isUpdateForced()) {
+    if(!ae.isComplete() || ae.isUpdateRequired()) {
       MQFactory.getConcrete("Swing").enqueue("Updating " + titleWithComment);
-      ae.setUpdating();
       MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
       Thread.yield();
       XMLInterface before = ae.toXML(false);
       ae.update();
       XMLInterface after = ae.toXML(false);
-      ae.clearUpdating();
 
       boolean changed = !(after.toString().equals(before.toString()));
 
