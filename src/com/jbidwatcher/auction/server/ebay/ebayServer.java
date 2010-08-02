@@ -698,6 +698,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return System.currentTimeMillis() + getServerTimeDelta() + getPageRequestTime();
   }
 
+  /**
+   * Get the delta between local time and eBay server time.  If the computer
+   * is ahead of eBay time (fast), this number will be negative.  If the
+   * computer is behind eBay time (slow), then this number will be positive.
+   * 
+   * @return - An amount that, when added to the local clock time, results in eBay's time.
+   */
   public long getServerTimeDelta() {
     return mOfficialServerTimeDelta;
   }
@@ -731,8 +738,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     long localDateBeforePage = System.currentTimeMillis();
     String timeRequest = Externalized.getString("ebayServer.timeURL");
 
-    //  Getting the necessary cookie here causes intense slowdown which fudges the time, badly.
     JHTML htmlDocument = new JHTML(timeRequest, null, mCleaner);
+    long localDateAfterPage = System.currentTimeMillis();
+
     ZoneDate result = null;
 
     String pageStep = htmlDocument.getNextContent();
@@ -753,13 +761,22 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       mOfficialServerTimeDelta = 1;
       return null;
     } else {
-      long localDateAfterPage = System.currentTimeMillis();
+      //  reqTime will always be positive; it's how long it took to request, receive, and pre-parse the eBay page.
+//      long reqTime = localDateAfterPage - localDateBeforePage;
 
-      long reqTime = localDateAfterPage - localDateBeforePage;
-      //  eBay's current time, minus the current time before we loaded the page, minus half the request-time
-      //  tells how far off our system clock is to eBay.
-      //noinspection MultiplyOrDivideByPowerOfTwo
-      mOfficialServerTimeDelta = (result.getDate().getTime() - localDateBeforePage) - (reqTime / 2);
+      //  It looks like the best time to use is the time _after_ we've loaded the page, under the presumption that the delays
+      //  in returning the time page are front-loaded.  Specifically, we don't want to get the difference from the time before
+      //  we requested the page, as that'll include socket startup time, request time, eBay's processing time, etc...  Instead,
+      //  we use the time after the request has returned, which should just involve data transfer.  This should make determining
+      //  clock skew more accurate.  This has nothing to do with page request time, which we handle separately.
+      //
+      //  Subtract what time eBay thinks it is, from what time the local computer thinks it is to get the amount we add to the local
+      //  clock to get the server clock.
+      mOfficialServerTimeDelta = (result.getDate().getTime() - localDateAfterPage);
+
+//      //  Subtract half the request time, under the belief that eBay instantiated its date/time halfway through the request.
+//      mOfficialServerTimeDelta -= reqTime / 2;
+
       //  mOSTD of 0 is a sentinel that we haven't gotten the official time yet, so if we magically get it, make it 1ms instead.
       if(mOfficialServerTimeDelta == 0) mOfficialServerTimeDelta = 1;
       if (result.getZone() != null) mOfficialServerTimeZone = (result.getZone());
