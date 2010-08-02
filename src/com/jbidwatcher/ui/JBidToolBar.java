@@ -255,7 +255,7 @@ public class JBidToolBar {
     JConfig.setConfiguration("display.toolbar", mBidBarPanel.isVisible()?"true":"false");
     if (mBidBarPanel.isVisible()) {
       show(false);
-      mBidBarPanel.add(mHeaderStatus, BorderLayout.EAST, 0);
+      if(!Platform.isMac()) mBidBarPanel.add(mHeaderStatus, BorderLayout.EAST, 0);
       show(true);
     } else {
       //  If it's a mac, the clock display can't move into the 'menu' component, because there isn't one!
