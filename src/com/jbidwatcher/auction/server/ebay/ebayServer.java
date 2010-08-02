@@ -193,6 +193,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
               ai.setHighBidder(highBidder);
             }
             ai.saveDB();
+            return;
           }
         }
       }
