@@ -26,7 +26,7 @@ public class ButtonMaker {
    * @param buttonImage - The image to use for the button.
    * @param buttonTip - The tooltip to pop up for the button.
    */
-  public static void addbutton(JToolBar jtb, ActionListener inAction, String buttonName, String buttonImage, String buttonTip) {
+  public static JButton addbutton(JToolBar jtb, ActionListener inAction, String buttonName, String buttonImage, String buttonTip) {
     final JButton newButton = makeButton(buttonImage, buttonTip, buttonName, inAction, false);
 
     if(Platform.isMac()) {
@@ -39,6 +39,7 @@ public class ButtonMaker {
 
     newButton.setFocusable(false);
     jtb.add(newButton);
+    return newButton;
   }
 
   public static JButton makeButton(String buttonImage, String buttonTip, String buttonName, ActionListener inAction, boolean shrink) {

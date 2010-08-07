@@ -1,0 +1,30 @@
+<html><head><title><%title%></title></head>
+<body>
+<table border="0" cellspacing="0" cellpadding="0" cols="2" width="100%">
+  <tr>
+    <td width="72" valign="top"><a href="http://www.jbidwatcher.com"><img src="<%jay%>"></a></td>
+    <td><%pname%> (<%ver%>) - Manage your auctions and bids<br><br>by Morgan Schweers</td>
+  </tr>
+</table>
+<b>Contributions to the development of JBidwatcher are gratefully appreciated</b><br>
+<br>
+If you have already donated (as many have) thank you!  If JBidwatcher doesn't
+provide enough value or work well enough for you, my apologies.  In either
+case feel free to <a href="/Clear Donation">dismiss this message and hide
+the donation button</a> with my thanks for using what is, for me, primarily
+a labor of love.<br>
+<br>
+If JBidwatcher has been useful for you or has helped you in your eBay dealings, I'd be very grateful if you would support JBidwatcher with a donation of
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=cyberfox%40jbidwatcher.com&item_name=JBidwatcher+Software&cn=Personal+message+to+Morgan&amount=20.00&no_shipping=1&return=http%3A//www.jbidwatcher.com/donation_thanks.html">$20</a>,
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=cyberfox%40jbidwatcher.com&item_name=JBidwatcher+Software&cn=Personal+message+to+Morgan&amount=10.00&no_shipping=1&return=http%3A//www.jbidwatcher.com/donation_thanks.html">$10</a>,
+or <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=cyberfox%40jbidwatcher.com&item_name=JBidwatcher+Software&cn=Personal+message+to+Morgan&no_shipping=1&return=http%3A//www.jbidwatcher.com/donation_thanks.html">choose an amount you feel comfortable with</a>.<br>
+<br>
+PayPal charges me a percentage and minimum of 33 cents to receive funds, so in lieu of $1 and $2 donations, which I get occasionally, a few kind words in an <a href="mailto:cyberfox@jbidwatcher.com">email</a> would be wonderful.<br>
+<br>
+<small>If the links don't work, please go to <a href="http://www.jbidwatcher.com">http://www.jbidwatcher.com</a> and click 'Donate' on the left.)</small><br>
+<br>
+If the program has been useful to you, and you are in a position to help, it would mean a lot to me.<br>
+<h3>Thank you, very much, for your time and for your <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=cyberfox%40jbidwatcher.com&item_name=JBidwatcher+Software&cn=Personal+message+to+Morgan&no_shipping=1&return=http%3A//www.jbidwatcher.com/donation_thanks.html">support</a>.</h3>
+<center>--  <i>Morgan Schweers, CyberFOX!</i> <a href="mailto:cyberfox@jbidwatcher.com"><img src="<%head%>"></a></center>
+</body>
+</html>

@@ -45,6 +45,7 @@ public class UserActions implements MessageQueue.Listener {
   private static StringBuffer _aboutText = null;
   private static StringBuffer _licenseText = null;
   private static StringBuffer _needHelp = null;
+  private static StringBuffer _donate = null;
 
   private boolean _in_deleting = false;
   private ScriptManager mScriptFrame;
@@ -102,7 +103,9 @@ public class UserActions implements MessageQueue.Listener {
       DoSearch();
     } else if(commandStr.equals("About " + Constants.PROGRAM_NAME)) {
       DoAbout();
-    } else if(commandStr.equals("Donate")) {
+    } else if (commandStr.equals("Clear Donation")) {
+      UndoDonate();
+    } else if(commandStr.equals("Need Help")) {
       DoNeedHelp();
     } else if(commandStr.equals("Configure")) {
       DoConfigure();
@@ -1113,6 +1116,31 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
+  static private JFrame donateFrame = null;
+  private void DoDonate() {
+    if (donateFrame == null) {
+      Dimension boxSize = new Dimension(495, 245);
+
+      if (_donate == null) {
+        _donate = JBHelp.loadHelp("/help/donate.jbh", "A Message from the JBidwatcher Author");
+      }
+
+      if (_donate != null) {
+        donateFrame = _oui.showTextDisplay(_donate, boxSize, "A Message from Morgan Schweers");
+      }
+    } else {
+      donateFrame.setVisible(true);
+    }
+  }
+
+  private void UndoDonate() {
+    boolean alreadyClicked = JConfig.queryConfiguration("donation.clicked", "false").equals("true");
+    if(donateFrame != null) donateFrame.setVisible(false);
+    JConfig.setConfiguration("donation.clicked", "true");
+    JBidToolBar.getInstance().hideDonation();
+    if(!alreadyClicked) JOptionPane.showMessageDialog(null, "The donation button has been removed; you can still access the donation screen from Help | Donate.", "Removed donation button", JOptionPane.INFORMATION_MESSAGE);
+  }
+
   private static final StringBuffer EMPTY_LOG = new StringBuffer("The log is empty.");
   private void showLog(StringBuffer logText, String frameName) {
     Dimension logBoxSize = new Dimension(625, 500);
@@ -1388,7 +1416,9 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Resync")) DoResetServerTime();
     else if (actionString.equals("About " + Constants.PROGRAM_NAME)) DoAbout();
     else if (actionString.equals("About")) DoAbout();
-    else if (actionString.equals("Donate")) DoNeedHelp();
+    else if (actionString.equals("Need Help")) DoNeedHelp();
+    else if (actionString.equals("Donate")) DoDonate();
+    else if (actionString.equals("Clear Donation")) UndoDonate();
     else if (actionString.equals("License")) DoLicense();
     else if (actionString.equals("Toolbar")) DoHideShowToolbar();
     else if (actionString.equals("Search")) DoSearch();

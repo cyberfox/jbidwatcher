@@ -94,6 +94,8 @@ public class JBidToolBar {
     return mBidBarPanel;
   }
 
+  private JButton mDonateButton;
+
   private JToolBar establishToolbar(final JTabManager inAction) {
     JToolBar bidBar = new JToolBar();
 
@@ -115,6 +117,9 @@ public class JBidToolBar {
     ButtonMaker.addbutton(bidBar, inAction, "Forum", getSource("forum.png"), "JBidwatcher forums");
     if (JConfig.debugging) ButtonMaker.addbutton(bidBar, inAction, "Report Bug", getSource("report_bug.png"), "Report bug");
     ButtonMaker.addbutton(bidBar, inAction, "My JBidwatcher", getSource("home.png"), "My JBidwatcher");
+    if(JConfig.queryConfiguration("donation.clicked", "false").equals("false")) {
+      mDonateButton = ButtonMaker.addbutton(bidBar, inAction, "Donate", "/icons/toolbar/btn_donate_SM.gif", "Please donate if you feel JBidwatcher is useful and has helped you!");
+    }
 
     if(JConfig.queryConfiguration("toolbar.floater", "false").equals("false")) {
       bidBar.setFloatable(false);
@@ -263,5 +268,9 @@ public class JBidToolBar {
         mBidMenu.add(mHeaderStatus);
       }
     }
+  }
+
+  public void hideDonation() {
+    if(mDonateButton != null) mDonateButton.setVisible(false);
   }
 }

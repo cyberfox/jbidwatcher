@@ -738,7 +738,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 20));
     //  Disable this, as I am once more gainfully employed.
 //    if(JConfig.queryConfiguration("seen.need_help") == null) {
-//      q.preQueue("Donate", "user", now + (Constants.ONE_SECOND * 15));
+//      q.preQueue("Need Help", "user", now + (Constants.ONE_SECOND * 15));
 //      JConfig.setConfiguration("seen.need_help", "true");
 //    }
 
