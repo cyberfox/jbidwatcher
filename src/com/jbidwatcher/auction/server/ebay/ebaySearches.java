@@ -186,22 +186,37 @@ public class ebaySearches {
     Map<String, String> collatedItems = new LinkedHashMap<String,String>();
     int newWatchCount = pullWatchingItems(curUser, userCookie, collatedItems);
 
+    //  Get items you're watching
     rval = getAllItemsOnPage(new JHTML(Externalized.getString("ebayServer.oldWatching"), userCookie, mCleaner));
     collatedItems.putAll(rval.getLast());
     newWatchCount += rval.getFirst().size();
     int watchCount = collatedItems.size();
     newWatchCount = Math.min(newWatchCount, watchCount);
 
+    //  Get items you're bidding on
     rval = getBiddingOnItems(label);
     collatedItems.putAll(rval.getLast());
     int newBidCount = rval.getFirst().size();
     int bidCount = rval.getLast().size();
+
+    //  Get items you're selling
+    newWatchCount += pullSellingItems(curUser, userCookie, collatedItems);
+    //  There's no overlap between selling and bidding, but there might be on watching and selling.
+    newWatchCount = Math.min(newWatchCount, collatedItems.size());
 
     addAll(collatedItems.values(), label, true);
     reportMyeBayResults(label, watchCount, newWatchCount, bidCount, newBidCount);
   }
 
   private int pullWatchingItems(String curUser, String userCookie, Map<String, String> collatedItems) {
+    return pullItems("ebayServer.watchingURLPaginated", curUser, userCookie, collatedItems);
+  }
+
+  private int pullSellingItems(String curUser, String userCookie, Map<String, String> collatedItems) {
+    return pullItems("ebayServer.sellingURLPaginated", curUser, userCookie, collatedItems);
+  }
+
+  private int pullItems(String propertyKey, String curUser, String userCookie, Map<String, String> collatedItems) {
     int page = 1;
     int newWatchCount = 0;
     ItemResults rval;
@@ -209,7 +224,7 @@ public class ebaySearches {
     while (!doneWatching) {
       //  First load items that the user is watching (!)
       //    String watchingURL = Externalized.getString("ebayServer.watchingURL");
-      String watchingURL = generateWatchedItemsURL(curUser, page);
+      String watchingURL = generateWatchedItemsURL(propertyKey, curUser, page);
       JHTML htmlDocument = getWatchedItemsPage(userCookie, watchingURL);
       String nextPage = null;
       if(htmlDocument.isLoaded()) {
@@ -267,8 +282,8 @@ public class ebaySearches {
     SuperQueue.getInstance().preQueue("HIDE", reportTab, System.currentTimeMillis() + Constants.ONE_MINUTE);
   }
 
-  private String generateWatchedItemsURL(String curUser, int page) {
-    String watchingURL = Externalized.getString("ebayServer.watchingURLPaginated");
+  private String generateWatchedItemsURL(String propertyKey, String curUser, int page) {
+    String watchingURL = Externalized.getString(propertyKey);
     watchingURL = watchingURL.replace("{page}", Integer.toString(page));
 
     JConfig.log().logDebug("Loading page " + page + " of My eBay for user " + curUser);
