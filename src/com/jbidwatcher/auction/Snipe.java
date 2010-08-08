@@ -175,6 +175,9 @@ public class Snipe {
           snipeOutput = "You don't meet some requirement the seller has set for the item.  Check the item details for more information.";
           JConfig.increment("stats.sniped.requirement_not_met");
           break;
+        case AuctionServer.BID_ERROR_SELLER_CANT_BID:
+          snipeOutput = "Sellers are not allowed to bid on their own items.";
+          break;
         case AuctionServerInterface.BID_ERROR_MULTI:
           snipeOutput = "There is a problem with the multisnipe, an earlier entry hasn't finished updating.  Trying again shortly.";
           JConfig.increment("stats.sniped.multisnipe_problem");

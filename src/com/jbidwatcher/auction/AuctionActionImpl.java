@@ -134,6 +134,9 @@ public abstract class AuctionActionImpl implements AuctionAction {
         bidResultString = "You don't meet some requirement the seller has set for the item.  Check the item details for more information.";
         JConfig.increment("stats.bid.requirement_not_met");
         break;
+      case AuctionServer.BID_ERROR_SELLER_CANT_BID:
+        bidResultString = "Sellers are not allowed to bid on their own items.";
+        break;
       default:
         bidResultString = "Something VERY wrong has happened, and I don't know what it is.  Check the auction to see if your bid went through.";
         JConfig.increment("stats.bid.really_bad");

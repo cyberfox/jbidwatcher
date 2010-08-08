@@ -34,6 +34,7 @@ public interface AuctionServerInterface {
   int BID_ERROR_CANT_SIGN_IN = 18; //  We tried to get bid pages, but it kept asking for login.
   int BID_ERROR_WONT_SHIP = 19; //  You are registered in a country to which the seller doesn't ship.
   int BID_ERROR_REQUIREMENTS_NOT_MET = 20; //  This seller has set buyer requirements for this item and only sells to buyers who meet those requirements.
+  int BID_ERROR_SELLER_CANT_BID=21; // Sellers can not bid on their own items
   String UPDATE_LOGIN_COOKIE = "Update login cookie";
 
   int buy(AuctionEntry ae, int quantity);
