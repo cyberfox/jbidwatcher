@@ -35,4 +35,6 @@ public interface LoggerInterface {
   void addHandler(ErrorHandler eh);
 
   void dumpFile(StringBuffer loadedPage);
+
+  String getLog();
 }

@@ -74,6 +74,10 @@ public class ErrorManagement implements LoggerInterface {
     return false;
   }
 
+  public String getLog() {
+    return mFP.getAbsolutePath();
+  }
+
   public File closeLog() {
     for (ErrorHandler handler : sHandlers) {
       handler.close();
