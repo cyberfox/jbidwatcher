@@ -433,7 +433,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
     if(JConfig.queryConfiguration("mac", "false").equals("true")) {
       JConfig.setConfiguration("temp.cfg.load", Path.getCanonicalFile("JBidWatch.cfg", "jbidwatcher", false));
     }
-    JConfig.log().logMessage("Logging to " + JConfig.log().getLog());
+    String logFileName = JConfig.log().getLog();
+    if(logFileName != null) JConfig.log().logMessage("Logging to " + logFileName);
 
     try {
       boolean creatingDB = JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("false");

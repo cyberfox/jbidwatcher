@@ -75,6 +75,7 @@ public class ErrorManagement implements LoggerInterface {
   }
 
   public String getLog() {
+    if(mFP == null) return null;
     return mFP.getAbsolutePath();
   }
 
