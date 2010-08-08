@@ -108,6 +108,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   }
 
   private Map<Integer, GradientPaint> gradientCache = new HashMap<Integer, GradientPaint>();
+  private Color mLastColor = null;
 
   private final static String evenList = "List.evenRowBackgroundPainter";
   private final static String oddList = "List.oddRowBackgroundPainter";
@@ -218,6 +219,8 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   }
 
   private void renderGradient(Graphics g, Color selected) {
+    if(mLastColor != null && !mLastColor.equals(selected)) gradientCache.clear();
+    mLastColor = selected;
     GradientPaint paint = gradientCache.get(cacheMapper());
     if (paint == null) {
       paint = new GradientPaint(0, 0, lighten(selected), 0, getHeight(), selected, false);

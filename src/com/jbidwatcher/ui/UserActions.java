@@ -1366,6 +1366,16 @@ public class UserActions implements MessageQueue.Listener {
     MQFactory.getConcrete("update").enqueue("INTERACTIVE");
   }
 
+  protected void DoSetSelectionColor(Component src) {
+    String oldColor = JConfig.queryConfiguration("selection.color");
+    if(oldColor == null) oldColor = "C6A646";
+
+    Color selectionColor = JColorChooser.showDialog(src, "Choose a selection-background color", MultiSnipe.reverseColor(oldColor));
+    if(selectionColor == null) return;
+
+    JConfig.setConfiguration("selection.color", MultiSnipe.makeRGB(selectionColor));
+  }
+
   protected void DoSetBackgroundColor(Component src) {
     Color bgColor = JColorChooser.showDialog(src, "Select a background color for your auction tables", null);
     if(bgColor == null) {
@@ -1435,6 +1445,7 @@ public class UserActions implements MessageQueue.Listener {
     else if (actionString.equals("Submit Log File")) DoSubmitLogFile();
     else if (actionString.equals("Restart")) DoRestart();
     else if (actionString.equals("Font")) DoChooseFont();
+    else if (actionString.equals("Selection Color")) DoSetSelectionColor(c_src);
 
     else if (actionString.equals("CopyURL")) DoCopyURL(c_src, whichAuction);
     else if (actionString.equals("CopyID")) DoCopyID(c_src, whichAuction);

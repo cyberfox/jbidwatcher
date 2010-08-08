@@ -182,6 +182,7 @@ public class JBidMenuBar extends JMenuBar {
     makeMenuItem(inMenu, "Scripting", 'P');
     inMenu.add(new JSeparator());
     makeMenuItem(inMenu, "Choose Font", "Font", 'F');
+    makeMenuItem(inMenu, "Change Selection Color", "Selection Color", 'H');
   }
 
   protected void establishAuctionMenu(JMenu inMenu) {
