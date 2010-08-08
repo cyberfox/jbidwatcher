@@ -262,8 +262,8 @@ public class OptionUI {
     return otherFrame;
   }
 
-  public JFrame getTextDisplay(StringBuffer inSB, Dimension inSize, String frameName, boolean isHTML) {
-    JFrame otherFrame;
+  public JBidFrame getTextDisplay(StringBuffer inSB, Dimension inSize, String frameName, boolean isHTML) {
+    JBidFrame otherFrame;
     JBEditorPane jep;
     JScrollPane jsp;
 
@@ -276,6 +276,7 @@ public class OptionUI {
     otherFrame.getContentPane().add(jsp);
     jep.setCaretPosition(0);
     otherFrame.setLocation(getCenter(inSize));
+    otherFrame.setEditor(jep);
     return otherFrame;
   }
 

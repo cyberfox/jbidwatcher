@@ -23,6 +23,7 @@ import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
+import com.jbidwatcher.util.services.ActivityMonitor;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTML;
@@ -1142,22 +1143,30 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private static final StringBuffer EMPTY_LOG = new StringBuffer("The log is empty.");
-  private void showLog(StringBuffer logText, String frameName) {
+  private void showLog(final LogProvider provider, String frameName) {
     Dimension logBoxSize = new Dimension(625, 500);
+    StringBuffer logText = provider.getLog();
 
     if(logText == null || logText.length() == 0) {
       logText = EMPTY_LOG;
     }
 
-    JFrame logFrame = _oui.getTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " " + frameName, false);
+    final JBidFrame logFrame = _oui.getTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " " + frameName, false);
     JButton logButton = new JButton("Submit Log");
     logButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         DoSubmitLogFile();
       }
     });
+    JButton refreshButton = new JButton("Refresh");
+    refreshButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        logFrame.getEditor().setText(provider.getLog().toString());
+      }
+    });
     JPanel buttonBox = new JPanel(new BorderLayout());
     buttonBox.add(logButton, BorderLayout.EAST);
+    buttonBox.add(refreshButton, BorderLayout.WEST);
     logFrame.add(buttonBox, BorderLayout.SOUTH);
 
     logFrame.pack();
@@ -1167,13 +1176,11 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private void DoViewLog() {
-    StringBuffer logText = ErrorMonitor.getInstance().getLog();
-    showLog(logText, "Log");
+    showLog(ErrorMonitor.getInstance(), "Log");
   }
 
   private void DoViewActivity() {
-    StringBuffer logText = com.jbidwatcher.util.services.ActivityMonitor.getInstance().getLog();
-    showLog(logText, "Activity Log");
+    showLog(ActivityMonitor.getInstance(), "Activity Log");
   }
 
   private void DoSerialize() {

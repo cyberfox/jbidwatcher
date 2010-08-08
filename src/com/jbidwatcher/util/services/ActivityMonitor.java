@@ -1,5 +1,6 @@
 package com.jbidwatcher.util.services;
 
+import com.jbidwatcher.util.LogProvider;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.ScrollingBuffer;
@@ -14,7 +15,7 @@ import java.util.Date;
  *
  * An activity monitor that stores recent activity (mostly status messages) in a fixed-size buffer.
  */
-public class ActivityMonitor implements MessageQueue.Listener {
+public class ActivityMonitor implements MessageQueue.Listener, LogProvider {
   private static final int MAX_BUFFER=4096;
   private ScrollingBuffer mBuffer;
   private static ActivityMonitor sInstance;

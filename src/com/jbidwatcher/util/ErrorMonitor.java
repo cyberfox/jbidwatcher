@@ -10,7 +10,7 @@ import com.jbidwatcher.util.config.JConfig;
  *
  * A small utility class to monitor the error log, via a ScrollingBuffer.
  */
-public class ErrorMonitor {
+public class ErrorMonitor implements LogProvider {
   private final static int MAX_BUFFER_SIZE = 50000;
   private static ErrorMonitor sInstance;
   private ScrollingBuffer mBuffer;

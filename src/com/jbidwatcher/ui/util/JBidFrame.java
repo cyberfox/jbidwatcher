@@ -15,6 +15,15 @@ import javax.swing.*;
 public class JBidFrame extends JFrame
 {
   private static JMenuBar sMenuBar = null;
+  private JEditorPane mEditorPane = null;
+
+  public JEditorPane getEditor() {
+    return mEditorPane;
+  }
+
+  public void setEditor(JEditorPane editor) {
+    mEditorPane = editor;
+  }
 
   public static void setDefaultMenuBar(JMenuBar def) {
     sMenuBar = def;
