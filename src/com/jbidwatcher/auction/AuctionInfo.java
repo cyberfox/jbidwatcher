@@ -56,7 +56,6 @@ public class AuctionInfo extends ActiveRecord
     mKeys.put("fixed", "fixed_price");
     mKeys.put("fixedPrice", "fixed_price");
     mKeys.put("isDutch", "dutch");
-    mKeys.put("reserveMet", "reserve_met");
     mKeys.put("hasThumb", "has_thumbnail");
     mKeys.put("currently", "current_bid");
     mKeys.put("curBid", "current_bid");
@@ -152,7 +151,7 @@ public class AuctionInfo extends ActiveRecord
             setInteger("quantity", Integer.parseInt(quant));
           }
         } else if(i==8) {
-          setBoolean("reserveMet", "true".equals(curElement.getProperty("MET")));
+          setBoolean("reserve_met", "true".equals(curElement.getProperty("MET")));
         }
         break;
       case 19: //  Feedback score
@@ -404,10 +403,10 @@ public class AuctionInfo extends ActiveRecord
   Date getEndDate() { return getDate("end"); }
 
   public boolean isDutch() { return getBoolean("isDutch"); }
-  boolean isReserve() { return getBoolean("isReserve"); }
+  protected boolean isReserve() { return getBoolean("isReserve"); }
   public boolean isPrivate() { return getBoolean("isPrivate"); }
   protected boolean isFixedPrice() { return getBoolean("fixed_price"); }
-  boolean isReserveMet() { return getBoolean("reserveMet"); }
+  boolean isReserveMet() { return getBoolean("reserve_met"); }
   protected boolean hasPaypal() { return getBoolean("paypal"); }
   boolean hasThumb() { return getBoolean("has_thumbnail"); }
   boolean isInsuranceOptional() { return getBoolean("insurance_optional", true); }
@@ -489,7 +488,7 @@ public class AuctionInfo extends ActiveRecord
 
   protected void setReserve(boolean isReserve) { setBoolean("isReserve", isReserve); }
   public void setPrivate(boolean isPrivate) { setBoolean("private", isPrivate); }
-  protected void setReserveMet(boolean reserveMet) { setBoolean("reserveMet", reserveMet); }
+  protected void setReserveMet(boolean reserveMet) { setBoolean("reserve_met", reserveMet); }
   protected void setHasThumb(boolean hasThumb) { setBoolean("hasThumb", hasThumb); }
   protected void setOutbid(boolean outbid) { setBoolean("outbid", outbid); }
   protected void setPaypal(boolean paypal) { setBoolean("paypal", paypal); }

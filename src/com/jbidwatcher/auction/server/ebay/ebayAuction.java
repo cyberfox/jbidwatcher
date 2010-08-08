@@ -843,6 +843,12 @@ class ebayAuction extends SpecificAuction {
         setReserveMet(true);
       }
     }
+    if(!isReserve()) {
+      if(mDocument.hasSequence("^Reserve.?", "price", "not met")) {
+        setReserve(true);
+        setReserveMet(false);
+      }
+    }
   }
 
   private int getBidCount(JHTML doc, int quantity) {

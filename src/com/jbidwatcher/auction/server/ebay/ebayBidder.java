@@ -54,6 +54,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       mResultHash.put("you('ve| have) been outbid by another bidder", AuctionServer.BID_ERROR_OUTBID);
       mResultHash.put("you('ve| have) just been outbid", ebayServer.BID_ERROR_OUTBID);
       mResultHash.put("you('re| are) the current high bidder", AuctionServer.BID_WINNING);
+      mResultHash.put("you('re| are) the high bidder and the reserve price has been met", AuctionServer.BID_WINNING);
       mResultHash.put("you('re| are) the first bidder", AuctionServer.BID_WINNING);
       mResultHash.put("you('re| are) the high bidder and currently in the lead", AuctionServer.BID_WINNING);
       mResultHash.put("you('re| are) currently the highest bidder", AuctionServer.BID_WINNING); /**/
