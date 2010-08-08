@@ -508,6 +508,31 @@ public class JHTML implements JHTMLListener {
     return contentGrep(match, ignore);
   }
 
+  /**
+   * Strictly speaking this is not correct; we should reset to the initial
+   * content step plus one, and start again.  In practice, this is not needed
+   * yet.  (Essentially this should become a larger scale Boyer-Moore.)
+   *
+   * @param sequence - The sequence of regular expressions to match
+   * @return - True if that sequence was found, false otherwise. (Probably should be the contents that matched the last regex.)
+   */
+  public boolean hasSequence(String... sequence) {
+    if(sequence.length == 0) return false;
+
+    int index = 0;
+
+    for (String contentStep : contentList) {
+      if (contentStep.matches(sequence[index])) {
+        index++;
+        if (index == sequence.length) return true;
+      } else {
+        index = 0;
+      }
+    }
+
+    return false;
+  }
+
   //------------------------------------------------------------
   // Tag operations.
   //------------------------------------------------------------
