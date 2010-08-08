@@ -1105,6 +1105,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    */
   public void setNeedsUpdate() { setDate("last_updated_at", null); saveDB(); }
 
+  public Date getLastUpdated() { return getDate("last_updated_at"); }
+
   /**
    * @brief Get the category this belongs in, usually used for tab names, and fitting in search results.
    *
@@ -1828,6 +1830,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     } else {
       prompt += buildRow("Listing ends at", getEndDate());
     }
+    if(getLastUpdated() != null) {
+      prompt += buildRow("Last updated at", getLastUpdated());
+    }
+
     if(addedThumbnail) {
       prompt += "</table>" + endRow;
     }
