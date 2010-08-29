@@ -77,7 +77,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private MacFriendlyFrame mainFrame;
   private JTabManager jtmAuctions;
   private static Sparkle mSparkle = null;
-//  private SyncService mServiceAdvertiser;
+  private SyncService mServiceAdvertiser;
 
   private RuntimeInfo _rti = null;
   private static final int HOURS_IN_DAY = 24;
@@ -549,8 +549,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
       }
 
       sp.go();
-//      mServiceAdvertiser = new SyncService(localServer_port);
-//      mServiceAdvertiser.advertise();
+      mServiceAdvertiser = new SyncService(localServer_port);
+      mServiceAdvertiser.advertise();
     } else {
       if(sp != null) {
         sp.halt();

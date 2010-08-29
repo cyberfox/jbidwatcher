@@ -8,6 +8,9 @@ package com.jbidwatcher.app;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.config.Base64;
+import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.db.Device;
+import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTMLDialog;
 import com.jbidwatcher.util.http.Http;
@@ -54,7 +57,7 @@ public class JBidProxy extends AbstractMiniServer {
         reqFile = reqFile.substring(1);
       }
 
-      if(reqFile.startsWith(syndicate) || reqFile.endsWith(".jpg")) return false;
+      if(reqFile.startsWith(syndicate) || reqFile.endsWith(".jpg") || reqFile.startsWith("register")) return false;
     }
     return true;
   }
@@ -65,6 +68,9 @@ public class JBidProxy extends AbstractMiniServer {
     if(params.length != 2) return false;
     String user = params[0];
     String pass = params[1];
+
+    //  If the device has verified itself, then we're okay.
+    if(deviceVerify(user, pass)) return true;
 
     //  TODO -- Actually, validate against ASM, and it can *find* the correct
     //  TODO -- server/user combination and restrict the display/interaction to that server.
@@ -141,6 +147,7 @@ public class JBidProxy extends AbstractMiniServer {
       {"doSnipe", "^activateSnipe\\?id=([0-9]+)&snipeamount=(.*)(?:&[a-zA-Z]*)?$"},
       // APIs
       {"categories", "^categories.json$"},
+      {"register", "^register\\?device=(.+)$"},
       {"auctionsInCategory", "^category/(.*).xml$"},
       {"showXML", "^([0-9]+)\\.xml$"}
   };
@@ -219,6 +226,25 @@ public class JBidProxy extends AbstractMiniServer {
     String json = JSONValue.toJSONString(nameCountMap);
     JConfig.log().logMessage("Returning: " + json);
     return (new StringBuffer(json));
+  }
+
+  public StringBuffer register(String device) {
+    Device d = Device.findByDevice(device);
+    if(d == null) {
+      d = new Device(device);
+    } else {
+      d.refreshKey();
+    }
+
+    JConfig.log().logMessage("Registered device: " + device);
+
+    MQFactory.getConcrete("Swing").enqueue("SECURITY " + d.getString("security_key"));
+    return new StringBuffer("Enter the security digits");
+  }
+
+  public boolean deviceVerify(String device, String code) {
+    Device remoteDevice = Device.findByDevice(device);
+    return remoteDevice != null && code.equals(remoteDevice.getString("security_key"));
   }
 
   public StringBuffer index() {

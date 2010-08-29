@@ -125,6 +125,7 @@ public final class UIBackbone implements MessageQueue.Listener {
   private static final String NOACCOUNT_MSG = "NOACCOUNT ";
   private static final String PRICE = "PRICE ";
   private static final String SMALL_USERINFO = "TOGGLE_SMALL";
+  private static final String DEVICE_REGISTRATION = "SECURITY ";
 
   /**
    * @brief Handle messages to tell the UI to do something.
@@ -167,6 +168,9 @@ public final class UIBackbone implements MessageQueue.Listener {
       showUI();
     } else if (msg.equals(SNIPE_ALTERED_MSG)) {
       alterSnipeStatus();
+    } else if (msg.startsWith(DEVICE_REGISTRATION)) {
+      String code = msg.substring(DEVICE_REGISTRATION.length());
+      JOptionPane.showMessageDialog(null, "Enter the following code on your device: " + code, "Set up Synchronization", JOptionPane.PLAIN_MESSAGE);
     } else if (msg.startsWith(ALERT_MSG)) {
       String alertMsg = msg.substring(ALERT_MSG.length());
       logActivity("Alert: " + alertMsg);
