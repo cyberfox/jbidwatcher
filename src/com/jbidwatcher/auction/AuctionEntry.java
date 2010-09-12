@@ -555,7 +555,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @return The time at which this entry is no longer new.
    */
   public boolean isJustAdded() {
-    return getDate("created_at").getTime() > System.currentTimeMillis() - Constants.ONE_MINUTE * 5;
+    Date d = getDate("created_at");
+    return (d != null) && (d.getTime() > (System.currentTimeMillis() - (Constants.ONE_MINUTE * 5)));
   }
 
   public String getIdentifier() {
