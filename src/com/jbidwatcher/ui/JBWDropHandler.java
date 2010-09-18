@@ -52,8 +52,6 @@ public class JBWDropHandler implements MessageQueue.Listener {
   }
 
   private void loadDroppedEntry(String auctionURL, String label, boolean interactive) {
-    String aucId;
-
     if (do_uber_debug) {
       JConfig.log().logDebug("Dropping (action): " + auctionURL);
     }
@@ -61,6 +59,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
     //  Check to see if it's got a protocol ({protocol}:{path})
     //  If not, treat it as an item number alone, in the space of the default auction server.
     //  If so, we get the identifier from the URL (which is multi-country),
+    String aucId;
     if(auctionURL.indexOf(":") != -1) {
       AuctionServer aucServ = AuctionServerManager.getInstance().getServer();
       aucId = aucServ.extractIdentifierFromURLString(auctionURL);
@@ -85,7 +84,20 @@ public class JBWDropHandler implements MessageQueue.Listener {
         JConfig.log().logDebug("Not loaded (" + aucId + ").");
         lastSeen = aucId;
       }
-      if(aeNew != null) aeNew.delete();
+      if(aeNew != null) {
+        aeNew.delete();
+      }
+
+      //  TODO (mrs) - This code roughly duplicates code in UserActions#cmdAddAuction -- Fix this
+      if(interactive) {
+        if (aeNew == null) {
+          if (AuctionEntry.findByIdentifier(aucId) != null) {
+            MQFactory.getConcrete("Swing").enqueue("Cannot add auction " + aucId + ", it is already in your auction list.");
+          } else {
+            MQFactory.getConcrete("Swing").enqueue("Cannot add auction " + aucId + ", either invalid or\ncommunication error talking to server.");
+          }
+        }
+      }
     }
   }
 
