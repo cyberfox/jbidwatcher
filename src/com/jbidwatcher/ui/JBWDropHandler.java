@@ -79,6 +79,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
       JConfig.log().logDebug("Loaded " + aeNew.getIdentifier() + '.');
       lastSeen = aeNew.getIdentifier();
       AuctionsManager.getInstance().addEntry(aeNew);
+      MQFactory.getConcrete("Swing").enqueue("Successfully added auction: " + aucId + ": " + aeNew.getTitle());
     } else {
       if(lastSeen == null || !aucId.equals(lastSeen)) {
         JConfig.log().logDebug("Not loaded (" + aucId + ").");
