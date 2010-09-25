@@ -640,7 +640,7 @@ public class JHTML implements JHTMLListener {
 
         boolean isView = false;
         if (viewOnly) {
-          isView = href.matches("^https?://[a-z]+.ebay.[a-z.]+/[A-Za-z0-9-]+/[0-9]+(\\?.*)?");
+          isView = href.matches("^https?://[a-z]+.ebay.[a-z.]+/[A-Za-z0-9-]+/[0-9]+(\\?.*)?") || (href.indexOf("ViewItem") != -1);
           if (isView) {
             href = deAmpersand(href);
           }
