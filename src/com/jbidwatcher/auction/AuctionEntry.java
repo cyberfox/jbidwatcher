@@ -1625,7 +1625,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findActive() {
-    String notEndedQuery = "SELECT * FROM entries WHERE (ended != 1 OR ended IS NULL)";
+    String notEndedQuery = "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE (e.ended != 1 OR e.ended IS NULL) ORDER BY a.ending_at ASC";
     return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, notEndedQuery);
   }
 
