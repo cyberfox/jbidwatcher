@@ -20,16 +20,13 @@ import java.awt.Color;
 public class FilterManager implements MessageQueue.Listener {
   private static FilterManager sInstance = null;
   private static final ListManager mList = ListManager.getInstance();
-  private Map<String, AuctionEntry> mIdentifierToAuction;
-  private Map<AuctionEntry, AuctionListHolder> mAllOrderedAuctionEntries;
+  private Map<String, AuctionListHolder> mIdentifierToList;
   private AuctionListHolder mMainTab = null;
   private AuctionListHolder mDefaultCompleteTab = null;
   private AuctionListHolder mDefaultSellingTab = null;
 
   private FilterManager() {
-    //  Sorted by the 'natural order' of AuctionEntries.
-    mAllOrderedAuctionEntries = new TreeMap<AuctionEntry, AuctionListHolder>();
-    mIdentifierToAuction = new HashMap<String, AuctionEntry>();
+    mIdentifierToList = new HashMap<String, AuctionListHolder>();
 
     MQFactory.getConcrete("redraw").registerListener(this);
 
@@ -98,8 +95,8 @@ public class FilterManager implements MessageQueue.Listener {
     if(StringTools.isNumberOnly(cmd)) {
       AuctionEntry ae = EntryCorral.getInstance().takeForRead(cmd);
       if(ae != null) {
-        ae = dedupe(ae); //  TODO - This may not be necessary anymore
-        AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
+        ae.reload();
+        AuctionListHolder old = mIdentifierToList.get(ae.getIdentifier());
         AuctionListHolder newAuction = refilterAuction(ae);
         if (newAuction != null) {
           MQFactory.getConcrete("Swing").enqueue("Moved to " + newAuction.getList().getName() + " " + Auctions.getTitleAndComment(ae));
@@ -130,12 +127,11 @@ public class FilterManager implements MessageQueue.Listener {
    * @param ae - The auction to delete.
    */
   public void deleteAuction(AuctionEntry ae) {
-    ae = dedupe(ae);
-    AuctionListHolder which = mAllOrderedAuctionEntries.get(ae);
+    AuctionEntry deleteEntry = EntryCorral.getInstance().takeForRead(ae.getIdentifier());
+    AuctionListHolder which = mIdentifierToList.get(deleteEntry.getIdentifier());
     if(which != null) which.getUI().delEntry(ae);
 
-    mIdentifierToAuction.remove(ae.getIdentifier());
-    mAllOrderedAuctionEntries.remove(ae);
+    mIdentifierToList.remove(ae.getIdentifier());
   }
 
   /**
@@ -145,31 +141,26 @@ public class FilterManager implements MessageQueue.Listener {
   * @param ae - The auction to add.
   */
   public void addAuction(AuctionEntry ae) {
-    ae = dedupe(ae);
-    AuctionListHolder which = mAllOrderedAuctionEntries.get(ae);
+    AuctionEntry newEntry = EntryCorral.getInstance().takeForRead(ae.getIdentifier());
+    AuctionListHolder which = mIdentifierToList.get(newEntry.getIdentifier());
 
     if(which != null) {
       //  If it's already sorted into a Auctions list, tell that list
       //  to handle it.
-      if(which.getList().allowAddEntry(ae)) {
-        which.getUI().addEntry(ae);
+      if(which.getList().allowAddEntry(newEntry)) {
+        which.getUI().addEntry(newEntry);
       }
     } else {
-      AuctionListHolder sendTo = matchAuction(ae);
+      AuctionListHolder sendTo = matchAuction(newEntry);
 
       //  If we have no auction collections, then this isn't relevant.
       if(sendTo != null) {
-        if (sendTo.getList().allowAddEntry(ae)) {
-          sendTo.getUI().addEntry(ae);
-          mAllOrderedAuctionEntries.put(ae, sendTo);
-          mIdentifierToAuction.put(ae.getIdentifier(), ae);
+        if (sendTo.getList().allowAddEntry(newEntry)) {
+          sendTo.getUI().addEntry(newEntry);
+          mIdentifierToList.put(newEntry.getIdentifier(), sendTo);
         }
       }
     }
-  }
-
-  public Iterator<AuctionEntry> getAuctionIterator() {
-    return mAllOrderedAuctionEntries.keySet().iterator();
   }
 
   /**
@@ -212,14 +203,12 @@ public class FilterManager implements MessageQueue.Listener {
    * filter as it was before.
    */
   private AuctionListHolder refilterAuction(AuctionEntry ae) {
-    ae = dedupe(ae);
     AuctionListHolder sendTo = matchAuction(ae);
-    AuctionListHolder old = mAllOrderedAuctionEntries.get(ae);
+    AuctionListHolder old = mIdentifierToList.get(ae.getIdentifier());
 
     if(old == null && ae.getCategory() != null) {
       old = mList.findCategory(ae.getCategory());
-      if(old != null) mAllOrderedAuctionEntries.put(ae, old);
-      mIdentifierToAuction.put(ae.getIdentifier(), ae);
+      if(old != null) mIdentifierToList.put(ae.getIdentifier(), old);
     }
 
     if(old != null) {
@@ -264,17 +253,7 @@ public class FilterManager implements MessageQueue.Listener {
       newUI.addEntry(ae);
     }
 
-    mAllOrderedAuctionEntries.put(ae, sendTo);
-    mIdentifierToAuction.put(ae.getIdentifier(), ae);
+    mIdentifierToList.put(ae.getIdentifier(), sendTo);
     return sendTo;
-  }
-
-  private AuctionEntry dedupe(AuctionEntry ae) {
-    AuctionEntry existing = mIdentifierToAuction.get(ae.getIdentifier());
-    if (existing != null) {
-      ae = existing;
-      ae.reload();
-    }
-    return ae;
   }
 }
