@@ -1809,6 +1809,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       prompt += buildRow("Quantity", getQuantity());
     }
 
+    if(JConfig.debugging() && JConfig.scriptingEnabled()) {
+      prompt += buildRow("Sticky", Boolean.toString(isSticky()));
+      prompt += buildRow("Category", getCategory());
+    }
+
     if(isBidOn()) {
       prompt += buildRow("Your max bid", getBid());
       if(getBidQuantity() != 1) {
