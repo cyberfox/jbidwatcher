@@ -204,11 +204,12 @@ public class Table
   }
 
   public List<Record> findAll() {
-    return findAll("SELECT * FROM " + mTableName);
+    return findAll("SELECT * FROM " + mTableName, 0);
   }
 
-  public List<Record> findAll(String query) {
+  public List<Record> findAll(String query, int count) {
     try {
+      mS.setMaxRows(count);
       ResultSet rs = mS.executeQuery(query);
       return getAllResults(rs);
     } catch (SQLException e) {

@@ -146,9 +146,13 @@ public abstract class ActiveRecord extends HashBacked {
   }
 
   protected static List<? extends ActiveRecord> findAllBySQL(Class klass, String query) {
+    return findAllBySQL(klass, query, 0);
+  }
+
+  protected static List<? extends ActiveRecord> findAllBySQL(Class klass, String query, int count) {
     if(sDBDisabled) return new LinkedList<ActiveRecord>();
     ActiveRecord found = getExemplar(klass);
-    List<Record> results = getTable(found).findAll(query);
+    List<Record> results = getTable(found).findAll(query, count);
     return convertResultsToList(klass, results);
   }
 
