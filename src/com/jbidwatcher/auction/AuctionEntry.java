@@ -47,6 +47,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private Category mCategory;
   private static Resolver sResolver = null;
 
+  public boolean equals(Object o) {
+    return o instanceof AuctionEntry && compareTo((AuctionEntry) o) == 0;
+  }
+
   /**
    * @brief Set a status message, and mark that the connection is currently invalid.
    */

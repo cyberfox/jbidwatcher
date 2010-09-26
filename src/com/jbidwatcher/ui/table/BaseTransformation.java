@@ -76,7 +76,7 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
 
   public synchronized int findRow(Object o) {
     for(int i=0; i<getRowCount(); i++) {
-      if(getValueAt(i, -1) == o) return i;
+      if(getValueAt(i, -1).equals(o)) return i;
     }
     return -1;
   }
