@@ -181,16 +181,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   }
 
   /**
-   * @brief Return an iterator useful for iterating over all the
-   * auction lists managed.
-   * 
-   * @return An iterator pointing to the first auction list.
-   */
-  public static Iterator<AuctionEntry> getAuctionIterator() {
-    return FilterManager.getInstance().getAuctionIterator();
-  }
-
-  /**
    * @brief Load auctions from a save file, with a pretty splash
    * screen and everything, if necessary.
    * 
