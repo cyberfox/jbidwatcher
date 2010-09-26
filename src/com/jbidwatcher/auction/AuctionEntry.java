@@ -1647,7 +1647,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public static List<AuctionEntry> findAllNeedingUpdates(long since) {
     long timeRange = System.currentTimeMillis() - since;
     updateSince.setTime(timeRange);
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE e.ended = 0 AND (e.last_updated_at IS NULL OR e.last_updated_at < '" + mDateFormat.format(updateSince) + "') ORDER BY a.ending_at ASC");
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE (e.ended != 1 OR e.ended IS NULL) AND (e.last_updated_at IS NULL OR e.last_updated_at < '" + mDateFormat.format(updateSince) + "') ORDER BY a.ending_at ASC");
   }
 
   @SuppressWarnings({"unchecked"})
@@ -1658,7 +1658,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     //  Update more frequently in the last 25 minutes.
     endingSoon.setTime(System.currentTimeMillis() + 25 * Constants.ONE_MINUTE);
 
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE a.ending_at < '" + mDateFormat.format(endingSoon) + "' AND e.ended = 0 AND (e.last_updated_at IS NULL OR e.last_updated_at < '" + mDateFormat.format(updateSince) + "') ORDER BY a.ending_at ASC");
+    return (List<AuctionEntry>)findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE a.ending_at < '" + mDateFormat.format(endingSoon) + "' AND (e.ended != 1 OR e.ended IS NULL) AND (e.last_updated_at IS NULL OR e.last_updated_at < '" + mDateFormat.format(updateSince) + "') ORDER BY a.ending_at ASC");
   }
 
   @SuppressWarnings({"unchecked"})
