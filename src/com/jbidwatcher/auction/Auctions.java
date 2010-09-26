@@ -96,9 +96,11 @@ public class Auctions {
 
       MQFactory.getConcrete("my").enqueue("UPDATE " + ae.getIdentifier() + "," + Boolean.toString(changed));
       if(changed) {
+        //  Forget any cached info we have; the on-disk version has changed.
         String category = ae.getCategory();
         MQFactory.getConcrete("redraw").enqueue(category);
       }
+      EntryCorral.getInstance().erase(ae.getIdentifier());
       MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
       MQFactory.getConcrete("Swing").enqueue("Done updating " + Auctions.getTitleAndComment(ae));
     }
