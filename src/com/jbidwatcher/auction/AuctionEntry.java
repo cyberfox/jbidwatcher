@@ -1932,4 +1932,19 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public boolean isUpdateRequired() {
     return getDate("last_updated_at") == null;
   }
+
+  @SuppressWarnings({"unchecked"})
+  public static List<AuctionEntry> findRecentlyEnded(int itemCount) {
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE e.ended = 1 ORDER BY a.ending_at DESC", itemCount);
+  }
+
+  @SuppressWarnings({"unchecked"})
+  public static List<AuctionEntry> findEndingSoon(int itemCount) {
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE (e.ended != 1 OR e.ended IS NULL) ORDER BY a.ending_at ASC", itemCount);
+  }
+
+  @SuppressWarnings({"unchecked"})
+  public static List<AuctionEntry> findBidOrSniped(int itemCount) {
+    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE (e.snipe_id IS NOT NULL OR e.multisnipe_id IS NOT NULL OR e.bid_amount IS NOT NULL) ORDER BY a.ending_at ASC", itemCount);
+  }
 }

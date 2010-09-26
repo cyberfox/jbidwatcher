@@ -373,43 +373,24 @@ public class JBidProxy extends AbstractMiniServer {
     return sbOut;
   }
 
+  private DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+
   private StringBuffer genItems(String s) {
     StringBuffer sb = new StringBuffer(1500);
-    Iterator<AuctionEntry> aucIterate = AuctionsManager.getAuctionIterator();
-    ArrayList<AuctionEntry> allEnded = new ArrayList<AuctionEntry>();
-    boolean checkEnded = false;
+    List<AuctionEntry> allEnded = null;
 
-    if(s.equals("ended")) checkEnded = true;
-    boolean checkEnding = false;
-    if(s.equals("ending")) checkEnding = true;
-    boolean checkBid = false;
-    if(s.equals("bid")) checkBid = true;
-
-    boolean done = false;
-    int count = 0;
-    while(!done && aucIterate.hasNext()) {
-      AuctionEntry addme = aucIterate.next();
-      if(checkEnded)
-        if(addme.isComplete())
-          allEnded.add(addme);
-        else
-          done = true;
-
-      if(checkEnding && !addme.isComplete()) {
-        count++;
-        allEnded.add(addme);
-        if(count >= Constants.SYNDICATION_ITEM_COUNT) done = true;
-      }
-      if(checkBid && (addme.isBidOn() || addme.isSniped())) {
-        count++;
-        allEnded.add(addme);
-        if(count >= Constants.SYNDICATION_ITEM_COUNT) done = true;
-      }
+    if(s.equals("ended")) {
+      allEnded = AuctionEntry.findRecentlyEnded(Constants.SYNDICATION_ITEM_COUNT);
+    } else if(s.equals("ending")) {
+      allEnded = AuctionEntry.findEndingSoon(Constants.SYNDICATION_ITEM_COUNT);
+    } else if(s.equals("bid")) {
+      allEnded = AuctionEntry.findBidOrSniped(Constants.SYNDICATION_ITEM_COUNT);
     }
 
-    int lastEntry = Math.max(0, allEnded.size()-Constants.SYNDICATION_ITEM_COUNT);
-    for(int i=allEnded.size()-1; i>=lastEntry; i--) {
-      AuctionEntry ae = allEnded.get(i);
+    //  If no valid RSS feed type was given, return an empty feed.
+    if(allEnded == null) allEnded = new ArrayList<AuctionEntry>();
+
+    for(AuctionEntry ae : allEnded) {
       sb.append("<item>\n");
       sb.append("<title><![CDATA[");
       sb.append(StringTools.stripHigh(ae.getTitle()));
@@ -418,8 +399,6 @@ public class JBidProxy extends AbstractMiniServer {
       sb.append("<link><![CDATA[");
       sb.append(ae.getBrowseableURL());
       sb.append("]]></link>\n");
-
-      DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
 
       sb.append("<pubDate>");
       sb.append(df.format(ae.getEndDate()));
