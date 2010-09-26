@@ -252,6 +252,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       //  If we're past the end time, update once, and never again.
       if(serverTime.after(getEndDate())) {
         setComplete(true);
+        setNeedsUpdate();
       }
     }
   }
