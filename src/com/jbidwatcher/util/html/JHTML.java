@@ -517,20 +517,24 @@ public class JHTML implements JHTMLListener {
    * @return - True if that sequence was found, false otherwise. (Probably should be the contents that matched the last regex.)
    */
   public boolean hasSequence(String... sequence) {
-    if(sequence.length == 0) return false;
+    return sequence.length != 0 && findSequence(sequence) != null;
+  }
 
+  public List<String> findSequence(String... sequence) {
+    List<String> contentSequence = new LinkedList<String>();
     int index = 0;
 
     for (String contentStep : contentList) {
       if (contentStep.matches(sequence[index])) {
+        contentSequence.add(contentStep);
         index++;
-        if (index == sequence.length) return true;
+        if (index == sequence.length) return contentSequence;
       } else {
+        contentSequence.clear();
         index = 0;
       }
     }
-
-    return false;
+    return null;
   }
 
   //------------------------------------------------------------

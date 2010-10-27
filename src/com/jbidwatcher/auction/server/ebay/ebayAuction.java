@@ -12,6 +12,7 @@ import com.jbidwatcher.util.html.htmlToken;
 import com.jbidwatcher.util.Constants;
 
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -270,7 +271,8 @@ class ebayAuction extends SpecificAuction {
     setBuyNowUS(zeroDollars);
 
     String altBuyNowString1 = mDocument.getNextContentAfterRegexIgnoring(T.s("ebayServer.price"), "([Ii]tem.[Nn]umber|^\\s*[0-9]+\\s*$)");
-    if(mDocument.getPrevContent(3).equals("Estimated delivery*")) return;
+    String deliveryCheck = mDocument.getPrevContent(3);
+    if(deliveryCheck != null && deliveryCheck.matches("(?i)(standard|estimated) delivery.*")) return;
     if(altBuyNowString1 != null) {
       altBuyNowString1 = altBuyNowString1.trim();
     }
@@ -730,11 +732,19 @@ class ebayAuction extends SpecificAuction {
   }
 
   private Currency establishCurrentBid(AuctionEntry ae) {
+    Currency cvtCur = null;
+
     //  The set of tags that indicate the current/starting/lowest/winning
     //  bid are 'Current bid', 'Starting bid', 'Lowest bid',
     //  'Winning bid' so far.
-    String cvtCur = mDocument.getNextContentAfterRegex(T.s("ebayServer.currentBid"));
-    setCurBid(Currency.getCurrency(cvtCur));
+    List<String> curBidSequence = mDocument.findSequence(T.s("ebayServer.currentBid"), Currency.NAME_REGEX, Currency.VALUE_REGEX);
+    if (curBidSequence != null) {
+      cvtCur = Currency.getCurrency(curBidSequence.get(1), curBidSequence.get(2));
+    } else {
+      String foundBid = mDocument.getNextContentAfterRegex(T.s("ebayServer.currentBid"));
+      if(foundBid != null) cvtCur = Currency.getCurrency(foundBid);
+    }
+    if(cvtCur != null) setCurBid(cvtCur);
     setUSCur(getUSCurrency(getCurBid(), mDocument));
 
     if(getCurBid() == null || getCurBid().isNull()) {
@@ -852,16 +862,7 @@ class ebayAuction extends SpecificAuction {
   }
 
   private int getBidCount(JHTML doc, int quantity) {
-    String rawBidCount = doc.getNextContentAfterRegex(T.s("ebayServer.bidCount"));
-    if (rawBidCount == null) {
-      rawBidCount = doc.getContentBeforeContent("See history");
-      if(rawBidCount != null && rawBidCount.matches("^(Purchased|Bid).*")) {
-        if (rawBidCount.matches("^Purchased.*")) setFixedPrice(true);
-        rawBidCount = doc.getPrevContent();
-      }
-      if(rawBidCount != null && !StringTools.isNumberOnly(rawBidCount)) rawBidCount = null;
-    }
-
+    String rawBidCount = getRawBidCount(doc);
     int bidCount = 0;
     if(rawBidCount != null) {
       if(rawBidCount.equals(T.s("ebayServer.purchasesBidCount")) ||
@@ -896,6 +897,31 @@ class ebayAuction extends SpecificAuction {
     }
 
     return bidCount;
+  }
+
+  private String getRawBidCount(JHTML doc) {
+    List<String> bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", ".*", "[0-9]+", "bids");
+    String rawBidCount;
+    if(bidSequence == null) {
+      bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids");
+      if(bidSequence != null) {
+        rawBidCount = bidSequence.get(2);
+      } else {
+        rawBidCount = doc.getNextContentAfterRegex(T.s("ebayServer.bidCount"));
+      }
+    } else {
+      rawBidCount = bidSequence.get(3);
+    }
+
+    if(rawBidCount == null) {
+      rawBidCount = doc.getContentBeforeContent("See history");
+      if(rawBidCount != null && rawBidCount.matches("^(Purchased|Bid).*")) {
+        if (rawBidCount.matches("^Purchased.*")) setFixedPrice(true);
+        rawBidCount = doc.getPrevContent();
+      }
+      if(rawBidCount != null && !StringTools.isNumberOnly(rawBidCount)) rawBidCount = null;
+    }
+    return rawBidCount;
   }
 
   public String getThumbnailURL() {

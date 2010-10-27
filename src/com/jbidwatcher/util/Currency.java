@@ -15,6 +15,9 @@ import java.beans.PersistenceDelegate;
 import java.beans.DefaultPersistenceDelegate;
 
 public class Currency implements Comparable {
+  public static final String VALUE_REGEX="^[0-9]+([,.0-9]*)$";
+  public static final String NAME_REGEX = "(USD|GBP|JPY|CHF|FRF|EUR|CAD|AUD|NTD|TWD|HKD|MYR|SGD|INR)";
+
   private static NumberFormat df = NumberFormat.getNumberInstance(Locale.US); // We create a lot of these, so minimizing memory usage is good.
   public static final int NONE=0, US_DOLLAR=1, UK_POUND=2, JP_YEN=3, GER_MARK=4, FR_FRANC=5, CAN_DOLLAR=6;
   public static final int EURO=7, AU_DOLLAR=8, CH_FRANC=9, NT_DOLLAR=10, TW_DOLLAR=10, HK_DOLLAR=11;
@@ -224,7 +227,20 @@ public class Currency implements Comparable {
   }
 
   public Currency(String symbol, String startValue) {
-    setValues(symbol, Double.parseDouble(startValue));
+    setValues(symbol, Double.parseDouble(cleanCommas(startValue)));
+  }
+
+  //  Convert [###.###.]###,## to [###,###,]###.##
+  private static String cleanCommas(String startValue) {
+    int decimalPos = startValue.length()-3;
+    if(decimalPos > 0) {
+      if (startValue.charAt(decimalPos) == '.') {
+        startValue = startValue.replaceAll(",", "");
+      } else if(startValue.charAt(decimalPos) == ',') {
+        startValue = startValue.replaceAll("\\.", "").replaceAll(",", ".");
+      }
+    }
+    return startValue;
   }
 
   private int checkLengthMatchStart(String value, String currencyName) {
@@ -242,7 +258,7 @@ public class Currency implements Comparable {
     return 0;
   }
 
-  /** 
+  /**
    * @brief Provided an entire string containing a currency prefix and
    * an amount, extract the two and set this object's value to equal
    * the result.
@@ -360,12 +376,7 @@ public class Currency implements Comparable {
       if(valuePortion.length() != 0) {
         double actualValue;
         try {
-          String cvt = valuePortion;
-          //  Convert [###.###.]###,## to [###,###,]###.##
-          if(cvt.length() > 2 && cvt.charAt(cvt.length()-3) == ',') {
-            cvt = cvt.substring(0, cvt.length()-3).replaceAll("\\.",",") + '.' + cvt.substring(cvt.length()-2);
-//            System.out.println("Converting '" + cvt + "': " + df.parse(cvt).doubleValue());
-          }
+          String cvt = cleanCommas(valuePortion);
           actualValue = df.parse(cvt).doubleValue();
         } catch(java.text.ParseException e) {
           JConfig.log().handleException("currency parse!", e);
