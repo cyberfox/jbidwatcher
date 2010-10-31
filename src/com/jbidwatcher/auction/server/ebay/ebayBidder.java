@@ -225,6 +225,11 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
     JHTML htmlDocument = new JHTML(loadedPage);
     JHTML.Form bidForm = htmlDocument.getFormWithInput("key");
 
+    //  eBay's testing a new form without the key...
+    if(bidForm == null) {
+      bidForm = htmlDocument.getFormWithInput("maxbid");
+    }
+
     if (bidForm != null) {
       if (JConfig.debugging) inEntry.setLastStatus("Done loading bid request, got form...");
       return new BidFormReturn(true, bidForm, htmlDocument, loadedPage);
