@@ -900,10 +900,10 @@ class ebayAuction extends SpecificAuction {
   }
 
   private String getRawBidCount(JHTML doc) {
-    List<String> bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", ".*", "[0-9]+", "bids");
+    List<String> bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", ".*", "[0-9]+", "bids?");
     String rawBidCount;
     if(bidSequence == null) {
-      bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids");
+      bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids?");
       if(bidSequence != null) {
         rawBidCount = bidSequence.get(2);
       } else {
