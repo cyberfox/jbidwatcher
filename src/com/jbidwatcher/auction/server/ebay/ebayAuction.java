@@ -906,6 +906,9 @@ class ebayAuction extends SpecificAuction {
       bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids?");
       if(bidSequence != null) {
         rawBidCount = bidSequence.get(2);
+      } else if( (bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+ bids?")) != null) {
+        String bidsString = bidSequence.get(2);
+        rawBidCount = bidsString.substring(0, bidsString.indexOf(' '));
       } else {
         rawBidCount = doc.getNextContentAfterRegex(T.s("ebayServer.bidCount"));
       }
