@@ -1256,6 +1256,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return (x < 10) ? " " : "";
   }
 
+  @Override
+  public int hashCode() {
+    return getIdentifier().hashCode() ^ getEndDate().hashCode();
+  }
+
   /**
    * @brief Do a 'standard' compare to another AuctionEntry object.
    *
@@ -1280,12 +1285,15 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     //  If the identifiers are the same, we're equal.
     if(identifier != null && identifier.equals(other.getIdentifier())) return 0;
 
-    if(getEndDate() == null && other.getEndDate() != null) return 1;
-    if(getEndDate() != null && other.getEndDate() == null) return -1;
-    if (getEndDate() != null && other.getEndDate() != null) {
+    final Date myEndDate = getEndDate();
+    final Date otherEndDate = other.getEndDate();
+    if(myEndDate == null && otherEndDate != null) return 1;
+    if(myEndDate != null) {
+      if(otherEndDate == null) return -1;
+
       //  If this ends later than the passed in object, then we are 'greater'.
-      if(getEndDate().after(other.getEndDate())) return 1;
-      if(other.getEndDate().after(getEndDate())) return -1;
+      if(myEndDate.after(otherEndDate)) return 1;
+      if(otherEndDate.after(myEndDate)) return -1;
     }
 
     //  Whoops!  Dates are equal, down to the second probably, or both null...
@@ -1456,8 +1464,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   public Date getEndDate() {
-    if(getAuction() != null && getAuction().getEndDate() != null) {
-      return getAuction().getEndDate();
+    if(getAuction() != null) {
+      Date auctionEnd = getAuction().getEndDate();
+      if(auctionEnd != null) {
+        return auctionEnd;
+      }
     }
 
     return Constants.FAR_FUTURE;
