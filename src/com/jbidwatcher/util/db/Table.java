@@ -180,7 +180,7 @@ public class Table
           setColumn(ps, colnum, keys[i], values[i]);
         }
       }
-      ResultSet rs = ps.executeQuery();
+      ResultSet rs = execute(ps);
       return getAllResults(rs);
     } catch (SQLException e) {
       e.printStackTrace();
@@ -216,6 +216,35 @@ public class Table
       JConfig.log().handleDebugException("Error running query: " + query, e);
       return null;
     }
+  }
+
+  private Map<String,PreparedStatement> mStatementMap = new HashMap<String,PreparedStatement>();
+
+  public List<Record> findAllPrepared(String query, int count, String... parameters) {
+    try {
+      PreparedStatement ps = mStatementMap.get(query);
+      if(ps==null) {
+        ps = mDB.prepare(query);
+        mStatementMap.put(query, ps);
+      }
+      ps.setMaxRows(count);
+
+      int paramIndex = 1;
+      for(String param : parameters) {
+        ps.setString(paramIndex++, param);
+      }
+
+      ResultSet rs = execute(ps);
+      ps.clearParameters();
+      return getAllResults(rs);
+    } catch (SQLException e) {
+      JConfig.log().handleDebugException("Error preparing query: " + query, e);
+      return null;
+    }
+  }
+
+  private ResultSet execute(PreparedStatement ps) throws SQLException {
+    return ps.executeQuery();
   }
 
   private Record getFirstResult(ResultSet rs) throws SQLException {
@@ -309,7 +338,7 @@ public class Table
       if (forUpdate) statement += " FOR UPDATE";
       PreparedStatement ps = mDB.prepare(statement);
       setColumn(ps, 1, columnKey, value);
-      ResultSet rs = ps.executeQuery();
+      ResultSet rs = execute(ps);
       oldRow = getFirstResult(rs);
     } catch (SQLException e) {
       JConfig.log().handleException("Can't get row" + (forUpdate? " for update":"") + " (" + columnKey + " = '" + value +"').", e);

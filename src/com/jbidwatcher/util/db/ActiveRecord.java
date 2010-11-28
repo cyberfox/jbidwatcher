@@ -145,6 +145,13 @@ public abstract class ActiveRecord extends HashBacked {
     return convertResultsToList(klass, results);
   }
 
+  protected static List<? extends ActiveRecord> findAllByPrepared(Class klass, String query, String... parameters) {
+    if(sDBDisabled) return new LinkedList<ActiveRecord>();
+    ActiveRecord found = getExemplar(klass);
+    List<Record> results = getTable(found).findAllPrepared(query, 0, parameters);
+    return convertResultsToList(klass, results);
+  }
+
   protected static List<? extends ActiveRecord> findAllBySQL(Class klass, String query) {
     return findAllBySQL(klass, query, 0);
   }
