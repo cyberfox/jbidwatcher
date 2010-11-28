@@ -4,6 +4,8 @@ import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.html.CleanupHandler;
 import com.jbidwatcher.util.Externalized;
 
+import java.util.regex.Matcher;
+
 /**
  * Created by IntelliJ IDEA.
  * User: Morgan
@@ -20,10 +22,7 @@ public class ebayCleaner implements CleanupHandler
    * buffer passed in.
    */
   private void killScripts(StringBuffer sb) {
-    boolean didDelete;
-    do {
-      didDelete = StringTools.deleteRegexPair(sb, Externalized.getString("ebayServer.stripScript"), Externalized.getString("ebayServer.stripScriptEnd"));
-    } while (didDelete);
+    StringTools.deleteRegexPairs(sb, Externalized.getString("ebayServer.stripScript"), Externalized.getString("ebayServer.stripScriptEnd"));
   }
 
   /**
@@ -34,9 +33,6 @@ public class ebayCleaner implements CleanupHandler
     killScripts(sb);
 
     //  Eliminate all comment sections.
-    boolean didDelete;
-    do {
-      didDelete = StringTools.deleteRegexPair(sb, Externalized.getString("ebayServer.stripComment"), Externalized.getString("ebayServer.stripCommentEnd"));
-    } while (didDelete);
+    StringTools.deleteRegexPairs(sb, Externalized.getString("ebayServer.stripComment"), Externalized.getString("ebayServer.stripCommentEnd"));
   }
 }

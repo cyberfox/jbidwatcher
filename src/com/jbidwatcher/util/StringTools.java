@@ -142,18 +142,19 @@ public class StringTools {
    * @brief Simple utility to delete from a stringbuffer starting
    * from a string, until the next following string.
    */
-  public static boolean deleteRegexPair(StringBuffer sb, String startStr, String endStr) {
-    Matcher start = Pattern.compile(startStr, Pattern.CASE_INSENSITIVE).matcher(sb);
-    Matcher end = Pattern.compile(endStr, Pattern.CASE_INSENSITIVE).matcher(sb);
+  public static Matcher deleteRegexPairs(StringBuffer sb, String startStr, String endStr) {
+    String expr = startStr + ".*?" + endStr;
+    Matcher start = Pattern.compile(expr, Pattern.CASE_INSENSITIVE).matcher(sb);
+    Queue<Pair<Integer, Integer>> startEndPairs = Collections.asLifoQueue(new LinkedList<Pair<Integer,Integer>>());
 
-    if (start.find() &&
-        end.find(start.start() + 1)) {
-      int desc_start = start.start();
-      int desc_end = end.end();
-
-      return deleteRange(sb, desc_start, desc_end);
+    while(start.find()) {
+      startEndPairs.add(new Pair<Integer, Integer>(start.start(), start.end()));
     }
-    return false;
+
+    for(Pair<Integer, Integer> matchedPair : startEndPairs) {
+      deleteRange(sb, matchedPair.getFirst(), matchedPair.getLast());
+    }
+    return null;
   }
 
   public static ZoneDate figureDate(String rawTime, String siteDateFormat) {
