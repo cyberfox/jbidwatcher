@@ -1,9 +1,9 @@
 package com.jbidwatcher.auction;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Lock;
 
@@ -16,12 +16,12 @@ import java.util.concurrent.locks.Lock;
  * same underlying objects.  Thread safety is a serious concern.
  */
 public class EntryCorral {
-  private Map<String, AuctionEntry> mEntryList;
+  private Map<String, Reference<AuctionEntry>> mEntryList;
   private final Map<String, Lock> mLockList;
   private static EntryCorral sInstance = null;
 
   private EntryCorral() {
-    mEntryList = new HashMap<String, AuctionEntry>();
+    mEntryList = new HashMap<String, Reference<AuctionEntry>>();
     mLockList = new HashMap<String, Lock>();
   }
 
@@ -30,8 +30,14 @@ public class EntryCorral {
     return sInstance;
   }
 
+  private AuctionEntry get(String identifier) {
+    Reference<AuctionEntry> r = mEntryList.get(identifier);
+    if(r != null) return r.get();
+    return null;
+  }
+
   public AuctionEntry takeForWrite(String identifier) {
-    AuctionEntry result = mEntryList.get(identifier);
+    AuctionEntry result = get(identifier);
     if(result == null) {
       result = AuctionEntry.findByIdentifier(identifier);
     }
@@ -54,16 +60,24 @@ public class EntryCorral {
   }
 
   public AuctionEntry takeForRead(String identifier) {
-    AuctionEntry result = mEntryList.get(identifier);
+    AuctionEntry result = get(identifier);
     if (result == null) {
       result = AuctionEntry.findByIdentifier(identifier);
+      if(result != null) mEntryList.put(identifier, new WeakReference<AuctionEntry>(result));
     }
     return result;
   }
 
   public AuctionEntry put(AuctionEntry ae) {
     AuctionEntry result = chooseLatest(ae);
-    mEntryList.put(ae.getIdentifier(), result);
+    mEntryList.put(ae.getIdentifier(), new SoftReference<AuctionEntry>(result));
+
+    return result;
+  }
+
+  public AuctionEntry putWeakly(AuctionEntry ae) {
+    AuctionEntry result = chooseLatest(ae);
+//    mEntryList.put(ae.getIdentifier(), new WeakReference<AuctionEntry>(result));
 
     return result;
   }
@@ -82,12 +96,17 @@ public class EntryCorral {
 
   private AuctionEntry chooseLatest(AuctionEntry ae) {
     AuctionEntry chosen;
-    AuctionEntry existing = mEntryList.get(ae.getIdentifier());
+    AuctionEntry existing = get(ae.getIdentifier());
+    final Date inputDate = ae.getDate("updated_at");
+    final Date existingDate = (existing == null ? null : existing.getDate("updated_at"));
     if(existing == null ||
-        (ae.getDate("updated_at") != null && existing.getDate("updated_at") == null) ||
-        (ae.getDate("updated_at") != null && existing.getDate("updated_at") != null &&
-            ae.getDate("updated_at").after(existing.getDate("updated_at")))) {
-      mEntryList.put(ae.getIdentifier(), ae);
+        (inputDate != null && existingDate == null) ||
+        (inputDate != null && inputDate.after(existingDate))) {
+      if(mEntryList.get(ae.getIdentifier()) instanceof SoftReference) {
+        mEntryList.put(ae.getIdentifier(), new SoftReference<AuctionEntry>(ae));
+      } else {
+        mEntryList.put(ae.getIdentifier(), new WeakReference<AuctionEntry>(ae));
+      }
       chosen = ae;
     } else {
       chosen = existing;
@@ -96,9 +115,12 @@ public class EntryCorral {
   }
 
   public AuctionEntry erase(String identifier) {
-    AuctionEntry rval = mEntryList.remove(identifier);
+    Reference<AuctionEntry> rval = mEntryList.remove(identifier);
     Lock l = mLockList.remove(identifier);
     if(l != null) l.unlock();
-    return rval;
+    if(rval == null) {
+      return null;
+    }
+    return rval.get();
   }
 }
