@@ -145,12 +145,13 @@ public class StringTools {
   public static Matcher deleteRegexPairs(StringBuffer sb, String startStr, String endStr) {
     String expr = startStr + ".*?" + endStr;
     Matcher start = Pattern.compile(expr, Pattern.CASE_INSENSITIVE).matcher(sb);
-    Queue<Pair<Integer, Integer>> startEndPairs = Collections.asLifoQueue(new LinkedList<Pair<Integer,Integer>>());
+    List<Pair<Integer, Integer>> startEndPairs = new LinkedList<Pair<Integer,Integer>>();
 
     while(start.find()) {
       startEndPairs.add(new Pair<Integer, Integer>(start.start(), start.end()));
     }
 
+    Collections.reverse(startEndPairs);
     for(Pair<Integer, Integer> matchedPair : startEndPairs) {
       deleteRange(sb, matchedPair.getFirst(), matchedPair.getLast());
     }
