@@ -468,13 +468,16 @@ public class JHTML implements JHTMLListener {
   }
 
   private String grepAfter(String match, String ignore) {
+    Pattern toMatch = Pattern.compile(match);
+    Pattern toIgnore = (ignore == null ? null : Pattern.compile(ignore));
+
     for (Iterator<String> it = contentList.iterator(); it.hasNext();) {
       String contentStep = it.next();
-      if(contentStep.matches(match)) {
+      if(toMatch.matcher(contentStep).matches()) {
         Iterator<String> save = it;
         if(it.hasNext()) {
           String potential = it.next();
-          if(ignore == null || !potential.matches(ignore)) {
+          if(ignore == null || !toIgnore.matcher(potential).matches()) {
             contentLookup(contentStep, false);
             return potential;
           }
@@ -521,11 +524,16 @@ public class JHTML implements JHTMLListener {
   }
 
   public List<String> findSequence(String... sequence) {
+    Pattern[] inputPattern = new Pattern[sequence.length];
+    int currentPattern = 0;
+    for(String step : sequence) {
+      inputPattern[currentPattern++] = Pattern.compile(step);
+    }
     List<String> contentSequence = new LinkedList<String>();
     int index = 0;
 
     for (String contentStep : contentList) {
-      if (contentStep.matches(sequence[index])) {
+      if(inputPattern[index].matcher(contentStep).matches()) {
         contentSequence.add(contentStep);
         index++;
         if (index == sequence.length) return contentSequence;
