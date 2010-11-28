@@ -170,7 +170,7 @@ public class Http implements HttpInterface {
   }
 
   private ByteBuffer receiveStream(InputStream is) throws IOException {
-    int curMax = 32768;
+    int curMax = 104729;
     byte[] mainBuf = new byte[curMax];
 
     int count = is.read(mainBuf, 0, curMax);
