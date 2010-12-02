@@ -494,6 +494,7 @@ class ebayAuction extends SpecificAuction {
       }
       if(nextContent.matches("(?i).*Buy.It.Now.*")) {
         String startingPrice = mDocument.getNextContentAfterRegex("(Starting|Current) bid:");
+        if(startingPrice.matches(Currency.NAME_REGEX)) startingPrice += " " + mDocument.getNextContent();
         if(startingPrice == null || !Currency.isCurrency(startingPrice)) setFixedPrice(true);
         if(Currency.isCurrency(postPrice)) {
           setBuyNow(Currency.getCurrency(postPrice));
