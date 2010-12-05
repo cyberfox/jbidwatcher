@@ -1653,6 +1653,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   private static Date updateSince = new Date();
   private static Date endingSoon = new Date();
+  private static Date hourAgo = new Date();
   private static SimpleDateFormat mDateFormat = new SimpleDateFormat(DB_DATE_FORMAT);
 
   @SuppressWarnings({"unchecked"})
@@ -1674,23 +1675,15 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
     //  Update more frequently in the last 25 minutes.
     endingSoon.setTime(System.currentTimeMillis() + 25 * Constants.ONE_MINUTE);
+    hourAgo.setTime(System.currentTimeMillis() - Constants.ONE_HOUR);
 
-    /**
-      SELECT e.* FROM entries e
-        JOIN auctions a ON a.id = e.auction_id
-        WHERE a.ending_at < '2010-12-26 01:45:54.0'
-          AND (e.ended != 1 OR e.ended IS NULL)
-          AND (e.last_updated_at IS NULL OR e.last_updated_at < '2010-11-25 20:31:49.0')
-        ORDER BY a.ending_at ASC;
-    **/
     return (List<AuctionEntry>)findAllByPrepared(AuctionEntry.class,
         "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id" +
-        "  WHERE a.ending_at < ?" +
+        "  WHERE (e.last_updated_at IS NULL OR e.last_updated_at < ?)" +
         "    AND (e.ended != 1 OR e.ended IS NULL)" +
-        "    AND (e.last_updated_at IS NULL OR e.last_updated_at < ?)" +
-        "  ORDER BY a.ending_at ASC", mDateFormat.format(endingSoon), mDateFormat.format(updateSince));
-
-//    return (List<AuctionEntry>)findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE a.ending_at < '" + mDateFormat.format(endingSoon) + "' AND (e.ended != 1 OR e.ended IS NULL) AND (e.last_updated_at IS NULL OR e.last_updated_at < '" + mDateFormat.format(updateSince) + "') ORDER BY a.ending_at ASC");
+        "    AND a.ending_at < ? AND a.ending_at > ?" +
+        "  ORDER BY a.ending_at ASC", mDateFormat.format(updateSince),
+        mDateFormat.format(endingSoon), mDateFormat.format(hourAgo));
   }
 
   @SuppressWarnings({"unchecked"})
