@@ -169,8 +169,17 @@ public class Http implements HttpInterface {
     return receiveStream(is);
   }
 
+  /**
+   * Receive all the data available on an InputStream.  Sadly, over the
+   * network this typically reads 1460 bytes at a time (MTU-TCP/IP overhead),
+   * at about 22ms/read. This means a 100K page loads in about 1.5 seconds. :(
+   *
+   * @param is - The InputStream to read from.
+   * @return - A ByteBuffer containing the data read from the InputStream.
+   * @throws IOException - If any problems occur while reading.
+   */
   private ByteBuffer receiveStream(InputStream is) throws IOException {
-    int curMax = 104729;
+    int curMax = 111821;  //  A prime; no good reason.
     byte[] mainBuf = new byte[curMax];
 
     int count = is.read(mainBuf, 0, curMax);

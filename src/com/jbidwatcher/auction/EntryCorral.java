@@ -76,10 +76,7 @@ public class EntryCorral {
   }
 
   public AuctionEntry putWeakly(AuctionEntry ae) {
-    AuctionEntry result = chooseLatest(ae);
-//    mEntryList.put(ae.getIdentifier(), new WeakReference<AuctionEntry>(result));
-
-    return result;
+    return chooseLatest(ae);
   }
 
   public List<AuctionEntry> findAllSniped() {
