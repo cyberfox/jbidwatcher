@@ -123,4 +123,14 @@ public class EntryCorral {
     }
     return rval.get();
   }
+
+  public void clear() {
+    synchronized(mLockList) {
+      for (String s : mLockList.keySet()) {
+        erase(s);
+      }
+
+      mEntryList.clear();
+    }
+  }
 }

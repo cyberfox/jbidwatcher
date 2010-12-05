@@ -1981,4 +1981,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public static List<AuctionEntry> findBidOrSniped(int itemCount) {
     return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE (e.snipe_id IS NOT NULL OR e.multisnipe_id IS NOT NULL OR e.bid_amount IS NOT NULL) ORDER BY a.ending_at ASC", itemCount);
   }
+
+  public static void forceUpdateActive() {
+    getRealDatabase().execute("UPDATE entries SET last_updated_at=NULL WHERE ended != 1 OR ended IS NULL");
+  }
 }

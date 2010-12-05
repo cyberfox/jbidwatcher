@@ -1004,13 +1004,8 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private void DoUpdateAll() {
-    List<AuctionEntry> stepThrough = AuctionEntry.findActive();
-
-    for(AuctionEntry ae : stepThrough) {
-      if (!ae.isComplete()) {
-        ae.setNeedsUpdate();
-      }
-    }
+    AuctionEntry.forceUpdateActive();
+    EntryCorral.getInstance().clear();
   }
 
   private void DoStopUpdating(Component src) {
