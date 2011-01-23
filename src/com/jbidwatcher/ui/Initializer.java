@@ -16,9 +16,9 @@ import java.awt.Component;
 public class Initializer {
   private static JTabPopupMenu sMenu;
 
-  public static void setup() {
+  public static void setup(FilterManager filters) {
     JTabbedPane tabs = JTabManager.getInstance().getTabs();
-    sMenu = new JTabPopupMenu(tabs);
+    sMenu = new JTabPopupMenu(tabs, filters);
     ActionListener cornerButtonListener = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         JMenu bangMenu = sMenu.getCustomizeMenu();

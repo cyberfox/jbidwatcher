@@ -619,8 +619,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     inSplash.message("Initializing Database");
     MyJBidwatcher.getInstance();
-    Initializer.setup();
-    FilterManager.getInstance().loadFilters();
+    FilterManager filters = AuctionsManager.getInstance().getFilters();
+    filters.loadFilters();
+    Initializer.setup(filters);
     inSplash.message("Loading Auctions");
     if (sCreatedDB) {
       AuctionsManager.getInstance().loadAuctions();

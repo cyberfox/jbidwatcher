@@ -30,7 +30,7 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 
 /** @noinspection Singleton*/
-public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager, JConfig.ConfigListener {
+public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager, JConfig.ConfigListener, AuctionUpdateMonitor {
   private static AuctionsManager mInstance = null;
   private FilterManager mFilter;
 
@@ -52,7 +52,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     mCheckpointFrequency = 10 * Constants.ONE_MINUTE;
     mLastCheckpointed = System.currentTimeMillis();
 
-    mFilter = FilterManager.getInstance();
+    mFilter = new FilterManager(this);
   }
 
   static {
@@ -67,6 +67,10 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    */
   public static AuctionsManager getInstance() {
     return mInstance;
+  }
+
+  public FilterManager getFilters() {
+    return mFilter;
   }
 
   public void pause() {

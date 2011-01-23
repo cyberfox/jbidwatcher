@@ -24,6 +24,7 @@ public class JTabPopupMenu extends JContext {
   private JMenuItem _print = null;
   private JMenu _deleteSubmenu = null;
   private Map<String, JCheckBoxMenuItem> menuItemMap = new TreeMap<String, JCheckBoxMenuItem>();
+  private FilterManager mFilter;
 
   /**
    * @brief Make a small menu for tabs.
@@ -185,7 +186,7 @@ public class JTabPopupMenu extends JContext {
       result = result.trim();
       if(result.length() == 0) return;
 
-      FilterManager.getInstance().addTab(result);
+      mFilter.addTab(result);
       return;
     }
 
@@ -262,7 +263,8 @@ public class JTabPopupMenu extends JContext {
    * @brief Construct a menu & listener to be used as a context menu
    * on the tabbed display.
    */
-  public JTabPopupMenu(JTabbedPane inTabs) {
+  public JTabPopupMenu(JTabbedPane inTabs, FilterManager filters) {
+    mFilter = filters;
     mTabs = inTabs;
     localPopup = new JPopupMenu();
     makeTabMenu(localPopup);
@@ -276,7 +278,8 @@ public class JTabPopupMenu extends JContext {
    * @param inTabs - The tab display to act as a context menu for.
    * @param popup - The popup to add the behavior to.
    */
-  public JTabPopupMenu(JTabbedPane inTabs, JPopupMenu popup) {
+  public JTabPopupMenu(JTabbedPane inTabs, JPopupMenu popup, FilterManager filters) {
+    mFilter = filters;
     mTabs = inTabs;
     localPopup = popup;
     makeTabMenu(localPopup);

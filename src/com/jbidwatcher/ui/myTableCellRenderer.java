@@ -12,7 +12,6 @@ package com.jbidwatcher.ui;//  -*- Java -*-
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.MultiSnipe;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.ui.table.TableColumnController;
 
 import javax.swing.*;
@@ -36,6 +35,11 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private int mRow = 0;
   private boolean mThumbnail = false;
   private boolean mSelected;
+  private AuctionUpdateMonitor mMonitor = null;
+
+  public void setUpdateMonitor(AuctionUpdateMonitor monitor) {
+    mMonitor = monitor;
+  }
 
   private static class Colors {
     Color mForeground;
@@ -363,7 +367,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private Color chooseIDColor(AuctionEntry ae) {
     if(ae != null) {
       boolean recent = ae.isJustAdded();
-      boolean isUpdating = AuctionsManager.getInstance().isCurrentlyUpdating(ae.getIdentifier());
+      boolean isUpdating = mMonitor != null && mMonitor.isCurrentlyUpdating(ae.getIdentifier());
 
       if(isUpdating) {
         return darkRed;

@@ -52,9 +52,11 @@ public class AuctionsUIModel {
    * @param tableContextMenu - The context menu to present for this table.
    * @param frameContextMenu - The context menu to present for whitespace outside the table.
    * @param cornerButtonListener - The button to sit above the scrollbar.
+   * @param monitor
    */
-  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, JContext frameContextMenu, ActionListener cornerButtonListener) {
+  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, JContext frameContextMenu, ActionListener cornerButtonListener, AuctionUpdateMonitor monitor) {
     _dataModel = newAuctionList;
+    _myRenderer.setUpdateMonitor(monitor);
 
     _targets = new DropTarget[2];
 

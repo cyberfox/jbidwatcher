@@ -18,14 +18,15 @@ import java.util.*;
 import java.awt.Color;
 
 public class FilterManager implements MessageQueue.Listener {
-  private static FilterManager sInstance = null;
   private static final ListManager mList = ListManager.getInstance();
   private Map<String, AuctionListHolder> mIdentifierToList;
   private AuctionListHolder mMainTab = null;
   private AuctionListHolder mDefaultCompleteTab = null;
   private AuctionListHolder mDefaultSellingTab = null;
+  private AuctionUpdateMonitor mMonitor = null;
 
-  private FilterManager() {
+  protected FilterManager(AuctionUpdateMonitor monitor) {
+    mMonitor = monitor;
     mIdentifierToList = new HashMap<String, AuctionListHolder>();
 
     MQFactory.getConcrete("redraw").registerListener(this);
@@ -41,9 +42,9 @@ public class FilterManager implements MessageQueue.Listener {
   }
 
   public void loadFilters() {
-    mMainTab = mList.add(new AuctionListHolder("current", false, false));
-    mDefaultCompleteTab = mList.add(new AuctionListHolder("complete", true, false));
-    mDefaultSellingTab = mList.add(new AuctionListHolder("selling", false, false));
+    mMainTab = mList.add(new AuctionListHolder("current", mMonitor, false, false));
+    mDefaultCompleteTab = mList.add(new AuctionListHolder("complete", mMonitor, true, false));
+    mDefaultSellingTab = mList.add(new AuctionListHolder("selling", mMonitor, false, false));
 
     String tabName;
     int i = 0;
@@ -51,7 +52,7 @@ public class FilterManager implements MessageQueue.Listener {
     do {
       tabName = JConfig.queryDisplayProperty("tabs.name." + i++);
       if (tabName != null && mList.findCategory(tabName) == null) {
-        mList.add(new AuctionListHolder(tabName));
+        mList.add(new AuctionListHolder(tabName, mMonitor, false, true));
       }
     } while (i < 3 || tabName != null);  //  Do at least the first three, and then keep going until we miss an index.
   }
@@ -73,21 +74,11 @@ public class FilterManager implements MessageQueue.Listener {
       mMainTab.getUI().getColumnWidthsToProperties(dispProps, newTab);
       JConfig.addAllToDisplay(dispProps);
     }
-    AuctionListHolder newList = new AuctionListHolder(newTab, mainBackground);
+    AuctionListHolder newList = new AuctionListHolder(newTab, mMonitor, false, true);
+    newList.setBackground(mainBackground);
     mList.add(newList);
     Category.findOrCreateByName(newTab);
     return newList;
-  }
-
-  /**  This is a singleton class, it needs an accessor.
-   *
-   * @return - The singleton instance of this class.
-   */
-  public synchronized static FilterManager getInstance() {
-    if(sInstance == null) {
-      sInstance = new FilterManager();
-    }
-    return sInstance;
   }
 
   public void messageAction(Object deQ) {
