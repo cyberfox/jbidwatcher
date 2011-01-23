@@ -12,6 +12,7 @@ import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
+import com.jbidwatcher.ui.commands.UserActions;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.search.SearchManager;
@@ -620,8 +621,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
     inSplash.message("Initializing Database");
     MyJBidwatcher.getInstance();
     FilterManager filters = AuctionsManager.getInstance().getFilters();
-    filters.loadFilters();
     Initializer.setup(filters);
+    filters.loadFilters();
     inSplash.message("Loading Auctions");
     if (sCreatedDB) {
       AuctionsManager.getInstance().loadAuctions();
