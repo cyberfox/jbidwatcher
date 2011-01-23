@@ -1,7 +1,6 @@
 package com.jbidwatcher.ui.commands;
 
 import com.jbidwatcher.ui.JBHelp;
-import com.jbidwatcher.ui.UserActions;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.util.Constants;
 
@@ -15,9 +14,7 @@ import java.awt.Dimension;
 * Command to display the Frequently Asked Questions dialog.
 */
 public class FAQCommand extends AbstractCommand {
-  static {
-    UserActions.getInstance().addCommand("FAQ", new FAQCommand());
-  }
+  protected String getCommand() { return "FAQ"; }
 
   private final static StringBuffer badFAQ = new StringBuffer("Error loading FAQ text!  (D'oh!)  Email <a href=\"mailto:cyberfox@jbidwatcher.com\">me</a>!");
   private static StringBuffer _faqText = null;

@@ -68,7 +68,7 @@ public class JTabManager extends JMouseAdapter {
     return(mNameTableMap.get(currentTitle));
   }
 
-  protected int[] getPossibleRows() {
+  public int[] getPossibleRows() {
     return(getCurrentTable().getSelectedRows());
   }
 
@@ -160,7 +160,7 @@ public class JTabManager extends JMouseAdapter {
     }
   }
 
-  protected Object getIndexedEntry(int i) {
+  public Object getIndexedEntry(int i) {
     return getCurrentTable().getValueAt(i, -1);
   }
 

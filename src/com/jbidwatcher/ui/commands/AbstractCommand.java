@@ -5,16 +5,18 @@ import com.jbidwatcher.auction.AuctionEntry;
 import java.awt.Component;
 
 /**
- * Created by IntelliJ IDEA.
+ * Allow commands to exist on their own, as individual classes.
+ *
  * User: mrs
  * Date: Jun 23, 2010
  * Time: 3:25:50 PM
- * To change this template use File | Settings | File Templates.
  */
 public abstract class AbstractCommand {
-  private Component mSrc;
-  private AuctionEntry mAuction;
-  private int[] mRows;
+  protected Component mSrc;
+  protected AuctionEntry mAuction;
+  protected int[] mRows;
+
+  abstract protected String getCommand();
 
   public void setSource(Component src) {
     mSrc = src;
@@ -25,7 +27,7 @@ public abstract class AbstractCommand {
   }
 
   public void setSelected(int[] rowlist) {
-
+    mRows = rowlist.clone();
   }
 
   public abstract void execute();

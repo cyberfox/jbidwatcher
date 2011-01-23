@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;//  -*- Java -*-
+package com.jbidwatcher.ui.commands;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -15,8 +15,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 import com.jbidwatcher.platform.Path;
-import com.jbidwatcher.ui.commands.AbstractCommand;
-import com.jbidwatcher.ui.commands.FAQCommand;
+import com.jbidwatcher.ui.*;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.*;
@@ -36,7 +35,7 @@ import com.jbidwatcher.auction.AuctionServerInterface;
 import com.l2fprod.common.swing.JFontChooser;
 
 public class UserActions implements MessageQueue.Listener {
-  private static Map<String,AbstractCommand> commands = new HashMap<String,AbstractCommand>();
+  private Map<String, AbstractCommand> commands = new HashMap<String,AbstractCommand>();
   private static JTabManager mTabs = JTabManager.getInstance();
   private static JConfigFrame jcf = null;
   private static SearchFrame _searchFrame = null;
@@ -51,22 +50,30 @@ public class UserActions implements MessageQueue.Listener {
   private boolean _in_deleting = false;
   private ScriptManager mScriptFrame;
 
-  private static AbstractCommand[] sCommands = { new FAQCommand() };
-
-  // Singleton stuff
-  private static UserActions sInstance = null;
-
-  public static synchronized UserActions getInstance() {
-    if (sInstance == null) sInstance = new UserActions();
-    if (sCommands == null) JConfig.log().logMessage("Interactive commands not loaded!");
-    return sInstance;
-  }
+  static Class[] sCommandClasses = {
+      FAQCommand.class,
+  };
 
   public void addCommand(String cmdName, AbstractCommand commandObject) {
     commands.put(cmdName, commandObject);
   }
 
-  private UserActions() { }
+  public UserActions() {
+    if (sCommandClasses == null) {
+      JConfig.log().logMessage("Interactive commands not loaded!");
+    } else {
+      for (Class klass : sCommandClasses) {
+        try {
+          AbstractCommand cmd = (AbstractCommand) klass.newInstance();
+          commands.put(cmd.getCommand(), cmd);
+        } catch (InstantiationException e) {
+          JConfig.log().handleException("Failed to create command for " + klass, e);
+        } catch (IllegalAccessException e) {
+          JConfig.log().handleException("Bad access exception when creating command for " + klass, e);
+        }
+      }
+    }
+  }
 
   //  Message Listener stuff
   public static final String ADD_AUCTION="ADD ";
