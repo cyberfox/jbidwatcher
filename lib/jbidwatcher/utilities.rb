@@ -136,7 +136,7 @@ end
 
 $auction_server_manager = AuctionServerManager.getInstance
 $auctions_manager = AuctionsManager.getInstance
-$filter_manager = FilterManager.getInstance
+$filter_manager = $auctions_manager.filters
 $table_controller = TableColumnController.getInstance
 
 JBidwatcher = JBidwatcherUtilities.new
