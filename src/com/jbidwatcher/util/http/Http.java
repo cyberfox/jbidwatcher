@@ -15,6 +15,7 @@ import com.jbidwatcher.util.StringTools;
 import java.net.*;
 import java.io.*;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 public class Http implements HttpInterface {
   private String mUsername = null;
@@ -78,7 +79,9 @@ public class Http implements HttpInterface {
 
       huc.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
       huc.setRequestProperty("Content-Length", Integer.toString(cgiData.length()));
-      huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
+
+      setAgentAndEncoding(huc);
+
       if(referer != null) huc.setRequestProperty("Referer", referer);
       if(cookie != null) {
         huc.setRequestProperty("Cookie", cookie);
@@ -107,6 +110,13 @@ public class Http implements HttpInterface {
     }
   }
 
+  private void setAgentAndEncoding(URLConnection uc) {
+    //  We fake our user-agent, since some auction servers only let
+    //  you bid/read if we are a 'supported' browser.
+    uc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
+    uc.setRequestProperty("Accept-Encoding", "gzip");
+  }
+
   public URLConnection makeRequest(URL source, String cookie) throws java.io.IOException {
     if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
       JConfig.log().logDebug("makeRequest: " + source.toString());
@@ -117,10 +127,7 @@ public class Http implements HttpInterface {
       uc.setRequestProperty("Cookie", cookie);
     }
 
-    //  We fake our user-agent, since some auction servers only let
-    //  you bid/read if we are a 'supported' browser.
-    uc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
-
+    setAgentAndEncoding(uc);
     return uc;
   }
 
@@ -140,7 +147,8 @@ public class Http implements HttpInterface {
     ByteBuffer rval;
 
     try {
-      rval = receiveData(makeRequest(url, inCookie));
+      URLConnection uc = makeRequest(url, inCookie);
+      rval = receiveData(uc);
     } catch(FileNotFoundException fnfe) {
       //  It'd be great if we could pass along something that said, 'not here, never will be'.
       rval = null;
@@ -166,6 +174,11 @@ public class Http implements HttpInterface {
    */
   private ByteBuffer receiveData(URLConnection uc) throws IOException {
     InputStream is = uc.getInputStream();
+
+    if("gzip".equals(uc.getContentEncoding())) {
+      is = new GZIPInputStream(is);
+    }
+
     return receiveStream(is);
   }
 
@@ -203,6 +216,9 @@ public class Http implements HttpInterface {
     try {
       HttpURLConnection huc = (HttpURLConnection)getPage(url);
       InputStream is = getStream(huc);
+      if("gzip".equals(huc.getContentEncoding())) {
+        is = new GZIPInputStream(is);
+      }
       ByteBuffer results = receiveStream(is);
       StringBuffer sb = convertByteBufferToStringBuffer(huc, results);
       if((huc.getResponseCode() / 100) > 3) {
@@ -259,7 +275,8 @@ public class Http implements HttpInterface {
       huc.setInstanceFollowRedirects(followRedirects);
       setConnectionInfo(huc);
 
-      huc.setRequestProperty("User-Agent", Constants.FAKE_BROWSER);
+      setAgentAndEncoding(huc);
+
       if(referer != null) huc.setRequestProperty("Referer", referer);
       if(cookie != null) huc.setRequestProperty("Cookie", cookie);
     } catch(Exception e) {
