@@ -18,6 +18,7 @@ import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.db.*;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
+import com.sun.xml.internal.xsom.impl.Const;
 
 import java.io.File;
 import java.io.IOException;
@@ -400,7 +401,11 @@ public class AuctionInfo extends ActiveRecord
   public int getNumBids() { return getNumBidders(); }
 
   Date getStartDate() { return getDate("start"); }
-  Date getEndDate() { return getDate("end"); }
+  Date getEndDate() {
+    Date end = getDate("end");
+    if(end == null) end = Constants.FAR_FUTURE;
+    return end;
+  }
 
   public boolean isDutch() { return getBoolean("isDutch"); }
   protected boolean isReserve() { return getBoolean("isReserve"); }
@@ -481,7 +486,10 @@ public class AuctionInfo extends ActiveRecord
   protected void setBuyNow(Currency buyNow) {       setMonetary("buy_now", buyNow); }
 
   protected void setStart(Date start) { setDate("start", start); }
-  protected void setEnd(Date end) { setDate("end", end); }
+  protected void setEnd(Date end) {
+    if(end == Constants.FAR_FUTURE) end = null;
+    setDate("end", end);
+  }
 
   protected void setQuantity(int quantity) { setInteger("quantity", quantity); }
   protected void setNumBids(int numBids) { setInteger("numBids", numBids); }

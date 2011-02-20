@@ -87,6 +87,7 @@ class ebayAuction extends SpecificAuction {
         T.s("ebayServer.titleEbay"),
         T.s("ebayServer.titleEbay2"),
         T.s("ebayServer.titleEbay3"),
+        T.s("ebayServer.titleEbay4"),
         T.s("ebayServer.titleMotors"),
         T.s("ebayServer.titleMotors2"),
         T.s("ebayServer.titleDisney"),
@@ -600,9 +601,14 @@ class ebayAuction extends SpecificAuction {
       setEnd(null);
       setTitle(null);
 
-      //  This sucks.  They changed to: eBay: {title} (item # end time {endtime})
-      if(prelimTitle.matches(T.s("ebayServer.titleEbay2")) ||
-         prelimTitle.matches(T.s("ebayServer.titleMotors2"))) {
+      if(prelimTitle.matches(T.s("ebayServer.titleEbay4"))) {
+        // Big Head Bighead-Zarf's Zubrick. US SEALED PRIVATE LP | eBay
+        prelimTitle = prelimTitle.replaceAll(".\\|.eBay", "");
+        setTitle(StringTools.decode(prelimTitle, mDocument.getCharset()));
+        setEnd(null);
+      } else if(prelimTitle.matches(T.s("ebayServer.titleEbay2")) ||
+        //  This sucks.  They changed to: eBay: {title} (item # end time {endtime})
+        prelimTitle.matches(T.s("ebayServer.titleMotors2"))) {
         //  Handle the new titles.
         Pattern newTitlePat = Pattern.compile(T.s("ebayServer.titleMatch"));
         Matcher newTitleMatch = newTitlePat.matcher(prelimTitle);
@@ -694,10 +700,14 @@ class ebayAuction extends SpecificAuction {
           String durationRaw = mDocument.getNextContentAfterContent("Duration:");
           if(durationRaw != null) {
             String duration = durationRaw.replaceAll("[^0-9]", "");
-            long days = Long.parseLong(duration);
-            if(getStart() != null && !getStart().equals(Constants.LONG_AGO)) {
-              long endTime = getStart().getTime() + Constants.ONE_DAY * days;
-              setEnd(new Date(endTime));
+            if(duration.length() != 0) {
+              long days = Long.parseLong(duration);
+              if (getStart() != null && !getStart().equals(Constants.LONG_AGO)) {
+                long endTime = getStart().getTime() + Constants.ONE_DAY * days;
+                setEnd(new Date(endTime));
+              } else {
+                setEnd(Constants.FAR_FUTURE);
+              }
             } else {
               setEnd(Constants.FAR_FUTURE);
             }
