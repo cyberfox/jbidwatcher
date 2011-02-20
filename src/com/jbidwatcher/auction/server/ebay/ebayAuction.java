@@ -609,8 +609,17 @@ class ebayAuction extends SpecificAuction {
         List<String> time_left = mDocument.findSequence("^\\(.*$", "^.*\\)$");
         ZoneDate endDate = null;
         if(time_left != null) {
-          String endTime = time_left.get(0) + time_left.get(1);
+          String endTime = time_left.get(0) + " " + time_left.get(1);
           endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
+        } else {
+          time_left = mDocument.findSequence("Ended:", ".*", ".*");
+          if(time_left != null) {
+            String endTime = "(" + time_left.get(1) + " " + time_left.get(2) + ")";
+            endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
+            if (endDate != null && endDate.getDate() != null) {
+              //  Mark this as completed?
+            }
+          }
         }
 
         if (endDate != null && endDate.getDate() != null) {
