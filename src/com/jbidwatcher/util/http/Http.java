@@ -31,7 +31,7 @@ public class Http implements HttpInterface {
 
   private void setConnectionInfo(URLConnection huc) {
     if(mUsername != null && mPassword != null) {
-      huc.setRequestProperty("Authorization", "Basic " + Base64.encodeString(mUsername + ':' + mPassword));
+      huc.setRequestProperty("Authorization", "Basic " + Base64.encodeString(mUsername + ':' + mPassword, false));
     }
     setConnectionProxyInfo(huc);
   }
