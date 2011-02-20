@@ -605,7 +605,19 @@ class ebayAuction extends SpecificAuction {
         // Big Head Bighead-Zarf's Zubrick. US SEALED PRIVATE LP | eBay
         prelimTitle = prelimTitle.replaceAll(".\\|.eBay", "");
         setTitle(StringTools.decode(prelimTitle, mDocument.getCharset()));
-        setEnd(null);
+//        List<String> time_left = mDocument.findSequence("^\\((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec).[0-9]+,.[0-9]+$", "^[0-9]+:[0-9]+:[0-9]+.*\\)$");
+        List<String> time_left = mDocument.findSequence("^\\(.*$", "^.*\\)$");
+        ZoneDate endDate = null;
+        if(time_left != null) {
+          String endTime = time_left.get(0) + time_left.get(1);
+          endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
+        }
+
+        if (endDate != null && endDate.getDate() != null) {
+          setEnd(endDate.getDate());
+        } else {
+          setEnd(null);
+        }
       } else if(prelimTitle.matches(T.s("ebayServer.titleEbay2")) ||
         //  This sucks.  They changed to: eBay: {title} (item # end time {endtime})
         prelimTitle.matches(T.s("ebayServer.titleMotors2"))) {
