@@ -60,7 +60,9 @@ public class JTabManager extends JMouseAdapter {
   }
 
   public TableSorter getCurrentTable() {
-    return(mNameTableMap.get(getCurrentTableTitle()));
+    String title = getCurrentTableTitle();
+    if(title == null) return null;
+    return mNameTableMap.get(title);
   }
 
   public String getCurrentTableTitle() {
