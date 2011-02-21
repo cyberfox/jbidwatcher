@@ -332,6 +332,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     JConfig.log().logDebug("Establishing a snipe on " + identifier);
     if (endDate != null && endDate != Constants.FAR_FUTURE) {
+      snipeOn.setLastStatus("Establishing a snipe");
+
       _etqm.add("TIMECHECK", "auction_manager", (endDate.getTime() - snipeDelta) - FIVE_MINUTES);
       _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta) - TWO_MINUTES);
       _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta));
@@ -629,28 +631,40 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       return snipe;
     }
 
+    private boolean resnipe(String identifier, Snipe snipe, boolean force) {
+      /**
+       *  The formula for 'when' the next resnipe is, is a little complex.
+       * It's all in the code, though.  If we're 3 seconds or less away,
+       * give up.  Otherwise wait another 20% of the remaining time
+       * (minimum of 3 seconds), and retry.
+       */
+      long timeLeft = snipe.getItem().getEndDate().getTime() - _etqm.getCurrentTime();
+      long snipeTime = snipe.getItem().getSnipeTime();
+      if (timeLeft > snipeTime) {
+        _etqm.add(identifier, mSnipeQueue, _etqm.getCurrentTime() + (timeLeft - snipeTime));
+      } else if (timeLeft > Constants.THREE_SECONDS) {
+        long retry_wait = (timeLeft / 10) * 2;
+        if (retry_wait < Constants.THREE_SECONDS) retry_wait = Constants.THREE_SECONDS;
+
+        _etqm.add(identifier, mSnipeQueue, _etqm.getCurrentTime() + retry_wait);
+        return true;
+      } else if (force) {
+        //  Requeue it for _now_
+        MQFactory.getConcrete(mSnipeQueue).enqueue(identifier);
+      }
+      return false;
+    }
+
     public void messageAction(Object deQ) {
-      String identifier = (String)deQ;
+      final String identifier = (String)deQ;
       Snipe snipe = getSnipe(identifier);
       if(snipe == null) return;
 
       int snipeResult = snipe.fire();
       switch (snipeResult) {
         case Snipe.RESNIPE:
-          /**
-           *  The formula for 'when' the next resnipe is, is a little complex.
-           * It's all in the code, though.  If we're 3 seconds or less away,
-           * give up.  Otherwise wait another 20% of the remaining time
-           * (minimum of 3 seconds), and retry.
-           */
-          long snipeIn = snipe.getItem().getEndDate().getTime() - _etqm.getCurrentTime();
-          if (snipeIn > Constants.THREE_SECONDS) {
-            long retry_wait = (snipeIn / 10) * 2;
-            if (retry_wait < Constants.THREE_SECONDS) retry_wait = Constants.THREE_SECONDS;
+          if(resnipe(identifier, snipe, false)) break;
 
-            _etqm.add(identifier, mSnipeQueue, _etqm.getCurrentTime() + retry_wait);
-            break;
-          }
           //  If there are less than 3 seconds left, give up by falling through to FAIL and DONE.
           JConfig.log().logDebug("Resnipes failed, and less than 3 seconds away.  Giving up.");
         case Snipe.FAIL:
@@ -662,6 +676,12 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           mSnipeMap.remove(identifier);
           break;
         case Snipe.SUCCESSFUL:
+          if(!_etqm.contains(new TimeQueueManager.Matcher() {
+            public boolean match(Object payload, Object queue, long when) {
+              return payload.equals(identifier) && queue == mSnipeQueue;
+            }})) {
+            resnipe(identifier, snipe, true);
+          }
         default:
           break;
       }

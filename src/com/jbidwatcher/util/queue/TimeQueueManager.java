@@ -110,6 +110,29 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
     return didErase;
   }
 
+  public interface Matcher {
+    public boolean match(Object payload, Object queue, long when);
+  }
+
+  public boolean contains(Matcher m) {
+    for(Object o : mTQ.getUnsorted()) {
+      TimeQueue.QObject qo = (TimeQueue.QObject) o;
+      TQCarrier carrier = (TQCarrier) qo.getEvent();
+      if(m.match(carrier.getPayload(), carrier.getDestinationQueue(), qo.getTime())) return true;
+    }
+    return false;
+  }
+
+  public boolean contains(Object payload) {
+    for(Object o : mTQ.getUnsorted()) {
+      TimeQueue.QObject qo = (TimeQueue.QObject)o;
+      TQCarrier carrier = (TQCarrier) qo.getEvent();
+      if(payload.equals(carrier.getPayload())) return true;
+    }
+
+    return false;
+  }
+
   public void dumpQueue(String prefix) {
     List current = mTQ.getSorted();
 
