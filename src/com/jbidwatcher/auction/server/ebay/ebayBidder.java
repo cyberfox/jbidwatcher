@@ -16,6 +16,7 @@ import com.jbidwatcher.util.queue.MQFactory;
 import java.net.URLConnection;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
@@ -118,6 +119,13 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
 
       if( !rval.isSuccess() && (pageName = checkForWarning(inEntry, rval.getDocument())) != null) {
         rval = getBidFormInternal(pageName, inEntry, cj);
+      }
+
+      String value = rval.getDocument().grep(".*The following must be corrected before continuing.*");
+      if(value != null) {
+        List<String> foo = rval.getDocument().findSequence(".*Enter.*", ".*or more.*");
+        JConfig.log().dump2File("error-" + ebayServer.BID_ERROR_TOO_LOW + ".html", rval.getBuffer());
+        throw new BadBidException(foo.get(0) + " " + foo.get(1), ebayServer.BID_ERROR_TOO_LOW);
       }
 
       if (rval.isSuccess()) return rval.getForm();
