@@ -60,12 +60,14 @@ public class JTabManager extends JMouseAdapter {
   }
 
   public TableSorter getCurrentTable() {
+    return(mNameTableMap.get(getCurrentTableTitle()));
+  }
+
+  public String getCurrentTableTitle() {
     int currentIndex = mAuctionTypes.getSelectedIndex();
-    if(currentIndex == -1) return null;
+    if (currentIndex == -1) return null;
 
-    String currentTitle = mAuctionTypes.getTitleAt(currentIndex);
-
-    return(mNameTableMap.get(currentTitle));
+    return mAuctionTypes.getTitleAt(currentIndex);
   }
 
   public int[] getPossibleRows() {

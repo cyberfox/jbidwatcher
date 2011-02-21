@@ -128,9 +128,10 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  private EntryInterface addAuction(String auctionSource) {
+  private AuctionEntry addAuction(String auctionSource) {
     AuctionEntry aeNew = AuctionEntry.construct(auctionSource);
     if (aeNew != null && aeNew.isLoaded()) {
+      aeNew.setCategory(mTabs.getCurrentTableTitle());
       AuctionsManager.getInstance().addEntry(aeNew);
       MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
       return aeNew;
@@ -140,7 +141,6 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  //  TODO - Doesn't set the category
   private void cmdAddAuction(String auctionSource) {
     if(auctionSource.regionMatches(true, 0, "<html>", 0, 6)) {
       auctionSource = JHTML.getFirstContent(auctionSource);
@@ -148,7 +148,7 @@ public class UserActions implements MessageQueue.Listener {
 
     auctionSource = auctionSource.trim();
 
-    EntryInterface aeNew = addAuction(auctionSource);
+    AuctionEntry aeNew = addAuction(auctionSource);
     if (aeNew == null) {
       String id = AuctionServerManager.getInstance().getServer().stripId(auctionSource);
       //  For user-interactive adds, always override the deleted state.
