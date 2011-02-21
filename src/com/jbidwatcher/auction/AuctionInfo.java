@@ -18,7 +18,6 @@ import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.db.*;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
-import com.sun.xml.internal.xsom.impl.Const;
 
 import java.io.File;
 import java.io.IOException;
