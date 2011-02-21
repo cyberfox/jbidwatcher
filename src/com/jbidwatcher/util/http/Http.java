@@ -206,7 +206,13 @@ public class Http implements HttpInterface {
         mainBuf = tmp;
       }
       offset += count;
-      count = is.read(mainBuf, offset, curMax-offset);
+
+      try {
+        count = is.read(mainBuf, offset, curMax-offset);
+      } catch(EOFException badEnd) {
+        JConfig.log().logDebug("Got a bad end of compressed input stream.");
+        count = -1;
+      }
     }
     is.close();
     return new ByteBuffer(mainBuf, offset);
