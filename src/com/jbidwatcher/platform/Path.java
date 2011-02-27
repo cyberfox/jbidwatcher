@@ -42,7 +42,7 @@ public class Path {
     String sep = System.getProperty("file.separator");
     String homePath;
 
-    if (Platform.isMac()) {
+    if (Platform.isRawMac()) {
       homePath = getMacHomeDirectory(dirname);
     } else {
       homePath = getHome() + sep + '.' + dirname;

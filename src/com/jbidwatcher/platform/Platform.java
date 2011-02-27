@@ -57,7 +57,7 @@ public class Platform {
    * @brief Set up the Mac UI information, based on the configuration.
    */
   public static void setupMacUI() {
-    if(System.getProperty("mrj.version") != null) {
+    if(isRawMac()) {
       JConfig.setConfiguration("mac", "true");
 
       //  Set the old and new forms for the screen-menu-bar preference.
@@ -89,7 +89,7 @@ public class Platform {
   }
 
   public static void checkLaF(String lookAndFeel) {
-    if (System.getProperty("mrj.version") != null) {
+    if (isRawMac()) {
       if (javax.swing.UIManager.getLookAndFeel().getClass().getName().equals(lookAndFeel)) {
         JConfig.setConfiguration("mac.aqua", "true");
       } else {
@@ -189,5 +189,9 @@ public class Platform {
     } catch (Exception e) {
       return false;
     }
+  }
+
+  public static boolean isRawMac() {
+    return System.getProperty("mrj.version") != null;
   }
 }
