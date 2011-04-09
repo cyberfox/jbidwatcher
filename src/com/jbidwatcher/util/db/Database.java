@@ -177,7 +177,19 @@ public class Database {
   }
 
   public PreparedStatement prepare(String statement) throws SQLException {
-    return mConn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS);
+    try {
+      return mConn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS);
+    } catch(SQLException sqe) {
+      if(mConn.isClosed() || sqe.getMessage().equals("No current connection.")) {
+        try {
+          setup();
+          return mConn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS);
+        } catch(Exception e) {
+          throw new SQLException("Failed to reconnect due to: " + e.getMessage(), e);
+        }
+      }
+      throw sqe;
+    }
   }
 
   public Connection getConnection() {
