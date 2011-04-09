@@ -408,7 +408,10 @@ public class XMLElement implements XMLSerialize, XMLInterface {
       attrList.append(' ');
       attrList.append(attrName);
       attrList.append("=\"");
-      attrList.append(encodeString(getProperty(attrName)));
+      String prop = getProperty(attrName);
+      if(prop != null) {
+        attrList.append(encodeString(prop));
+      }
       attrList.append('\"');
     }
     return attrList;
