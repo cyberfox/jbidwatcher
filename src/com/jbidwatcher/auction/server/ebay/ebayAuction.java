@@ -333,6 +333,7 @@ class ebayAuction extends SpecificAuction {
 
       String location = doc.getNextContentAfterRegex(T.s("ebayServer.itemLocationRegex"));
       if(location != null) {
+        location = location.replace("Post to: ", "");
         setItemLocation(StringTools.decode(location, doc.getCharset()));
       }
 
@@ -383,6 +384,9 @@ class ebayAuction extends SpecificAuction {
       score = doc.getNextContentAfterRegex(T.s("ebayServer.sellerInfoPrequel"));
       if(score != null && score.equals("Seller:")) score = doc.getNextContent();
       if(score != null) score = doc.getNextContent();
+      if(!StringTools.isNumberOnly(score)) {
+        score = doc.getNextContentAfterContent("Feedback score of");
+      }
       if(score != null && StringTools.isNumberOnly(score)) {
         mSeller.setFeedback(Integer.parseInt(score));
         score = doc.getNextContent(); //  Next after the feedback amount is the close parenthesis.
