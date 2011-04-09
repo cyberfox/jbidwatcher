@@ -603,7 +603,7 @@ class ebayAuction extends SpecificAuction {
 
       if(prelimTitle.matches(T.s("ebayServer.titleEbay4"))) {
         // Big Head Bighead-Zarf's Zubrick. US SEALED PRIVATE LP | eBay
-        prelimTitle = prelimTitle.replaceAll(".\\|.eBay", "");
+        prelimTitle = prelimTitle.replaceAll(".\\|.eBay(.UK)?", "");
         setTitle(StringTools.decode(prelimTitle, mDocument.getCharset()));
 //        List<String> time_left = mDocument.findSequence("^\\((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec).[0-9]+,.[0-9]+$", "^[0-9]+:[0-9]+:[0-9]+.*\\)$");
         List<String> time_left = mDocument.findSequence("^\\(.*$", "^.*\\)$");
