@@ -185,7 +185,9 @@ public class Database {
           setup();
           return mConn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS);
         } catch(Exception e) {
-          throw new SQLException("Failed to reconnect due to: " + e.getMessage(), e);
+          SQLException error = new SQLException("Failed to reconnect due to: " + e.getMessage());
+          error.initCause(e);
+          throw error;
         }
       }
       throw sqe;
