@@ -200,7 +200,10 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         });
         tabQ.enqueue("HIDE");
         AuctionEntry.getRealDatabase().commit();
-
+      }
+    };
+    Thread lostHandler = new Thread() {
+      public void run() {
         List<AuctionInfo> lostAuctions = AuctionInfo.findLostAuctions();
         if(lostAuctions != null && !lostAuctions.isEmpty()) {
           JConfig.log().logMessage("Recovering " + lostAuctions.size() + " listings.");
@@ -214,10 +217,12 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
           }
           MQFactory.getConcrete("recovered Tab").enqueue("REPORT These auctions had lost their settings.");
           MQFactory.getConcrete("recovered Tab").enqueue("SHOW");
+          AuctionEntry.getRealDatabase().commit();
         }
       }
     };
     completedHandler.start();
+    lostHandler.start();
   }
 
   private void importListingsToUI(AuctionServer newServer, List<AuctionEntry> entries, Report r) {
@@ -244,7 +249,15 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       } else {
         timeStart("addEntry");
         timeStart("addEntry-" + ae.getCategory());
-        sEntryManager.addEntry(ae);
+        try {
+          sEntryManager.addEntry(ae);
+        } catch(Exception e) {
+          String errorMessage = "Failed to add an auction entry";
+          if(ae != null) {
+            errorMessage += " for item " + ae.getIdentifier();
+          }
+          JConfig.log().handleException(errorMessage, e);
+        }
         timeStop("addEntry-" + ae.getCategory());
         timeStop("addEntry");
       }
