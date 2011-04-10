@@ -30,6 +30,7 @@ public class JConfigEbayTab extends JConfigTab
   JTextField username;
   JTextField password;
   JComboBox siteSelect;
+  JEditorPane siteWarning;
   MessageQueue.Listener oldLoginListener = null;
   private String mDisplayName;
   //  mSitename is only used to look up configuration values.
@@ -179,7 +180,7 @@ public class JConfigEbayTab extends JConfigTab
     return(tp);
   }
 
-  private JPanel buildBrowseTargetPanel(String[] siteChoices) {
+  private JPanel buildBrowseTargetPanel(final String[] siteChoices) {
     JPanel tp = new JPanel();
 
     tp.setBorder(BorderFactory.createTitledBorder("Browse target"));
@@ -193,12 +194,29 @@ public class JConfigEbayTab extends JConfigTab
       realCurrentSite = 0;
     }
     siteSelect = new JComboBox(siteChoices);
-    siteSelect.setSelectedIndex(realCurrentSite);
+    siteSelect.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent actionEvent) {
+        int selectedSite = siteSelect.getSelectedIndex();
+        if (siteChoices[selectedSite].equals("ebay.com")) {
+          siteWarning.setVisible(false);
+          siteWarning.setText("");
+        } else if(siteChoices[selectedSite].equals("ebay.co.uk")) {
+          String ukSiteWarning = "<html><body><div style=\"font-size: 0.96em;\"><i>Bidding happens on ebay.com preferentially, or ebay.co.uk if the item is not visible on ebay.com.<br>If you have a seller dispute, it may need to be made on ebay.com.</i></div></body></html>";
+          siteWarning.setText(ukSiteWarning);
+          siteWarning.setVisible(true);
+        } else {
+          String generalSiteWarning = "<html><body><div style=\"font-size: 0.96em;\"><i>Bidding happens on ebay.com or ebay.co.uk, even if neither is your local site.<br>If you have a seller dispute, it will need to be made on one of those sites.</i></div></body></html>";
+          siteWarning.setText(generalSiteWarning);
+          siteWarning.setVisible(true);
+        }
+      }
+    });
     tp.add(makeLine(new JLabel("Country site: "), siteSelect), BorderLayout.NORTH);
 
-    JLabel bidWarning = new JLabel("Bidding is done on ebay.com or ebay.co.uk, not your local site.");
-    bidWarning.setFont(bidWarning.getFont().deriveFont(Font.ITALIC));
-    tp.add(bidWarning, BorderLayout.EAST);
+    siteWarning = OptionUI.getHTMLLabel("");
+    siteSelect.setSelectedIndex(realCurrentSite);
+
+    tp.add(siteWarning, BorderLayout.EAST);
     return tp;
   }
 
