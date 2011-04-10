@@ -31,6 +31,7 @@
   <property name="EXESCRIPTING" value="${app.name}-${VER}-script.exe" />
   <property name="EXEFILE" value="${app.name}-${VER}.exe" />
   <property name="MANIFEST" value="META-INF/MANIFEST.MF" />
+  <property name="ONEJAR_MANIFEST" value="onejar/META-INF/MANIFEST.MF" />
 
   <property name="jopt.jar" value="${JAVADIR}/jopt/jopt.jar" />
   <!-- available file="${jopt.jar}" property="jopt.jar.present"/ -->
@@ -189,7 +190,18 @@
     <echo level="info" message="Building envelope .jar file." />
     <mkdir dir="${build.path}/main" />
     <copy file="${INTERMEDIATE}" tofile="${build.path}/main/main.jar" />
-    <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
+
+    <manifest file="${ONEJAR_MANIFEST}">
+      <attribute name="Manifest-Version" value="1.0" />
+      <attribute name="Ant-Version" value="Apache Ant 1.7.0" />
+      <attribute name="Created-By" value="1.4.2_04-b05 (Sun Microsystems Inc.)" />
+      <attribute name="Main-Class" value="com.simontuffs.onejar.Boot" />
+      <attribute name="One-Jar-Expand" value="expand,doc,file.txt" />
+      <attribute name="Built-By" value="${user.name}"/>
+      <attribute name="Implementation-Version" value="${GITVERSION}"/>
+    </manifest>
+
+    <jar jarfile="${BINARY}" manifest="${ONEJAR_MANIFEST}">
       <fileset dir="${main.dir}/onejar" includes="com/**/*.class" />
       <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
       <fileset dir="${build.path}" includes="main/main.jar" />
