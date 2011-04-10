@@ -131,6 +131,9 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     MQFactory.getConcrete("splash").enqueue("SET 0");
 
     timeStart("counts");
+    // True up the Auction Entries first.  I want this to not be necessary anymore.
+    AuctionEntry.trueUpEntries();
+
     int entryCount = AuctionEntry.count();
     int auctionCount = AuctionInfo.count();
     int uniqueEntries = AuctionEntry.uniqueCount();

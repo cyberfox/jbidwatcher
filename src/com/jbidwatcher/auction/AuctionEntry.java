@@ -112,7 +112,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * If this auction is part of a multiple-snipe, this value will not
    * be null, and will point to a MultiSnipe object.
    */
-  private MultiSnipe mMultiSnipe =null;
+  private MultiSnipe mMultiSnipe = null;
 
   private AuctionSnipe mSnipe = null;
 
@@ -125,13 +125,13 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * What AuctionServer is responsible for handling this
    * AuctionEntry's actions?
    */
-  private AuctionServerInterface mServer =null;
+  private AuctionServerInterface mServer = null;
 
   /**
    * The last time this auction was bid on.  Not presently used,
    * although set, saved, and loaded consistently.
    */
-  private long mBidAt =0;
+  private long mBidAt = 0;
 
   /**
    * Delta in time from the end of the auction that sniping will
@@ -1984,5 +1984,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   public static void forceUpdateActive() {
     getRealDatabase().execute("UPDATE entries SET last_updated_at=NULL WHERE ended != 1 OR ended IS NULL");
+  }
+
+  public static void trueUpEntries() {
+    getRealDatabase().execute("UPDATE entries SET auction_id=(SELECT max(id) FROM auctions WHERE auctions.identifier=entries.identifier)");
+    getRealDatabase().execute("DELETE FROM entries e WHERE id != (SELECT max(id) FROM entries e2 WHERE e2.auction_id = e.auction_id)");
   }
 }
