@@ -5,6 +5,7 @@ package com.jbidwatcher.auction.server;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.search.SearchManager;
@@ -239,12 +240,18 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       timeStart("getAuction");
       AuctionInfo result = ae.getAuction();
       timeStop("getAuction");
-      if (result == null) {
+      if (ae.isNullAuction() || result == null) {
         JConfig.log().logMessage("We lost the underlying auction for: " + ae.dumpRecord());
-        if(ae.getIdentifier() != null) {
+        boolean recentlyUpdated = ae.getLastUpdated() != null && ae.getLastUpdated().after(new Date(System.currentTimeMillis() - Constants.ONE_DAY * 45));
+        if(ae.getString("identifier") != null && recentlyUpdated) {
           JConfig.log().logMessage("Trying to reload auction via its auction identifier.");
-          MQFactory.getConcrete("drop").enqueue(ae.getIdentifier());
+          MQFactory.getConcrete("drop").enqueue(ae.getString("identifier"));
         } else {
+          if(!recentlyUpdated) {
+            JConfig.log().logMessage("Auction entry " + ae.getString("identifier") + " is too old to reload, deleting.");
+          } else {
+            JConfig.log().logMessage("Auction entry id " + ae.getId() + " doesn't have enough detail to reload; deleting.");
+          }
           timeStart("delete");
           ae.delete();
           timeStop("delete");
@@ -257,7 +264,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         } catch(Exception e) {
           String errorMessage = "Failed to add an auction entry";
           if(ae != null) {
-            errorMessage += " for item " + ae.getIdentifier();
+            errorMessage += " for item " + ae.getIdentifier() + " (" + ae.getId() + ") " + result;
           }
           JConfig.log().handleException(errorMessage, e);
         }

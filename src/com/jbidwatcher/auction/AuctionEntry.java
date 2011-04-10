@@ -1342,6 +1342,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   private static AuctionInfo sAuction = new AuctionInfo();
+  public boolean isNullAuction() { return mAuction == sAuction; }
 
   public AuctionInfo getAuction() {
     if(mAuction == null || mAuction == sAuction) {
