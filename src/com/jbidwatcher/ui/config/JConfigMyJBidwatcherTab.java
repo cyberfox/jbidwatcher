@@ -6,6 +6,7 @@ m * Developed by mrs (Morgan Schweers)
  */
 
 import com.jbidwatcher.ui.util.JPasteListener;
+import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.SpringUtilities;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -185,12 +186,17 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
 
   public JConfigMyJBidwatcherTab() {
     super();
+    String prefix = "<html><body><div style=\"font-size: 0.96em;\"><center><i>";
+    String suffix = "</i></center></div></body></html>";
+    String link = "<a href=\"http://my.jbidwatcher.com\">My JBidwatcher</a>";
+    JEditorPane jep = OptionUI.getHTMLLabel(prefix + "Signing up for " + link + " is welcome, and free right now, but <b>not</b> required for JBidwatcher operation." + suffix);
     this.setLayout(new BorderLayout());
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
     jp.add(buildUserSettings(), BorderLayout.NORTH);
     jp.add(buildExtraSettings(), BorderLayout.SOUTH);
-    this.add(panelPack(jp), BorderLayout.NORTH);
+    this.add(panelPack(jp), BorderLayout.CENTER);
+    this.add(jep, BorderLayout.NORTH);
     updateValues();
   }
 
