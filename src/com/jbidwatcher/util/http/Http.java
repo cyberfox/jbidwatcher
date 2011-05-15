@@ -62,7 +62,7 @@ public class Http implements HttpInterface {
       if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
         JConfig.log().logDebug("postFormPage: " + url);
       }
-      URL authURL = new URL(url);
+      URL authURL = JConfig.getURL(url);
 
       huc = authURL.openConnection();
       setConnectionInfo(huc);
@@ -272,7 +272,7 @@ public class Http implements HttpInterface {
       if(JConfig.queryConfiguration("debug.urls", "false").equals("true")) {
         JConfig.log().logDebug("getPage: " + url);
       }
-      URL authURL = new URL(url);
+      URL authURL = JConfig.getURL(url);
       URLConnection uc = authURL.openConnection();
       if(!(uc instanceof HttpURLConnection)) {
         return uc;
@@ -296,7 +296,7 @@ public class Http implements HttpInterface {
     HttpURLConnection huc = null;
     String result = null;
     try {
-      huc = (HttpURLConnection) new URL(url).openConnection();
+      huc = (HttpURLConnection) JConfig.getURL(url).openConnection();
       setConnectionInfo(huc);
       huc.setRequestProperty("Content-Type", "application/octet-stream");
       huc.setRequestProperty("Content-Length", Integer.toString(sb.length() - 1));

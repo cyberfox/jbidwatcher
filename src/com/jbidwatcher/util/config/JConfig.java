@@ -21,6 +21,7 @@ package com.jbidwatcher.util.config;//  -*- Java -*-
 import com.jbidwatcher.util.Constants;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.List;
 import java.net.URL;
@@ -579,5 +580,10 @@ public class JConfig {
 
   public static Set getTimers() {
     return sTimers;
+  }
+
+  public static URL getURL(String url) throws MalformedURLException {
+    log().logDebug("Parsing URL " + url);
+    return new URL(url);
   }
 }

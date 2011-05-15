@@ -62,7 +62,7 @@ public class StringTools {
     URL auctionURL=null;
 
     try {
-      auctionURL = new URL(siteAddress);
+      auctionURL = JConfig.getURL(siteAddress);
     } catch(MalformedURLException e) {
       JConfig.log().handleException("getURLFromString failed on " + siteAddress, e);
     }

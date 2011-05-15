@@ -39,7 +39,7 @@ public class ThumbnailLoader implements MessageQueue.Listener {
   private ByteBuffer getThumbnailByURL(String url) {
     ByteBuffer tmpThumb;
     try {
-      tmpThumb = downloadThumbnail(new URL(url));
+      tmpThumb = downloadThumbnail(JConfig.getURL(url));
     } catch (Exception ignored) {
       tmpThumb = null;
     }

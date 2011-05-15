@@ -111,7 +111,7 @@ public class MyJBidwatcher {
         if (form != null) {
           form.delInput("upload");
           String url = form.getAction();
-          ClientHttpRequest chr = new ClientHttpRequest(url);
+          ClientHttpRequest chr = new ClientHttpRequest(JConfig.getURL(url));
           chr.setParameters(form.getCGIMap());
           chr.setParameter("file", f);
           HttpURLConnection huc = chr.post();

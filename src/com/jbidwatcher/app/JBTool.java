@@ -55,7 +55,7 @@ public class JBTool implements ToolInterface {
   private String mParseFile = null;
 
   private void testBasicAuthentication(final String user, final String key) throws Exception {
-    URL retrievalURL = new URL("http://localhost:9909/services/sqsurl");
+    URL retrievalURL = JConfig.getURL("http://localhost:9909/services/sqsurl");
     HttpURLConnection huc = (HttpURLConnection) retrievalURL.openConnection();
 
     huc.setRequestProperty("Authorization", "Basic " + Base64.encodeString(user + ":" + key));

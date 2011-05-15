@@ -70,9 +70,9 @@ public class ClientHttpRequest {
   /**
    * Creates a new multipart POST HTTP request for a specified URL string
    *
-   * @param urlString the string representation of the URL to send request to
+   * @ param urlString the string representation of the URL to send request to
    */
-  public ClientHttpRequest(String urlString) throws IOException { this(new URL(urlString)); }
+//  public ClientHttpRequest(String urlString) throws IOException { this(new URL(urlString)); }
 
   private void postCookies() {
     StringBuffer cookieList = new StringBuffer();
