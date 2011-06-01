@@ -236,23 +236,26 @@ class ebayAuction extends SpecificAuction {
       shipString = null;
     }
 
+    //  Don't override non-null shipping with the null object.  Don't
+    //  bother setting shipping to the null object if it's already the
+    //  null object...
     if(shipString != null) {
       if(shipString.equalsIgnoreCase("free")) {
         setShipping(Currency.getCurrency(sampleAmount.fullCurrencyName(), "0.0"));
       } else {
         try {
           setShipping(Currency.getCurrency(sampleAmount.fullCurrencyName(), shipString));
-        } catch(NumberFormatException nfe) {
-          setShipping(Currency.NoValue());
+        } catch(NumberFormatException ignore) {
         }
       }
-    } else {
-      setShipping(Currency.NoValue());
     }
+
+    //  Don't override non-null insurance with the null object.  Don't
+    //  bother setting insurance to the null object if it's already the
+    //  null object...
     try {
       setInsurance(Currency.getCurrency(insureString));
-    } catch(NumberFormatException nfe) {
-      setInsurance(Currency.NoValue());
+    } catch(NumberFormatException ignore) {
     }
   }
 
