@@ -52,6 +52,16 @@ public class ebayLoginManager implements LoginManager {
     mSignInCookie = null;
   }
 
+  public boolean updateLogin(String serverName) {
+    String oldUsername = mUserId;
+    String oldPassword = mPassword;
+
+    setUserId(JConfig.queryConfiguration(serverName + ".user", "default"));
+    setPassword(JConfig.queryConfiguration(serverName + ".password", "default"));
+
+    return !mUserId.equals(oldUsername) || !mPassword.equals(oldPassword);
+  }
+
   private URLConnection checkFollowRedirector(URLConnection current, CookieJar cj, String lookFor) throws IOException, CaptchaException {
     StringBuffer signed_in = Http.net().receivePage(current);
     JConfig.log().dump2File("sign_in-a1.html", signed_in);

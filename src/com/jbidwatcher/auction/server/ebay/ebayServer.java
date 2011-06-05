@@ -67,10 +67,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public void updateConfiguration() {
-    mLogin.setUserId(JConfig.queryConfiguration(getName() + ".user", "default"));
-    mLogin.setPassword(JConfig.queryConfiguration(getName() + ".password", "default"));
+    boolean isUpdated = mLogin.updateLogin(getName());
 
     if(!mLogin.isDefault()) {
+      if (isUpdated) forceLogin();
+
       Searcher s = SearchManager.getInstance().getSearchByName("My Selling Items");
       if(s == null) {
         mSellerSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", mLogin.getUserId(), getName(), null, 1);
