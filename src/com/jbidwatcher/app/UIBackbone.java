@@ -443,7 +443,14 @@ public final class UIBackbone implements MessageQueue.Listener {
       if (foundSnipe) status += "  One or more snipes may not have been fired.";
       MQFactory.getConcrete("Swing").enqueue(NOTIFY_MSG + status);
     }
-    SuperQueue.getInstance().getQueue().add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), System.currentTimeMillis() + (10 * Constants.ONE_SECOND));  // TODO mrs -- What about the backup server?
+    //  Pause updates for 20 seconds
+    AuctionsManager.getInstance().pause(20);
+
+    //  In 15 seconds, log back in.  This is because networking usually takes 10-15 seconds to restart after a sleep event.
+    AuctionServer mainServer = AuctionServerManager.getInstance().getServer();
+    if(mainServer.getBackupServer() != null) {
+      SuperQueue.getInstance().getQueue().add(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), mainServer.getBackupServer(), System.currentTimeMillis() + (15 * Constants.ONE_SECOND));  // TODO mrs -- What about the backup server?
+    }
   }
 
   public void setMainFrame(MacFriendlyFrame frame) {

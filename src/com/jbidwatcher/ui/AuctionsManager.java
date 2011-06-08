@@ -73,9 +73,13 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     return mFilter;
   }
 
+  public void pause(int seconds) {
+    mPausedUntil = System.currentTimeMillis() + Constants.ONE_SECOND * seconds;
+  }
+
   public void pause() {
     //  Pause until 5 minutes from now.
-    mPausedUntil = System.currentTimeMillis() + Constants.ONE_MINUTE * 5;
+    pause(5*60);
   }
 
   /////////////////////////////////////////////////////////
