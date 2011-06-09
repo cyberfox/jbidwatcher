@@ -2,7 +2,7 @@ package com.jbidwatcher.util.db;
 
 import junit.framework.TestCase;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.cyberfox.util.config.ErrorManagement;
 import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.HashBacked;
 import com.jbidwatcher.Upgrader;

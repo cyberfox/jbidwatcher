@@ -6,7 +6,7 @@ package com.jbidwatcher.util.http;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.Base64;
+import com.cyberfox.util.config.Base64;
 import com.jbidwatcher.util.ByteBuffer;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.Parameters;

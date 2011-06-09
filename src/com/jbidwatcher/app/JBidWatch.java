@@ -5,6 +5,8 @@ package com.jbidwatcher.app;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.cyberfox.util.config.ErrorManagement;
+
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.platform.*;

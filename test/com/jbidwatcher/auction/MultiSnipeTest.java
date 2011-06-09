@@ -3,7 +3,7 @@ package com.jbidwatcher.auction;
 import junit.framework.TestCase;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
+import com.cyberfox.util.config.ErrorManagement;
 import com.jbidwatcher.Upgrader;
 
 import java.util.Date;

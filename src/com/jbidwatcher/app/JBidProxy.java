@@ -7,10 +7,8 @@ package com.jbidwatcher.app;
 
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.util.config.*;
-import com.jbidwatcher.util.config.Base64;
-import com.jbidwatcher.util.db.ActiveRecord;
+import com.cyberfox.util.config.Base64;
 import com.jbidwatcher.util.db.Device;
-import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTMLDialog;
 import com.jbidwatcher.util.http.Http;

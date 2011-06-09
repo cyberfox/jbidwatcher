@@ -1,8 +1,8 @@
 package com.jbidwatcher.my;
 
-import com.jbidwatcher.util.config.Base64;
+import com.cyberfox.util.config.Base64;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorHandler;
+import com.cyberfox.util.config.ErrorHandler;
 import com.jbidwatcher.util.Parameters;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.Constants;

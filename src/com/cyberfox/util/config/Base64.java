@@ -1,4 +1,4 @@
-package com.jbidwatcher.util.config;
+package com.cyberfox.util.config;
 
 /**
  * Encodes and decodes to and from Base64 notation.

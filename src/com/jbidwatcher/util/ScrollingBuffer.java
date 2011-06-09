@@ -1,6 +1,6 @@
 package com.jbidwatcher.util;
 
-import com.jbidwatcher.util.config.ErrorHandler;
+import com.cyberfox.util.config.ErrorHandler;
 
 /**
  * Created by IntelliJ IDEA.

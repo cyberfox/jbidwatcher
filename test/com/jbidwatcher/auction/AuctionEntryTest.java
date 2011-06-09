@@ -5,9 +5,7 @@ import junit.framework.TestSuite;
 import junit.framework.TestCase;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.config.ErrorManagement;
-import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.queue.MessageQueue;
+import com.cyberfox.util.config.ErrorManagement;
 import com.jbidwatcher.Upgrader;
 
 import java.util.Date;

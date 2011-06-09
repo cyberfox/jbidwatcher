@@ -1,4 +1,4 @@
-package com.jbidwatcher.util.config;
+package com.cyberfox.util.config;
 
 /**
  * Created by IntelliJ IDEA.
