@@ -9,7 +9,7 @@ import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.ButtonMaker;
 import com.jbidwatcher.ui.*;
-import com.jbidwatcher.platform.Platform;
+import com.cyberfox.util.platform.Platform;
 
 import javax.swing.*;
 import javax.swing.border.Border;

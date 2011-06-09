@@ -1,6 +1,6 @@
 package com.jbidwatcher.ui;
 
-import com.jbidwatcher.platform.Platform;
+import com.cyberfox.util.platform.Platform;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.SearchField;

@@ -14,7 +14,7 @@ package com.jbidwatcher.ui;
  * verifying, adding, and retrieving auctions, and similar features
  */
 
-import com.jbidwatcher.platform.Path;
+import com.cyberfox.util.platform.Path;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.xml.XMLElement;

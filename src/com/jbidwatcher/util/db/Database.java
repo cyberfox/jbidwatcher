@@ -6,7 +6,6 @@ package com.jbidwatcher.util.db;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.platform.Path;
 import com.jbidwatcher.util.config.JConfig;
 
 import java.sql.*;

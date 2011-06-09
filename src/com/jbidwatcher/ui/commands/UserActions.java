@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-import com.jbidwatcher.platform.Path;
+import com.cyberfox.util.platform.Path;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;

@@ -1,6 +1,6 @@
 package com.jbidwatcher.ui.util;
 
-import com.jbidwatcher.platform.Platform;
+import com.cyberfox.util.platform.Platform;
 
 import javax.swing.*;
 

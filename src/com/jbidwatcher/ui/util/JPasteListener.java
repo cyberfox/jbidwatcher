@@ -5,7 +5,7 @@ package com.jbidwatcher.ui.util;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.platform.Platform;
+import com.cyberfox.util.platform.Platform;
 
 import java.awt.event.*;
 import javax.swing.*;

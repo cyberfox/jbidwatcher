@@ -5,6 +5,7 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.cyberfox.util.platform.Platform;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
@@ -17,7 +18,6 @@ import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
 import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.ui.table.AuctionTable;
-import com.jbidwatcher.platform.Platform;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;

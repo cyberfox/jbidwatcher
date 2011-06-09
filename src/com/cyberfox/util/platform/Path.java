@@ -1,6 +1,6 @@
-package com.jbidwatcher.platform;
+package com.cyberfox.util.platform;
 
-import com.jbidwatcher.util.config.JConfig;
+import com.cyberfox.util.config.JConfig;
 
 import java.io.File;
 

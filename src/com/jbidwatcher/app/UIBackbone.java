@@ -1,5 +1,6 @@
 package com.jbidwatcher.app;
 
+import com.cyberfox.util.platform.Platform;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.config.JConfig;
@@ -11,7 +12,6 @@ import com.jbidwatcher.auction.EntryCorral;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.platform.Platform;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.UpdaterEntry;
 import com.jbidwatcher.UpdateManager;

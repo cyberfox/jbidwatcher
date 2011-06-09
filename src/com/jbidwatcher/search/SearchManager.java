@@ -5,7 +5,7 @@ package com.jbidwatcher.search;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.platform.Path;
+import com.cyberfox.util.platform.Path;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.queue.MQFactory;
