@@ -96,6 +96,14 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     }
   }
 
+  public boolean isPaused() {
+    if(mPausedUntil != 0 && mPausedUntil > System.currentTimeMillis()) {
+      return true;
+    }
+    mPausedUntil = 0;
+    return false;
+  }
+
   /**
    * @brief Check all the auctions for active events, and check if we
    * should snapshot the auctions off to disk.
@@ -105,9 +113,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   public boolean check() throws InterruptedException {
     boolean neededUpdate = false;
     List<AuctionEntry> needUpdate;
-    if(mPausedUntil == 0 || mPausedUntil <= System.currentTimeMillis()) {
-      mPausedUntil = 0;
-
+    if(!isPaused()) {
       needUpdate = AuctionEntry.findAllNeedingUpdates(Constants.ONE_MINUTE * 69);
       updateList(needUpdate);
       neededUpdate = !needUpdate.isEmpty();
