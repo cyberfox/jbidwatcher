@@ -835,7 +835,16 @@ class ebayAuction extends SpecificAuction {
   }
 
   private boolean checkSeller(AuctionEntry ae) {
-    String sellerName = mDocument.getNextContentAfterRegex(T.s("ebayServer.seller"));
+    List<String> sellerInfo = mDocument.findSequence(T.s("ebayServer.sellerInfoPrequel"), T.s("ebayServer.seller"), ".*");
+    String sellerName = null;
+    if(sellerInfo != null) {
+      sellerName = sellerInfo.get(2);
+    }
+
+    if (sellerName == null) {
+      sellerName = mDocument.getNextContentAfterRegex(T.s("ebayServer.seller"));
+    }
+
     if(sellerName == null) {
       sellerName = mDocument.getNextContentAfterRegex(T.s("ebayServer.sellerInfoPrequel"));
     }
