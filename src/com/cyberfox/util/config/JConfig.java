@@ -18,8 +18,6 @@ package com.cyberfox.util.config;//  -*- Java -*-
 //  mrs: 22-July-1999 23:57 - First version.  Contains the  configuration
 //                            information, theoretically loaded once on startup.
 
-import com.jbidwatcher.util.Constants;
-
 import java.io.*;
 import java.net.MalformedURLException;
 import java.util.*;
@@ -36,7 +34,7 @@ public class JConfig {
   protected static Properties mTempProps = null;
 
   protected static String _configFileName = null;
-
+  protected static String baseName = null;
   //  All the available JConfig.<information> fields.  They should be
   //  set to 'sane' defaults initially, under the theory that the
   //  program may never actually do a loadconfig.  This is ONLY true
@@ -87,17 +85,6 @@ public class JConfig {
 
   public static boolean scriptingEnabled() {
     return mScripting;
-  }
-
-  public static void fixupPaths(String homeDirectory) {
-    String[][] s = { { "auctions.savepath", "auctionsave" },
-        { "platform.path", "platform" },
-        {  "savefile", "auctions.xml" },
-        {  "search.savefile", "searches.xml" } };
-    String sep = System.getProperty("file.separator");
-    for(String[] pair : s) {
-      JConfig.setConfiguration(pair[0], homeDirectory + sep + pair[1]);
-    }
   }
 
   public interface ConfigListener {
@@ -314,6 +301,10 @@ public class JConfig {
     saveConfiguration(_configFileName);
   }
 
+  public static void setBaseName(String newBaseName) {
+    baseName = newBaseName;
+  }
+
   public static void saveConfiguration(String outFile) {
     _configFileName = outFile;
     passwordFixup(soleProperty);
@@ -322,8 +313,8 @@ public class JConfig {
       saveArbitrary(_configFileName, soleProperty);
       JConfig.log().logDebug("Saving to: " + _configFileName);
     } else {
-      saveArbitrary("JBidWatch.cfg", soleProperty);
-      JConfig.log().logDebug("Just saving to: JBidWatch.cfg!");
+      saveArbitrary(baseName, soleProperty);
+      JConfig.log().logDebug("Just saving to: " + baseName + "!");
     }
 
     passwordUnfixup_b64(soleProperty);
@@ -557,10 +548,6 @@ public class JConfig {
     }
     count++;
     setConfiguration(key, Long.toString(count));
-  }
-
-  public static String getVersion() {
-    return Constants.PROGRAM_VERS;
   }
 
   private static String sHomeDirectory = null;
