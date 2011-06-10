@@ -14,6 +14,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.io.*;
+import java.util.List;
 
 /**
  * User: Morgan
@@ -85,7 +86,11 @@ public class Scripting {
     final Ruby runtime = Ruby.newInstance(config);
 
     runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))));
-    runtime.getLoadService().init(new ArrayList());
+    List<String> loadPath = new ArrayList<String>();
+    if(JConfig.queryConfiguration("platform.path") != null) {
+      loadPath.add(JConfig.queryConfiguration("platform.path"));
+    }
+    runtime.getLoadService().init(loadPath);
 
     runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'lib/jbidwatcher/utilities';");
 
