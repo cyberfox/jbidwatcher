@@ -44,6 +44,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.*;
 import java.util.*;
 
@@ -581,6 +583,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       public void run() {
         synchronized(mScriptCompletion) {
           try {
+            preloadLibrary();
             Scripting.initialize();
             JConfig.enableScripting();
             JConfig.log().logMessage("Scripting is enabled.");
@@ -589,6 +592,27 @@ public final class JBidWatch implements JConfig.ConfigListener {
           } catch (Throwable e) {
             JConfig.log().logMessage("Error setting up scripting: " + e.toString());
             JConfig.disableScripting();
+          }
+        }
+      }
+
+      private void preloadLibrary() {
+        String jrubyFile = JConfig.queryConfiguration("platform.path") + File.separator + "jruby-complete.jar";
+        File fp = new File(jrubyFile);
+
+        if (fp.exists()) {
+          try {
+            URL srcJar = fp.toURI().toURL();
+            URLClassLoader myCL = (URLClassLoader) Thread.currentThread().getContextClassLoader();
+            Class sysClass = URLClassLoader.class;
+            Method sysMethod = sysClass.getDeclaredMethod("addURL", new Class[]{URL.class});
+            sysMethod.setAccessible(true);
+            sysMethod.invoke(myCL, srcJar);
+          } catch (NoSuchMethodException ignored) {
+          } catch (MalformedURLException ignored) {
+          } catch (InvocationTargetException ignored) {
+          } catch (IllegalAccessException ignored) {
+            //  All these possible failures are ignored, it just means the scripting class won't be loaded.
           }
         }
       }

@@ -129,10 +129,12 @@ public class Platform {
     return false;
   }
 
-  private static boolean dumpFile(String inJarName, String destination) {
+  public static boolean dumpFile(String inJarName, String destination) {
     File f = new File(destination);
     try {
-      f.createNewFile();
+      if(!f.createNewFile()) {
+        JConfig.log().logDebug("Could not create new file: " + destination);
+      }
     } catch(Exception e) {
       JConfig.log().handleException("Can't create output file to copy from JAR.", e);
       return false;
@@ -150,10 +152,12 @@ public class Platform {
     BufferedInputStream in = new BufferedInputStream(source);
     try {
       FileOutputStream out = new FileOutputStream(f);
-      int ch;
+      byte[] buffer = new byte[16384];
+      int read;
 
-      while ((ch = in.read()) != -1)
-        out.write(ch);
+      while((read = in.read(buffer)) != -1) {
+        out.write(buffer, 0, read);
+      }
 
       try {
         in.close();

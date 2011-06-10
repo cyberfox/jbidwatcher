@@ -64,25 +64,6 @@ public class Scripting {
   public static void setInput(InputStream stream) { sInput.setInput(stream); }
 
   public static void initialize() throws ClassNotFoundException {
-    String jrubyFile = JConfig.queryConfiguration("platform.path") + File.separator + "jruby-complete.jar";
-    File fp = new File(jrubyFile);
-
-    if(fp.exists()) {
-      try {
-        URL srcJar = fp.toURI().toURL();
-        URLClassLoader myCL = (URLClassLoader) Thread.currentThread().getContextClassLoader();
-        Class sysClass = URLClassLoader.class;
-        Method sysMethod = sysClass.getDeclaredMethod("addURL", new Class[]{URL.class});
-        sysMethod.setAccessible(true);
-        sysMethod.invoke(myCL, srcJar);
-      } catch (NoSuchMethodException ignored) {
-      } catch (MalformedURLException ignored) {
-      } catch (InvocationTargetException ignored) {
-      } catch (IllegalAccessException ignored) {
-        //  All these possible failures are ignored, it just means the scripting class won't be loaded.
-      }
-    }
-
     //  Test for JRuby's presence
     Class.forName("org.jruby.RubyInstanceConfig", true, Thread.currentThread().getContextClassLoader());
 
