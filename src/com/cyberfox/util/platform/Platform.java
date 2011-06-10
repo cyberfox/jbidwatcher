@@ -122,7 +122,9 @@ public class Platform {
         return true;
       }
     } catch(Exception e) {
-      //return false;
+      JConfig.log().logMessage("Couldn't set up tray access: " + e.getLocalizedMessage());
+    } catch (UnsatisfiedLinkError ule) {
+      JConfig.log().logMessage("Couldn't set up tray access: " + ule.getLocalizedMessage());
     }
     return false;
   }
