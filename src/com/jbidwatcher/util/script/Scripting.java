@@ -64,7 +64,7 @@ public class Scripting {
   public static void setInput(InputStream stream) { sInput.setInput(stream); }
 
   public static void initialize() throws ClassNotFoundException {
-    String jrubyFile = JConfig.queryConfiguration("platform.path") + File.pathSeparator + "jruby-complete.jar";
+    String jrubyFile = JConfig.queryConfiguration("platform.path") + File.separator + "jruby-complete.jar";
     File fp = new File(jrubyFile);
 
     if(fp.exists()) {

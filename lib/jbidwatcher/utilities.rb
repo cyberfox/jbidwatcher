@@ -3,7 +3,7 @@ require 'net/http'
 require 'cgi'
 
 import com.jbidwatcher.util.config.JConfig
-import com.jbidwatcher.platform.Path
+import com.cyberfox.util.platform.Path
 import com.jbidwatcher.util.Currency
 import com.jbidwatcher.util.queue.MQFactory
 import com.jbidwatcher.auction.AuctionEntry
