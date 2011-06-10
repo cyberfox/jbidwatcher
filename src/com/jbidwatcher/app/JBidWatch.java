@@ -107,38 +107,11 @@ public final class JBidWatch implements JConfig.ConfigListener {
    * @return - a String identifying the path to our save directory.
    */
   private static String makeSaveDirectory(String inPath) {
-    return makeStandardDirectory(inPath, "auctionsave", "jbidwatcher");
+    return Path.makeStandardDirectory(inPath, "auctionsave", "jbidwatcher");
   }
 
   private static String makePlatformDirectory(String inPath) {
-    return makeStandardDirectory(inPath, "platform", "jbidwatcher");
-  }
-
-  private static String makeStandardDirectory(String inPath, String defaultSubdir, String defaultDirectory) {
-    String outPath = inPath;
-
-    if(outPath != null) {
-      File fp_test = new File(outPath);
-      if(!fp_test.exists()) {
-        if(!fp_test.mkdirs()) {
-          outPath = null;
-        }
-      }
-    }
-
-    if(outPath == null) {
-      String directoryPath = Path.getCanonicalFile(defaultSubdir, defaultDirectory, false);
-      File fp = new File(directoryPath);
-
-      if(fp.exists()) {
-        outPath = fp.getAbsolutePath();
-      } else {
-        if(!fp.mkdirs()) JConfig.log().logDebug("Couldn't mkdir " + directoryPath);
-        outPath = fp.getAbsolutePath();
-      }
-    }
-
-    return outPath;
+    return Path.makeStandardDirectory(inPath, "platform", "jbidwatcher");
   }
 
   private static void getUserSetup() {

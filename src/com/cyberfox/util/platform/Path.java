@@ -92,4 +92,31 @@ public class Path {
 
     return outName;
   }
+
+  public static String makeStandardDirectory(String inPath, String defaultSubdir, String defaultDirectory) {
+    String outPath = inPath;
+
+    if(outPath != null) {
+      File fp_test = new File(outPath);
+      if(!fp_test.exists()) {
+        if(!fp_test.mkdirs()) {
+          outPath = null;
+        }
+      }
+    }
+
+    if(outPath == null) {
+      String directoryPath = getCanonicalFile(defaultSubdir, defaultDirectory, false);
+      File fp = new File(directoryPath);
+
+      if(fp.exists()) {
+        outPath = fp.getAbsolutePath();
+      } else {
+        if(!fp.mkdirs()) JConfig.log().logDebug("Couldn't mkdir " + directoryPath);
+        outPath = fp.getAbsolutePath();
+      }
+    }
+
+    return outPath;
+  }
 }
