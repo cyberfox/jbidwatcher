@@ -1,10 +1,17 @@
 package com.jbidwatcher.util.script;
 
+import com.cyberfox.util.platform.Path;
+import com.jbidwatcher.util.config.JConfig;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.Ruby;
 import org.jruby.internal.runtime.ValueAccessor;
 import org.jruby.javasupport.JavaEmbedUtils;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.io.*;
 
@@ -57,6 +64,25 @@ public class Scripting {
   public static void setInput(InputStream stream) { sInput.setInput(stream); }
 
   public static void initialize() throws ClassNotFoundException {
+    String jrubyFile = JConfig.queryConfiguration("platform.path") + File.pathSeparator + "jruby-complete.jar";
+    File fp = new File(jrubyFile);
+
+    if(fp.exists()) {
+      try {
+        URL srcJar = fp.toURI().toURL();
+        URLClassLoader myCL = (URLClassLoader) Thread.currentThread().getContextClassLoader();
+        Class sysClass = URLClassLoader.class;
+        Method sysMethod = sysClass.getDeclaredMethod("addURL", new Class[]{URL.class});
+        sysMethod.setAccessible(true);
+        sysMethod.invoke(myCL, srcJar);
+      } catch (NoSuchMethodException ignored) {
+      } catch (MalformedURLException ignored) {
+      } catch (InvocationTargetException ignored) {
+      } catch (IllegalAccessException ignored) {
+        //  All these possible failures are ignored, it just means the scripting class won't be loaded.
+      }
+    }
+
     //  Test for JRuby's presence
     Class.forName("org.jruby.RubyInstanceConfig", true, Thread.currentThread().getContextClassLoader());
 
