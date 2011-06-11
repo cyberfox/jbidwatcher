@@ -603,7 +603,12 @@ public final class JBidWatch implements JConfig.ConfigListener {
         if (fp.exists()) {
           try {
             URL srcJar = fp.toURI().toURL();
-            URLClassLoader myCL = (URLClassLoader) Thread.currentThread().getContextClassLoader();
+            URLClassLoader myCL;
+            try {
+              myCL = (URLClassLoader) Thread.currentThread().getContextClassLoader();
+            } catch(ClassCastException cce) {
+              myCL = (URLClassLoader) System.class.getClassLoader();
+            }
             Class sysClass = URLClassLoader.class;
             Method sysMethod = sysClass.getDeclaredMethod("addURL", new Class[]{URL.class});
             sysMethod.setAccessible(true);
