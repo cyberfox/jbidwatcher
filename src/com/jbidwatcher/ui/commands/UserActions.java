@@ -131,7 +131,7 @@ public class UserActions implements MessageQueue.Listener {
   private AuctionEntry addAuction(String auctionSource) {
     AuctionEntry aeNew = AuctionEntry.construct(auctionSource);
     if (aeNew != null && aeNew.isLoaded()) {
-      aeNew.setCategory(mTabs.getCurrentTableTitle());
+      aeNew.setCategory(CategoryManager.getCurrentTabTitle());
       AuctionsManager.getInstance().addEntry(aeNew);
       MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
       return aeNew;

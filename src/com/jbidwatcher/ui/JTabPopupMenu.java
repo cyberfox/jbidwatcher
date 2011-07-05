@@ -19,7 +19,6 @@ import java.util.*;
 import java.util.List;
 
 public class JTabPopupMenu extends JContext {
-  private JTabbedPane mTabs = null;
   private JMenu customize = null;
   private JMenuItem _print = null;
   private JMenu _deleteSubmenu = null;
@@ -37,7 +36,7 @@ public class JTabPopupMenu extends JContext {
     customize = new JMenu("Custom Columns");
 
     customize.getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
-      public void popupMenuWillBecomeVisible(PopupMenuEvent e) { prepCustomColumnMenu(null); }
+      public void popupMenuWillBecomeVisible(PopupMenuEvent e) { prepCustomColumnMenu(-1); }
       public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { customize.getPopupMenu().setInvoker(customize); }
       public void popupMenuCanceled(PopupMenuEvent e) { }
     });
@@ -64,12 +63,13 @@ public class JTabPopupMenu extends JContext {
    * @param e - The event that occurred (a context-operation).
    */
   protected void beforePopup(JPopupMenu inPopup, MouseEvent e) {
+    JTabbedPane tabs = JTabManager.getInstance().getTabs();
     super.beforePopup(inPopup, e);
-    int curIndex = mTabs.indexAtLocation(e.getX(), e.getY());
+    int curIndex = tabs.indexAtLocation(e.getX(), e.getY());
     if(curIndex == -1) {
-      int tabCount = mTabs.getTabCount();
+      int tabCount = tabs.getTabCount();
       for(int i=0; i<tabCount; i++) {
-        Rectangle tabBounds = mTabs.getBoundsAt(i);
+        Rectangle tabBounds = tabs.getBoundsAt(i);
         if(tabBounds != null && tabBounds.contains(e.getPoint())) curIndex = i;
       }
     }
@@ -108,9 +108,10 @@ public class JTabPopupMenu extends JContext {
       menuItemMap.put(s, colMenuItem);
     }
 
-    if(tabIndex == null) tabIndex = mTabs.getSelectedIndex();
+    String tabName = (tabIndex == null || tabIndex < 0) ?
+        CategoryManager.getCurrentTabTitle() :
+        CategoryManager.getCategoryAt(tabIndex);
     customize.setEnabled(true);
-    String tabName = mTabs.getTitleAt(tabIndex);
     uncheckAll();
     setColumnChecks(tabName);
   }
@@ -135,7 +136,7 @@ public class JTabPopupMenu extends JContext {
 
   public void actionPerformed(ActionEvent ae) {
     super.actionPerformed(ae);
-    DoAction(ae.getActionCommand(), mTabs.getSelectedIndex());
+    DoAction(ae.getActionCommand());
   }
 
   protected JFrame propFrame = null;
@@ -173,14 +174,12 @@ public class JTabPopupMenu extends JContext {
 
   /**
    * @brief Execute a given action, based on the string form of the action name.
-   *
-   * @param actionString - The command to do.
-   * @param tabIndex - The tab to perform the action on.
+   *@param actionString - The command to do.
    */
-  protected void DoAction(String actionString, int tabIndex) {
+  protected void DoAction(String actionString) {
     if(actionString.equals("Add Tab")) {
       OptionUI oui = new OptionUI();
-      String result = oui.promptString(mTabs.getComponentAt(tabIndex>=0?tabIndex:0), "Enter the name of the tab to add.  Prefer brevity.", "Add New Tab", "");
+      String result = oui.promptString(null, "Enter the name of the tab to add.  Prefer brevity.", "Add New Tab", "");
 
       if(result == null) return;
       result = result.trim();
@@ -190,7 +189,7 @@ public class JTabPopupMenu extends JContext {
       return;
     }
 
-    String tabName = mTabs.getTitleAt(tabIndex);
+    String tabName = CategoryManager.getCurrentTabTitle();
     if(actionString.charAt(0) == '~') {
       boolean result = ListManager.getInstance().toggleField(tabName, actionString.substring(1));
       if(tabToProperties != null) {
@@ -226,12 +225,8 @@ public class JTabPopupMenu extends JContext {
     }
 
     if(actionString.equals("Print")) {
-      if(tabIndex == -1) {
-        JConfig.log().logDebug("Can't print unknown tab, must prompt...");
-      } else {
-        if(!ListManager.getInstance().printTab(tabName)) {
-          JOptionPane.showMessageDialog(null, "Could not print tab [" + tabName + "].", "Print error", JOptionPane.PLAIN_MESSAGE);
-        }
+      if (!ListManager.getInstance().printTab(tabName)) {
+        JOptionPane.showMessageDialog(null, "Could not print tab [" + tabName + "].", "Print error", JOptionPane.PLAIN_MESSAGE);
       }
     }
 
@@ -243,17 +238,12 @@ public class JTabPopupMenu extends JContext {
     }
 
     if(actionString.equals("Just Tab")) {
-      //  If we couldn't have figured out which tab, prompt for delete.
-      if(tabIndex == -1) {
-        JConfig.log().logDebug("Prompting for Delete...\n");
+      JConfig.log().logDebug("Deleting tab [" + tabName + "]...\n");
+      Component removed = ListManager.getInstance().deleteTab(tabName, eraseEntries);
+      if (removed == null) {
+        JOptionPane.showMessageDialog(null, "Could not delete tab [" + tabName + "].", "Tab deletion error", JOptionPane.PLAIN_MESSAGE);
       } else {
-        JConfig.log().logDebug("Deleting tab [" + tabName + "]...\n");
-        Component removed = ListManager.getInstance().deleteTab(tabName, eraseEntries);
-        if(removed == null) {
-          JOptionPane.showMessageDialog(null, "Could not delete tab [" + tabName + "].", "Tab deletion error", JOptionPane.PLAIN_MESSAGE);
-        } else {
-          mTabs.remove(removed);
-        }
+        CategoryManager.remove(removed);
       }
     }
   }
@@ -265,7 +255,6 @@ public class JTabPopupMenu extends JContext {
    */
   public JTabPopupMenu(JTabbedPane inTabs, FilterManager filters) {
     mFilter = filters;
-    mTabs = inTabs;
     localPopup = new JPopupMenu();
     makeTabMenu(localPopup);
     inTabs.addMouseListener(this);
@@ -274,13 +263,10 @@ public class JTabPopupMenu extends JContext {
   /**
    * @brief Construct a menu & listener to be used as a context menu
    * on the tabbed display.
-   *
-   * @param inTabs - The tab display to act as a context menu for.
-   * @param popup - The popup to add the behavior to.
+   *@param popup - The popup to add the behavior to.
    */
-  public JTabPopupMenu(JTabbedPane inTabs, JPopupMenu popup, FilterManager filters) {
+  public JTabPopupMenu(JPopupMenu popup, FilterManager filters) {
     mFilter = filters;
-    mTabs = inTabs;
     localPopup = popup;
     makeTabMenu(localPopup);
   }

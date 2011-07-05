@@ -16,6 +16,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -23,6 +24,10 @@ public class JTabManager extends JMouseAdapter {
   private JTabbedPane mAuctionTypes;
   private Map<String, TableSorter> mNameTableMap = new TreeMap<String, TableSorter>();
   private static JTabManager sInstance;
+
+  public Map<String, TableSorter> getTableMap() {
+    return Collections.unmodifiableMap(mNameTableMap);
+  }
 
   /**
    * @brief Retrieve the tab manager which controls ALL the tabs that

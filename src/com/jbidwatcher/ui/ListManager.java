@@ -1,10 +1,16 @@
 package com.jbidwatcher.ui;
 
+import com.explodingpixels.macwidgets.SourceList;
+import com.explodingpixels.macwidgets.SourceListCategory;
+import com.explodingpixels.macwidgets.SourceListItem;
+import com.explodingpixels.macwidgets.SourceListModel;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.Task;
 import com.jbidwatcher.auction.AuctionEntry;
+import com.sun.tools.example.debug.gui.SourceModel;
 
+import javax.swing.*;
 import java.util.*;
 import java.awt.Color;
 import java.awt.Component;
@@ -20,6 +26,7 @@ import java.awt.Component;
 public class ListManager {
   private final Map<String, AuctionListHolder> mCategoryMap;
   private static ListManager sInstance = null;
+  private SourceListModel sourceModel = null;
 
   private ListManager() {
     // the LinkedHashMap fixes the random order of tabs
@@ -123,7 +130,12 @@ public class ListManager {
   }
 
   AuctionListHolder add(AuctionListHolder newList) {
-    mCategoryMap.put(newList.getList().getName(), newList);
+    String name = newList.getList().getName();
+    mCategoryMap.put(name, newList);
+    if (sourceModel != null) {
+      SourceListCategory custom = sourceModel.getCategories().get(1);
+      sourceModel.addItemToCategory(new SourceListItem(name), custom);
+    }
     return newList;
   }
 
@@ -153,5 +165,13 @@ public class ListManager {
     for (AuctionListHolder step : categories) {
       step.getUI().adjustRowHeight();
     }
+  }
+
+  public JComponent getComponent(String text) {
+    return mCategoryMap.get(text).getUI().getPanel();
+  }
+
+  public void setSourceModel(SourceListModel model) {
+    sourceModel = model;
   }
 }

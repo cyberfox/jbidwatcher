@@ -1,5 +1,8 @@
 package com.jbidwatcher.app;
 
+import com.explodingpixels.macwidgets.*;
+import com.jbidwatcher.auction.Category;
+import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.Constants;
@@ -17,7 +20,11 @@ import java.awt.event.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Color;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -41,7 +48,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
    * @param iconURL - The URL of the icon to associate with the frame.
    * @param tabManager - The Tab Manager to display within the frame.
    */
-  public MacFriendlyFrame(String title, JMouseAdapter myFrameAdapter, URL iconURL, JTabManager tabManager) {
+  public MacFriendlyFrame(String title, JMouseAdapter myFrameAdapter, URL iconURL, final JTabManager tabManager) {
     super(title);
 
     setMinimumSize(new Dimension(1000, 320));
@@ -59,10 +66,19 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     JPanel headerBar = JBidToolBar.getInstance().buildHeaderBar(this, tabManager);
 
     JPanel statusPane = buildStatusLine(tabManager);
+    setLayout(new BorderLayout());
 
-    getContentPane().add(tabManager.getTabs());
+    boolean useSourceList = Platform.isMac();
+
+    if(!useSourceList) {
+      getContentPane().add(tabManager.getTabs(), BorderLayout.CENTER);
+    }
     getContentPane().add(statusPane, BorderLayout.SOUTH);
     getContentPane().add(headerBar, BorderLayout.NORTH);
+
+    if(useSourceList) {
+      createSourceList();
+    }
 
     pack();
 
@@ -82,6 +98,49 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
         MQFactory.getConcrete("Swing").enqueue(UIBackbone.QUIT_MSG);
       }
     });
+  }
+
+  private void createSourceList() {
+    final ListManager lists = ListManager.getInstance();
+    SourceListModel model = new SourceListModel();
+    SourceListCategory basics = new SourceListCategory("BASICS");
+    SourceListCategory custom = new SourceListCategory("CUSTOM");
+    model.addCategory(basics);
+    model.addCategory(custom);
+
+    int count = 0;
+    for (String category : lists.allCategories()) {
+      SourceListItem sli = new SourceListItem(category);
+      Category c = Category.findFirstByName(category);
+      sli.setCounterValue(AuctionEntry.countByCategory(c));
+
+      if(count < 3) {
+        model.addItemToCategory(sli, basics);
+      } else {
+        model.addItemToCategory(sli, custom);
+      }
+
+      count++;
+    }
+
+    final SourceList sourceList = new SourceList(model);
+    JComponent sourceComponent = sourceList.getComponent();
+    final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sourceComponent, lists.getComponent("current"));
+    splitPane.setDividerLocation(128);
+    splitPane.setDividerSize(2);
+
+    sourceList.addSourceListSelectionListener(new SourceListSelectionListener() {
+      public void sourceListItemSelected(SourceListItem sourceListItem) {
+        int div = splitPane.getDividerLocation();
+        JComponent component = lists.getComponent(sourceListItem.getText());
+        splitPane.setRightComponent(component);
+        splitPane.setDividerLocation(div);
+      }
+    });
+
+    lists.setSourceModel(model);
+
+    getContentPane().add(splitPane, BorderLayout.CENTER);
   }
 
   private JPanel buildStatusLine(JTabManager tabManager) {

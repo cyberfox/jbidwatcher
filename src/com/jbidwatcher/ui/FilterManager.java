@@ -2,9 +2,22 @@ package com.jbidwatcher.ui;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
+ * Responsibilities:
+ *  Redraw
+ *    By auction number
+ *      Move if its information has changed
+ *    By category
+ *  Create main, complete, and selling tabs
+ *  Initialize custom tabs
+ *  Create and setup new tabs
+ *  Set background colors
+ *  Set fonts
+ *  Holder of the lists, including the UI objects
+ *
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.explodingpixels.macwidgets.SourceList;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -94,7 +107,7 @@ public class FilterManager implements MessageQueue.Listener {
           if (old != null) old.getUI().redrawAll();
           newAuction.getUI().redrawAll();
         } else {
-          JTabManager.getInstance().getCurrentTable().update(ae);
+          mList.findCategory(ae.getCategory()).getUI().getTableSorter().update(ae);
         }
         return;
       }
