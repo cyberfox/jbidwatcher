@@ -5,8 +5,8 @@ package com.jbidwatcher.auction.server;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.PauseManager;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.search.SearchManager;
@@ -308,7 +308,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     String cmd = (String)deQ;
 
     if(cmd.equals("TIMECHECK")) {
-      if(AuctionsManager.getInstance().isPaused()) {
+      if(PauseManager.getInstance().isPaused()) {
         //  Punt, and let the time drift until the next update.
         return;
       }

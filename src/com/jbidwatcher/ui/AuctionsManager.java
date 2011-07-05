@@ -15,6 +15,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.cyberfox.util.platform.Path;
+import com.jbidwatcher.util.PauseManager;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.xml.XMLElement;
@@ -40,8 +41,8 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   private static final int AUCTIONCOUNT = 100;
   private static final int MAX_PERCENT = AUCTIONCOUNT;
   private static TimerHandler sTimer = null;
-  private long mPausedUntil = 0;
   private AuctionEntry mCurrentlyUpdating = null;
+  private final PauseManager mPauseManager = PauseManager.getInstance();
 
   /**
    * @brief AuctionsManager is a singleton, there should only be one
@@ -73,15 +74,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     return mFilter;
   }
 
-  public void pause(int seconds) {
-    mPausedUntil = System.currentTimeMillis() + Constants.ONE_SECOND * seconds;
-  }
-
-  public void pause() {
-    //  Pause until 5 minutes from now.
-    pause(5*60);
-  }
-
   /////////////////////////////////////////////////////////
   //  Mass-equivalents for Auction-list specific operations
 
@@ -96,14 +88,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     }
   }
 
-  public boolean isPaused() {
-    if(mPausedUntil != 0 && mPausedUntil > System.currentTimeMillis()) {
-      return true;
-    }
-    mPausedUntil = 0;
-    return false;
-  }
-
   /**
    * @brief Check all the auctions for active events, and check if we
    * should snapshot the auctions off to disk.
@@ -113,7 +97,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   public boolean check() throws InterruptedException {
     boolean neededUpdate = false;
     List<AuctionEntry> needUpdate;
-    if(!isPaused()) {
+    if(!mPauseManager.isPaused()) {
       needUpdate = AuctionEntry.findAllNeedingUpdates(Constants.ONE_MINUTE * 69);
       updateList(needUpdate);
       neededUpdate = !needUpdate.isEmpty();

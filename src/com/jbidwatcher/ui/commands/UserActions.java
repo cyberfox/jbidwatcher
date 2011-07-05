@@ -1025,7 +1025,7 @@ public class UserActions implements MessageQueue.Listener {
       //  Clear all dropped or programmatically added auctions.
       MQFactory.getConcrete("drop").clear();
 
-      AuctionsManager.getInstance().pause();
+      PauseManager.getInstance().pause();
     }
   }
 

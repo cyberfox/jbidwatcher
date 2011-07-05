@@ -1,6 +1,7 @@
 package com.jbidwatcher.app;
 
 import com.cyberfox.util.platform.Platform;
+import com.jbidwatcher.util.PauseManager;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.config.JConfig;
@@ -444,7 +445,7 @@ public final class UIBackbone implements MessageQueue.Listener {
       MQFactory.getConcrete("Swing").enqueue(NOTIFY_MSG + status);
     }
     //  Pause updates for 20 seconds
-    AuctionsManager.getInstance().pause(20);
+    PauseManager.getInstance().pause(20);
 
     //  In 15 seconds, log back in.  This is because networking usually takes 10-15 seconds to restart after a sleep event.
     AuctionServer mainServer = AuctionServerManager.getInstance().getServer();
