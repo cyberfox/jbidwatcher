@@ -42,14 +42,14 @@ public class EntryCorral {
       result = AuctionEntry.findByIdentifier(identifier);
     }
     if(result != null) {
-      synchronized (mLockList) {
-        Lock l = mLockList.get(identifier);
-        if (l == null) {
-          l = new ReentrantLock(true);
+      Lock l = mLockList.get(identifier);
+      if (l == null) {
+        l = new ReentrantLock(true);
+        synchronized (mLockList) {
           mLockList.put(identifier, l);
         }
-        l.lock();
       }
+      l.lock();
     }
     return result;
   }
@@ -112,13 +112,15 @@ public class EntryCorral {
   }
 
   public AuctionEntry erase(String identifier) {
-    Reference<AuctionEntry> rval = mEntryList.remove(identifier);
-    Lock l = mLockList.remove(identifier);
-    if(l != null) l.unlock();
-    if(rval == null) {
-      return null;
+    synchronized(mLockList) {
+      Lock l = mLockList.remove(identifier);
+      Reference<AuctionEntry> rval = mEntryList.remove(identifier);
+      if (l != null) l.unlock();
+      if (rval == null) {
+        return null;
+      }
+      return rval.get();
     }
-    return rval.get();
   }
 
   public void clear() {

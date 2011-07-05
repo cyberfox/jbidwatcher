@@ -100,6 +100,8 @@ public class Auctions {
         String category = ae.getCategory();
         MQFactory.getConcrete("redraw").enqueue(category);
       }
+
+      ae = EntryCorral.getInstance().takeForWrite(ae.getIdentifier());  //  Lock the item
       EntryCorral.getInstance().erase(ae.getIdentifier());
       MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
       MQFactory.getConcrete("Swing").enqueue("Done updating " + Auctions.getTitleAndComment(ae));

@@ -102,16 +102,22 @@ public class MultiSnipe extends ActiveRecord {
 
   public synchronized void add(String identifier) {
     AuctionEntry ae = EntryCorral.getInstance().takeForWrite(identifier);
-    ae.set("multisnipe_id", get("id"));
-    ae.saveDB();
-    EntryCorral.getInstance().release(identifier);
+    try {
+      ae.set("multisnipe_id", get("id"));
+      ae.saveDB();
+    } finally {
+      EntryCorral.getInstance().release(identifier);
+    }
   }
 
   public synchronized void remove(String identifier) {
     AuctionEntry ae = EntryCorral.getInstance().takeForWrite(identifier);
-    ae.set("multisnipe_id", null);
-    ae.saveDB();
-    EntryCorral.getInstance().release(identifier);
+    try {
+      ae.set("multisnipe_id", null);
+      ae.saveDB();
+    } finally {
+      EntryCorral.getInstance().release(identifier);
+    }
   }
 
   /**
