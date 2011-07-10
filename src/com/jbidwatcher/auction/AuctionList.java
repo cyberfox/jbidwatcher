@@ -24,19 +24,18 @@ public class AuctionList {
       return EntryCorral.getInstance().takeForRead(identifier);
     }
   }
-  public EntryInterface remove(int i) {
+  public void remove(int i) {
     synchronized (mList) {
       String identifier = mList.get(i);
-      EntryInterface result = EntryCorral.getInstance().takeForRead(identifier);
+      EntryCorral.getInstance().takeForRead(identifier);
       mList.remove(i);
-      return result;
     }
   }
 
-  public boolean add(AuctionEntry ae) {
+  public void add(AuctionEntry ae) {
     synchronized (mList) {
       EntryCorral.getInstance().put(ae);
-      return mList.add(ae.getIdentifier());
+      mList.add(ae.getIdentifier());
     }
   }
 
@@ -53,7 +52,7 @@ public class AuctionList {
   public void each(Task task) {
     synchronized(mList) {
       for (String identifier : mList) {
-        AuctionEntry result = EntryCorral.getInstance().takeForWrite(identifier);
+        AuctionEntry result = (AuctionEntry) EntryCorral.getInstance().takeForWrite(identifier);
         try { task.execute(result); } finally { EntryCorral.getInstance().release(identifier); }
       }
     }

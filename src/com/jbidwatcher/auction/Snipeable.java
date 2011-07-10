@@ -53,4 +53,6 @@ public interface Snipeable {
   public String getIdentifier();
 
   public boolean reload();
+
+  public boolean isComplete();
 }

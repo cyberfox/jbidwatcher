@@ -185,8 +185,6 @@ public class JBidProxy extends AbstractMiniServer {
 
   public StringBuffer favicon() { return sIcon; }
 
-  public StringBuffer returnNull(String identifier) { return new StringBuffer(); }
-
   public StringBuffer show(String cached, String identifier) {
     boolean isCached = cached != null && cached.length() != 0;
 

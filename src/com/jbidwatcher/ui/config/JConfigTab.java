@@ -15,7 +15,7 @@ import java.awt.*;
 public abstract class JConfigTab extends JPanel {
   public abstract String getTabName();
   public abstract void cancel();
-  public abstract boolean apply();
+  public abstract void apply();
 
   public abstract void updateValues();
 

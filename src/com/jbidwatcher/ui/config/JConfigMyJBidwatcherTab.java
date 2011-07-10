@@ -38,7 +38,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     mStatusLabel.setText("");
   }
 
-  public boolean apply() {
+  public void apply() {
     String email = mEmail.getText();
     String password = mPassword.getText();
 
@@ -56,7 +56,6 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     mStatusLabel.setIcon(null);
     mStatusLabel.setText("");
 
-    return true;
   }
 
   public void updateValues() {

@@ -129,7 +129,7 @@ public class JConfigFirewallTab extends JConfigTab {
   //  immediately open a SOCKS server, or a web proxy for all future
   //  transactions.  It should.  HACKHACK -- mrs: 14-August-2001 01:44
   //
-  public boolean apply() {
+  public void apply() {
     String firewallState = "none";
 
     if(noFirewall.isSelected()) {
@@ -170,7 +170,6 @@ public class JConfigFirewallTab extends JConfigTab {
     } else {
       JConfig.setConfiguration("proxy.https.set", "false");
     }
-    return true;
   }
 
   //

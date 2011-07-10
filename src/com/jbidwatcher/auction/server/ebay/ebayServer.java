@@ -123,18 +123,18 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         body, mLogin.getNecessaryCookie(false).toString(), null, false);
   }
 
-  public void updateWatchers(AuctionEntry ae) {
-    StringBuffer json = Http.net().get("http://cgi1.ebay.com/ws/eBayISAPI.dll?ViewItemMakeTrack&item=" + ae.getIdentifier());
+  public void updateWatchers(String auctionId) {
+    StringBuffer json = Http.net().get("http://cgi1.ebay.com/ws/eBayISAPI.dll?ViewItemMakeTrack&item=" + auctionId);
     Pattern p = Pattern.compile("\"watcherCount\":([0-9]+)");
     Matcher m = p.matcher(json);
     if(m.find()) {
       String watcherCount = m.group(1);
-      ae.setWatchers(Integer.parseInt(watcherCount));
+//      auctionId.setWatchers(Integer.parseInt(watcherCount));
     }
   }
 
-  public void updateHighBid(AuctionEntry ae) {
-    String bidHistory = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file") + Externalized.getString("ebayServer.viewBidsCGI") + ae.getIdentifier();
+  public void updateHighBid(String auctionId) {
+    String bidHistory = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file") + Externalized.getString("ebayServer.viewBidsCGI") + auctionId;
     CookieJar cj = mLogin.getNecessaryCookie(false);
     String userCookie = null;
     if (cj != null) userCookie = cj.toString();
@@ -146,55 +146,61 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         if (t.rowCellMatches(0, "^(Bidder|User ID).*")) {
           int bidCount = t.getRowCount() - 1; // 1 for the header
 
-          // -1 for the starting price
-          if(t.rowCellMatches(bidCount, "Starting Price")) bidCount -= 1;
-          if(t.rowCellMatches(bidCount, "No purchases have been made.")) {
-            ae.setNumBids(0);
-            ae.saveDB();
-            return;
-          }
+          AuctionEntry ae = (AuctionEntry) EntryCorral.getInstance().takeForWrite(auctionId);
 
-          if(ae.getNumBidders() == 0) ae.setNumBids(bidCount);
-          int myMostRecentRow = -1;
-          for(int i=1; i < bidCount+1; i++) {
-            if(t.getCell(0, i).equals(mLogin.getUserId())) {
-              myMostRecentRow = i;
-              break;
+          try {
+            // -1 for the starting price
+            if(t.rowCellMatches(bidCount, "Starting Price")) bidCount -= 1;
+            if(t.rowCellMatches(bidCount, "No purchases have been made.")) {
+              ae.setNumBids(0);
+              ae.saveDB();
+              return;
             }
-          }
-          if(myMostRecentRow != -1) {
-            String newCurrency = t.getCell(1, myMostRecentRow);
-            if (newCurrency != null) {
-              Currency highBid = Currency.getCurrency(newCurrency);
-              try {
-                if (!ae.isBidOn() || ae.getBid().less(highBid)) {
-                  ae.setBid(highBid);
-                  ae.setBidQuantity(bidCount);
-                  ae.saveDB();
-                }
-              } catch (Currency.CurrencyTypeException cte) {
-                //  Bad things happen here.  Ignore it for now.
+
+            if(ae.getNumBidders() == 0) ae.setNumBids(bidCount);
+            int myMostRecentRow = -1;
+            for(int i=1; i < bidCount+1; i++) {
+              if(t.getCell(0, i).equals(mLogin.getUserId())) {
+                myMostRecentRow = i;
+                break;
               }
             }
-          }
-          if(bidCount > 0) {
-            AuctionInfo ai = ae.getAuction();
-            String highBidder = t.getCell(0, 1);
-            int feedbackStart = highBidder.indexOf(" (");
-            if(feedbackStart != -1) {
-              highBidder = highBidder.substring(0, feedbackStart);
+            if(myMostRecentRow != -1) {
+              String newCurrency = t.getCell(1, myMostRecentRow);
+              if (newCurrency != null) {
+                Currency highBid = Currency.getCurrency(newCurrency);
+                try {
+                  if (!ae.isBidOn() || ae.getBid().less(highBid)) {
+                    ae.setBid(highBid);
+                    ae.setBidQuantity(bidCount);
+                    ae.saveDB();
+                  }
+                } catch (Currency.CurrencyTypeException cte) {
+                  //  Bad things happen here.  Ignore it for now.
+                }
+              }
             }
-            if(highBidder.startsWith("private listing")) {
-              ai.setPrivate(true);
-              ai.setHighBidder("(private)");
-            } else {
-              Pattern p = Pattern.compile("Member Id: (.*)");
-              Matcher m = p.matcher(highBidder);
-              if(m.matches()) highBidder = m.group(1);
-              ai.setHighBidder(highBidder);
+            if(bidCount > 0) {
+              AuctionInfo ai = ae.getAuction();
+              String highBidder = t.getCell(0, 1);
+              int feedbackStart = highBidder.indexOf(" (");
+              if(feedbackStart != -1) {
+                highBidder = highBidder.substring(0, feedbackStart);
+              }
+              if(highBidder.startsWith("private listing")) {
+                ai.setPrivate(true);
+                ai.setHighBidder("(private)");
+              } else {
+                Pattern p = Pattern.compile("Member Id: (.*)");
+                Matcher m = p.matcher(highBidder);
+                if(m.matches()) highBidder = m.group(1);
+                ai.setHighBidder(highBidder);
+              }
+              ai.saveDB();
+              return;
             }
-            ai.saveDB();
-            return;
+          } finally {
+            EntryCorral.getInstance().release(auctionId);
           }
         }
       }
@@ -321,29 +327,33 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private static final long TWO_MINUTES = Constants.ONE_MINUTE * 2;
   private static final long FIVE_MINUTES = Constants.ONE_MINUTE * 5;
 
-  public void setSnipe(AuctionEntry snipeOn) {
-    String identifier = snipeOn.getIdentifier();
-    Date endDate = snipeOn.getEndDate();
-    long snipeDelta = snipeOn.getSnipeTime();
-    //  If we already have a snipe set for it, first cancel the old one, and then set up the new.
-    _etqm.erase(identifier);
-    //  Delete the identifier from the snipe queue, as it _may_ have already loaded the pre-snipe information,
-    //  in which case the first snipe (the - TWO_MINUTES) one will actually _fire_ the snipe.  This would be bad.
-    mSnipeQueue.delSnipe(identifier);
+  public void setSnipe(String auctionId) {
+    AuctionEntry ae = (AuctionEntry) EntryCorral.getInstance().takeForWrite(auctionId);
+    try {
+      Date endDate = ae.getEndDate();
+      long snipeDelta = ae.getSnipeTime();
+      //  If we already have a snipe set for it, first cancel the old one, and then set up the new.
+      _etqm.erase(auctionId);
+      //  Delete the identifier from the snipe queue, as it _may_ have already loaded the pre-snipe information,
+      //  in which case the first snipe (the - TWO_MINUTES) one will actually _fire_ the snipe.  This would be bad.
+      mSnipeQueue.delSnipe(auctionId);
 
-    JConfig.log().logDebug("Establishing a snipe on " + identifier);
-    if (endDate != null && endDate != Constants.FAR_FUTURE) {
-      snipeOn.setLastStatus("Establishing a snipe");
+      JConfig.log().logDebug("Establishing a snipe on " + auctionId);
+      if (endDate != null && endDate != Constants.FAR_FUTURE) {
+        ae.setLastStatus("Establishing a snipe");
 
-      _etqm.add("TIMECHECK", "auction_manager", (endDate.getTime() - snipeDelta) - FIVE_MINUTES);
-      _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta) - TWO_MINUTES);
-      _etqm.add(identifier, mSnipeQueue, (endDate.getTime() - snipeDelta));
-      _etqm.add(identifier, "drop",       endDate.getTime() + THIRTY_SECONDS);
-    } else {
-      JConfig.log().logMessage("Failing to set snipe for " + identifier + ", endDate is null or in the far future (" + endDate + ")");
+        _etqm.add("TIMECHECK", "auction_manager", (endDate.getTime() - snipeDelta) - FIVE_MINUTES);
+        _etqm.add(auctionId, mSnipeQueue, (endDate.getTime() - snipeDelta) - TWO_MINUTES);
+        _etqm.add(auctionId, mSnipeQueue, (endDate.getTime() - snipeDelta));
+        _etqm.add(auctionId, "drop",       endDate.getTime() + THIRTY_SECONDS);
+      } else {
+        JConfig.log().logMessage("Failing to set snipe for " + auctionId + ", endDate is null or in the far future (" + endDate + ")");
+      }
+
+      MQFactory.getConcrete("my").enqueue("SNIPE " + auctionId);
+    } finally {
+      EntryCorral.getInstance().release(auctionId);
     }
-
-    MQFactory.getConcrete("my").enqueue("SNIPE " + identifier);
   }
 
   /**
@@ -538,12 +548,27 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return mLogin.getNecessaryCookie(force);
   }
 
-  public int bid(AuctionEntry inEntry, Currency inBid, int inQuantity) {
-    return mBidder.bid(inEntry, inBid, inQuantity);
+  public int bid(String auctionId, Currency inBid, int inQuantity) {
+    AuctionEntry inEntry = (AuctionEntry) EntryCorral.getInstance().takeForWrite(auctionId);
+    try {
+      if(inEntry == null) {
+        JConfig.log().logMessage("Auction " + auctionId + " disappeared before the bid.");
+        return AuctionServerInterface.BID_ERROR_AUCTION_GONE;
+      } else {
+        return mBidder.bid(inEntry, inBid, inQuantity);
+      }
+    } finally {
+      EntryCorral.getInstance().release(auctionId);
+    }
   }
 
-  public int buy(AuctionEntry ae, int quantity) {
-    return mBidder.buy(ae, quantity);
+  public int buy(String auctionId, int quantity) {
+    AuctionEntry ae = (AuctionEntry) EntryCorral.getInstance().takeForWrite(auctionId);
+    try {
+      return mBidder.buy(ae, quantity);
+    } finally {
+      EntryCorral.getInstance().release(auctionId);
+    }
   }
 
   public boolean isDefaultUser() {
@@ -757,7 +782,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   protected Date getOfficialTime() {
     UpdateBlocker.startBlocking();
-    long localDateBeforePage = System.currentTimeMillis();
     String timeRequest = Externalized.getString("ebayServer.timeURL");
 
     JHTML htmlDocument = new JHTML(timeRequest, null, mCleaner);

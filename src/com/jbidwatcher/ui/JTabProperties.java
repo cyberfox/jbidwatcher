@@ -143,7 +143,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
     // don't do anything...
   }
 
-  public boolean apply() {
+  public void apply() {
     String won = (String)cbWonTarget.getSelectedItem();
     String lost= (String)cbLostTarget.getSelectedItem();
     String other=(String)cbOtherTarget.getSelectedItem();
@@ -152,7 +152,6 @@ public class JTabProperties extends JConfigTab implements ActionListener {
     JConfig.setConfiguration(LOST_TARGET, lost);
     JConfig.setConfiguration(OTHER_TARGET, other);
 
-    return true;
   }
 
   public void setFrame(JFrame frame) {

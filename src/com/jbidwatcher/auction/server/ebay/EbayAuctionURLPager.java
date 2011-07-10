@@ -39,16 +39,7 @@ public class EbayAuctionURLPager extends AbstractURLPager {
 		getPage(1);
 	}
 
-	public EbayAuctionURLPager(String url, int perPage, com.jbidwatcher.auction.LoginManager login) {
-    setURL(url);
-    setItemsPerPage(perPage);
-		mLogin = login;
-
-		// set the item count
-		getPage(1);
-	}
-
-	protected void setURL(String url) {
+  protected void setURL(String url) {
 		urlString = url;
 
     if(url.indexOf("ebay.") != -1) {

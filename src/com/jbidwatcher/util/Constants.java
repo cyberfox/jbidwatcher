@@ -43,10 +43,7 @@ public class Constants {
 /** Thirty minutes in microseconds.
  */
   public static final int THIRTY_MINUTES= 30 * ONE_MINUTE;
-/** Forty minutes in microseconds.
- */
-  public static final int FORTY_MINUTES = 40 * ONE_MINUTE;
-/** One hour in microseconds.
+  /** One hour in microseconds.
  */
   public static final int ONE_HOUR= 60 * ONE_MINUTE;
 /** One day in microseconds.

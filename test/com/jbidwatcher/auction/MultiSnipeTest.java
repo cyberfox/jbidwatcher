@@ -87,6 +87,10 @@ public class MultiSnipeTest extends TestCase {
     public boolean reload() {
       return true;
     }
+
+    public boolean isComplete() {
+      return false;
+    }
   }
 
   public void testWinAuction() throws Exception {

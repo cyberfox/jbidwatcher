@@ -67,8 +67,7 @@ public class Category extends ActiveRecord
   }
 
   public static List<Category> all() {
-    List<Category> categories = (List<Category>) findAllBySQL(Category.class, "SELECT * FROM " + getTableName());
-    return categories;
+    return (List<Category>) findAllBySQL(Category.class, "SELECT * FROM " + getTableName());
   }
 
   public static List<String> categories() {

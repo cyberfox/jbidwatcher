@@ -18,11 +18,10 @@ public class JConfigWebserverTab extends JConfigTab
 
   public void cancel() {}
 
-  public boolean apply() {
+  public void apply() {
     JConfig.setConfiguration("server.enabled", localServerBrowseBox.isSelected() ? "true" : "false");
     JConfig.setConfiguration("allow.syndication", openSyndication.isSelected() ? "true" : "false");
 
-    return true;
   }
 
   public void updateValues() {

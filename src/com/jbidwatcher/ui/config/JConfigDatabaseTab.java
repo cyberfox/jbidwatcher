@@ -63,7 +63,7 @@ public class JConfigDatabaseTab extends JConfigTab {
     updateValues();
   }
 
-  public boolean apply() {
+  public void apply() {
     if (defaultDerbyDB.isSelected()) {
       if(JConfig.queryConfiguration("temp.db.switch2derby") != null) JConfig.kill("temp.db.switch2derby");
       if(JConfig.queryConfiguration("db.protocol", "jdbc:derby:").contains("mysql")) {
@@ -104,7 +104,6 @@ public class JConfigDatabaseTab extends JConfigTab {
       mOui.promptWithCheckbox(null, "You will have to shut down JBidwatcher and restart for the database change to take effect.", "JBidwatcher restart required", "prompt.db_change_restart");
     }
 
-    return true;
   }
 
   //

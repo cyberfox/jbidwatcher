@@ -110,14 +110,16 @@ public class StringTools {
   }
 
   /**
+   * Delete a block of text, indicated by a start and end
+   * string pair, with alternates.
+   *
    * @param sb          - The StringBuffer to delete from, In/Out.
    * @param startStr    - The start string to delete from.
    * @param altStartStr - An alternate start string, in case the startStr isn't found.
    * @param endStr      - The end string to delete to.
    * @param altEndStr   - An alternate end string in case the endStr is found before the start string.
+   *
    * @return - true if a delete occurred, false otherwise.
-   * @brief Delete a block of text, indicated by a start and end
-   * string pair, with alternates.
    */
   public static boolean deleteFirstToLast(StringBuffer sb, String startStr, String altStartStr, String endStr, String altEndStr) {
     String fullBuff = sb.toString();
@@ -135,14 +137,16 @@ public class StringTools {
   }
 
   /**
+   * Simple utility to delete from a stringbuffer starting
+   * from a string, until the next following string.
+   *
    * @param sb       - The buffer to delete from.
    * @param startStr - The string to delete starting at.
    * @param endStr   - The string to delete up until.
+   *
    * @return - true if the delete happened, false otherwise.
-   * @brief Simple utility to delete from a stringbuffer starting
-   * from a string, until the next following string.
    */
-  public static Matcher deleteRegexPairs(StringBuffer sb, String startStr, String endStr) {
+  public static boolean deleteRegexPairs(StringBuffer sb, String startStr, String endStr) {
     String expr = startStr + ".*?" + endStr;
     Matcher start = Pattern.compile(expr, Pattern.CASE_INSENSITIVE).matcher(sb);
     List<Pair<Integer, Integer>> startEndPairs = new LinkedList<Pair<Integer,Integer>>();
@@ -155,7 +159,7 @@ public class StringTools {
     for(Pair<Integer, Integer> matchedPair : startEndPairs) {
       deleteRange(sb, matchedPair.getFirst(), matchedPair.getLast());
     }
-    return null;
+    return !startEndPairs.isEmpty();
   }
 
   public static ZoneDate figureDate(String rawTime, String siteDateFormat) {
@@ -267,10 +271,6 @@ public class StringTools {
     }
 
     return rval;
-  }
-
-  public static String comma(Object[] list) {
-    return(comma(Arrays.asList(list)));
   }
 
   public static boolean startsWithIgnoreCase(String base, String match) {

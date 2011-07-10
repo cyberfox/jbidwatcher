@@ -15,7 +15,6 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -84,7 +83,7 @@ public class JConfigEbayTab extends JConfigTab
   public String getTabName() { return mDisplayName; }
   public void cancel() { }
 
-  public boolean apply() {
+  public void apply() {
     int selectedSite = siteSelect.getSelectedIndex();
 
     String old_user = JConfig.queryConfiguration(mSitename + ".user");
@@ -103,7 +102,6 @@ public class JConfigEbayTab extends JConfigTab
        old_user == null || !new_user.equals(old_user)) {
       MQFactory.getConcrete(AuctionServerManager.getInstance().getServer()).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
     }
-    return true;
   }
 
   public void updateValues() {
@@ -156,7 +154,7 @@ public class JConfigEbayTab extends JConfigTab
     return(tp);
   }
 
-  private JPanel buildBrowseTargetPanel(final String[] siteChoices) {
+  private JPanel buildBrowseTargetPanel() {
     JPanel tp = new JPanel();
 
     tp.setBorder(BorderFactory.createTitledBorder("Browse target"));
@@ -169,14 +167,14 @@ public class JConfigEbayTab extends JConfigTab
     } catch(Exception ignore) {
       realCurrentSite = 0;
     }
-    siteSelect = new JComboBox(siteChoices);
+    siteSelect = new JComboBox(Constants.SITE_CHOICES);
     siteSelect.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         int selectedSite = siteSelect.getSelectedIndex();
-        if (siteChoices[selectedSite].equals("ebay.com")) {
+        if (Constants.SITE_CHOICES[selectedSite].equals("ebay.com")) {
           siteWarning.setVisible(false);
           siteWarning.setText("");
-        } else if(siteChoices[selectedSite].equals("ebay.co.uk")) {
+        } else if(Constants.SITE_CHOICES[selectedSite].equals("ebay.co.uk")) {
           String ukSiteWarning = "<html><body><div style=\"font-size: 0.96em;\"><i>Bidding happens on ebay.com preferentially, or ebay.co.uk if the item is not visible on ebay.com.<br>If you have a seller dispute, it may need to be made on ebay.com.</i></div></body></html>";
           siteWarning.setText(ukSiteWarning);
           siteWarning.setVisible(true);
@@ -202,7 +200,7 @@ public class JConfigEbayTab extends JConfigTab
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
     jp.add(panelPack(buildUsernamePanel()), BorderLayout.NORTH);
-    jp.add(panelPack(buildBrowseTargetPanel(Constants.SITE_CHOICES)), BorderLayout.CENTER);
+    jp.add(panelPack(buildBrowseTargetPanel()), BorderLayout.CENTER);
     add(jp, BorderLayout.NORTH);
     add(panelPack(buildCheckboxPanel()), BorderLayout.CENTER);
   }

@@ -71,7 +71,7 @@ public class WindowsBrowserLauncher {
   public static String[] splitCommandLine(String cmd, String replace) {
     cmd = replace(cmd, "\\", "\\\\");
     StreamTokenizer str = new StreamTokenizer(new StringReader(cmd));
-    Vector<String> result = new Vector<String>();
+    List<String> result = new ArrayList<String>();
     boolean found_param = false;
 
     str.resetSyntax();

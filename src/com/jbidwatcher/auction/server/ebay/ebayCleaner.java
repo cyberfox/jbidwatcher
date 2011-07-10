@@ -4,8 +4,6 @@ import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.html.CleanupHandler;
 import com.jbidwatcher.util.Externalized;
 
-import java.util.regex.Matcher;
-
 /**
  * Created by IntelliJ IDEA.
  * User: Morgan

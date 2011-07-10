@@ -212,7 +212,7 @@ public class UserActions implements MessageQueue.Listener {
     StringBuffer wholeStatus = ae.getErrorPage();
     Dimension statusBox = new Dimension(756, 444);
 
-    _oui.showTextDisplay(new JHTMLOutput("Error Page", wholeStatus).getStringBuffer(), statusBox, "Error Page...");
+    _oui.showHTMLDisplay(new JHTMLOutput("Error Page", wholeStatus).getStringBuffer(), statusBox, "Error Page...");
   }
 
   private void DoDebugWin(AuctionEntry ae) {
@@ -1080,7 +1080,7 @@ public class UserActions implements MessageQueue.Listener {
         _aboutText = JBHelp.loadHelp("/help/about.jbh", "About " + Constants.PROGRAM_NAME + "...");
       }
 
-      aboutFrame = _oui.showTextDisplay(_aboutText!=null?_aboutText:badAbout, aboutBoxSize, "About " + Constants.PROGRAM_NAME);
+      aboutFrame = _oui.showHTMLDisplay(_aboutText != null ? _aboutText : badAbout, aboutBoxSize, "About " + Constants.PROGRAM_NAME);
     } else {
       aboutFrame.setVisible(true);
     }
@@ -1095,7 +1095,7 @@ public class UserActions implements MessageQueue.Listener {
         _licenseText = JBHelp.loadHelp("/help/COPYING.html", "License for " + Constants.PROGRAM_NAME + "...");
       }
 
-      licenseFrame = _oui.showTextDisplay(_licenseText!=null?_licenseText:badLicense, licenseBoxSize, "License for " + Constants.PROGRAM_NAME);
+      licenseFrame = _oui.showHTMLDisplay(_licenseText != null ? _licenseText : badLicense, licenseBoxSize, "License for " + Constants.PROGRAM_NAME);
     } else {
       licenseFrame.setVisible(true);
     }
@@ -1111,7 +1111,7 @@ public class UserActions implements MessageQueue.Listener {
       }
 
       if(_needHelp != null) {
-        needHelpFrame = _oui.showTextDisplay(_needHelp, boxSize, "A Message from Morgan Schweers");
+        needHelpFrame = _oui.showHTMLDisplay(_needHelp, boxSize, "A Message from Morgan Schweers");
       }
     } else {
       needHelpFrame.setVisible(true);
@@ -1128,7 +1128,7 @@ public class UserActions implements MessageQueue.Listener {
       }
 
       if (_donate != null) {
-        donateFrame = _oui.showTextDisplay(_donate, boxSize, "A Message from Morgan Schweers");
+        donateFrame = _oui.showHTMLDisplay(_donate, boxSize, "A Message from Morgan Schweers");
       }
     } else {
       donateFrame.setVisible(true);
@@ -1344,7 +1344,7 @@ public class UserActions implements MessageQueue.Listener {
         _colorHelp = JBHelp.loadHelp("/help/colors.jbh", "Help on Colors");
       }
 
-      helpFrame = _oui.showTextDisplay(_colorHelp!=null?_colorHelp:badColors, chSize, "Help on color use in JBidwatcher");
+      helpFrame = _oui.showHTMLDisplay(_colorHelp != null ? _colorHelp : badColors, chSize, "Help on color use in JBidwatcher");
     } else {
       helpFrame.setVisible(true);
     }

@@ -78,14 +78,12 @@ public class IconFactory {
   }
 
   private static BufferedImage createResizedCopy(Image originalImage,
-                                  int scaledWidth, int scaledHeight,
-                                  boolean preserveAlpha) {
-    int imageType = preserveAlpha ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-    BufferedImage scaledBI = new BufferedImage(scaledWidth, scaledHeight, imageType);
+                                                 int scaledWidth, int scaledHeight) {
+    BufferedImage scaledBI = new BufferedImage(scaledWidth, scaledHeight, BufferedImage.TYPE_INT_RGB);
     Graphics2D g = scaledBI.createGraphics();
     g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
-    if (preserveAlpha) {
+    if (true) {
       g.setComposite(AlphaComposite.Src);
     }
     g.drawImage(originalImage, 0, 0, scaledWidth, scaledHeight, null);
@@ -145,7 +143,7 @@ public class IconFactory {
 
     try {
       FileOutputStream fos = new FileOutputStream(outFile);
-      ImageIO.write(createResizedCopy(image, new_x, new_y, true), "jpeg", fos);
+      ImageIO.write(createResizedCopy(image, new_x, new_y), "jpeg", fos);
       fos.close();
     } catch (FileNotFoundException e) {
       JConfig.log().handleException("Can't write " + outFile + " to create thumbnail.", e);

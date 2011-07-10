@@ -27,10 +27,9 @@ public class auctionTableModel extends BaseTransformation
   private static final String neverBid = "--";
   private AuctionList dispList;
   private Date futureForever = new Date(Long.MAX_VALUE);
-  private XMLElement cvt = new XMLElement();
 
   public int getRowCount() { return dispList.size(); }
-  public int getColumnCount() { return TableColumnController.COLUMN_COUNT; }
+  public int getColumnCount() { return TableColumnController.columnCount(); }
   public String getColumnName(int aColumn) { return TableColumnController.getInstance().getColumnName(aColumn); }
 
   public void delete(int row) {
@@ -243,7 +242,7 @@ public class auctionTableModel extends BaseTransformation
 
         //  This should never happen, but to be safe...
         default: {
-          if(j > TableColumnController.MAX_FIXED_COLUMN && j < TableColumnController.COLUMN_COUNT) {
+          if(j > TableColumnController.MAX_FIXED_COLUMN && j < TableColumnController.columnCount()) {
             return TableColumnController.getInstance().customColumn(j, aEntry);
           }
           return "";
@@ -413,7 +412,7 @@ public class auctionTableModel extends BaseTransformation
           SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
           return fmt.format(aEntry.getEndDate());
         }
-        case TableColumnController.TITLE: return cvt.decodeString(aEntry.getTitle());
+        case TableColumnController.TITLE: return XMLElement.decodeString(aEntry.getTitle());
         case TableColumnController.STATUS: return getEntryIcon(aEntry);
         case TableColumnController.THUMBNAIL: {
           String thumb = aEntry.getThumbnail();
@@ -488,7 +487,7 @@ public class auctionTableModel extends BaseTransformation
         case TableColumnController.SNIPE_TOTAL:
           return formatTotalSnipe(aEntry, errorNote);
         default: {
-          if(columnIndex > TableColumnController.MAX_FIXED_COLUMN && columnIndex < TableColumnController.COLUMN_COUNT) {
+          if(columnIndex > TableColumnController.MAX_FIXED_COLUMN && columnIndex < TableColumnController.columnCount()) {
             return TableColumnController.getInstance().customColumn(columnIndex, aEntry);
           }
           return "";

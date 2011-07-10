@@ -7,7 +7,6 @@ package com.jbidwatcher.ui.config;
 
 import com.cyberfox.util.platform.Platform;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.util.config.JConfig;
 
 import java.awt.BorderLayout;
@@ -20,10 +19,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.JOptionPane;
-
-import javax.swing.BoxLayout;
 
 public class JConfigGeneralTab extends JConfigTab {
   private JCheckBox doVersionUpdateCheckBox;
@@ -35,13 +31,9 @@ public class JConfigGeneralTab extends JConfigTab {
   private JCheckBox timeSyncBox;
   private JCheckBox disableThumbnailBox;
 
-  private JCheckBox limitsBox = null;
-
   private JCheckBox macMetalBox = null;
   private JCheckBox winTrayBox = null;
   private JCheckBox minimizeTrayBox = null;
-
-  private JTextField spendLimit = null;
 
   private JComboBox dclickAction = null;
 
@@ -71,7 +63,7 @@ public class JConfigGeneralTab extends JConfigTab {
 
   public void cancel() {}
 
-  public boolean apply() {
+  public void apply() {
     boolean firstrun = JConfig.queryConfiguration("config.firstrun", "false").equals("true");
 
     if(!Platform.usingSparkle()) JConfig.setConfiguration("updates.enabled", doVersionUpdateCheckBox.isSelected() ? "true" : "false");
@@ -81,15 +73,6 @@ public class JConfigGeneralTab extends JConfigTab {
       JConfig.log().closeLog();
     }
     JConfig.setConfiguration("deleted.ignore", ignoreDeletedBox.isSelected() ? "true" : "false");
-
-    JConfig.setConfiguration("limits.enabled", limitsBox.isSelected() ? "true" : "false");
-    if (limitsBox.isSelected()) {
-      JConfig.setConfiguration("limits.amount", spendLimit.getText());
-    }
-
-    if (JConfig.queryConfiguration("limits.amount", "null").equals("null")) {
-      JConfig.setConfiguration("limits.amount", "0.00");
-    }
 
     int clickAction = dclickAction.getSelectedIndex();
     if (clickAction != -1) {
@@ -140,7 +123,6 @@ public class JConfigGeneralTab extends JConfigTab {
       JConfig.setConfiguration("config.firstrun", "false");
     }
 
-    return true;
   }
 
   public void updateValues() {
@@ -149,7 +131,6 @@ public class JConfigGeneralTab extends JConfigTab {
     String doLogging = JConfig.queryConfiguration("logging", "true");
     String doIgnoreDeleted = JConfig.queryConfiguration("deleted.ignore", "true");
     String doAllowConfigUpdates = JConfig.queryConfiguration("updates.allowConfig", "true");
-    String doSpendingLimits = JConfig.queryConfiguration("limits.enabled", "false");
     String doMacMetal = JConfig.queryConfiguration("mac.useMetal", "true");
     String doWinTray = JConfig.queryConfiguration("windows.tray", "true");
     String doMinimize= JConfig.queryConfiguration("windows.minimize", "true");
@@ -172,55 +153,6 @@ public class JConfigGeneralTab extends JConfigTab {
     }
     if(Platform.isMac() && macMetalBox != null) {
       macMetalBox.setSelected(doMacMetal.equals("true"));
-    }
-
-    if(limitsBox != null) {
-      limitsBox.setSelected(doSpendingLimits.equals("true"));
-    }
-    if(spendLimit != null) {
-      spendLimit.setEnabled(doSpendingLimits.equals("true"));
-      spendLimit.setText(getLimitsString());
-    }
-  }
-
-  private JPanel buildSpendingLimits() {
-    JPanel tp = new JPanel();
-
-    tp.setBorder(BorderFactory.createTitledBorder("Spending Limits"));
-    tp.setLayout(new BoxLayout(tp, BoxLayout.Y_AXIS));
-
-    String doSpendingLimits =
-        JConfig.queryConfiguration("limits.enabled", "false");
-    limitsBox = new JCheckBox("Enable spending limits");
-    limitsBox.setSelected(doSpendingLimits.equals("true"));
-    limitsBox.addActionListener(new limitAction());
-    tp.add(limitsBox);
-
-    spendLimit = new JTextField();
-    spendLimit.addMouseListener(JPasteListener.getInstance());
-
-    //  Get the default spending limts, and store them here.  FIX
-    spendLimit.setText(getLimitsString());
-    spendLimit.setEditable(true);
-    spendLimit.getAccessibleContext().setAccessibleName("Maximum amount to spend at any given time");
-    spendLimit.setEnabled(limitsBox.isSelected());
-    tp.add(new JLabel("Spending limit:"));
-    tp.add(spendLimit);
-
-    return (tp);
-  }
-
-  private String getLimitsString() {
-    if (limitsBox.isSelected()) {
-      return JConfig.queryConfiguration("limits.amount", "0.00");
-    } else {
-      return "<disabled>";
-    }
-  }
-  private class limitAction implements ActionListener {
-    public void actionPerformed(ActionEvent ae) {
-      spendLimit.setEnabled(limitsBox.isSelected());
-      spendLimit.setText(getLimitsString());
     }
   }
 
@@ -323,7 +255,6 @@ public class JConfigGeneralTab extends JConfigTab {
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
     jp.add(panelPack(buildCheckboxPanel()), BorderLayout.NORTH);
-    buildSpendingLimits();
     jp.add(panelPack(buildDropdownPanel()), BorderLayout.CENTER);
     super.add(jp, BorderLayout.NORTH);
   }

@@ -1,7 +1,7 @@
 package com.jbidwatcher.util;
 
 public class PauseManager {
-  public long mPausedUntil = 0;
+  private long mPausedUntil = 0;
   private static PauseManager sInstance = new PauseManager();
 
   private PauseManager() { }

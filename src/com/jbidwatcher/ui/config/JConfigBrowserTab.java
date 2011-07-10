@@ -23,12 +23,11 @@ public class JConfigBrowserTab extends JConfigTab {
   public String getTabName() { return "Browser"; }
   public void cancel() { }
 
-  public boolean apply() {
+  public void apply() {
     JConfig.setConfiguration("browser.launch.Linux", linuxBrowserLaunchCommand.getText());
     JConfig.setConfiguration("browser.launch.Windows", windowsBrowserLaunchCommand.getText());
     JConfig.setConfiguration("browser.override", overrideDefault.isSelected()?"true":"false");
 
-    return true;
   }
 
   public void updateValues() {

@@ -94,10 +94,10 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
     List<TimeQueue.QObject> doErase = new ArrayList<TimeQueue.QObject>();
     List current = mTQ.getUnsorted();
     boolean didErase = false;
-    for (Iterator it = current.listIterator(); it.hasNext();) {
-      TimeQueue.QObject tqo = (TimeQueue.QObject) it.next();
+    for(Object aCurrent : current) {
+      TimeQueue.QObject tqo = (TimeQueue.QObject) aCurrent;
       TQCarrier event = (TQCarrier) tqo.getEvent();
-      if(event.getPayload() == payload || event.getPayload().equals(payload)) {
+      if (event.getPayload() == payload || event.getPayload().equals(payload)) {
         doErase.add(tqo);
         didErase = true;
       }
@@ -140,8 +140,8 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
       JConfig.log().logDebug(prefix + ": queue empty");
     }
 
-    for(ListIterator it=current.listIterator(); it.hasNext();) {
-      TimeQueue.QObject step = (TimeQueue.QObject) it.next();
+    for(Object aCurrent : current) {
+      TimeQueue.QObject step = (TimeQueue.QObject) aCurrent;
       TQCarrier event = (TQCarrier) step.getEvent();
       JConfig.log().logDebug(prefix + ": Queue: " + event.getDestinationQueue());
       JConfig.log().logDebug(prefix + ": Object: [" + event.getPayload() + "]");

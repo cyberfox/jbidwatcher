@@ -20,10 +20,9 @@ public class JConfigFilePathTab extends JConfigTab {
   public String getTabName() { return("Paths"); }
   public void cancel() { }
 
-  public boolean apply() {
+  public void apply() {
     JConfig.setConfiguration("savefile", filePath.getText());
 
-    return true;
   }
 
   public void updateValues() {

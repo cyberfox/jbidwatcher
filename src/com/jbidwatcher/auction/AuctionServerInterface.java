@@ -37,11 +37,11 @@ public interface AuctionServerInterface {
   int BID_ERROR_SELLER_CANT_BID=21; // Sellers can not bid on their own items
   String UPDATE_LOGIN_COOKIE = "Update login cookie";
 
-  int buy(AuctionEntry ae, int quantity);
+  int buy(String auctionId, int quantity);
 
   String extractIdentifierFromURLString(String urlStyle);
 
-  int bid(AuctionEntry inEntry, Currency inBid, int inQuantity);
+  int bid(String auctionId, Currency inBid, int inQuantity);
 
   Currency getMinimumBidIncrement(Currency currentBid, int bidCount);
 
@@ -96,7 +96,7 @@ public interface AuctionServerInterface {
    */
   TimeZone getOfficialServerTimeZone();
 
-  AuctionInfo reload(AuctionEntry inEntry);
+  void reload(String auctionId);
 
   /**
    * @brief Returns the amount of time it takes to retrieve a page
@@ -123,13 +123,13 @@ public interface AuctionServerInterface {
 
   public AuctionServerInterface getBackupServer();
 
-  void updateWatchers(AuctionEntry ae);
+  void updateWatchers(String auctionId);
 
-  void updateHighBid(AuctionEntry eEntry);
+  void updateHighBid(String auctionId);
 
   String stripId(String source);
 
-  void setSnipe(AuctionEntry snipeOn);
+  void setSnipe(String auctionId);
 
   void cancelSnipe(String identifier);
 }

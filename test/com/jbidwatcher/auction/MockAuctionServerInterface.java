@@ -20,11 +20,11 @@ class MockAuctionServerInterface implements AuctionServerInterface {
     mMock = mai;
   }
 
-  public int buy(AuctionEntry ae, int quantity) {
+  public int buy(String auctionId, int quantity) {
     return 0;
   }
 
-  public int bid(AuctionEntry inEntry, Currency inBid, int inQuantity) {
+  public int bid(String auctionId, Currency inBid, int inQuantity) {
     return 0;
   }
 
@@ -64,8 +64,7 @@ class MockAuctionServerInterface implements AuctionServerInterface {
     return null;
   }
 
-  public AuctionInfo reload(AuctionEntry inEntry) {
-    return mMock;
+  public void reload(String auctionId) {
   }
 
   public long getPageRequestTime() {
@@ -102,17 +101,17 @@ class MockAuctionServerInterface implements AuctionServerInterface {
     return null;  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  public void updateWatchers(AuctionEntry ae) {
+  public void updateWatchers(String auctionId) {
     //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  public void updateHighBid(AuctionEntry eEntry) { }
+  public void updateHighBid(String auctionId) { }
 
   public String stripId(String source) {
     return mMock.getIdentifier();
   }
 
-  public void setSnipe(AuctionEntry snipeOn) { }
+  public void setSnipe(String auctionId) { }
 
   public void cancelSnipe(String identifier) { }
 }

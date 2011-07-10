@@ -1,17 +1,11 @@
 package com.jbidwatcher.util.script;
 
-import com.cyberfox.util.platform.Path;
 import com.jbidwatcher.util.config.JConfig;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.Ruby;
 import org.jruby.internal.runtime.ValueAccessor;
 import org.jruby.javasupport.JavaEmbedUtils;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.io.*;
 import java.util.List;

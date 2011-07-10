@@ -31,10 +31,9 @@ public class JConfigAdvancedTab extends JConfigTab {
   public String getTabName() { return("Advanced"); }
   public void cancel() { }
 
-  public boolean apply() {
+  public void apply() {
     JConfig.setConfiguration((String)configKey.getSelectedItem(), configValue.getText());
 
-    return true;
   }
 
   public void updateValues() {

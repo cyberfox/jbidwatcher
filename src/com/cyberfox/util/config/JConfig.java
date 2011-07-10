@@ -258,12 +258,10 @@ public class JConfig {
   }
 
   private static void passwordFixup(Properties _inProps) {
-    Enumeration what_keys = _inProps.keys();
-
-    while(what_keys.hasMoreElements()) {
-      String key = what_keys.nextElement().toString();
+    for (Object o : _inProps.keySet()) {
+      String key = o.toString();
       String lcKey = key.toLowerCase();
-      if(lcKey.indexOf("password") != -1 && lcKey.indexOf("_b64") == -1) {
+      if (lcKey.indexOf("password") != -1 && lcKey.indexOf("_b64") == -1) {
         String val = _inProps.getProperty(key);
 
         _inProps.remove(key);
@@ -273,17 +271,15 @@ public class JConfig {
   }
 
   private static void passwordUnfixup_b64(Properties _inProps) {
-    Enumeration<Object> what_keys = _inProps.keys();
-
-    while(what_keys.hasMoreElements()) {
-      String key = what_keys.nextElement().toString();
+    for (Object o : _inProps.keySet()) {
+      String key = o.toString();
       String lcKey = key.toLowerCase();
-      if(lcKey.indexOf("_b64") != -1) {
+      if (lcKey.indexOf("_b64") != -1) {
         int b64_start = lcKey.indexOf("_b64");
         String val = _inProps.getProperty(key);
 
         _inProps.remove(key);
-        key = key.substring(0, b64_start) + key.substring(b64_start+4);
+        key = key.substring(0, b64_start) + key.substring(b64_start + 4);
         try {
           _inProps.setProperty(key, Base64.decodeToString(val));
         } catch (Exception e) {

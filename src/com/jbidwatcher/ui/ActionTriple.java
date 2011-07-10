@@ -9,9 +9,9 @@ package com.jbidwatcher.ui;
  * Parameter object for putting onto the user queue.
  */
 public class ActionTriple {
-  public Object mSource;
-  public Object mAuction;
-  public String mCommand;
+  private Object mSource;
+  private Object mAuction;
+  private String mCommand;
 
   public ActionTriple(Object source, String command, Object auction) {
     mSource = source;

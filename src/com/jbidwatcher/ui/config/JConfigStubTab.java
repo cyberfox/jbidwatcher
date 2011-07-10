@@ -10,7 +10,7 @@ import javax.swing.*;
 
 public abstract class JConfigStubTab extends JConfigTab {
   public void cancel() { }
-  public boolean apply() { return true; }
+  public void apply() { }
   public void updateValues() { }
 
   public JConfigStubTab() {

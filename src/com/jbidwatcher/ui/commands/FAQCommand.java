@@ -29,7 +29,7 @@ public class FAQCommand extends AbstractCommand {
         _faqText = JBHelp.loadHelp("/help/faq.jbh", "FAQ for " + Constants.PROGRAM_NAME + "...");
       }
 
-      faqFrame = _oui.showTextDisplay(_faqText != null ? _faqText : badFAQ, faqBoxSize, Constants.PROGRAM_NAME + " FAQ");
+      faqFrame = _oui.showHTMLDisplay(_faqText != null ? _faqText : badFAQ, faqBoxSize, Constants.PROGRAM_NAME + " FAQ");
     } else {
       faqFrame.setVisible(true);
     }

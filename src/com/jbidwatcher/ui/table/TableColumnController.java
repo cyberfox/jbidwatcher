@@ -49,11 +49,15 @@ public class TableColumnController {
 
   public static final int MAX_FIXED_COLUMN=22;
 
-  public static int COLUMN_COUNT=23;
+  private static int columnCount =23;
   private static Map<Integer, String> m_column_map;
 
+  public static int columnCount() {
+    return columnCount;
+  }
+
   private TableColumnController() {
-    m_column_map = new HashMap<Integer, String>(COLUMN_COUNT*3);
+    m_column_map = new HashMap<Integer, String>(columnCount *3);
 
     m_column_map.put(ID, "Number");
     m_column_map.put(CUR_BID, "Current");
@@ -105,7 +109,7 @@ public class TableColumnController {
   }
 
   public void addColumn(String name) {
-    m_column_map.put(COLUMN_COUNT++, name);
+    m_column_map.put(columnCount++, name);
   }
 
   public String customColumn(int j, Object auctionEntry) {

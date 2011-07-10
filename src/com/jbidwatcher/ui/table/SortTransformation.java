@@ -93,8 +93,8 @@ public class SortTransformation extends Transformation {
 
   private boolean mSortOnInsert = false;
 
-  public void setSortOnInsert(boolean sortOnInsert) {
-    mSortOnInsert = sortOnInsert;
+  public void sortOnInsert() {
+    mSortOnInsert = true;
   }
 
   public synchronized int insert(Object newObj) {

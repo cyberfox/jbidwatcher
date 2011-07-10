@@ -239,22 +239,16 @@ public class OptionUI {
     );
   }
 
-  public JFrame showTextDisplay(StringBuffer inSB, Dimension inSize, String frameName) {
-    return showTextDisplay(inSB, inSize, frameName, true);
-  }
-
   /**
    * @brief Show a big HTML-formatted text display.
    *
    * @param inSB - The data to show.
    * @param inSize - The size to show it at.
    * @param frameName - The name of the frame to show.
-   * @param isHTML - Is the StringBuffer
-   *
    * @return - The JFrame of the display.
    */
-  public JFrame showTextDisplay(StringBuffer inSB, Dimension inSize, String frameName, boolean isHTML) {
-    JFrame otherFrame = getTextDisplay(inSB, inSize, frameName, isHTML);
+  public JFrame showHTMLDisplay(StringBuffer inSB, Dimension inSize, String frameName) {
+    JFrame otherFrame = getTextDisplay(inSB, inSize, frameName, true);
     otherFrame.pack();
     otherFrame.setSize(inSize.width, inSize.height);
     otherFrame.setVisible(true);

@@ -66,6 +66,7 @@ public class AuctionTransformer implements ErrorListener, URIResolver {
       try {
         xmlIn = new FileInputStream(loadFile);
       } catch(FileNotFoundException fnfe) {
+        //noinspection deprecation
         xmlIn = new StringBufferInputStream(
             "<?xml version=\"1.0\"?>\n" +
             "\n" +

@@ -7,12 +7,10 @@ import com.jbidwatcher.util.script.Scripting;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
-import java.io.PrintStream;
 
 import org.jruby.demo.TextAreaReadline;
 import org.jruby.Ruby;
 import org.jruby.RubyInstanceConfig;
-import org.jruby.internal.runtime.GlobalVariables;
 
 public class ScriptManager implements MessageQueue.Listener
 {

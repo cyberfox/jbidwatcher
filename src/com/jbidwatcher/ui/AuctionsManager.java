@@ -139,17 +139,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   }
 
   /**
-   * @brief Verify that an auction entry exists.
-   *
-   * @param id - The auction id to search for.
-   * 
-   * @return - True if the item exists someplace in our list of Auctions.
-   */
-  public boolean verifyEntry(String id) {
-    return AuctionEntry.findByIdentifier(id) != null;
-  }
-
-  /**
    * @brief Add a new auction entry to the set.
    *
    * This is complex mainly because the splash screen needs to be
@@ -227,7 +216,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     AuctionServerManager.setEntryManager(this);
     if (totalCount == 0) {
       if(JConfig.queryConfiguration("stats.auctions") == null) JConfig.setConfiguration("stats.auctions", "0");
-      return totalCount;
+      return 0;
     }
 
     AuctionServerManager.getInstance().loadAuctionsFromDB(newServer);

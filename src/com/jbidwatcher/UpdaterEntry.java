@@ -197,7 +197,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
       OptionUI oui = new OptionUI();
       Dimension aboutBoxSize = new Dimension(495, 245);
 
-      oui.showTextDisplay(alert, aboutBoxSize, Constants.PROGRAM_NAME + " News Alert...");
+      oui.showHTMLDisplay(alert, aboutBoxSize, Constants.PROGRAM_NAME + " News Alert...");
     }
   }
 }

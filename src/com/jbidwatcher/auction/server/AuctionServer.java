@@ -56,12 +56,12 @@ public abstract class AuctionServer implements AuctionServerInterface {
   public abstract void addSearches(SearchManagerInterface searchManager);
 
   //  Exposed to AuctionEntry for checking how many folks are watching.
-  public abstract void updateWatchers(AuctionEntry ae);
+  public abstract void updateWatchers(String auctionId);
 
     //  Exposed to AuctionEntry for checking high bidder status.
-  public abstract void updateHighBid(AuctionEntry ae);
+  public abstract void updateHighBid(String ae);
 
-  public abstract void setSnipe(AuctionEntry snipeOn);
+  public abstract void setSnipe(String auctionId);
   public abstract void cancelSnipe(String identifier);
 
 
@@ -180,26 +180,29 @@ public abstract class AuctionServer implements AuctionServerInterface {
    *
    * Note: AuctionEntry
    *
-   * @param inEntry - The auction to update.
-   *
+   * @param auctionId
    * @return - The core auction information that has been set into the
    * auction entry, or null if the update failed.
    */
-  public AuctionInfo reload(AuctionEntry inEntry) {
-    SpecificAuction curAuction = (SpecificAuction) loadAuction(inEntry.getIdentifier(), inEntry);
+  public void reload(String auctionId) {
+    AuctionEntry ae = (AuctionEntry) EntryCorral.getInstance().takeForWrite(auctionId);
+    SpecificAuction curAuction;
+    try {
+      curAuction = (SpecificAuction) loadAuction(auctionId, ae);
 
-    if (curAuction != null) {
-      inEntry.setAuctionInfo(curAuction);
-      inEntry.clearInvalid();
-      MQFactory.getConcrete("Swing").enqueue("LINK UP");
-    } else {
-      if(!inEntry.isDeleted() && !inEntry.getLastStatus().contains("Seller away - item unavailable.")) {
-        inEntry.setLastStatus("Failed to load from server!");
-        inEntry.setInvalid();
+      if (curAuction != null) {
+        ae.setAuctionInfo(curAuction);
+        ae.clearInvalid();
+        MQFactory.getConcrete("Swing").enqueue("LINK UP");
+      } else {
+        if(!ae.isDeleted() && !ae.getLastStatus().contains("Seller away - item unavailable.")) {
+          ae.setLastStatus("Failed to load from server!");
+          ae.setInvalid();
+        }
       }
+    } finally {
+      EntryCorral.getInstance().release(auctionId);
     }
-
-    return (curAuction);
   }
 
   /**

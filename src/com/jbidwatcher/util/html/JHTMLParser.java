@@ -8,7 +8,8 @@ package com.jbidwatcher.util.html;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLElement;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,7 +38,7 @@ public class JHTMLParser {
   }
 
   private void setup() {
-    m_tokens = new Vector<htmlToken>();
+    m_tokens = Collections.synchronizedList(new ArrayList<htmlToken>());
   }
 
   protected void parse(StringBuffer trueBuffer) {

@@ -9,7 +9,7 @@ package com.jbidwatcher.util;
  * Simple class to manage blocking doing updates while a snipe or bid is going off.
  */
 public class UpdateBlocker {
-  public static volatile boolean isBlocked =false;
+  private static volatile boolean isBlocked =false;
 
   public static void startBlocking() { isBlocked = true; }
 

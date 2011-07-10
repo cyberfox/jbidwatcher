@@ -18,14 +18,13 @@ public class JConfigSnipeTab extends JConfigTab {
   public String getTabName() { return "Sniping"; }
   public void cancel() { }
 
-  public boolean apply() {
+  public void apply() {
     long newSnipeAt = Long.parseLong(snipeTime.getText()) * 1000;
 
     //  Set the default snipe for everything to be whatever was typed in.
     JConfig.setConfiguration("snipemilliseconds", Long.toString(newSnipeAt));
     JConfig.setConfiguration("snipe.subtract_shipping", autoSubtractShippingBox.isSelected() ? "true" : "false");
 
-    return true;
   }
 
   public void updateValues() {

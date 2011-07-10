@@ -39,7 +39,6 @@ public class ebaySearches {
   private com.jbidwatcher.auction.LoginManager mLogin;
 
   private class ItemResults extends Pair<List<String>, Map<String,String>> {
-    public ItemResults() { super(null, null); }
     public ItemResults(List<String> s, Map<String,String> c) { super(s, c); }
   }
 

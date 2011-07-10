@@ -244,4 +244,8 @@ public abstract class ActiveRecord extends HashBacked {
   protected static ActiveRecord findFirstBy(Class klass, String key, String value) {
     return findFirstByUncached(klass, key, value);
   }
+
+  public String getUnique() {
+    return get("id");
+  }
 }

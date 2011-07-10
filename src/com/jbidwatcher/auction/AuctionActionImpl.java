@@ -36,7 +36,7 @@ public abstract class AuctionActionImpl implements AuctionAction {
   public String activate() {
     Currency amount = Currency.getCurrency(mAmount);
     JConfig.increment("stats.bid");
-    AuctionEntry entry = EntryCorral.getInstance().takeForWrite(mIdentifier);
+    AuctionEntry entry = (AuctionEntry) EntryCorral.getInstance().takeForWrite(mIdentifier);
     try {
       if (entry == null) {
         mResult = AuctionServer.BID_ERROR_AUCTION_GONE;

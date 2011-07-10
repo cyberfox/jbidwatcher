@@ -32,7 +32,7 @@ public class TargetDrop implements JDropHandler
   }
 
   private StringBuffer cleanString(StringBuffer instr) {
-    int i = 0;
+    int i;
     int len = instr.length();
     StringBuffer s = new StringBuffer(len);
     for (i = 0; i < len; i++) {

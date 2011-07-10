@@ -91,7 +91,7 @@ public class AuctionInfo extends ActiveRecord
   protected void handleTag(int i, XMLElement curElement) {
     switch(i) {
       case 0:  //  Title
-        setString(infoTags[i], curElement.decodeString(curElement.getContents()));
+        setString(infoTags[i], XMLElement.decodeString(curElement.getContents()));
         break;
       case 1:  //  Seller name
         if(curElement.getChild("name") == null) {
@@ -524,6 +524,10 @@ public class AuctionInfo extends ActiveRecord
     }
 
     return super.saveDB();
+  }
+
+  public static AuctionInfo find(String id) {
+    return findFirstBy("id", id);
   }
 
   public static AuctionInfo findFirstBy(String key, String value) {

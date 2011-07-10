@@ -288,7 +288,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       //  "CANCEL_SNIPE #{id}"
       if(isSniped()) getServer().cancelSnipe(getIdentifier());
       mServer = newServer;
-      if(isSniped()) getServer().setSnipe(this);
+      if(isSniped()) getServer().setSnipe(getIdentifier());
     }
   }
 
@@ -575,7 +575,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     int numBidders = getNumBidders();
 
     if (numBidders > 0 || isFixed()) {
-      getServer().updateHighBid(this);
+      getServer().updateHighBid(getIdentifier());
     }
   }
 
@@ -979,7 +979,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     // We REALLY don't want to leave an auction in the 'updating'
     // state.  It does bad things.
     try {
-      getServer().reload(this);
+      getServer().reload(getIdentifier());
     } catch(Exception e) {
       JConfig.log().handleException("Unexpected exception during auction reload/update.", e);
     }
@@ -1051,7 +1051,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       getServer().cancelSnipe(getIdentifier());
     } else {
       mSnipe = AuctionSnipe.create(snipe, quantity, 0);
-      getServer().setSnipe(this);
+      getServer().setSnipe(getIdentifier());
     }
     setDirty();
     saveDB();
@@ -1062,7 +1062,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @brief Refresh the snipe, so it picks up a potentially changed end time, or when initially loading items.
    */
   public void refreshSnipe() {
-    getServer().setSnipe(this);
+    getServer().setSnipe(getIdentifier());
   }
 
   /**
@@ -1080,7 +1080,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
     JConfig.log().logDebug("Bidding " + bid + " on " + bidQuantity + " item[s] of (" + getIdentifier() + ")-" + getTitle());
 
-    int rval = getServer().bid(this, bid, bidQuantity);
+    int rval = getServer().bid(getIdentifier(), bid, bidQuantity);
     saveDB();
     return rval;
   }
@@ -1100,7 +1100,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       setBidQuantity(quant);
       mBidAt = System.currentTimeMillis();
       JConfig.log().logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
-      rval = getServer().buy(this, quant);
+      rval = getServer().buy(getIdentifier(), quant);
       saveDB();
     }
     return rval;
@@ -1348,7 +1348,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     if(mAuction == null || mAuction == sAuction) {
       String aid = get("auction_id");
       if(aid != null && aid.length() != 0) {
-        mAuction = AuctionInfo.findFirstBy("id", aid);
+        mAuction = AuctionInfo.find(aid);
       }
       if((mAuction == null || mAuction == sAuction) && getString("identifier") != null) {
         mAuction = AuctionInfo.findByIdentifier(getString("identifier"));
@@ -1785,13 +1785,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   // TODO -- Extract this crap out to a EntryHTMLBuilder class, which gets instantiated with an AuctionEntry object.
   public String buildInfoHTML(boolean includeEvents) {
-    return buildInfoHTML(includeEvents, false);
-  }
-
-  public String buildInfoHTML(boolean includeEvents, boolean forRSS) {
     String prompt = "";
 
-    if(forRSS) {
+    if(false) {
       prompt += "<b>" + StringTools.stripHigh(getTitle()) + "</b> (" + getIdentifier() + ")<br>";
     } else {
       prompt += "<b>" + getTitle() + "</b> (" + getIdentifier() + ")<br>";
@@ -1799,7 +1795,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     prompt += "<table>";
     boolean addedThumbnail = false;
     if(getThumbnail() != null) {
-      if (forRSS) {
+      if (false) {
         try {
           InetAddress thisIp = InetAddress.getLocalHost();
           prompt += newRow + "<img src=\"http://" + thisIp.getHostAddress() + ":" + JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING) + "/" + getIdentifier() + ".jpg\">" + newCol + "<table>";
@@ -1990,5 +1986,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public static void trueUpEntries() {
     getRealDatabase().execute("UPDATE entries SET auction_id=(SELECT max(id) FROM auctions WHERE auctions.identifier=entries.identifier)");
     getRealDatabase().execute("DELETE FROM entries e WHERE id != (SELECT max(id) FROM entries e2 WHERE e2.auction_id = e.auction_id)");
+  }
+
+  public String getUnique() {
+    return getIdentifier();
   }
 }

@@ -1,5 +1,7 @@
 package com.jbidwatcher.auction;
 
+import com.jbidwatcher.util.db.ActiveRecord;
+
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
@@ -15,31 +17,27 @@ import java.util.concurrent.locks.Lock;
  * A single clearing house for auction entries, so everything operates on the
  * same underlying objects.  Thread safety is a serious concern.
  */
-public class EntryCorral {
-  private Map<String, Reference<AuctionEntry>> mEntryList;
+abstract class EntryCorralTemplate<T extends ActiveRecord> {
+  private Map<String, Reference<T>> mEntryList;
   private final Map<String, Lock> mLockList;
-  private static EntryCorral sInstance = null;
 
-  private EntryCorral() {
-    mEntryList = new HashMap<String, Reference<AuctionEntry>>();
+  protected EntryCorralTemplate() {
+    mEntryList = new HashMap<String, Reference<T>>();
     mLockList = new HashMap<String, Lock>();
   }
 
-  public static EntryCorral getInstance() {
-    if(sInstance == null) sInstance = new EntryCorral();
-    return sInstance;
-  }
-
-  private AuctionEntry get(String identifier) {
-    Reference<AuctionEntry> r = mEntryList.get(identifier);
+  private T get(String identifier) {
+    Reference<T> r = mEntryList.get(identifier);
     if(r != null) return r.get();
     return null;
   }
 
-  public AuctionEntry takeForWrite(String identifier) {
-    AuctionEntry result = get(identifier);
+  abstract public T getItem(String param);
+
+  public ActiveRecord takeForWrite(String identifier) {
+    T result = get(identifier);
     if(result == null) {
-      result = AuctionEntry.findByIdentifier(identifier);
+      result = getItem(identifier);
     }
     if(result != null) {
       Lock l = mLockList.get(identifier);
@@ -59,50 +57,38 @@ public class EntryCorral {
     if(l != null) l.unlock();
   }
 
-  public AuctionEntry takeForRead(String identifier) {
-    AuctionEntry result = get(identifier);
+  public T takeForRead(String identifier) {
+    T result = get(identifier);
     if (result == null) {
-      result = AuctionEntry.findByIdentifier(identifier);
-      if(result != null) mEntryList.put(identifier, new WeakReference<AuctionEntry>(result));
+      result = getItem(identifier);
+      if(result != null) mEntryList.put(identifier, new WeakReference<T>(result));
     }
     return result;
   }
 
-  public AuctionEntry put(AuctionEntry ae) {
-    AuctionEntry result = chooseLatest(ae);
-    mEntryList.put(ae.getIdentifier(), new SoftReference<AuctionEntry>(result));
+  public T put(T ae) {
+    T result = chooseLatest(ae, ae.getUnique());
+    mEntryList.put(ae.getUnique(), new SoftReference<T>(result));
 
     return result;
   }
 
-  public AuctionEntry putWeakly(AuctionEntry ae) {
-    return chooseLatest(ae);
+  public T putWeakly(T ae) {
+    return chooseLatest(ae, ae.getUnique());
   }
 
-  public List<AuctionEntry> findAllSniped() {
-    List<AuctionEntry> sniped = AuctionEntry.findAllSniped();
-    if(sniped != null) {
-      List<AuctionEntry> results = new ArrayList<AuctionEntry>();
-      for (AuctionEntry ae : sniped) {
-        results.add(chooseLatest(ae));
-      }
-      return results;
-    }
-    return null;
-  }
-
-  private AuctionEntry chooseLatest(AuctionEntry ae) {
-    AuctionEntry chosen;
-    AuctionEntry existing = get(ae.getIdentifier());
+  protected T chooseLatest(T ae, String identifier) {
+    T chosen;
+    T existing = get(identifier);
     final Date inputDate = ae.getDate("updated_at");
     final Date existingDate = (existing == null ? null : existing.getDate("updated_at"));
     if(existing == null ||
         (inputDate != null && existingDate == null) ||
         (inputDate != null && inputDate.after(existingDate))) {
-      if(mEntryList.get(ae.getIdentifier()) instanceof SoftReference) {
-        mEntryList.put(ae.getIdentifier(), new SoftReference<AuctionEntry>(ae));
+      if(mEntryList.get(identifier) instanceof SoftReference) {
+        mEntryList.put(identifier, new SoftReference<T>(ae));
       } else {
-        mEntryList.put(ae.getIdentifier(), new WeakReference<AuctionEntry>(ae));
+        mEntryList.put(identifier, new WeakReference<T>(ae));
       }
       chosen = ae;
     } else {
@@ -111,10 +97,10 @@ public class EntryCorral {
     return chosen;
   }
 
-  public AuctionEntry erase(String identifier) {
+  public T erase(String identifier) {
     synchronized(mLockList) {
       Lock l = mLockList.remove(identifier);
-      Reference<AuctionEntry> rval = mEntryList.remove(identifier);
+      Reference<T> rval = mEntryList.remove(identifier);
       if (l != null) l.unlock();
       if (rval == null) {
         return null;
@@ -131,5 +117,42 @@ public class EntryCorral {
 
       mEntryList.clear();
     }
+  }
+}
+
+public class EntryCorral extends EntryCorralTemplate<AuctionEntry> {
+  @Override
+  public AuctionEntry getItem(String param) {
+    return AuctionEntry.findByIdentifier(param);
+  }
+
+  public List<AuctionEntry> findAllSniped() {
+    List<AuctionEntry> sniped = AuctionEntry.findAllSniped();
+    if (sniped != null) {
+      List<AuctionEntry> results = new ArrayList<AuctionEntry>();
+      for (AuctionEntry ae : sniped) {
+        results.add(chooseLatest(ae, ae.getIdentifier()));
+      }
+      return results;
+    }
+    return null;
+  }
+
+  public List<Snipeable> getMultisnipedByGroup(String multisnipeIdentifier) {
+    List<? extends Snipeable> entries = AuctionEntry.findAllBy("multisnipe_id", multisnipeIdentifier);
+    List<Snipeable> rval = new ArrayList<Snipeable>(entries.size());
+    for (Snipeable entry : entries) {
+      Snipeable ae = takeForRead(entry.getIdentifier());
+      if (!ae.isComplete()) rval.add(ae);
+    }
+    return rval;
+  }
+
+  //  Singleton stuff
+  private static EntryCorral sInstance = null;
+  private EntryCorral() { super(); }
+  public static EntryCorral getInstance() {
+    if (sInstance == null) sInstance = new EntryCorral();
+    return sInstance;
   }
 }
