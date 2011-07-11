@@ -213,7 +213,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         if(lostAuctions != null && !lostAuctions.isEmpty()) {
           JConfig.log().logMessage("Recovering " + lostAuctions.size() + " listings.");
           for (AuctionInfo ai : lostAuctions) {
-            AuctionEntry ae = new AuctionEntry();
+            AuctionEntry ae = EntryFactory.getInstance().constructEntry();
             ae.setAuctionInfo(ai);
             ae.setCategory("recovered");
             ae.setSticky(true);
@@ -282,7 +282,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       int count = 0;
       while (entryStep.hasNext()) {
         XMLInterface perEntry = entryStep.next();
-        AuctionEntry ae = new AuctionEntry();
+        AuctionEntry ae = EntryFactory.getInstance().constructEntry();
 
         ae.setServer(newServer);
         ae.fromXML(perEntry);

@@ -31,14 +31,14 @@ public class AuctionEntryTest extends TestCase {
     JConfig.setConfiguration("db.user", "test1");
     Upgrader.upgrade();
     mai = new MockAuctionInfo();
-    AuctionEntry.setResolver(new Resolver() {
+    EntryFactory.setResolver(new Resolver() {
       public AuctionServerInterface getServer() {
         return new MockAuctionServerInterface(mai);
       }
     });
     mAE = AuctionEntry.findByIdentifier(mai.getIdentifier());
     if(mAE != null) mAE.delete();
-    mAE = AuctionEntry.construct(mai.getIdentifier());
+    mAE = EntryFactory.getInstance().constructEntry(mai.getIdentifier());
   }
 
   public void tearDown() throws Exception {

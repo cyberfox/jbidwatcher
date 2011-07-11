@@ -312,7 +312,7 @@ public class JBidProxy extends AbstractMiniServer {
    */
   public StringBuffer addAuction(String identifier) {
     //Add new Auction to Auction Manager
-    AuctionEntry auctionEntry = AuctionEntry.construct(identifier);
+    AuctionEntry auctionEntry = EntryFactory.getInstance().constructEntry(identifier);
 
     if (auctionEntry != null && auctionEntry.isLoaded()) {
       AuctionsManager.getInstance().addEntry(auctionEntry);
@@ -401,7 +401,7 @@ public class JBidProxy extends AbstractMiniServer {
       sb.append("</pubDate>");
 
       sb.append("<description><![CDATA[");
-      sb.append(ae.buildInfoHTML(true));
+      sb.append(ae.getPresenter().buildInfo(true));
       sb.append("]]></description>\n</item>\n");
     }
 

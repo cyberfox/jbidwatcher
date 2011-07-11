@@ -17,12 +17,17 @@ import java.util.*;
  *  MultiSnipe class
  */
 public class MultiSnipe extends ActiveRecord {
+  private static EntryCorralTemplate corral = null;
   private static Map<Integer, MultiSnipe> singleSource = new HashMap<Integer, MultiSnipe>();
   private static final int HEX_BASE = 16;
   private Color mBackground;
 
   public synchronized int activeEntries() {
     return getAuctionEntriesInThisGroup().size();
+  }
+
+  public static void setCorral(EntryCorralTemplate corral) {
+    MultiSnipe.corral = corral;
   }
 
   private void setValues(Color groupColor, Currency snipeValue, long id, boolean subtractShipping) {
@@ -101,22 +106,22 @@ public class MultiSnipe extends ActiveRecord {
   }
 
   public synchronized void add(String identifier) {
-    ActiveRecord ae = EntryCorral.getInstance().takeForWrite(identifier);
+    ActiveRecord ae = corral.takeForWrite(identifier);
     try {
       ae.set("multisnipe_id", get("id"));
       ae.saveDB();
     } finally {
-      EntryCorral.getInstance().release(identifier);
+      corral.release(identifier);
     }
   }
 
   public synchronized void remove(String identifier) {
-    ActiveRecord ae = EntryCorral.getInstance().takeForWrite(identifier);
+    ActiveRecord ae = corral.takeForWrite(identifier);
     try {
       ae.set("multisnipe_id", null);
       ae.saveDB();
     } finally {
-      EntryCorral.getInstance().release(identifier);
+      corral.release(identifier);
     }
   }
 

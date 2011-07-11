@@ -72,7 +72,7 @@ public class AuctionTable extends JTable {
         showThumbnail = getColumnName(colPoint).equals("Thumbnail");
       }
 
-      result = ae.buildHTMLComment(showThumbnail);
+      result = ae.getPresenter().buildComment(showThumbnail);
     }
 
     return result == null ? super.getToolTipText(event) : result;

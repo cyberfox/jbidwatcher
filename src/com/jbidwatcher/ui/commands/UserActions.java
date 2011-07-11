@@ -129,7 +129,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private AuctionEntry addAuction(String auctionSource) {
-    AuctionEntry aeNew = AuctionEntry.construct(auctionSource);
+    AuctionEntry aeNew = EntryFactory.getInstance().constructEntry(auctionSource);
     if (aeNew != null && aeNew.isLoaded()) {
       aeNew.setCategory(mTabs.getCurrentTableTitle());
       AuctionsManager.getInstance().addEntry(aeNew);
@@ -513,7 +513,7 @@ public class UserActions implements MessageQueue.Listener {
     StringBuffer prompt = new StringBuffer();
     for (int aRowList : rowList) {
       AuctionEntry stepAE = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
-      prompt.append(stepAE.buildInfoHTML(true)).append("<hr>");
+      prompt.append(stepAE.getPresenter().buildInfo(true)).append("<hr>");
     }
     int width = getInteger("info.width", 480);
     int height = getInteger("info.height", Math.min(372, rowList.length * 30 + 200));
@@ -831,7 +831,7 @@ public class UserActions implements MessageQueue.Listener {
       return;
     }
 
-    String prompt = "<html><body>" + ae.buildInfoHTML(false);
+    String prompt = "<html><body>" + ae.getPresenter().buildInfo(false);
     prompt += "<br><b>How much is shipping?</b></body></html>";
     String endResult[] = promptString(src, prompt, "Shipping", null, null, null);
 

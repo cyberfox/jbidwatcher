@@ -1,9 +1,6 @@
 package com.jbidwatcher.app;
 
-import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.Resolver;
-import com.jbidwatcher.auction.AuctionServerInterface;
-import com.jbidwatcher.auction.AuctionInfo;
+import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.JConfig;
@@ -129,7 +126,7 @@ public class JBTool implements ToolInterface {
     StringBuffer sb = new StringBuffer(StringTools.cat(fname));
     try {
       AuctionInfo ai = mEbay.doParse(sb);
-      AuctionEntry ae = new AuctionEntry();
+      AuctionEntry ae = EntryFactory.getInstance().constructEntry();
       ae.setAuctionInfo(ai);
       JConfig.log().logMessage(ae.toXML().toString());
     } catch (Exception e) {
@@ -143,19 +140,19 @@ public class JBTool implements ToolInterface {
       if(params.size() > 1) {
         XMLElement auctionList = new XMLElement("auctions");
         for(String id : params) {
-          XMLElement xmlized = AuctionEntry.retrieveAuctionXML(id);
+          XMLElement xmlized = EntryFactory.getInstance().retrieveAuctionXML(id);
           if(xmlized != null) auctionList.addChild(xmlized);
         }
         JConfig.log().logMessage(auctionList.toString());
       } else {
-        StringBuffer auctionXML = AuctionEntry.retrieveAuctionXMLString(params.get(0));
+        StringBuffer auctionXML = EntryFactory.getInstance().retrieveAuctionXMLString(params.get(0));
         if (auctionXML != null) {
           JConfig.log().logMessage(auctionXML.toString());
           XMLElement xmlized = new XMLElement();
           xmlized.parseString(auctionXML.toString());
 
           if (JConfig.debugging() && mTestQuantity) {
-            AuctionEntry ae2 = new AuctionEntry();
+            AuctionEntry ae2 = EntryFactory.getInstance().constructEntry();
             ae2.fromXML(xmlized);
             JConfig.log().logDebug("ae2.quantity == " + ae2.getQuantity());
           }
@@ -183,7 +180,7 @@ public class JBTool implements ToolInterface {
     };
     AuctionServerManager.getInstance().setServer(mEbay);
     mEbay.setBackupServer(mEbayUK);
-    AuctionEntry.setResolver(r);
+    EntryFactory.setResolver(r);
   }
 
   private List<String> parseOptions(String[] args) {

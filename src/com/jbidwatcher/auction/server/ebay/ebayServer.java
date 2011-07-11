@@ -267,7 +267,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       /**
        * Update the login cookie, that contains session and adult information, for example.
        */
-      if(ac.getData().equals("Update login cookie")) {
+      if(ac.getData().equals(UPDATE_LOGIN_COOKIE)) {
         if(mLogin.isDefault()) {
           failString = Externalized.getString("ebayServer.cantUpdateCookieWithoutUser1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {

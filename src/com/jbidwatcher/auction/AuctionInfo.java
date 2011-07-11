@@ -382,6 +382,14 @@ public class AuctionInfo extends ActiveRecord
 //  public String getHighBidderEmail() { return getString("highBidderEmail"); }
   public String getItemLocation() { return getString("itemLocation", ""); }
 
+  public Currency getBestPrice() {
+    Currency currentPrice = getCurBid();
+    if (currentPrice == null || currentPrice.isNull()) {
+      currentPrice = getBuyNow();
+    }
+    return currentPrice;
+  }
+
   public Currency getCurBid() { return getMonetary("curBid"); }
   public Currency getUSCurBid() {
     if (getCurBid().getCurrencyType() == Currency.US_DOLLAR) {

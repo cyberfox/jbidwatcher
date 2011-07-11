@@ -6,6 +6,7 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.auction.EntryFactory;
 import com.jbidwatcher.util.queue.DropQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -73,7 +74,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
     if(interactive) DeletedEntry.remove(aucId);
 
     //  Create an auction entry from the id.
-    AuctionEntry aeNew = AuctionEntry.construct(aucId);
+    AuctionEntry aeNew = EntryFactory.getInstance().constructEntry(aucId);
     if(aeNew != null && aeNew.isLoaded()) {
       if(label != null) aeNew.setCategory(label);
       JConfig.log().logDebug("Loaded " + aeNew.getIdentifier() + '.');

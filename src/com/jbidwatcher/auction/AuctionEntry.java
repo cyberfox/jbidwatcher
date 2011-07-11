@@ -7,7 +7,6 @@ package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.event.EventLogger;
 import com.jbidwatcher.auction.event.EventStatus;
 import com.jbidwatcher.util.config.*;
@@ -21,8 +20,6 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 /**
  * @brief Contains all the methods to examine, control, and command a
@@ -45,7 +42,7 @@ import java.net.UnknownHostException;
  */
 public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntry>, EntryInterface {
   private Category mCategory;
-  private static Resolver sResolver = null;
+  private Presenter mAuctionEntryPresenter = null;
 
   public boolean equals(Object o) {
     return o instanceof AuctionEntry && compareTo((AuctionEntry) o) == 0;
@@ -159,10 +156,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *                            is used to key the auction.
    */
   private synchronized void prepareAuctionEntry(String auctionIdentifier) {
-    if (mServer != null) {
-      mAuction = mServer.create(auctionIdentifier);
-    }
-
+    mAuction = mServer.create(auctionIdentifier);
     mLoaded = mAuction != null;
 
     /**
@@ -172,11 +166,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
      * will never be added to the items list.
      */
     if (mLoaded) {
-      if(mAuction.getServer() != null) setServer((AuctionServerInterface)mAuction.getServer());
-      Currency currentPrice = mAuction.getCurBid();
-      if(currentPrice == null || currentPrice.isNull()) {
-        currentPrice = mAuction.getBuyNow();
-      }
+      AuctionServerInterface newServer = (AuctionServerInterface) mAuction.getServer();
+      if(newServer != null) setServer(newServer);
+      Currency currentPrice = mAuction.getBestPrice();
       setDate("last_updated_at", new Date());
       setDefaultCurrency(currentPrice);
       updateHighBid();
@@ -202,6 +194,18 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   /**
+   * A constructor that does almost nothing.  This is to be used
+   * for loading from XML data later on, where the fromXML function
+   * will fill out all the internal information.  Similarly, ActiveRecord
+   * fills this out when pulling from a database record.
+   * <p/>
+   * Uses the default server.
+   */
+  private AuctionEntry() {
+    checkConfigurationSnipeTime();
+  }
+
+  /**
    * Create a new auction entry for the ID passed in.  If it is in the deleted list, or already exists in
    * the database, it will return null.
    *
@@ -210,12 +214,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @return - null if the auction is in the deleted entry table, or the existing auction
    * entry table, otherwise returns a valid AuctionEntry for the auction identifier provided.
    */
-  public static AuctionEntry construct(String identifier) {
-    AuctionServerInterface server = sResolver.getServer();
-    String strippedId = server.stripId(identifier);
-
-    if (!DeletedEntry.exists(strippedId) && findByIdentifier(strippedId) == null) {
-      AuctionEntry ae = new AuctionEntry(strippedId, server);
+  static AuctionEntry construct(String identifier, AuctionServerInterface server) {
+    if (!DeletedEntry.exists(identifier) && findByIdentifier(identifier) == null) {
+      AuctionEntry ae = new AuctionEntry(identifier, server);
       if(ae.isLoaded()) {
         String id = ae.saveDB();
         if (id != null) {
@@ -227,17 +228,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return null;
   }
 
-  /**
-   * A constructor that does almost nothing.  This is to be used
-   * for loading from XML data later on, where the fromXML function
-   * will fill out all the internal information.  Similarly, ActiveRecord
-   * fills this out when pulling from a database record.
-   *
-   * Uses the default server.
-   */
-  public AuctionEntry() {
-    mServer = sResolver.getServer();
-    checkConfigurationSnipeTime();
+  static AuctionEntry construct(AuctionServerInterface server) {
+    AuctionEntry ae = new AuctionEntry();
+    ae.setServer(server);
+    return ae;
   }
 
   /**
@@ -268,9 +262,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @return The server that this auction entry is associated with.
    */
   public AuctionServerInterface getServer() {
-    if(mServer == null) {
-      mServer = sResolver.getServer();
-    }
     return(mServer);
   }
 
@@ -1778,161 +1769,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return super.delete();
   }
 
-  //  TODO mrs -- Move this to an AuctionEntryBuilder class
-  public static final String newRow = "<tr><td>";
-  public static final String newCol = "</td><td>";
-  public static final String endRow = "</td></tr>";
-
-  // TODO -- Extract this crap out to a EntryHTMLBuilder class, which gets instantiated with an AuctionEntry object.
-  public String buildInfoHTML(boolean includeEvents) {
-    String prompt = "";
-
-    if(false) {
-      prompt += "<b>" + StringTools.stripHigh(getTitle()) + "</b> (" + getIdentifier() + ")<br>";
-    } else {
-      prompt += "<b>" + getTitle() + "</b> (" + getIdentifier() + ")<br>";
-    }
-    prompt += "<table>";
-    boolean addedThumbnail = false;
-    if(getThumbnail() != null) {
-      if (false) {
-        try {
-          InetAddress thisIp = InetAddress.getLocalHost();
-          prompt += newRow + "<img src=\"http://" + thisIp.getHostAddress() + ":" + JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING) + "/" + getIdentifier() + ".jpg\">" + newCol + "<table>";
-          addedThumbnail = true;
-        } catch (UnknownHostException e) {
-          //  Couldn't find THIS host?!?  Perhaps that means we're not online?
-          JConfig.log().logMessage("Unknown host trying to look up the local host.  Is the network off?");
-        }
-      } else {
-        prompt += newRow + "<img src=\"" + getThumbnail() + "\">" + newCol + "<table>";
-        addedThumbnail = true;
-      }
-    }
-    prompt = buildInfoBody(prompt, includeEvents, addedThumbnail);
-
-  	return(prompt);
-  }
-
-  private String buildRow(String label, Object value) {
-    return newRow + label + newCol + (value != null ? value.toString() : "null") + endRow;
-  }
-
-  private String buildInfoBody(String prompt, boolean includeEvents, boolean addedThumbnail) {
-    if(!isFixed()) {
-      prompt += buildRow("Currently", getCurrentPrice() + " (" + getNumBidders() + " Bids)");
-      String bidder = getHighBidder();
-      prompt += buildRow("High bidder", bidder == null ? "(n/a)" : bidder);
-    } else {
-      prompt += buildRow("Price", getCurrentPrice());
-    }
-    if(isDutch()) {
-      prompt += buildRow("Quantity", getQuantity());
-    }
-
-    if(JConfig.debugging() && JConfig.scriptingEnabled()) {
-      prompt += buildRow("Sticky", Boolean.toString(isSticky()));
-      prompt += buildRow("Category", getCategory());
-    }
-
-    if(isBidOn()) {
-      prompt += buildRow("Your max bid", getBid());
-      if(getBidQuantity() != 1) {
-        prompt += buildRow("Quantity of", getBidQuantity());
-      }
-    }
-
-    if(isSniped()) {
-      prompt += buildRow("Sniped for", getSnipeAmount());
-      if(getSnipeQuantity() != 1) {
-        prompt += buildRow("Quantity of", getSnipeQuantity());
-      }
-      prompt += newRow + "Sniping at " + (getSnipeTime() / 1000) + " seconds before the end." + endRow;
-    }
-
-    if(getShipping() != null && !getShipping().isNull()) {
-      prompt += buildRow("Shipping", getShipping());
-    }
-    if(!getInsurance().isNull()) {
-      prompt += buildRow("Insurance (" + (getInsuranceOptional()?"optional":"required") + ")", getInsurance());
-    }
-    prompt += buildRow("Seller", getSeller());
-    if(isComplete()) {
-      prompt += buildRow("Listing ended at ", getEndDate());
-    } else {
-      prompt += buildRow("Listing ends at", getEndDate());
-    }
-    if(getLastUpdated() != null) {
-      prompt += buildRow("Last updated at", getLastUpdated());
-    }
-
-    if(addedThumbnail) {
-      prompt += "</table>" + endRow;
-    }
-    prompt += "</table>";
-
-    if(!isFixed() && !getBuyNow().isNull()) {
-      if(isComplete()) {
-        prompt += "<b>You could have used Buy It Now for " + getBuyNow() + "</b><br>";
-      } else {
-        prompt += "<b>Or you could buy it now, for " + getBuyNow() + ".</b><br>";
-        prompt += "Note: <i>To 'Buy Now' through this program,<br>      select 'Buy' from the context menu.</i><br>";
-      }
-    }
-
-    if(isComplete()) {
-      prompt += "<i>Listing has ended.</i><br>";
-    }
-
-    if(getComment() != null) {
-      prompt += "<br><u>Comment</u><br>";
-
-      prompt += "<b>" + getComment() + "</b><br>";
-    }
-
-    if(includeEvents) prompt += "<b><u>Events</u></b><blockquote>" + getStatusHistory() + "</blockquote>";
-    return prompt;
-  }
-
-  public String buildHTMLComment(boolean showThumbnail) {
-    boolean hasComment = (getComment() != null);
-    boolean hasThumb = showThumbnail && (getThumbnail() != null);
-
-    if(JConfig.queryConfiguration("display.thumbnail", "true").equals("false")) hasThumb = false;
-    if(!hasComment && !hasThumb) return null;
-
-    StringBuffer wholeHTML = new StringBuffer("<html><body>");
-    if(hasThumb && hasComment) {
-      wholeHTML.append("<table><tr><td><img src=\"").append(getThumbnail()).append("\"></td><td>").append(getComment()).append("</td></tr></table>");
-    } else {
-      if(hasThumb) {
-        wholeHTML.append("<img src=\"").append(getThumbnail()).append("\">");
-      } else {
-        wholeHTML.append(getComment());
-      }
-    }
-    wholeHTML.append("</body></html>");
-
-    return wholeHTML.toString();
-  }
-
-  public static void setResolver(Resolver resolver) {
-    sResolver = resolver;
-  }
-
-  public static XMLElement retrieveAuctionXML(String identifier) {
-    AuctionEntry ae = AuctionEntry.construct(identifier);
-    if (ae != null) {
-      return ae.toXML(); //  TODO -- Check high bidder (a separate request).
-    }
-
-    return null;
-  }
-
-  public static StringBuffer retrieveAuctionXMLString(String identifier) {
-    XMLElement xe = retrieveAuctionXML(identifier);
-
-    return xe != null ? xe.toStringBuffer() : null;
+  public Presenter getPresenter() {
+    return mAuctionEntryPresenter;
   }
 
   //  Debugging method, to test multisnipe cancelling.
@@ -1990,5 +1828,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   public String getUnique() {
     return getIdentifier();
+  }
+
+  public void setPresenter(Presenter presenter) {
+    mAuctionEntryPresenter = presenter;
   }
 }

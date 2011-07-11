@@ -439,7 +439,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
       eBayServerSetup();
     }
     SearchManager.getInstance().setDestinationQueue(AuctionServerManager.getInstance().getServer());  //  TODO mrs -- What about the 'backup' server?
-    AuctionEntry.setResolver(AuctionServerManager.getInstance());
+    EntryFactory.setResolver(AuctionServerManager.getInstance());
+    MultiSnipe.setCorral(EntryCorral.getInstance());
     loadProxySettings();
 
     if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
@@ -748,7 +749,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
       q.preQueue("TIMECHECK", "auction_manager", now + (Constants.ONE_SECOND * 2), Constants.THIRTY_MINUTES);
     }
     //  TODO mrs - This is where things start to suck. Can this become a single VERB+NOUN operation?
-    q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), now + Constants.ONE_SECOND * 3, 481 * Constants.ONE_MINUTE + Constants.ONE_SECOND * 17);  // TODO mrs -- What about the backup server?
+    //  The backup server is handled by the primary.
+    q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), now + Constants.ONE_SECOND * 3, 481 * Constants.ONE_MINUTE + Constants.ONE_SECOND * 17);
 
     q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 20));
     //  Disable this, as I am once more gainfully employed.

@@ -65,13 +65,13 @@ public class MiniServer extends AbstractMiniServer {
 
   public StringBuffer showItem(String identifier) {
     JConfig.log().logDebug("Retrieving auction: " + identifier);
-    return AuctionEntry.retrieveAuctionXMLString(identifier);
+    return EntryFactory.getInstance().retrieveAuctionXMLString(identifier);
   }
 
   public StringBuffer buy(String identifier, String howMany) {
     int quantity = getQuantity(howMany);
 
-    AuctionEntry ae = AuctionEntry.construct(identifier);
+    AuctionEntry ae = EntryFactory.getInstance().constructEntry(identifier);
     EntryCorral.getInstance().put(ae);
     AuctionBuy ab = new AuctionBuy(ae, null, quantity);
     return fireAction(ae, ab);
@@ -87,7 +87,7 @@ public class MiniServer extends AbstractMiniServer {
 
   public StringBuffer bid(String identifier, String howMuch, String howMany) {
     int quantity = getQuantity(howMany);
-    AuctionEntry ae = AuctionEntry.construct(identifier);
+    AuctionEntry ae = EntryFactory.getInstance().constructEntry(identifier);
     AuctionBid ab = new AuctionBid(ae, Currency.getCurrency(ae.getCurBid().getCurrencySymbol(), howMuch), quantity);
     return fireAction(ae, ab);
   }
