@@ -271,22 +271,28 @@ public class JConfig {
   }
 
   private static void passwordUnfixup_b64(Properties _inProps) {
+    Properties decoded = new Properties();
+    List<String> removedKeys = new ArrayList<String>();
+
     for (Object o : _inProps.keySet()) {
       String key = o.toString();
       String lcKey = key.toLowerCase();
       if (lcKey.indexOf("_b64") != -1) {
         int b64_start = lcKey.indexOf("_b64");
         String val = _inProps.getProperty(key);
-
-        _inProps.remove(key);
+        removedKeys.add(key);
         key = key.substring(0, b64_start) + key.substring(b64_start + 4);
         try {
-          _inProps.setProperty(key, Base64.decodeToString(val));
+          decoded.setProperty(key, Base64.decodeToString(val));
         } catch (Exception e) {
           JConfig.log().handleException("Couldn't decode the password!", e);
         }
       }
     }
+    for(String key : removedKeys) {
+      _inProps.remove(key);
+    }
+    _inProps.putAll(decoded);
   }
 
   public static void setConfigurationFile(String cfgFile) {
