@@ -6,6 +6,7 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.CreationObserver;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.auction.event.EventLogger;
 import com.jbidwatcher.auction.event.EventStatus;
@@ -191,6 +192,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     mServer = server;
     checkConfigurationSnipeTime();
     prepareAuctionEntry(auctionIdentifier);
+    notifyObservers();
   }
 
   /**
@@ -201,8 +203,21 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * <p/>
    * Uses the default server.
    */
-  private AuctionEntry() {
+  public AuctionEntry() {
     checkConfigurationSnipeTime();
+    notifyObservers();
+  }
+
+  private static List<CreationObserver<AuctionEntry>> allObservers = new ArrayList<CreationObserver<AuctionEntry>>();
+
+  private void notifyObservers() {
+    for(CreationObserver toNotify : allObservers) {
+      toNotify.onCreation(this);
+    }
+  }
+
+  public static void addObserver(CreationObserver<AuctionEntry> observer) {
+    allObservers.add(observer);
   }
 
   /**

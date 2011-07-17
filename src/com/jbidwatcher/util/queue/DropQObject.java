@@ -8,6 +8,10 @@ package com.jbidwatcher.util.queue;
 public class DropQObject extends QObject {
   private boolean mInteractive;
 
+  public DropQObject() {
+    // Empty constructor for serialization purposes.
+  }
+
   public DropQObject(String data, String label, boolean isInteractive) {
     super(data, label);
     mInteractive = isInteractive;
