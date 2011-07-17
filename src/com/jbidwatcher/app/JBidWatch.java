@@ -440,6 +440,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
     SearchManager.getInstance().setDestinationQueue(AuctionServerManager.getInstance().getServer());  //  TODO mrs -- What about the 'backup' server?
     EntryFactory.setResolver(AuctionServerManager.getInstance());
+    AuctionEntry.addObserver(EntryFactory.getInstance());
     MultiSnipe.setCorral(EntryCorral.getInstance());
     loadProxySettings();
 
