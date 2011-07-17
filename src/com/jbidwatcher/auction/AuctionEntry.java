@@ -172,6 +172,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       Currency currentPrice = mAuction.getBestPrice();
       setDate("last_updated_at", new Date());
       setDefaultCurrency(currentPrice);
+      saveDB();
       updateHighBid();
       checkHighBidder();
       checkEnded();
