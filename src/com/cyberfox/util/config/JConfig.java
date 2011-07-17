@@ -258,16 +258,23 @@ public class JConfig {
   }
 
   private static void passwordFixup(Properties _inProps) {
+    Properties encoded = new Properties();
+    List<String> removedKeys = new ArrayList<String>();
+
     for (Object o : _inProps.keySet()) {
       String key = o.toString();
       String lcKey = key.toLowerCase();
       if (lcKey.indexOf("password") != -1 && lcKey.indexOf("_b64") == -1) {
         String val = _inProps.getProperty(key);
 
-        _inProps.remove(key);
-        _inProps.setProperty(key + "_b64", Base64.encodeString(val, false));
+        removedKeys.add(key);
+        encoded.setProperty(key + "_b64", Base64.encodeString(val, false));
       }
     }
+    for (String key : removedKeys) {
+      _inProps.remove(key);
+    }
+    _inProps.putAll(encoded);
   }
 
   private static void passwordUnfixup_b64(Properties _inProps) {
