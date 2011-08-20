@@ -3,6 +3,7 @@ package com.jbidwatcher.app;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.util.CreationObserver;
 import com.jbidwatcher.util.config.JConfig;
 import com.cyberfox.util.config.ErrorManagement;
 import com.cyberfox.util.config.Base64;
@@ -116,6 +117,12 @@ public class JBTool implements ToolInterface {
   public static void main(String[] args) {
     JConfig.setLogger(new ErrorManagement());
     ActiveRecord.disableDatabase();
+    AuctionEntry.addObserver(EntryFactory.getInstance());
+    AuctionEntry.addObserver(new CreationObserver<AuctionEntry>() {
+      public void onCreation(AuctionEntry o) {
+        EntryCorral.getInstance().putWeakly(o);
+      }
+    });
     JBTool tool = new JBTool(args);
 
     tool.execute();

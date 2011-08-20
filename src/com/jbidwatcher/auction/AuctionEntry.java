@@ -173,6 +173,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       setDate("last_updated_at", new Date());
       setDefaultCurrency(currentPrice);
       saveDB();
+      notifyObservers();
       updateHighBid();
       checkHighBidder();
       checkEnded();
@@ -193,7 +194,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     mServer = server;
     checkConfigurationSnipeTime();
     prepareAuctionEntry(auctionIdentifier);
-    notifyObservers();
   }
 
   /**
