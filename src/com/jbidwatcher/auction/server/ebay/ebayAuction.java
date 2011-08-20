@@ -613,23 +613,28 @@ class ebayAuction extends SpecificAuction {
         prelimTitle = prelimTitle.replaceAll(".\\|.eBay(.UK)?", "");
         setTitle(StringTools.decode(prelimTitle, mDocument.getCharset()));
 //        List<String> time_left = mDocument.findSequence("^\\((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec).[0-9]+,.[0-9]+$", "^[0-9]+:[0-9]+:[0-9]+.*\\)$");
-        List<String> time_left = mDocument.findSequence("^\\(.*$", "^.*\\)$");
+        JHTML.SequenceResult time_left = mDocument.findSequence("^\\(.*$", "^.*\\)$");
         ZoneDate endDate = null;
         if(time_left != null) {
-          String endTime = time_left.get(0) + " " + time_left.get(1);
-          endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
-        } else {
+          do {
+            String endTime = time_left.get(0) + " " + time_left.get(1);
+            endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
+            time_left = mDocument.findNextSequence(time_left);
+          } while ((endDate == null || endDate.isNull()) && time_left != null);
+        }
+
+        if(endDate == null || endDate.isNull()) {
           time_left = mDocument.findSequence("Ended:", ".*", ".*");
           if(time_left != null) {
             String endTime = "(" + time_left.get(1) + " " + time_left.get(2) + ")";
             endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
-            if (endDate != null && endDate.getDate() != null) {
+            if (endDate != null && !endDate.isNull()) {
               //  Mark this as completed?
             }
           }
         }
 
-        if (endDate != null && endDate.getDate() != null) {
+        if (endDate != null && !endDate.isNull()) {
           setEnd(endDate.getDate());
         } else {
           setEnd(null);

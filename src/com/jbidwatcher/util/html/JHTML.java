@@ -517,26 +517,49 @@ public class JHTML implements JHTMLListener {
    * yet.  (Essentially this should become a larger scale Boyer-Moore.)
    *
    * @param sequence - The sequence of regular expressions to match
-   * @return - True if that sequence was found, false otherwise. (Probably should be the contents that matched the last regex.)
+   * @return The contents that matched the last regex, or null if no matches.
    */
   public boolean hasSequence(String... sequence) {
     return sequence.length != 0 && findSequence(sequence) != null;
   }
 
-  public List<String> findSequence(String... sequence) {
-    Pattern[] inputPattern = new Pattern[sequence.length];
+  public class SequenceResult extends LinkedList<String> {
+    Pattern[] sequence;
+    int nextStartPoint;
+
+    public int getNextStartPoint() {
+      return nextStartPoint;
+    }
+  }
+
+  public SequenceResult findSequence(String... originalSequence) {
+    SequenceResult contentSequence = new SequenceResult();
+    contentSequence.nextStartPoint = 0;
+    Pattern[] inputPattern = new Pattern[originalSequence.length];
     int currentPattern = 0;
-    for(String step : sequence) {
+    for (String step : originalSequence) {
       inputPattern[currentPattern++] = Pattern.compile(step);
     }
-    List<String> contentSequence = new LinkedList<String>();
+    contentSequence.sequence = inputPattern;
+    return findNextSequence(contentSequence);
+  }
+
+  public SequenceResult findNextSequence(SequenceResult contentSequence) {
+    int stepwise = contentSequence.nextStartPoint;
+    Pattern[] inputPattern = contentSequence.sequence;
+    List<String> toSearch = contentList.subList(stepwise, contentList.size());
+
     int index = 0;
 
-    for (String contentStep : contentList) {
+    for (String contentStep : toSearch) {
+      stepwise++;
       if(inputPattern[index].matcher(contentStep).matches()) {
         contentSequence.add(contentStep);
         index++;
-        if (index == sequence.length) return contentSequence;
+        if (index == inputPattern.length) {
+          contentSequence.nextStartPoint = stepwise;
+          return contentSequence;
+        }
       } else {
         contentSequence.clear();
         index = 0;
