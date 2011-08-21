@@ -102,7 +102,6 @@ public class JarClassLoader extends ClassLoader implements IProperties {
         if (handlerPackage.length() > 0) handlerPackage = "|" + handlerPackage;
         handlerPackage = "com.simontuffs" + handlerPackage;
         System.setProperty(JAVA_PROTOCOL_HANDLER, handlerPackage);
-        
     }
     
     protected String PREFIX() {
@@ -468,7 +467,9 @@ public class JarClassLoader extends ClassLoader implements IProperties {
         if (index2 > -1) {
             String packageName = entryName.substring(0, index2);
             if (getPackage(packageName) == null) {
-                definePackage(packageName, "", "", "", "", "", "", null);
+                Package p = JarClassLoader.class.getPackage();
+                definePackage(packageName, p.getSpecificationTitle(), p.getSpecificationVersion(), p.getSpecificationVendor(),
+                    p.getImplementationTitle(), p.getImplementationVersion(), p.getImplementationVendor(), null);
             }
         }
         // end patch

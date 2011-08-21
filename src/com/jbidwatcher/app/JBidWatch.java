@@ -203,6 +203,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
     } else if (arg.startsWith("--usb")) {
       Path.setHome(System.getProperty("user.dir"));
       sUSB = true;
+    } else if (arg.startsWith("--testImpl")) {
+      System.out.println("Impl Version: " + Constants.REVISION());
+      System.exit(1);
     }
     return false;
   }
