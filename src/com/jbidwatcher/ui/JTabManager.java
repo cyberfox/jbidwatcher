@@ -54,6 +54,11 @@ public class JTabManager extends JMouseAdapter {
     return mAuctionTypes;
   }
 
+  public void setTab(String tab) {
+    int idx = mAuctionTypes.indexOfTab(tab);
+    mAuctionTypes.setSelectedIndex(idx);
+  }
+
   public void add(String tabName, JComponent tabComponent, TableSorter inTS) {
     mAuctionTypes.add(tabName, tabComponent);
     mNameTableMap.put(tabName, inTS);
@@ -110,6 +115,7 @@ public class JTabManager extends JMouseAdapter {
       boolean seller_t = false;
       boolean buyer_t = false;
       boolean all_t = false;
+      boolean number_t = false;
       if (trueSearch.startsWith("~")) {
         if (trueSearch.startsWith("~a")) {
           comment_t = true;
@@ -117,6 +123,7 @@ public class JTabManager extends JMouseAdapter {
           buyer_t = true;
           all_t = true;
         }
+        if (trueSearch.startsWith("~n")) number_t = true;
         if (trueSearch.startsWith("~b")) buyer_t = true;
         if (trueSearch.startsWith("~c")) comment_t = true;
         if (trueSearch.startsWith("~s")) seller_t = true;
@@ -125,7 +132,7 @@ public class JTabManager extends JMouseAdapter {
           seller_t = true;
         }
 
-        if (seller_t || buyer_t || comment_t) trueSearch = trueSearch.substring(2);
+        if (seller_t || buyer_t || comment_t || number_t) trueSearch = trueSearch.substring(2);
         if (trueSearch.startsWith(" ")) trueSearch = trueSearch.substring(1);
       }
 
@@ -141,6 +148,7 @@ public class JTabManager extends JMouseAdapter {
         if (          seller_t) match = ae.getSeller().matches(trueSearch);
         if (!match && buyer_t && ae.getHighBidder() != null) match = ae.getHighBidder().matches(trueSearch);
         if (!match && comment_t && ae.getComment() != null) match = ae.getComment().matches(trueSearch);
+        if (!match && number_t) match = ae.getIdentifier().matches(trueSearch);
         //  If seller or buyer search was set, ignore the title / comments.
         if (!match && (all_t || (!seller_t && !buyer_t && !comment_t))) {
           match = ae.getTitle().matches(trueSearch);
