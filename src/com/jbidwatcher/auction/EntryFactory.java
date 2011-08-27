@@ -32,7 +32,7 @@ public class EntryFactory implements CreationObserver<AuctionEntry> {
     String strippedId = server.stripId(auctionId);
 
     AuctionEntry ae = AuctionEntry.construct(strippedId, server);
-    ae.setPresenter(new AuctionEntryHTMLPresenter(ae));
+    if(ae != null) ae.setPresenter(new AuctionEntryHTMLPresenter(ae));
 
     return ae;
   }
