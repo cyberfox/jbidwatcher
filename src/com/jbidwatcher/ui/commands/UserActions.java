@@ -157,8 +157,18 @@ public class UserActions implements MessageQueue.Listener {
         aeNew = addAuction(auctionSource);
       }
       if (aeNew == null) {
-        if (AuctionEntry.findByIdentifier(id) != null) {
-          MQFactory.getConcrete("Swing").enqueue("ERROR " + "Cannot add auction " + auctionSource + ", it is already in your auction list.");
+        AuctionEntry found = AuctionEntry.findByIdentifier(id);
+        if (found != null) {
+          mTabs.setTab(found.getCategory());
+          mTabs.selectBySearch("~n" + found.getIdentifier());
+          int rows[] = mTabs.getCurrentTable().getSelectedRows();
+          if(rows.length == 0) {
+            AuctionsManager.getInstance().addEntry(found);
+            mTabs.setTab(found.getCategory());
+            mTabs.selectBySearch("~n" + found.getIdentifier());
+          }
+          mTabs.getCurrentTable().getTable().scrollRectToVisible(mTabs.getCurrentTable().getTable().getCellRect(rows[0], 1, true));
+          MQFactory.getConcrete("Swing").enqueue("ERROR " + "Cannot add auction " + auctionSource + ", it is already in your auction list in '" + found.getCategory() + "'.");
         } else {
           MQFactory.getConcrete("Swing").enqueue("ERROR " + "Cannot add auction " + auctionSource + ", either invalid or\ncommunication error talking to server.");
         }
