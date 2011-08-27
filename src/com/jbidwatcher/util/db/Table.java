@@ -15,6 +15,8 @@ import java.text.SimpleDateFormat;
  */
 public class Table
 {
+  private static boolean STATEMENT_DEBUG = false;
+
   public boolean hasColumn(String colName) {
     return mColumnMap.containsKey(colName);
   }
@@ -103,6 +105,7 @@ public class Table
   }
 
   public boolean execute(String statement) {
+    if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing: " + statement);
     try {
       PreparedStatement ps = mDB.prepare(statement);
       ps.execute();
@@ -115,6 +118,8 @@ public class Table
   }
 
   public Record findFirst(String query) {
+    if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing fF query: " + query);
+
     try {
       ResultSet rs = mS.executeQuery(query);
       return rs == null ? null : getFirstResult(rs);
@@ -129,6 +134,8 @@ public class Table
   }
 
   public Record findFirstBy(String query) {
+    if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing fFB query: " + query);
+
     try {
       ResultSet rs = mS.executeQuery(query);
       return rs == null ? null : getFirstResult(rs);
@@ -180,6 +187,8 @@ public class Table
           setColumn(ps, colnum, keys[i], values[i]);
         }
       }
+      if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing fAM query: " + statement);
+
       ResultSet rs = execute(ps);
       return getAllResults(rs);
     } catch (SQLException e) {
@@ -210,6 +219,7 @@ public class Table
   public List<Record> findAll(String query, int count) {
     try {
       mS.setMaxRows(count);
+      if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing fA query: " + query);
       ResultSet rs = mS.executeQuery(query);
       return getAllResults(rs);
     } catch (SQLException e) {
@@ -234,6 +244,7 @@ public class Table
         ps.setString(paramIndex++, param);
       }
 
+      if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing fAP query: " + query);
       ResultSet rs = execute(ps);
       ps.clearParameters();
       return getAllResults(rs);
@@ -311,6 +322,7 @@ public class Table
       if(colCount != -1) {
         //  Set the 'WHERE' value.
         setColumn(ps, colCount, columnKey, value);
+        if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing update on: " + sql);
         ps.execute();
         mDB.commit();
         return findKeys(ps);
@@ -338,6 +350,7 @@ public class Table
       if (forUpdate) statement += " FOR UPDATE";
       PreparedStatement ps = mDB.prepare(statement);
       setColumn(ps, 1, columnKey, value);
+      if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing gR statement: " + statement);
       ResultSet rs = execute(ps);
       oldRow = getFirstResult(rs);
     } catch (SQLException e) {
@@ -363,6 +376,8 @@ public class Table
         }
         values.append(newRow.get(key));
       }
+      if(STATEMENT_DEBUG) JConfig.log().logDebug("Storing map: " + sql);
+
       ps.execute();
       mDB.commit();
       return findKeys(ps);
