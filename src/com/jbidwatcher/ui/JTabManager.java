@@ -86,6 +86,19 @@ public class JTabManager extends JMouseAdapter {
     curTable.select(new ClearSelector());
   }
 
+  public void showEntry(AuctionEntry found) {
+    setTab(found.getCategory());
+    selectBySearch("~n" + found.getIdentifier());
+    int rows[] = getCurrentTable().getSelectedRows();
+    if(rows.length == 0) {
+      AuctionsManager.getInstance().addEntry(found);
+      setTab(found.getCategory());
+      selectBySearch("~n" + found.getIdentifier());
+    }
+    getCurrentTable().getTable().scrollRectToVisible(getCurrentTable().getTable().getCellRect(rows[0], 1, true));
+    getCurrentTable().getTable().requestFocus();
+  }
+
   private static class ClearSelector implements Selector {
     public boolean select(JTable inTable) {
       inTable.clearSelection();
