@@ -47,8 +47,19 @@ public class DeletedEntry extends ActiveRecord {
   }
 
   private void killFiles(String id) {
+    String imgPath = deleteThumbnails(id);
+    if(imgPath == null) return;
+
+    File html = new File(imgPath + ".html.gz");
+    if (html.exists()) html.delete();
+
+    File htmlBackup = new File(imgPath + ".html.gz~");
+    if (htmlBackup.exists()) htmlBackup.delete();
+  }
+
+  public static String deleteThumbnails(String id) {
     String outPath = JConfig.queryConfiguration("auctions.savepath");
-    if(outPath == null || outPath.length() == 0) return;
+    if(outPath == null || outPath.length() == 0) return null;
 
     String imgPath = outPath + System.getProperty("file.separator") + id;
 
@@ -61,11 +72,7 @@ public class DeletedEntry extends ActiveRecord {
     File badBlocker = new File(imgPath + "_b.jpg");
     if (badBlocker.exists()) badBlocker.delete();
 
-    File html = new File(imgPath + ".html.gz");
-    if (html.exists()) html.delete();
-
-    File htmlBackup = new File(imgPath + ".html.gz~");
-    if (htmlBackup.exists()) htmlBackup.delete();
+    return imgPath;
   }
 
   public static DeletedEntry findByIdentifier(String identifier) {

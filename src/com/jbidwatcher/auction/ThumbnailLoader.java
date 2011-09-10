@@ -34,6 +34,7 @@ public class ThumbnailLoader implements MessageQueue.Listener {
     String imgPath = Thumbnail.getValidImagePath(ai.getIdentifier(), thumbnailImage);
 
     ai.setThumbnail(imgPath);
+    MQFactory.getConcrete("redraw").enqueue(ai.getIdentifier());
   }
 
   private ByteBuffer getThumbnailByURL(String url) {

@@ -645,21 +645,18 @@ public class JHTML implements JHTMLListener {
   }
 
   public List<String> getAllImages() {
-    HashSet<String> linkTags = null;
+    HashSet<String> imgUrls = new HashSet<String>();
     String curTag = getNextTag();
 
     while(curTag != null) {
       if(curTag.toLowerCase().startsWith("img ")) {
-        if(linkTags == null) {
-          linkTags = new HashSet<String>();
-        }
-        linkTags.add(deAmpersand(curTag));
+        imgUrls.add(deAmpersand(curTag).replaceAll(".*img.*src=\"(.*?)\".*", "$1"));
       }
 
       curTag = getNextTag();
     }
 
-    return new ArrayList<String>(linkTags);
+    return new ArrayList<String>(imgUrls);
   }
 
   public List<String> getAllURLsOnPage(boolean viewOnly) {

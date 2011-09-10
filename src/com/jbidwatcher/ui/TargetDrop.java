@@ -11,16 +11,19 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.util.JDropHandler;
 
+import java.awt.Point;
 import java.util.List;
 
 public class TargetDrop implements JDropHandler
 {
   private static boolean sUberDebug = false;
   private String mTargetName;
+  private ImageDropResolver imageResolver;
 
-  public TargetDrop(String tableName) {
+  public TargetDrop(String tableName, ImageDropResolver imageResolver) {
     super();
     mTargetName = tableName;
+    this.imageResolver = imageResolver;
   }
 
   /**
@@ -42,7 +45,7 @@ public class TargetDrop implements JDropHandler
     return s;
   }
 
-  public void receiveDropString(StringBuffer dropped) {
+  public void receiveDropString(StringBuffer dropped, Point location) {
     if(dropped == null) {
       JConfig.log().logDebug("Dropped is (null)");
       return;
@@ -60,7 +63,20 @@ public class TargetDrop implements JDropHandler
       JHTML tinyDocument = new JHTML(dropped);
       List<String> allItemsOnPage = tinyDocument.getAllURLsOnPage(true);
 
-      if(allItemsOnPage == null) return;
+      if(allItemsOnPage == null) {
+        //  This could be an image drop.
+        tinyDocument.reset();
+        List<String> allImagesOnPage = tinyDocument.getAllImages();
+        if(allImagesOnPage.isEmpty()) {
+          return;
+        }
+
+        //  Get the first image
+        String img = allImagesOnPage.get(0);
+
+        imageResolver.handle(img, location);
+        return;
+      }
 
       for (String auctionURL : allItemsOnPage) {
         if (auctionURL != null) {

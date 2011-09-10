@@ -31,6 +31,7 @@ public class AuctionInfo extends ActiveRecord
 {
   private static Map<String, String> mKeys;
   private String mThumbnailPath;
+  private String potentialThumbnail = null;
   private Object mServer = null; //  TODO --  This is a hack!
   //  It's so that the AuctionServer that creates this can record
   // 'who it is', so the AuctionEntry will pick it up.
@@ -508,8 +509,23 @@ public class AuctionInfo extends ActiveRecord
   protected void setOutbid(boolean outbid) { setBoolean("outbid", outbid); }
   protected void setPaypal(boolean paypal) { setBoolean("paypal", paypal); }
 
-  public String getThumbnailURL() { return null; }
-  public String getAlternateSiteThumbnail() { return null; }
+  public void setThumbnailURL(String url) {
+    setNoThumbnail(false);
+    potentialThumbnail = url;
+  }
+
+  public String getThumbnailURL() {
+    if (potentialThumbnail != null) return potentialThumbnail;
+    return getThumbnailById(getIdentifier());
+  }
+
+  public String getAlternateSiteThumbnail() {
+    return getThumbnailById(getIdentifier() + "6464");
+  }
+
+  private static String getThumbnailById(String id) {
+    return "http://thumbs.ebaystatic.com/pict/" + id + ".jpg";
+  }
 
   private static Table sDB = null;
   protected static String getTableName() { return "auctions"; }

@@ -5,6 +5,8 @@ package com.jbidwatcher.ui.util;
  * Developed by mrs (Morgan Schweers)
  */
 
+import java.awt.Point;
+
 public interface JDropHandler {
-  void receiveDropString(StringBuffer dropped);
+  void receiveDropString(StringBuffer dropped, Point location);
 }

@@ -393,13 +393,13 @@ public class JDropListener implements DropTargetListener {
       dtde.getDropTargetContext().dropComplete(true);
       if(dropData != null) {
         if(handler != null) {
-          handler.receiveDropString(dropData);
+          handler.receiveDropString(dropData, dtde.getLocation());
         }
       }
     } else {
       JConfig.log().logVerboseDebug("Rejecting!");
       dtde.rejectDrop();
-      handler.receiveDropString(dropData);
+      handler.receiveDropString(dropData, dtde.getLocation());
     }
   }
 

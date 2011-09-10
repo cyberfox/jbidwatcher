@@ -6,18 +6,17 @@ package com.jbidwatcher.ui;
  */
 
 import com.cyberfox.util.platform.Platform;
+import com.jbidwatcher.auction.*;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.Auctions;
-import com.jbidwatcher.auction.EntryInterface;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
 import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.ui.table.AuctionTable;
+import com.jbidwatcher.util.queue.PlainMessageQueue;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -101,7 +100,15 @@ public class AuctionsUIModel {
     if(newAuctionList.isCompleted()) {
       _dropEar = new JDropListener(new TargetDrop());
     } else {
-      _dropEar = new JDropListener(new TargetDrop(_dataModel.getName()));
+      _dropEar = new JDropListener(new TargetDrop(_dataModel.getName(), new ImageDropResolver() {
+        public void handle(String imgUrl, Point location) {
+          int rowPoint = _table.rowAtPoint(location);
+          AuctionEntry whichAuction = (AuctionEntry)_table.getValueAt(rowPoint, -1);
+          DeletedEntry.deleteThumbnails(whichAuction.getIdentifier());
+          whichAuction.getAuction().setThumbnailURL(imgUrl);
+          ((PlainMessageQueue)MQFactory.getConcrete("thumbnail")).enqueueObject(whichAuction.getAuction());
+        }
+      }));
     }
     _targets[0] = new DropTarget(_scroller.getViewport(), _dropEar);
     _targets[1] = new DropTarget(_table, _dropEar);
