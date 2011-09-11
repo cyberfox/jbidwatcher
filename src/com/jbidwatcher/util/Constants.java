@@ -14,7 +14,7 @@ public class Constants {
  * in just one place.
  */
   public static final String PROGRAM_NAME = "JBidwatcher";
-  public static final String PROGRAM_VERS = "2.1.6pre5";
+  public static final String PROGRAM_VERS = "2.1.6pre6";
   public static String REVISION() {
     String rval = Constants.class.getPackage().getImplementationVersion();
     if(rval == null) return "debug";
