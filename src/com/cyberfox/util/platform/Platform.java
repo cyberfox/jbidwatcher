@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 
 public class Platform {
   private static boolean _trayEnabled=false;
+  private static boolean traySupportDisabled = false;
 
   /**
    * @brief Clears up a PMD warning, as this class is entirely static,
@@ -122,8 +123,10 @@ public class Platform {
         return true;
       }
     } catch(Exception e) {
+      traySupportDisabled = true;
       JConfig.log().logMessage("Couldn't set up tray access: " + e.getLocalizedMessage());
     } catch (UnsatisfiedLinkError ule) {
+      traySupportDisabled = true;
       JConfig.log().logMessage("Couldn't set up tray access: " + ule.getLocalizedMessage());
     }
     return false;
@@ -181,6 +184,7 @@ public class Platform {
   }
 
   public static boolean supportsTray() {
+    if(traySupportDisabled) return false;
     if(isWindows()) return true;
     if(isLinux() && !JConfig.queryConfiguration("tray.override", "false").equals("true")) return false;
     if(isMac()) return false;
