@@ -124,9 +124,11 @@ public class Platform {
       }
     } catch(Exception e) {
       traySupportDisabled = true;
+      JConfig.setConfiguration("temp.trayDLL", "false");
       JConfig.log().logMessage("Couldn't set up tray access: " + e.getLocalizedMessage());
     } catch (UnsatisfiedLinkError ule) {
       traySupportDisabled = true;
+      JConfig.setConfiguration("temp.trayDLL", "false");
       JConfig.log().logMessage("Couldn't set up tray access: " + ule.getLocalizedMessage());
     }
     return false;
@@ -184,18 +186,19 @@ public class Platform {
   }
 
   public static boolean supportsTray() {
-    if(traySupportDisabled) return false;
-    if(isWindows()) return true;
+    if(!traySupportDisabled && isWindows()) return true;
     if(isLinux() && !JConfig.queryConfiguration("tray.override", "false").equals("true")) return false;
     if(isMac()) return false;
 
     try {
       Class java6TrayClass = Class.forName("java.awt.SystemTray");
-//      Method m = java6TrayClass.getMethod("getSystemTray");
-//      Object java6tray = m.invoke(null);
       Method isSupported = java6TrayClass.getMethod("isSupported");
       Object rval = isSupported.invoke(null);
-      return rval instanceof Boolean && (Boolean) rval;
+      boolean supported = rval instanceof Boolean && (Boolean) rval;
+      if(supported) {
+        JConfig.setConfiguration("temp.tray.java6", "true");
+      }
+      return supported;
     } catch (Exception e) {
       return false;
     }

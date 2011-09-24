@@ -36,7 +36,7 @@ import com.jbidwatcher.util.Constants;
 public class Tray implements ItemListener, MessageQueue.Listener {
   private JMenuItem hideRestore;
   //  This creates a new Thread (currently named Thread 9).
-  private SystemTray tray = SystemTray.getDefaultSystemTray();
+  private SystemTray tray;
   private TrayIcon ti;
   private Class java6TrayClass, java6TrayIconClass;
   private Object java6tray=null, java6icon=null;
@@ -65,6 +65,15 @@ public class Tray implements ItemListener, MessageQueue.Listener {
   }
 
   private Tray() {
+    if(!JConfig.queryConfiguration("temp.trayDLL", "true").equals("false")) {
+      try {
+        JConfig.log().logMessage("About to try to instantiate the jdic tray");
+        tray = SystemTray.getDefaultSystemTray();
+        JConfig.log().logMessage("Done trying to instantiate the jdic tray");
+      } catch (Throwable t) {
+        JConfig.log().logMessage("Could not instantiate jdic tray: " + t.getMessage());
+      }
+    }
     TrayMenuAction tma = new TrayMenuAction();
     System.setProperty("javax.swing.adjustPopupLocationToFit", "false");
     JPopupMenu menu = new JPopupMenu("JBidwatcher Tray Menu");
@@ -117,7 +126,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
   }
 
   private boolean tryJava6Tray(final JPopupMenu menu, ImageIcon jbw_icon) {
-    if(JConfig.queryConfiguration("tray.java6", "false").equals("false")) return false;
+    if(JConfig.queryConfiguration("temp.tray.java6", "false").equals("false")) return false;
 
     try {
       java6TrayClass = Class.forName("java.awt.SystemTray");
@@ -232,7 +241,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
             JConfig.log().logMessage("Failed to set the tray icon using the java6 method!");
           }
         } else {
-          tray.addTrayIcon(ti);
+          if(tray != null) tray.addTrayIcon(ti);
         }
       } else {
         if(java6tray != null) {
@@ -243,7 +252,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
             JConfig.log().logMessage("Failed to remove the tray icon using the java6 method!");
           }
         } else {
-          tray.removeTrayIcon(ti);
+          if(tray != null) tray.removeTrayIcon(ti);
         }
       }
     }
