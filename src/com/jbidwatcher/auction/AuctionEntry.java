@@ -1367,9 +1367,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
         if(getString("identifier") == null) {
           setString("identifier", mAuction.getIdentifier());
-          setInteger("auction_id", mAuction.getId());
-          saveDB();
         }
+        setInteger("auction_id", mAuction.getId());
+        saveDB();
       }
     }
 
