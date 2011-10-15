@@ -539,7 +539,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     } else {
       if(sp != null) {
         sp.halt();
-//        mServiceAdvertiser.stopAdvertising();
+        mServiceAdvertiser.stopAdvertising();
       }
     }
     loadProxySettings();
@@ -787,7 +787,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
   public void internal_shutdown() {
     //  Shut down internal timers
     try {
-//      if(mServiceAdvertiser != null) mServiceAdvertiser.stop();
+      if(mServiceAdvertiser != null) mServiceAdvertiser.stop();
       for (Object o : JConfig.getTimers()) {
         ((TimerHandler) o).interrupt();
         try { ((TimerHandler) o).join(); } catch (InterruptedException ignored) {}
