@@ -73,6 +73,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       mResultHash.put("you are registered in a country to which the seller doesn.t ship.", AuctionServer.BID_ERROR_WONT_SHIP);
       mResultHash.put("this seller has set buyer requirements for this item and only sells to buyers who meet those requirements.", AuctionServer.BID_ERROR_REQUIREMENTS_NOT_MET);
       mResultHash.put("sellers are not permitted to purchase their own items", AuctionServer.BID_ERROR_SELLER_CANT_BID);
+      mResultHash.put("this item is not available for purchase", AuctionServer.BID_NOT_AVAILABLE_FOR_PURCHASE);
     }
 
     //"If you want to submit another bid, your new total must be higher than your current total";
