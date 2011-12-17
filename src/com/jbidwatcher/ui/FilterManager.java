@@ -17,7 +17,7 @@ import com.jbidwatcher.auction.EntryCorral;
 import java.util.*;
 import java.awt.Color;
 
-public class FilterManager implements MessageQueue.Listener {
+public class FilterManager implements MessageQueue.Listener, FilterInterface {
   private static final ListManager mList = ListManager.getInstance();
   private Map<String, AuctionListHolder> mIdentifierToList;
   private AuctionListHolder mMainTab = null;
@@ -39,6 +39,7 @@ public class FilterManager implements MessageQueue.Listener {
         EntryCorral.getInstance().erase(ae.getIdentifier());  //  Remove and unlock it
       }
     });
+    JTabManager.getInstance().setFilterManager(this);
   }
 
   public void loadFilters() {

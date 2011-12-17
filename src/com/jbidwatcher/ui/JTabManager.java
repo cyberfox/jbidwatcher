@@ -23,6 +23,7 @@ public class JTabManager extends JMouseAdapter {
   private JTabbedPane mAuctionTypes;
   private Map<String, TableSorter> mNameTableMap = new TreeMap<String, TableSorter>();
   private static JTabManager sInstance;
+  private FilterInterface mFilter;
 
   /**
    * @brief Retrieve the tab manager which controls ALL the tabs that
@@ -36,6 +37,17 @@ public class JTabManager extends JMouseAdapter {
       sInstance = new JTabManager();
     }
     return sInstance;
+  }
+
+  /**
+   * A little dependency injection; we use the filter manager to add in auction
+   * entries which have gotten lost in the UI somehow, but we don't want to
+   * directly reference it, or it becomes a dependency tangle. (A->B->C->D->A)
+   *
+   * @param filter - The filter manager for adding auction entries.
+   */
+  public void setFilterManager(FilterInterface filter) {
+    mFilter = filter;
   }
 
   private JTabManager() {
@@ -91,9 +103,10 @@ public class JTabManager extends JMouseAdapter {
     selectBySearch("~n" + found.getIdentifier());
     int rows[] = getCurrentTable().getSelectedRows();
     if(rows.length == 0) {
-      AuctionsManager.getInstance().addEntry(found);
+      mFilter.addAuction(found);
       setTab(found.getCategory());
       selectBySearch("~n" + found.getIdentifier());
+      rows = getCurrentTable().getSelectedRows();
     }
     getCurrentTable().getTable().scrollRectToVisible(getCurrentTable().getTable().getCellRect(rows[0], 1, true));
     getCurrentTable().getTable().requestFocus();
