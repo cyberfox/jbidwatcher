@@ -48,8 +48,6 @@ public interface Snipeable {
    */
   boolean hasDefaultSnipeTime();
 
-  Object getMultiSnipe();
-
   public String getIdentifier();
 
   public boolean reload();

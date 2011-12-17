@@ -218,7 +218,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private void DoDebugWin(AuctionEntry ae) {
-    ae.win();
+    MQFactory.getConcrete("won").enqueue(ae.getIdentifier());
   }
 
   /**
@@ -656,10 +656,11 @@ public class UserActions implements MessageQueue.Listener {
         }
         seenCurrencyWarning = true;
       }
+      MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(tempAE.getIdentifier());
       //  IF one of the auctions we're adding is already multi-sniped,
       //  then we're adding this auction into that one's list.
-      if(tempAE.isMultiSniped()) {
-        if(aeMS != null && aeMS != tempAE.getMultiSnipe()) {
+      if(ms != null) {
+        if(aeMS != null && aeMS.getIdentifier() != ms.getIdentifier()) {
           //  WHOA!  Cannot add an auction to TWO multi-snipe groups
           //  at once!
           JOptionPane.showMessageDialog(src,
@@ -670,7 +671,7 @@ public class UserActions implements MessageQueue.Listener {
           return;
         }
         if(aeMS == null) {
-          aeMS = tempAE.getMultiSnipe();
+          aeMS = ms;
         }
       }
     }
@@ -720,7 +721,7 @@ public class UserActions implements MessageQueue.Listener {
 
     for(i=0; i<rowList.length; i++) {
       AuctionEntry stepAE = (AuctionEntry)mTabs.getIndexedEntry(rowList[i]);
-      stepAE.setMultiSnipe(aeMS);
+      MultiSnipeManager.getInstance().addAuctionToMultisnipe(stepAE.getIdentifier(), aeMS);
       MQFactory.getConcrete("redraw").enqueue(stepAE.getIdentifier());
     }
   }

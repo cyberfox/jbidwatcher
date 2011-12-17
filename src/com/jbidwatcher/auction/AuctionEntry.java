@@ -106,12 +106,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    */
   private boolean mLoaded =false;
 
-  /**
-   * If this auction is part of a multiple-snipe, this value will not
-   * be null, and will point to a MultiSnipe object.
-   */
-  private MultiSnipe mMultiSnipe = null;
-
   private AuctionSnipe mSnipe = null;
 
   /**
@@ -346,19 +340,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   /**
-   * @brief Check if this auction is part of a snipe group.
-   *
-   * Multisnipes are snipes where each fires, and if one is successful
-   * then it automatically cancels all the rest of the snipes.  This
-   * lets users snipe on (say) five auctions, even though they only
-   * want one of the items.
-   *
-   * @return Whether this auction is one of a multisnipe group, where
-   * each auction is sniped on until one is won.
-   */
-  public boolean isMultiSniped()    { return(getMultiSnipe() != null); }
-
-  /**
    * @brief Check if the user has ever placed a bid (or completed
    * snipe) on this auction.
    *
@@ -443,56 +424,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   /**
-   * @brief Set this auction as being part of a multi-snipe set,
-   * change the multi-snipe group associated with it, or delete it
-   * from it's current multi-snipe set.
-   *
-   * TODO -- Extract this out, create a SnipeInterface which would be
-   * implemented by AuctionEntry.  Multisnipe then operates on
-   * SnipeInterface objects, so we don't have the X calls Y, Y calls
-   * X interrelationship.
-   *
-   * @param inMS - The multisnipe to set or change.  If it's 'null',
-   * it clears the multisnipe for this entry.
-   */
-  public void setMultiSnipe(MultiSnipe inMS) {
-    //  Shortcut: if no change, leave.
-    if(mMultiSnipe != inMS) {
-      //  If there was a different MultiSnipe before, remove this from it.
-      if(mMultiSnipe != null) {
-        mMultiSnipe.remove(getIdentifier());
-        //  ...and cancel the current snipe, as long as we're not
-        // cancelling this snipe entirely (in which case we cancel
-        // it below).
-        if(inMS != null) {
-          prepareSnipe(Currency.NoValue(), 0);
-        } else {
-          setInteger("multisnipe_id", null);
-        }
-      }
-      mMultiSnipe = inMS;
-      //  If we weren't just deleting, then prepare the new snipe, and
-      //  add to the multi-snipe group.
-      if(mMultiSnipe != null) {
-        if(!isSniped()) {
-          prepareSnipe(mMultiSnipe.getSnipeValue(getShippingWithInsurance()));
-        }
-        mMultiSnipe.add(getIdentifier());
-        addMulti(mMultiSnipe);
-      }
-    }
-
-    if(inMS == null) {
-      //  If the multisnipe was null, remove the snipe entirely.
-      prepareSnipe(Currency.NoValue(), 0);
-      setInteger("multisnipe_id", null);
-    } else {
-      setInteger("multisnipe_id", inMS.getId());
-    }
-    saveDB();
-  }
-
-  /**
    * @brief Get the default snipe time as configured.
    *
    * @return - The default snipe time from the configuration.  If it's
@@ -509,21 +440,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     }
 
     return snipeTime;
-  }
-
-  /**
-   * @brief Get the multi-snipe object associated with this auction, if it's set as a multi-snipe.
-   *
-   * @return - A multisnipe object or null if there isn't any multisnipe set.
-   */
-  public MultiSnipe getMultiSnipe() {
-    if(mMultiSnipe != null) return mMultiSnipe;
-
-    Integer id = getInteger("multisnipe_id");
-    if(id == null) return null;
-
-    mMultiSnipe = MultiSnipe.find(id);
-    return mMultiSnipe;
   }
 
   /**
@@ -766,7 +682,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         mEntryEvents.fromXML(curElement);
         break;
       case 7:
-        setMultiSnipe(MultiSnipe.loadFromXML(curElement));
+        MQFactory.getConcrete("multisnipe_xml").enqueue(getIdentifier() + " " + curElement.toString());
         break;
       case 8:
         Currency shipping = Currency.getCurrency(curElement.getProperty("CURRENCY"),
@@ -829,7 +745,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       xmlResult.addChild(xsnipe);
     }
 
-    if(isMultiSniped()) xmlResult.addChild(getMultiSnipe().toXML());
+//    if(isMultiSniped()) xmlResult.addChild(getMultiSnipe().toXML());
 
     if(isComplete()) addStatusXML(xmlResult, "complete");
     if(isInvalid()) addStatusXML(xmlResult, "invalid");
@@ -892,28 +808,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     }
   }
 
-  ////////////////////////////////
-  //  Multisnipe utility functions
-
-  private static Map<Long, MultiSnipe> allMultiSnipes = new TreeMap<Long, MultiSnipe>();
-
-  /**
-   * @brief Add a new multisnipe to the AuctionEntry class's list of
-   * multisnipes.
-   *
-   * This keeps track of ALL multisnipes, so that they can be
-   * loaded/saved okay, as well as checked to remove.
-   *
-   * @param newMS - The newly created multisnipe to add.
-   */
-  private static void addMulti(MultiSnipe newMS) {
-    long newId = newMS.getIdentifier();
-
-    if(!allMultiSnipes.containsKey(newId)) {
-      allMultiSnipes.put(newId, newMS);
-    }
-  }
-
   /////////////////////
   //  Sniping functions
 
@@ -941,7 +835,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public void cancelSnipe(boolean after_end) {
     handleCancel(after_end);
 
-    setMultiSnipe(null);
+    //  If the multisnipe was null, remove the snipe entirely.
+    prepareSnipe(Currency.NoValue(), 0);
+    setInteger("multisnipe_id", null);
+    saveDB();
   }
 
   private void handleCancel(boolean after_end) {
@@ -1014,22 +911,15 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     saveDB();
   }
 
-  private void onComplete() {//  If the auction is really completed now, and it was part of a
-    //  multisnipe group, let's check if it's been won.  If it has,
-    //  tell the MultiSnipe object that one has been won, so it can
-    //  clear out the others!
+  private void onComplete() {
     boolean won = isHighBidder() && (!isReserve() || isReserveMet());
-    if (isMultiSniped()) {
-      MultiSnipe ms = getMultiSnipe();
-      if (won) {
-        ms.setWonAuction(/* this */);
-      } else {
-        ms.remove(getIdentifier());
-      }
-    }
-    if(won) {
+    if (won) {
       JConfig.increment("stats.won");
+      MQFactory.getConcrete("won").enqueue(getIdentifier());
+    } else {
+      MQFactory.getConcrete("notwon").enqueue(getIdentifier());
     }
+
     if (isSniped()) {
       //  It's okay to cancel the snipe here; if the auction was won, it would be caught above.
       setLastStatus("Cancelling snipe, auction is reported as ended.");
@@ -1621,7 +1511,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
         mCategory = ae.mCategory;
         mSnipe = ae.getSnipe();
         mEntryEvents = ae.getEvents();
-        mMultiSnipe = ae.getMultiSnipe();
         return true;
       }
     } catch (Exception e) {
@@ -1770,7 +1659,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
     String entries = makeCommaList(toDelete);
     List<AuctionInfo> auctions = new ArrayList<AuctionInfo>();
-    List<MultiSnipe> multisnipes = new ArrayList<MultiSnipe>();
     List<AuctionSnipe> snipes = new ArrayList<AuctionSnipe>();
 
     for(AuctionEntry entry : toDelete) {
@@ -1780,7 +1668,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
     boolean success = new EventStatus().deleteAllEntries(entries);
     if(!snipes.isEmpty()) success &= AuctionSnipe.deleteAll(snipes);
-    if(!multisnipes.isEmpty()) success &= MultiSnipe.deleteAll(multisnipes);
     success &= AuctionInfo.deleteAll(auctions);
     success &= toDelete.get(0).getDatabase().deleteBy("id IN (" + entries + ")");
 
@@ -1795,12 +1682,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   public Presenter getPresenter() {
     return mAuctionEntryPresenter;
-  }
-
-  //  Debugging method, to test multisnipe cancelling.
-  public void win() {
-    MultiSnipe ms = getMultiSnipe();
-    ms.setWonAuction(/* this */);
   }
 
   public static int countByCategory(Category c) {

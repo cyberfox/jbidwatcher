@@ -5,6 +5,8 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.auction.MultiSnipe;
+import com.jbidwatcher.auction.MultiSnipeManager;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.AuctionEntry;
@@ -301,7 +303,8 @@ public class auctionTableModel extends BaseTransformation
   private String formatSnipe(AuctionEntry aEntry, String errorNote) {
     String snipeCount = "";
 
-    if(aEntry.isMultiSniped()) {
+    MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(aEntry.getIdentifier());
+    if(ms != null) {
       if(aEntry.isSnipeValid()) {
         return errorNote + "Multi: " + aEntry.getSnipeAmount() + snipeCount;
       } else {
@@ -333,7 +336,8 @@ public class auctionTableModel extends BaseTransformation
       return "--";
     }
 
-    if (aEntry.isMultiSniped()) {
+    MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(aEntry.getIdentifier());
+    if (ms != null) {
       if (aEntry.isSnipeValid()) {
         return errorNote + "Multi: " + totalSnipe;
       } else {

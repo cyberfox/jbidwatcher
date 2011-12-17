@@ -71,10 +71,6 @@ public class AuctionEntryTest extends TestCase {
     assertEquals(0, mAE.getSnipeQuantity());
   }
 
-  public void testSetGetMultiSnipe() throws Exception {
-    assertNull(mAE.getMultiSnipe());
-  }
-
   public void testSetGetDefaultSnipeTime() throws Exception {
     //TODO: Test goes here...
   }

@@ -53,8 +53,8 @@ public class Snipe {
     //  Just punt if we had failed to get the bidding form initially.
     if(mBidForm == null) return FAIL;
     UpdateBlocker.startBlocking();
-    if(mEntry.isMultiSniped()) {
-      MultiSnipe ms = mEntry.getMultiSnipe();
+    MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(mEntry.getIdentifier());
+    if(ms != null) {
       //  Make sure there aren't any update-unfinished items.
       if(ms.anyEarlier(mEntry)) {
         mEntry.setLastStatus("An earlier snipe in this multisnipe group has not ended, or has not been updated after ending.");

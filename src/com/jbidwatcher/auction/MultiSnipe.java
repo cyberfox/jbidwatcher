@@ -106,10 +106,14 @@ public class MultiSnipe extends ActiveRecord {
   }
 
   public synchronized void add(String identifier) {
-    ActiveRecord ae = corral.takeForWrite(identifier);
+    AuctionEntry ae = (AuctionEntry)corral.takeForWrite(identifier);
     try {
       ae.set("multisnipe_id", get("id"));
-      ae.saveDB();
+      if(!ae.isSniped()) {
+        ae.prepareSnipe(getSnipeValue(ae.getShippingWithInsurance()), 1);
+      } else {
+        ae.saveDB();
+      }
     } finally {
       corral.release(identifier);
     }
@@ -273,7 +277,10 @@ public class MultiSnipe extends ActiveRecord {
     boolean subtractShipping = curElement.getProperty("SUBTRACTSHIPPING", "false").equals("true");
 
     MultiSnipe ms = MultiSnipe.findFirstBy("identifier", identifier);
-    if(ms == null) ms = new MultiSnipe(bgColor, defaultSnipe, Long.parseLong(identifier), subtractShipping);
+    if(ms == null) {
+      ms = new MultiSnipe(bgColor, defaultSnipe, Long.parseLong(identifier), subtractShipping);
+      ms.saveDB();
+    }
 
     return ms;
   }

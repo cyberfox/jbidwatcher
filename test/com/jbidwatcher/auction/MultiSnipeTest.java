@@ -102,11 +102,16 @@ public class MultiSnipeTest extends TestCase {
     for(int i=2; i <= 10; i++) {
       entries[i-1] = new MockSnipeable(ms.getId(), i, Integer.toString(12344+i));
     }
-    assertEquals("There should be 10 active entries in the multisnipe after the setup", 10, toWin.getMultiSnipe().activeEntries());
+    ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(toWin.getIdentifier());
+
+    assertEquals("There should be 10 active entries in the multisnipe after the setup", 10, ms.activeEntries());
     toWin.win();
+    // Sleep 2 seconds, waiting for the won processing queue to finish.
+    Thread.sleep(2000);
     for (MockSnipeable entry : entries) {
-      assertTrue("Each entry should have been cancelled but " + entry + " wasn't", entry.isCancelled());
-      assertEquals("Each entry's multisnipe should have 0 active entries", 0, entry.getMultiSnipe().activeEntries());
+      assertTrue("Each entry should have been cancelled but " + entry.getIdentifier() + " wasn't", entry.isCancelled());
+      ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(entry.getIdentifier());
+      assertEquals("Each entry's multisnipe should have 0 active entries", 0, ms.activeEntries());
     }
   }
 }

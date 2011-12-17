@@ -11,6 +11,7 @@ package com.jbidwatcher.ui;//  -*- Java -*-
 
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.MultiSnipe;
+import com.jbidwatcher.auction.MultiSnipeManager;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.table.TableColumnController;
 
@@ -317,8 +318,9 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   }
 
   private Color snipeBidBackground(AuctionEntry ae) {
-    if (ae.isMultiSniped()) {
-      return ae.getMultiSnipe().getColor();
+    MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(ae.getIdentifier());
+    if (ms != null) {
+      return ms.getColor();
     }
     return null;
   }
@@ -348,7 +350,8 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private Color snipeBidColor(AuctionEntry ae) {
     if(ae != null) {
       if(ae.isSniped()) {
-        if (!ae.isMultiSniped()) {
+        MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(ae.getIdentifier());
+        if (ms == null) {
           return ae.isSnipeValid() ? darkGreen : darkRed;
         }
         if (ae.snipeCancelled()) {
