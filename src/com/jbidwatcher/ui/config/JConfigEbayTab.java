@@ -75,7 +75,7 @@ public class JConfigEbayTab extends JConfigTab
         loginMessage = "Successfully logged in.";
       }
       JOptionPane.showMessageDialog(null, loginMessage, "Login Test", JOptionPane.INFORMATION_MESSAGE);
-      MQFactory.getConcrete("login").deRegisterListener(this);
+      MQFactory.getConcrete("login").removeListener(this);
       MQFactory.getConcrete("login").registerListener(oldLoginListener);
     }
   }

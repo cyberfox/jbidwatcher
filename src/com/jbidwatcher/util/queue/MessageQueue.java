@@ -13,16 +13,26 @@ import com.jbidwatcher.util.Currency;
 
 public abstract class MessageQueue implements Runnable {
   protected final LinkedList<Object> _queue = new LinkedList<Object>();
-  protected MessageQueue.Listener _listener = null;
+  protected List<MessageQueue.Listener> _listeners = new ArrayList<Listener>(1);
   protected abstract void handleListener();
 
   public interface Listener {
     void messageAction(Object deQ);
   }
 
+  /**
+   * registerListener treats the message queue as if it is a 1-entry list,
+   * replacing all existing listeners (expected to be one or zero) with the
+   * newly passed in listener.
+   *
+   * @param ml - The new listener to be notified of events on this queue.
+   *
+   * @return The old listener that was being notified of events on this queue.
+   */
   public Listener registerListener(MessageQueue.Listener ml) {
-    Listener old = _listener;
-    _listener = ml;
+    Listener old = _listeners.isEmpty() ? null : _listeners.get(0);
+    _listeners.clear();
+    _listeners.add(ml);
     handleListener();
     return old;
   }
@@ -68,7 +78,11 @@ public abstract class MessageQueue implements Runnable {
     }
   }
 
-  public void deRegisterListener(Listener listener) {
-    if(_listener == listener) _listener = null;
+  public void removeListener(Listener listener) {
+    _listeners.remove(listener);
+  }
+
+  public void addListener(Listener listener) {
+    _listeners.add(listener);
   }
 }

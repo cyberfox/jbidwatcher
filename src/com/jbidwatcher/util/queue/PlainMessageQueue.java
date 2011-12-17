@@ -50,9 +50,11 @@ public final class PlainMessageQueue extends MessageQueue {
       if(data != null) {
         boolean empty;
         do {
-          if (_listener != null) {
+          if (!_listeners.isEmpty()) {
             try {
-              _listener.messageAction(data);
+              for(Listener l : _listeners) {
+                l.messageAction(data);
+              }
             } catch (Exception e) {
               JConfig.log().handleException("PMQ Caught exception: " + e, e);
               clear();

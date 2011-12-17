@@ -20,9 +20,11 @@ public class SwingMessageQueue extends MessageQueue
 
   public void run() {
     Object data = dequeue();
-    if(_listener != null) {
+    if(!_listeners.isEmpty()) {
       try {
-        _listener.messageAction(data);
+        for (Listener l : _listeners) {
+          l.messageAction(data);
+        }
       } catch(Exception e) {
         JConfig.log().handleException("SMQ Caught exception: " + e, e);
       }
