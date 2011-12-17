@@ -1483,7 +1483,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
   public Date getSnipeDate() { return new Date(getAuction().getEndDate().getTime() - getSnipeTime()); }
 
-  public boolean isDutch() { return getAuction().isDutch(); }
   public boolean isReserve() { return getAuction().isReserve(); }
   public boolean isReserveMet() { return getAuction().isReserveMet(); }
   public boolean isPrivate() { return getAuction().isPrivate(); }

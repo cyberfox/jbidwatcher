@@ -415,7 +415,6 @@ public class AuctionInfo extends ActiveRecord
     return end;
   }
 
-  public boolean isDutch() { return getBoolean("isDutch"); }
   protected boolean isReserve() { return getBoolean("isReserve"); }
   public boolean isPrivate() { return getBoolean("isPrivate"); }
   protected boolean isFixedPrice() { return getBoolean("fixed_price"); }

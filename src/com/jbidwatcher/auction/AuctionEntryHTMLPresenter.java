@@ -59,7 +59,7 @@ public class AuctionEntryHTMLPresenter implements Presenter {
     } else {
       prompt += buildRow("Price", mAuctionEntry.getCurrentPrice());
     }
-    if (mAuctionEntry.isDutch()) {
+    if (mAuctionEntry.isFixed() && mAuctionEntry.getQuantity() > 1) {
       prompt += buildRow("Quantity", mAuctionEntry.getQuantity());
     }
 

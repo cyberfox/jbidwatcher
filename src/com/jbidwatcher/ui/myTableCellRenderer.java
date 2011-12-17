@@ -346,10 +346,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     if(ae != null) {
       if(ae.isSniped()) {
         if (!ae.isMultiSniped()) {
-          if (ae.isSnipeValid() || ae.isDutch()) {
-            return darkGreen;
-          }
-          return darkRed;
+          return ae.isSnipeValid() ? darkGreen : darkRed;
         }
         if (ae.snipeCancelled()) {
           return darkRed;

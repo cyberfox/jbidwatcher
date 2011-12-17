@@ -295,24 +295,20 @@ public class auctionTableModel extends BaseTransformation
 
   private String formatBid(AuctionEntry aEntry, String errorNote) {
     String bidCount = "";
-    if(aEntry.getBidQuantity() != 1) bidCount = " x " + aEntry.getBidQuantity();
     return errorNote + aEntry.getBid().toString() + bidCount;
   }
 
   private String formatSnipe(AuctionEntry aEntry, String errorNote) {
     String snipeCount = "";
-    if (aEntry.getSnipeQuantity() > 1) {
-      snipeCount = " x " + aEntry.getSnipeQuantity();
-    }
 
     if(aEntry.isMultiSniped()) {
-      if(aEntry.isSnipeValid() || aEntry.isDutch()) {
+      if(aEntry.isSnipeValid()) {
         return errorNote + "Multi: " + aEntry.getSnipeAmount() + snipeCount;
       } else {
         return errorNote + "Multi: (" + aEntry.getSnipeAmount() + snipeCount + ')';
       }
     } else {
-      if(aEntry.isSnipeValid() || aEntry.isDutch()) {
+      if(aEntry.isSnipeValid()) {
         return errorNote + aEntry.getSnipeAmount().toString() + snipeCount;
       } else {
         return errorNote + '(' + aEntry.getSnipeAmount() + snipeCount + ')';
@@ -337,22 +333,17 @@ public class auctionTableModel extends BaseTransformation
       return "--";
     }
 
-    String snipeCount = "";
-    if (aEntry.getSnipeQuantity() > 1) {
-      snipeCount = " x " + aEntry.getSnipeQuantity();
-    }
-
     if (aEntry.isMultiSniped()) {
-      if (aEntry.isSnipeValid() || aEntry.isDutch()) {
-        return errorNote + "Multi: " + totalSnipe + snipeCount;
+      if (aEntry.isSnipeValid()) {
+        return errorNote + "Multi: " + totalSnipe;
       } else {
-        return errorNote + "Multi: (" + totalSnipe + snipeCount + ')';
+        return errorNote + "Multi: (" + totalSnipe + ')';
       }
     } else {
-      if (aEntry.isSnipeValid() || aEntry.isDutch()) {
-        return errorNote + totalSnipe.toString() + snipeCount;
+      if (aEntry.isSnipeValid()) {
+        return errorNote + totalSnipe.toString();
       } else {
-        return errorNote + '(' + totalSnipe + snipeCount + ')';
+        return errorNote + '(' + totalSnipe + ')';
       }
     }
   }
@@ -376,11 +367,7 @@ public class auctionTableModel extends BaseTransformation
           if(aEntry.isFixed()) {
             return curPrice + " (FP" + ((aEntry.getQuantity() > 1) ? " x " + aEntry.getQuantity() + ")" : ")");
           } else {
-            if(aEntry.isDutch()) {
-              return curPrice + " x " + Integer.toString(aEntry.getQuantity());
-            } else {
-              return curPrice + " (" + Integer.toString(aEntry.getNumBidders()) + ')';
-            }
+            return curPrice + " (" + Integer.toString(aEntry.getNumBidders()) + ')';
           }
         case TableColumnController.SNIPE_OR_MAX: return formatSnipeAndBid(aEntry);
         case TableColumnController.MAX: return aEntry.isBidOn()?formatBid(aEntry, errorNote):neverBid;
