@@ -87,7 +87,10 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
 
     mThumbnail = column == TableColumnController.THUMBNAIL;
 
-    if ((column == TableColumnController.SNIPE_OR_MAX || column == TableColumnController.SNIPE_TOTAL) && ae.isSniped()) {
+    if (ae.isSniped() &&
+        (column == TableColumnController.SNIPE_OR_MAX ||
+         column == TableColumnController.SNIPE_TOTAL ||
+         column == TableColumnController.SNIPE)) {
       returnComponent.setBackground(snipeBidBackground(ae));
       returnComponent.setOpaque(true);
     }
