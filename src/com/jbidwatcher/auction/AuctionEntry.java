@@ -291,6 +291,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @param newServer - The server to associate with this auction entry.
    */
   public void setServer(AuctionServerInterface newServer) {
+    //noinspection ObjectEquality
     if(newServer != mServer) {
       //  "CANCEL_SNIPE #{id}"
       if(isSniped()) getServer().cancelSnipe(getIdentifier());
@@ -322,17 +323,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     if(getSnipe() == null) return false;
 
     Currency minIncrement = getServer().getMinimumBidIncrement(getCurBid(), getNumBidders());
-    Currency nextBid = Currency.NoValue();
     boolean rval = false;
 
     try {
-      nextBid = getCurBid().add(minIncrement);
-
-      if(nextBid == null || getSnipe().getAmount().getValue() >= nextBid.getValue()) {
+      if(getSnipe().getAmount().getValue() >= getCurBid().add(minIncrement).getValue()) {
         rval = true;
       }
     } catch(Currency.CurrencyTypeException cte) {
-      JConfig.log().handleException("This should never happen (" + nextBid + ", " + getSnipe().getAmount() + ")!", cte);
+      JConfig.log().handleException("This should never happen (" + getCurBid() + ", " + minIncrement + ", " + getSnipe().getAmount() + ")!", cte);
     }
 
     return rval;
@@ -413,7 +411,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @param highBid - The new high bid value to set for this auction.
    */
   public void setBid(Currency highBid)  {
-    setMonetary("last_bid_amount", highBid == null? Currency.NoValue() : highBid);
+    setMonetary("last_bid_amount", highBid == null ? Currency.NoValue() : highBid);
     saveDB();
   }
 
@@ -722,7 +720,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   //  XML Handling functions
 
   protected String[] infoTags = { "info", "bid", "snipe", "complete", "invalid", "comment", "log", "multisnipe", "shipping", "category", "winning" };
-  protected String[] getTags() { return infoTags; }
+  protected String[] getTags() { return Arrays.copyOf(infoTags, infoTags.length); }
 
   /**
    * @brief XML load-handling.  It would be really nice to be able to
@@ -731,6 +729,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @param tagId - The index into 'entryTags' for the current tag.
    * @param curElement - The current XML element that we're loading from.
    */
+  @SuppressWarnings({"FeatureEnvy"})
   protected void handleTag(int tagId, XMLElement curElement) {
     switch(tagId) {
       case 0:  //  Get the general auction information
@@ -801,6 +800,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @return An XMLElement containing as children, all of the key
    * values associated with this auction entry.
    */
+  @SuppressWarnings({"FeatureEnvy"})
   public XMLElement toXML(boolean includeEvents) {
     XMLElement xmlResult = new XMLElement("auction");
 
@@ -1237,6 +1237,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return endedAuction;
   }
 
+  @SuppressWarnings({"FeatureEnvy"})
   private static String getTimeFormatter(long days, long hours) {
     String mf;
     boolean use_detailed = JConfig.queryConfiguration("timeleft.detailed", "false").equals("true");
@@ -1285,6 +1286,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     //  We are always greater than null
     if(other == null) return 1;
     //  We are always equal to ourselves
+    //noinspection ObjectEquality
     if(other == this) return 0;
 
     String identifier = getIdentifier();
@@ -1349,15 +1351,16 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   private static AuctionInfo sAuction = new AuctionInfo();
-  public boolean isNullAuction() { return mAuction == sAuction; }
+  @SuppressWarnings({"ObjectEquality"})
+  public boolean isNullAuction() { return mAuction == null || mAuction == sAuction; }
 
   public AuctionInfo getAuction() {
-    if(mAuction == null || mAuction == sAuction) {
+    if(isNullAuction()) {
       String aid = get("auction_id");
       if(aid != null && aid.length() != 0) {
         mAuction = AuctionInfo.find(aid);
       }
-      if((mAuction == null || mAuction == sAuction) && getString("identifier") != null) {
+      if(isNullAuction() && getString("identifier") != null) {
         mAuction = AuctionInfo.findByIdentifier(getString("identifier"));
       }
 
@@ -1386,7 +1389,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @param inAI - The AuctionInfo object to make the new core data.  Must not be null.
    */
   public void setAuctionInfo(AuctionInfo inAI) {
-    if(mAuction == null || mAuction == sAuction) {
+    if(isNullAuction()) {
       setDefaultCurrency(inAI.getDefaultCurrency());
     }
 
@@ -1403,6 +1406,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       setString("identifier", mAuction.getIdentifier());
       //  If we had an old auction, and it's not the same as the new one,
       //  and the IDs are different, delete the old one.
+      //noinspection ObjectEquality
       if (oldAuction != null &&
           oldAuction != mAuction &&
           mAuction.getId() != null &&
@@ -1506,14 +1510,19 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     if(ship == null || ship.isNull())
       return Currency.NoValue();
     else {
-      if(getInsurance() != null &&
-         !getInsurance().isNull() &&
-         !getInsuranceOptional()) {
-        try {
-          ship = ship.add(getInsurance());
-        } catch(Currency.CurrencyTypeException cte) {
-          JConfig.log().handleException("Insurance is somehow a different type than shipping?!?", cte);
-        }
+      ship = addInsurance(ship);
+    }
+    return ship;
+  }
+
+  private Currency addInsurance(Currency ship) {
+    if(getInsurance() != null &&
+       !getInsurance().isNull() &&
+       !getInsuranceOptional()) {
+      try {
+        ship = ship.add(getInsurance());
+      } catch(Currency.CurrencyTypeException cte) {
+        JConfig.log().handleException("Insurance is somehow a different type than shipping?!?", cte);
       }
     }
     return ship;
@@ -1576,7 +1585,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   /*************************/
 
   public String saveDB() {
-    if(mAuction == null || mAuction == sAuction) return null;
+    if(isNullAuction()) return null;
 
     String auctionId = mAuction.saveDB();
     if(auctionId != null) set("auction_id", auctionId);
