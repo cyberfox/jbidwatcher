@@ -494,7 +494,9 @@ public class AuctionInfo extends ActiveRecord
 
   protected void setStart(Date start) { setDate("start", start); }
   protected void setEnd(Date end) {
-    if(end == Constants.FAR_FUTURE) end = null;
+    if(end == null || end.equals(Constants.FAR_FUTURE)) {
+      end = null;
+    }
     setDate("end", end);
   }
 
