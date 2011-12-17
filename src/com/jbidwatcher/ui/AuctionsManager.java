@@ -121,12 +121,17 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   private void updateList(List<AuctionEntry> needUpdate) throws InterruptedException {
     for(AuctionEntry ae : needUpdate) {
       if (Thread.interrupted()) throw new InterruptedException();
-      boolean forced = ae.isUpdateRequired();
-      mCurrentlyUpdating = ae;
-      Auctions.doUpdate(ae);
-      EntryCorral.getInstance().putWeakly(ae);
-      mCurrentlyUpdating = null;
-      if(forced) MQFactory.getConcrete("redraw").enqueue(ae.getCategory()); // Redraw a tab that has a forced update.
+      // It's likely that we've pulled a big list of stuff to update before realizing the
+      // networking is down; pause updating for a little bit until it's likely to have come
+      // back.
+      if (!mPauseManager.isPaused()) {
+        boolean forced = ae.isUpdateRequired();
+        mCurrentlyUpdating = ae;
+        Auctions.doUpdate(ae);
+        EntryCorral.getInstance().putWeakly(ae);
+        mCurrentlyUpdating = null;
+        if (forced) MQFactory.getConcrete("redraw").enqueue(ae.getCategory()); // Redraw a tab that has a forced update.
+      }
     }
   }
 

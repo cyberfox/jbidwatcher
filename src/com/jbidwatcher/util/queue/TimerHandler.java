@@ -53,21 +53,22 @@ public class TimerHandler extends Thread {
     JConfig.registerTimer(this);
     boolean interrupted = false;
     while(!interrupted) {
-      if(Thread.interrupted())
+      if(Thread.interrupted()) {
         interrupted = true;
-      else
+      } else {
         try {
           sleep(_sleep_ms);
-        if(!_remainAsleep) {
+          if (!_remainAsleep) {
             _toWake.check();
-        }
-      } catch(InterruptedException ignored) {
-        interrupted = true;
-      } catch(Exception e) {
+          }
+        } catch (InterruptedException ignored) {
+          interrupted = true;
+        } catch (Exception e) {
           JConfig.log().handleException("Exception during the check() operation of " + _toWake.getClass().toString(), e);
-      } catch(Error e) {
-        //  This is more sketchy...
-        JConfig.log().handleException("Serious error, consider dying.", e);
+        } catch (Error e) {
+          //  This is more sketchy...
+          JConfig.log().handleException("Serious error, consider dying.", e);
+        }
       }
     }
   }

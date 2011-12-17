@@ -447,9 +447,9 @@ public final class UIBackbone implements MessageQueue.Listener {
     //  Pause updates for 20 seconds
     PauseManager.getInstance().pause(20);
 
-    //  In 15 seconds, log back in.  This is because networking usually takes 10-15 seconds to restart after a sleep event.
+    //  In 25 seconds, log back in.  This is because networking usually takes 15-20 seconds to restart after a sleep event.
     AuctionServer mainServer = AuctionServerManager.getInstance().getServer();
-    long wakeUp = System.currentTimeMillis() + (15 * Constants.ONE_SECOND);
+    long wakeUp = System.currentTimeMillis() + (25 * Constants.ONE_SECOND);
     AuctionQObject updateEvent = new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null);
 
     SuperQueue.getInstance().getQueue().add(updateEvent, mainServer, wakeUp);
