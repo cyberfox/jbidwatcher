@@ -427,6 +427,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       }
     } catch(Exception e) {
       if (e.getMessage().matches("^Failed to start database.*")) {
+        JConfig.log().handleException("JBidwatcher can't access it's database.", e);
         JOptionPane.showMessageDialog(null, "JBidwatcher can't access its database.\nPlease check to see if you are running another instance.", "Can't access auction database", JOptionPane.PLAIN_MESSAGE);
         System.exit(0);
       }

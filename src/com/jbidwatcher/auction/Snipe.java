@@ -119,7 +119,7 @@ public class Snipe {
     } else {
       switch(snipeResult) {
         case AuctionServerInterface.BID_ERROR_UNKNOWN:
-          snipeOutput = "Unknown error sniping on " + aucTitle;
+          snipeOutput = "Unknown error sniping on " + aucTitle + " (" + aeFire.getIdentifier() + ")";
           JConfig.increment("stats.sniped.unknown_error");
           break;
         case AuctionServerInterface.BID_ERROR_ENDED:
