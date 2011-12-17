@@ -150,6 +150,10 @@ public class JBidProxy extends AbstractMiniServer {
       {"showXML", "^([0-9]+)\\.xml$"}
   };
 
+  public StringBuffer returnNull(String identifier) {
+    return new StringBuffer();
+  }
+
   protected Object[][] getRoutes() {
     return sRoutes;
   }
@@ -174,7 +178,12 @@ public class JBidProxy extends AbstractMiniServer {
         child.addChild(url);
         xauctions.addChild(child);
       }
-      return xauctions.toStringBuffer();
+      StringBuffer sb = new StringBuffer("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+      sb.append("<!DOCTYPE auctions [\n" +
+          "  <!ENTITY pound \"#\">\n" +
+          "]>\n");
+      sb.append(xauctions.toStringBuffer());
+      return sb;
     } catch(UnsupportedEncodingException crazy) {
       JConfig.log().logDebug("Couldn't decode the category name.");
     }
