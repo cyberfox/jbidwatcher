@@ -697,9 +697,10 @@ public class XMLElement implements XMLSerialize, XMLInterface {
   }
 
   private void handleCData(String content) {
-    _contents = decodeString(content);
-    if(_contents.startsWith("<![CDATA[")) {
-      _contents = _contents.substring(9, _contents.length()-3);
+    if(content.startsWith("<![CDATA[")) {
+      _contents = content.substring(9, content.length()-3);
+    } else {
+      _contents = decodeString(content);
     }
   }
 
