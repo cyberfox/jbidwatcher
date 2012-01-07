@@ -71,13 +71,15 @@ public class Table
    * @return The database that was shut down.
    */
   public Database shutdown() {
-    try {
-      mS.close();
-    } catch (SQLException e) {
-      JConfig.log().handleException("Can't shut down database.", e);
+    synchronized (mS) {
+      try {
+        mS.close();
+      } catch (SQLException e) {
+        JConfig.log().handleException("Can't shut down database.", e);
+      }
+      mDB.commit();
+      return mDB;
     }
-    mDB.commit();
-    return mDB;
   }
 
   public void commit() {
@@ -120,12 +122,14 @@ public class Table
   public Record findFirst(String query) {
     if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing fF query: " + query);
 
-    try {
-      ResultSet rs = mS.executeQuery(query);
-      return rs == null ? null : getFirstResult(rs);
-    } catch (SQLException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-      return null;
+    synchronized (mS) {
+      try {
+        ResultSet rs = mS.executeQuery(query);
+        return getFirstResult(rs);
+      } catch (SQLException e) {
+        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        return null;
+      }
     }
   }
 
@@ -136,12 +140,14 @@ public class Table
   public Record findFirstBy(String query) {
     if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing fFB query: " + query);
 
-    try {
-      ResultSet rs = mS.executeQuery(query);
-      return rs == null ? null : getFirstResult(rs);
-    } catch (SQLException e) {
-      e.printStackTrace();
-      return null;
+    synchronized (mS) {
+      try {
+        ResultSet rs = mS.executeQuery(query);
+        return getFirstResult(rs);
+      } catch (SQLException e) {
+        e.printStackTrace();
+        return null;
+      }
     }
   }
 
@@ -217,14 +223,16 @@ public class Table
   }
 
   public List<Record> findAll(String query, int count) {
-    try {
-      mS.setMaxRows(count);
-      if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing fA query: " + query);
-      ResultSet rs = mS.executeQuery(query);
-      return getAllResults(rs);
-    } catch (SQLException e) {
-      JConfig.log().handleDebugException("Error running query: " + query, e);
-      return null;
+    synchronized (mS) {
+      try {
+        mS.setMaxRows(count);
+        if (STATEMENT_DEBUG) JConfig.log().logDebug("Executing fA query: " + query);
+        ResultSet rs = mS.executeQuery(query);
+        return getAllResults(rs);
+      } catch (SQLException e) {
+        JConfig.log().handleDebugException("Error running query: " + query, e);
+        return null;
+      }
     }
   }
 
