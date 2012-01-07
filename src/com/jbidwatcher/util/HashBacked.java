@@ -81,7 +81,7 @@ public class HashBacked extends XMLSerializeSimple {
   }
 
   public void setMonetary(String key, Currency c) {
-    if (c.isNull())
+    if (c == null || c.isNull())
       set(key, null);
     else {
       //  Only set the default currency to some non-USD currency if a non-USD currency is being passed in.
