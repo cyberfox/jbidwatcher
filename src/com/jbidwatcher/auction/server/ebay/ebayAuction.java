@@ -492,7 +492,7 @@ class ebayAuction extends SpecificAuction {
     setNumBids(getBidCount(mDocument, getQuantity()));
     String postPrice;
     boolean buyNowSet = false;
-    if((postPrice = mDocument.getNextContentAfterContent("Price:")) != null) {
+    if((postPrice = mDocument.getNextContentAfterRegex("([Ss]old.[Ff]or|Price):")) != null) {
       String nextContent = mDocument.getNextContent();
       if(nextContent.matches("(?i).*approx.*")) {
         // If it's 'Approximately', then skip the next value because it's the non-local price.
@@ -508,7 +508,7 @@ class ebayAuction extends SpecificAuction {
           setBuyNowUS(getUSCurrency(Currency.getCurrency(postPrice), mDocument));
           buyNowSet = true;
         }
-      } else if(postPrice.equals("Original price")) {
+      } else if(postPrice.matches("([oO]riginal.price)|([Ss]old.[Ff]or:?)")) {
         setFixedPrice(true);
         String price = mDocument.getNextContentAfterContent("Discounted price");
         setBuyNow(Currency.getCurrency(price));
