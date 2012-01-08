@@ -1071,7 +1071,12 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *
    * @param beSticky - Whether or not this entry should be sticky.
    */
-  public void setSticky(boolean beSticky) { setBoolean("sticky", beSticky); saveDB(); }
+  public void setSticky(boolean beSticky) {
+    if(beSticky != getBoolean("sticky")) {
+      setBoolean("sticky", beSticky);
+      saveDB();
+    }
+  }
 
   // TODO mrs -- Move this to a TimeLeftBuilder class.
   public static final String endedAuction = "Auction ended.";
@@ -1262,16 +1267,27 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       if(isNullAuction() && getString("identifier") != null) {
         mAuction = AuctionInfo.findByIdentifier(getString("identifier"));
       }
+      boolean dirty = false;
 
       //  If we successfully loaded an auction info object...
       if(mAuction != null) {
-        setDefaultCurrency(mAuction.getDefaultCurrency());
+        if(!getDefaultCurrency().equals(mAuction.getDefaultCurrency())) {
+          setDefaultCurrency(mAuction.getDefaultCurrency());
+          dirty = true;
+        }
 
         if(getString("identifier") == null) {
           setString("identifier", mAuction.getIdentifier());
+          dirty = true;
         }
-        setInteger("auction_id", mAuction.getId());
-        saveDB();
+        Integer auctionId = getInteger("auction_id");
+        if(aid == null || !auctionId.equals(mAuction.getId())) {
+          setInteger("auction_id", mAuction.getId());
+          dirty = true;
+        }
+        if(dirty) {
+          saveDB();
+        }
       }
     }
 
