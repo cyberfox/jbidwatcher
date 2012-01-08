@@ -634,9 +634,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   //////////////////////////
   //  XML Handling functions
-
-  protected String[] infoTags = { "info", "bid", "snipe", "complete", "invalid", "comment", "log", "multisnipe", "shipping", "category", "winning" };
-  protected String[] getTags() { return Arrays.copyOf(infoTags, infoTags.length); }
+  protected final String[] infoTags = { "info", "bid", "snipe", "complete", "invalid", "comment", "log", "multisnipe", "shipping", "category", "winning" };
+  @SuppressWarnings({"ReturnOfCollectionOrArrayField"})
+  protected String[] getTags() { return infoTags; }
 
   /**
    * @brief XML load-handling.  It would be really nice to be able to
