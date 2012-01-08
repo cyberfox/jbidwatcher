@@ -121,7 +121,7 @@
 
   <target name="tar" description="Building source .tar file.">
     <tar destfile="${TARFILE}" compression="bzip2" longfile="gnu">
-      <tarfileset prefix="${TARSRC}" dir="${src.dir}" includes="**/*.java" />
+      <tarfileset prefix="${TARSRC}/src" dir="${src.dir}" includes="**/*.java" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.sql" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.ser" />
@@ -143,6 +143,7 @@
       <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jbh" />
       <tarfileset prefix="${TARSRC}/lib" dir="${main.dir}/lib" />
+      <tarfileset prefix="${TARSRC}/onejar" dir="${main.dir}/onejar" />
     </tar>
   </target>
 
