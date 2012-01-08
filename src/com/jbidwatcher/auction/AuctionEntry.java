@@ -5,11 +5,11 @@ package com.jbidwatcher.auction;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.util.CreationObserver;
-import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.*;
 import com.jbidwatcher.auction.event.EventLogger;
 import com.jbidwatcher.auction.event.EventStatus;
+import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.Observer;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
@@ -167,7 +167,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       setDate("last_updated_at", new Date());
       setDefaultCurrency(currentPrice);
       saveDB();
-      notifyObservers();
+      notifyObservers(ObserverMode.AFTER_CREATE);
       updateHighBid();
       checkHighBidder();
       checkEnded();
@@ -200,18 +200,27 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    */
   public AuctionEntry() {
     checkConfigurationSnipeTime();
-    notifyObservers();
+    notifyObservers(ObserverMode.AFTER_CREATE);
   }
 
-  private static List<CreationObserver<AuctionEntry>> allObservers = new ArrayList<CreationObserver<AuctionEntry>>();
+  public enum ObserverMode { AFTER_CREATE, AFTER_SAVE }
+  private static List<Observer<AuctionEntry>> allObservers = new ArrayList<Observer<AuctionEntry>>();
 
-  private void notifyObservers() {
-    for(CreationObserver toNotify : allObservers) {
-      toNotify.onCreation(this);
+  private void notifyObservers(ObserverMode event) {
+    for(Observer toNotify : allObservers) {
+      switch (event) {
+        case AFTER_CREATE: {
+          toNotify.afterCreate(this);
+          break;
+        }
+        case AFTER_SAVE: {
+          toNotify.afterSave(this);
+        }
+      }
     }
   }
 
-  public static void addObserver(CreationObserver<AuctionEntry> observer) {
+  public static void addObserver(Observer<AuctionEntry> observer) {
     allObservers.add(observer);
   }
 
@@ -1498,6 +1507,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
     String id = super.saveDB();
     set("id", id);
+    notifyObservers(ObserverMode.AFTER_SAVE);
     return id;
   }
 

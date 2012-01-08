@@ -1,6 +1,7 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.util.CreationObserver;
+import com.jbidwatcher.util.Observer;
+import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.xml.XMLElement;
 
 /**
@@ -10,7 +11,7 @@ import com.jbidwatcher.util.xml.XMLElement;
  * Time: 1:14 AM
  * To change this template use File | Settings | File Templates.
  */
-public class EntryFactory implements CreationObserver<AuctionEntry> {
+public class EntryFactory extends Observer<AuctionEntry> {
   private static Resolver sResolver = null;
   private static EntryFactory instance;
 
@@ -56,12 +57,16 @@ public class EntryFactory implements CreationObserver<AuctionEntry> {
     return xe != null ? xe.toStringBuffer() : null;
   }
 
-  public void onCreation(AuctionEntry auctionEntry) {
+  public void afterCreate(AuctionEntry auctionEntry) {
     if(auctionEntry.getServer() == null) {
       auctionEntry.setServer(sResolver.getServer());
     }
     if(auctionEntry.getPresenter() == null) {
       auctionEntry.setPresenter(new AuctionEntryHTMLPresenter(auctionEntry));
     }
+  }
+
+  public void afterSave(AuctionEntry auctionEntry) {
+    MQFactory.getConcrete("redraw").enqueue(auctionEntry.getIdentifier());
   }
 }

@@ -7,6 +7,7 @@ package com.jbidwatcher.util;
  * Time: 2:03 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface CreationObserver<T> {
-  public void onCreation(T o);
+public abstract class Observer<T> {
+  public void afterCreate(T o) { }
+  public void afterSave(T o) { }
 }
