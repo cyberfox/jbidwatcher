@@ -9,6 +9,7 @@ import com.cyberfox.util.platform.Platform;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.util.JContext;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.queue.MQFactory;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -351,6 +352,7 @@ public class JBidMenuBar extends JMenuBar {
 
   private void establishTabMenu(JMenu tabMenu) {
     final JTabPopupMenu pop = new JTabPopupMenu(JTabManager.getInstance().getTabs(), tabMenu.getPopupMenu(), AuctionsManager.getInstance().getFilters());
+    MQFactory.getConcrete("tab_menu").registerListener(pop);
 
     tabMenu.getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
       public void popupMenuWillBecomeVisible(PopupMenuEvent e) {

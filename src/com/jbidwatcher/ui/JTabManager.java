@@ -51,7 +51,8 @@ public class JTabManager extends JMouseAdapter {
   }
 
   private JTabManager() {
-    mAuctionTypes = new JTabbedPane();
+    mAuctionTypes = new PlusTabbedPane();
+
     mAuctionTypes.addChangeListener(new ChangeListener() {
       // This method is called whenever the selected tab changes
       public void stateChanged(ChangeEvent evt) {

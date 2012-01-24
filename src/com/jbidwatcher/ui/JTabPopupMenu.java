@@ -9,6 +9,7 @@ import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MessageQueue;
 
 import java.awt.event.*;
 import java.awt.*;
@@ -18,13 +19,39 @@ import javax.swing.event.PopupMenuEvent;
 import java.util.*;
 import java.util.List;
 
-public class JTabPopupMenu extends JContext {
+public class JTabPopupMenu extends JContext implements MessageQueue.Listener {
   private JTabbedPane mTabs = null;
   private JMenu customize = null;
   private JMenuItem _print = null;
   private JMenu _deleteSubmenu = null;
   private Map<String, JCheckBoxMenuItem> menuItemMap = new TreeMap<String, JCheckBoxMenuItem>();
   private FilterManager mFilter;
+
+  /**
+   * @param inTabs - The tab display to act as a context menu for.
+   * @brief Construct a menu & listener to be used as a context menu
+   * on the tabbed display.
+   */
+  public JTabPopupMenu(JTabbedPane inTabs, FilterManager filters) {
+    mFilter = filters;
+    mTabs = inTabs;
+    localPopup = new JPopupMenu();
+    makeTabMenu(localPopup);
+    inTabs.addMouseListener(this);
+  }
+
+  /**
+   * @param inTabs - The tab display to act as a context menu for.
+   * @param popup  - The popup to add the behavior to.
+   * @brief Construct a menu & listener to be used as a context menu
+   * on the tabbed display.
+   */
+  public JTabPopupMenu(JTabbedPane inTabs, JPopupMenu popup, FilterManager filters) {
+    mFilter = filters;
+    mTabs = inTabs;
+    localPopup = popup;
+    makeTabMenu(localPopup);
+  }
 
   /**
    * @brief Make a small menu for tabs.
@@ -171,6 +198,10 @@ public class JTabPopupMenu extends JContext {
     return propFrame;
   }
 
+  public void messageAction(Object deQ) {
+    DoAction(deQ.toString(), -1);
+  }
+
   /**
    * @brief Execute a given action, based on the string form of the action name.
    *
@@ -256,32 +287,5 @@ public class JTabPopupMenu extends JContext {
         }
       }
     }
-  }
-
-  /**
-   * @param inTabs - The tab display to act as a context menu for.
-   * @brief Construct a menu & listener to be used as a context menu
-   * on the tabbed display.
-   */
-  public JTabPopupMenu(JTabbedPane inTabs, FilterManager filters) {
-    mFilter = filters;
-    mTabs = inTabs;
-    localPopup = new JPopupMenu();
-    makeTabMenu(localPopup);
-    inTabs.addMouseListener(this);
-  }
-
-  /**
-   * @brief Construct a menu & listener to be used as a context menu
-   * on the tabbed display.
-   *
-   * @param inTabs - The tab display to act as a context menu for.
-   * @param popup - The popup to add the behavior to.
-   */
-  public JTabPopupMenu(JTabbedPane inTabs, JPopupMenu popup, FilterManager filters) {
-    mFilter = filters;
-    mTabs = inTabs;
-    localPopup = popup;
-    makeTabMenu(localPopup);
   }
 }
