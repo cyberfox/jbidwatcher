@@ -172,6 +172,7 @@ public class MyJBidwatcher {
     My status = My.findByIdentifier(identifier);
 
     if (status == null || status.getDate("last_synced_at") == null || changed) {
+      EntryCorral.getInstance().takeForWrite(identifier);
       EntryCorral.getInstance().erase(identifier);
       MQFactory.getConcrete("upload").enqueue(identifier);
     }
