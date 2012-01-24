@@ -521,6 +521,7 @@ public class Table
         JConfig.log().logDebug("WTF?!?! (" + type + ", " + key + ", " + val + ")");
       }
     } catch (SQLException e) {
+      JConfig.log().logDebug("Failure with prepared statement: " + ps.toString());
       e.printStackTrace();
       return false;
     }
