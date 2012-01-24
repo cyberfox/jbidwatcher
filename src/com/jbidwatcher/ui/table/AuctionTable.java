@@ -232,6 +232,8 @@ public class AuctionTable extends JTable {
     TableColumn tc = new TableColumn(TableColumnController.getInstance().getColumnNumber(curColumnName));
     tc.setHeaderValue(curColumnName);
     tc.setIdentifier(curColumnName);
+    //  Do not allow thumbnail columns to shrink below 75 pixels.
+    if ("Thumbnail".equals(curColumnName)) tc.setMinWidth(75);
     addColumn(tc);
     getColumn(curColumnName).setPreferredWidth(Integer.parseInt(colWidth));
     getColumn(curColumnName).setWidth(Integer.parseInt(colWidth));

@@ -18,6 +18,7 @@ import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.ui.table.AuctionTable;
 import com.jbidwatcher.util.queue.PlainMessageQueue;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -27,6 +28,7 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.dnd.DropTarget;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -53,7 +55,7 @@ public class AuctionsUIModel {
    * @param cornerButtonListener - The button to sit above the scrollbar.
    * @param monitor
    */
-  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, JContext frameContextMenu, ActionListener cornerButtonListener, AuctionUpdateMonitor monitor) {
+  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, final JContext frameContextMenu, ActionListener cornerButtonListener, AuctionUpdateMonitor monitor) {
     _dataModel = newAuctionList;
     _myRenderer.setUpdateMonitor(monitor);
 
@@ -93,8 +95,40 @@ public class AuctionsUIModel {
     }
 
     _bgColor = UIManager.getColor("window");
-    _scroller.getViewport().setBackground(_bgColor);
-    _scroller.getViewport().addMouseListener(frameContextMenu);
+    _scroller.setViewport(new JViewport() {
+      private Image image;
+
+      {
+        setBackground(_bgColor);
+        addMouseListener(frameContextMenu);
+        setView(_table);
+
+        try {
+          image = ImageIO.read(JConfig.getResource("/jbidwatch.jpg"));
+        } catch (IOException e) {
+          image = null;
+        }
+      }
+
+      public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if(image != null && _table.getRowCount() == 0) {
+          int imageW = image.getWidth(null);
+          int imageH = image.getHeight(null);
+
+          Graphics2D g2d = (Graphics2D) g;
+          AlphaComposite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+          Composite oldComp = g2d.getComposite();
+          g2d.setComposite(comp);
+          int xloc = getWidth()/2 - imageW/2 - 2;
+          int yloc = getHeight()/2 - imageH/2 - 2;
+
+          g2d.drawImage(image, xloc, yloc, this);
+
+          g2d.setComposite(oldComp);
+        }
+      }
+    });
 
     JDropListener _dropEar;
     if(newAuctionList.isCompleted()) {
@@ -369,7 +403,9 @@ public class AuctionsUIModel {
     boolean rval;
     int modelColumn = TableColumnController.getInstance().getColumnNumber(field);
     if(_table.convertColumnIndexToView(modelColumn) == -1) {
-      _table.addColumn(new TableColumn(modelColumn, Constants.DEFAULT_COLUMN_WIDTH, _myRenderer, null));
+      TableColumn newColumn = new TableColumn(modelColumn, Constants.DEFAULT_COLUMN_WIDTH, _myRenderer, null);
+      if(modelColumn == TableColumnController.THUMBNAIL) newColumn.setMinWidth(75);
+      _table.addColumn(newColumn);
       rval = true;
     } else {
       _table.removeColumn(_table.getColumn(field));
@@ -395,7 +431,8 @@ public class AuctionsUIModel {
       defaultHeight = metrics.getMaxAscent() + metrics.getMaxDescent() + metrics.getLeading()+4;
     }
 
-    if (_table.convertColumnIndexToView(TableColumnController.THUMBNAIL) != -1) {
+    int thumbnailIndex = _table.convertColumnIndexToView(TableColumnController.THUMBNAIL);
+    if (thumbnailIndex != -1) {
       defaultHeight = Math.max(Constants.MICROTHUMBNAIL_ROW_HEIGHT, defaultHeight);
     }
     _table.setRowHeight(Math.max(defaultHeight, Constants.DEFAULT_ROW_HEIGHT));
