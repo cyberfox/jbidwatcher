@@ -801,13 +801,18 @@ class ebayAuction extends SpecificAuction {
     Currency maxBid = Currency.getCurrency(mDocument.getNextContentAfterContent(T.s("ebayServer.yourMaxBid")));
     if(maxBid != null && maxBid.getCurrencyType() == Currency.NONE) maxBid = Currency.NoValue();
 
-    setMinBid((Currency)ensureSafeValue(getMinBid(), ae!=null?ae.getMinBid()  :Currency.NoValue(), Currency.NoValue()));
-    setCurBid((Currency)ensureSafeValue(getCurBid(), ae!=null?ae.getCurBid()  :Currency.NoValue(), Currency.NoValue()));
-    setUSCur((Currency)ensureSafeValue(getUSCur(), ae!=null?ae.getUSCurBid():zeroDollars, Currency.NoValue()));
+    Currency preMin = (ae != null) ? ae.getMinBid() : Currency.NoValue();
+    if(getMinBid().isNull()) setMinBid(preMin);
 
-    if(getNumBids() == 0 && (getMinBid() == null || getMinBid().isNull())) setMinBid(getCurBid());
+    Currency preCur = ae != null ? ae.getCurBid() : Currency.NoValue();
+    if(getCurBid().isNull()) setCurBid(preCur);
 
-    if(getMinBid() == null || getMinBid().isNull()) {
+    Currency preUSCur = ae != null ? ae.getUSCurBid() : zeroDollars;
+    if(getUSCur().isNull()) setUSCur(preUSCur);
+
+    if(getNumBids() == 0 && getMinBid().isNull()) setMinBid(getCurBid());
+
+    if(getMinBid().isNull()) {
       String original = mDocument.grep(T.s("ebayServer.originalBid"));
       if(original != null) {
         Pattern bidPat = Pattern.compile(T.s("ebayServer.originalBid"));
