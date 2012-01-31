@@ -99,6 +99,10 @@ public class Snipe {
     try {
       JConfig.increment("stats.presniped");
       mBidForm = mBidder.getBidForm(mCJ, mEntry, mEntry.getSnipeAmount());
+      if(mBidForm.getInputValue("maxbid").isEmpty()) {
+        // We have a problem.
+        mBidForm.setText("maxbid", mEntry.getSnipeAmount().getValueString());
+      }
     } catch (BadBidException bbe) {
       String result = getSnipeResult(bbe.getResult(), mEntry.getTitle(), mEntry);
       mEntry.setLastStatus(result);

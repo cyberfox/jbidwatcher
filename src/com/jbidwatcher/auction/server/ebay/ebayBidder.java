@@ -130,6 +130,12 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
         throw new BadBidException(foo.get(0) + " " + foo.get(1), ebayServer.BID_ERROR_TOO_LOW);
       }
 
+      // If maxbid wasn't set, log it in the log file so we can debug it later.
+      String maxbid = rval.getForm().getInputValue("maxbid");
+      if (maxbid == null || maxbid.length() == 0) {
+        JConfig.log().logFile("Bad form response to: " + pageName, rval.getBuffer());
+      }
+
       if (rval.isSuccess()) return rval.getForm();
     } catch (IOException e) {
       JConfig.log().handleException("Failure to get the bid key!  BID FAILURE!", e);
