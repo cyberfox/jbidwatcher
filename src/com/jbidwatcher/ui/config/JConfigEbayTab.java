@@ -1,17 +1,16 @@
 package com.jbidwatcher.ui.config;
 
+import com.jbidwatcher.ui.commands.UserActions;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
-import com.jbidwatcher.util.http.CookieJar;
-import com.jbidwatcher.util.TT;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.JBEditorPane;
-import com.jbidwatcher.auction.server.ebay.ebayLoginManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.util.queue.SuperQueue;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -25,6 +24,7 @@ import java.awt.event.ActionEvent;
  */
 public class JConfigEbayTab extends JConfigTab
 {
+  boolean quickConfig = false;
   JTextField username;
   JTextField password;
   JComboBox siteSelect;
@@ -33,52 +33,6 @@ public class JConfigEbayTab extends JConfigTab
   private String mDisplayName;
   //  mSitename is only used to look up configuration values.
   private String mSitename = Constants.EBAY_SERVER_NAME;
-
-  private class LoginTestListener implements ActionListener, MessageQueue.Listener {
-    CookieJar cj = null;
-
-    public void actionPerformed(ActionEvent ae) {
-      if (ae.getActionCommand().equals("Test Login")) {
-        TT T = new TT("ebay.com");
-        oldLoginListener = MQFactory.getConcrete("login").registerListener(this);
-        ebayLoginManager login = new ebayLoginManager(T, mSitename, password.getText(), username.getText(), false);
-        cj = login.getNecessaryCookie(true);
-      }
-    }
-
-    private final String FAILED="FAILED";
-    private final String NEUTRAL="NEUTRAL";
-
-    public void messageAction(Object deQ) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException ignored) { }
-      String result = (String)deQ;
-      String loginMessage = "An unrecognized result occurred ("+result+"); please report this.";
-      if(result.startsWith(FAILED)) {
-        loginMessage = "Login failed.";
-        if(result.length() > FAILED.length()) {
-          loginMessage += "\n" + result.substring(FAILED.length() + 1);
-        }
-      } else if(result.startsWith(NEUTRAL)) {
-        if(cj == null) {
-          loginMessage = "The login did not cause any errors but found no\ncookies.  It probably failed.";
-        } else {
-          loginMessage = "The login did not cause any errors and delivered\ncookies, but was not clearly recognized as successful.";
-        }
-        if (result.length() > NEUTRAL.length()) {
-          loginMessage += "\n" + result.substring(NEUTRAL.length() + 1);
-        }
-      } else if(result.startsWith("CAPTCHA")) {
-        loginMessage = "eBay put up a 'captcha', to prevent programs from logging into your account.  Login failed.";
-      } else if(result.startsWith("SUCCESSFUL")) {
-        loginMessage = "Successfully logged in.";
-      }
-      JOptionPane.showMessageDialog(null, loginMessage, "Login Test", JOptionPane.INFORMATION_MESSAGE);
-      MQFactory.getConcrete("login").removeListener(this);
-      MQFactory.getConcrete("login").registerListener(oldLoginListener);
-    }
-  }
 
   public String getTabName() { return mDisplayName; }
   public void cancel() { }
@@ -101,6 +55,11 @@ public class JConfigEbayTab extends JConfigTab
     if(old_pass == null || !new_pass.equals(old_pass) ||
        old_user == null || !new_user.equals(old_user)) {
       MQFactory.getConcrete(AuctionServerManager.getInstance().getServer()).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
+    }
+
+    //  If it's the first time running the program, try to load My eBay for them in about 12 seconds.
+    if(JConfig.queryConfiguration("first.run", "false").equals("true")) {
+      SuperQueue.getInstance().preQueue(UserActions.MY_EBAY, "user", System.currentTimeMillis() + Constants.THREE_SECONDS * 5, 0);
     }
   }
 
@@ -132,7 +91,7 @@ public class JConfigEbayTab extends JConfigTab
     userBox.add(makeLine(new JLabel("Username: "), username));
     userBox.add(makeLine(new JLabel("Password:  "), password));
     JButton testButton = new JButton("Test Login");
-    testButton.addActionListener(new LoginTestListener());
+    testButton.addActionListener(new LoginTestListener(mSitename, username, password));
     tp.add(testButton, BorderLayout.EAST);
     tp.add(userBox);
 
@@ -194,14 +153,27 @@ public class JConfigEbayTab extends JConfigTab
     return tp;
   }
 
-  public JConfigEbayTab() {
+  public JConfigEbayTab(boolean isQuickConfig) {
+    quickConfig = isQuickConfig;
     mDisplayName = Constants.EBAY_DISPLAY_NAME;
     setLayout(new BorderLayout());
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
     jp.add(panelPack(buildUsernamePanel()), BorderLayout.NORTH);
-    jp.add(panelPack(buildBrowseTargetPanel()), BorderLayout.CENTER);
-    add(jp, BorderLayout.NORTH);
-    add(panelPack(buildCheckboxPanel()), BorderLayout.CENTER);
+    if(!quickConfig) {
+      jp.add(panelPack(buildBrowseTargetPanel()), BorderLayout.CENTER);
+      add(jp, BorderLayout.NORTH);
+      add(panelPack(buildCheckboxPanel()), BorderLayout.CENTER);
+    } else {
+      add(jp, BorderLayout.NORTH);
+      JPanel welcomeMessage = new JPanel();
+      welcomeMessage.setLayout(new BoxLayout(welcomeMessage, BoxLayout.Y_AXIS));
+      String prefix = "<html><body><center><em>";
+      String suffix = "</em></center></body></html>";
+      welcomeMessage.add(OptionUI.getHTMLLabel(prefix +
+          "Enter your username and password and click the <code>Save</code> button to get started!" +
+          suffix));
+      add(welcomeMessage, BorderLayout.CENTER);
+    }
   }
 }

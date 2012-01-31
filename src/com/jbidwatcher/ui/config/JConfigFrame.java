@@ -19,11 +19,8 @@ import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.ArrayList;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.JLabel;
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
 
 /**
  * Implements the "Configure" frames. This holds all the configuration options.
@@ -35,6 +32,9 @@ public class JConfigFrame implements ActionListener {
   private boolean buttonPressed = false;
   private List<JConfigTab> allTabs;
   private static int cfgCount = 1;
+  private static JButton advancedToggleButton;
+  private JConfigTab quickTab;
+  private JPanel cards;
 
   public void spinWait() {
     while(!buttonPressed) {
@@ -82,6 +82,26 @@ public class JConfigFrame implements ActionListener {
       JConfig.saveConfiguration();
     } else if(actionString.equals("Cancel")) {
       cancelAll();
+    } else if(actionString.equals("Advanced")) {
+      CardLayout swap = (CardLayout) cards.getLayout();
+      advancedToggleButton.setText("Quick");
+      advancedToggleButton.setActionCommand("Quick");
+      JConfig.setConfiguration("config.level", "advanced");
+
+      for (JConfigTab jct : allTabs) {
+        jct.updateValues();
+      }
+
+      swap.show(cards, ADVANCED_CARD);
+      return;
+    } else if(actionString.equals("Quick")) {
+      CardLayout swap = (CardLayout) cards.getLayout();
+      advancedToggleButton.setText("Advanced");
+      advancedToggleButton.setActionCommand("Advanced");
+      JConfig.setConfiguration("config.level", "quick");
+      quickTab.updateValues();
+      swap.show(cards, QUICK_CARD);
+      return;
     }
 
     mainFrame.setVisible(false);
@@ -96,9 +116,15 @@ public class JConfigFrame implements ActionListener {
     JButton saveButton = new JButton("Save");
     saveButton.setToolTipText("Apply changes and save settings.");
 
-    tp.add(cancelButton, BorderLayout.WEST);
-    tp.add(  saveButton, BorderLayout.CENTER);
+    boolean isInQuickMode = JConfig.queryConfiguration("config.level", "quick").equals("quick");
+    advancedToggleButton = new JButton(isInQuickMode ? "Advanced" : "Quick");
+    advancedToggleButton.setToolTipText("Switch between advanced and quick configuration");
 
+    tp.add(advancedToggleButton, BorderLayout.WEST);
+    tp.add(cancelButton, BorderLayout.CENTER);
+    tp.add(  saveButton, BorderLayout.EAST);
+
+    advancedToggleButton.addActionListener(al);
     cancelButton.addActionListener(al);
     saveButton.addActionListener(al);
 
@@ -108,6 +134,9 @@ public class JConfigFrame implements ActionListener {
   private static void anotherConfig() {
     cfgCount++;
   }
+
+  private static String QUICK_CARD = "Quick Configuration";
+  private static String ADVANCED_CARD = "Advanced Configuration";
 
   private JFrame createConfigFrame() {
     JTabbedPane jtpAllTabs = new JTabbedPane();
@@ -122,13 +151,26 @@ public class JConfigFrame implements ActionListener {
 
     Container contentPane = w.getContentPane();
     contentPane.setLayout(new BorderLayout());
-    contentPane.add(jtpAllTabs, BorderLayout.CENTER);
+    CardLayout swapper = new CardLayout();
+    cards = new JPanel(swapper);
+    contentPane.add(cards, BorderLayout.CENTER);
+    quickTab = new JConfigEbayTab(true);
+    JPanel quickPanel = new JPanel(new BorderLayout());
+    quickPanel.setBorder(BorderFactory.createTitledBorder(null, "Quick Start Configuration", TitledBorder.CENTER, TitledBorder.ABOVE_TOP));
+    quickPanel.add(quickTab, BorderLayout.CENTER);
+
+    // First added is default
+    cards.add(quickPanel, QUICK_CARD);
+    cards.add(jtpAllTabs, ADVANCED_CARD);
+    if(JConfig.queryConfiguration("config.level", "quick").equals("advanced")) {
+      swapper.show(cards, ADVANCED_CARD);
+    }
 
     allTabs = new ArrayList<JConfigTab>();
 
     //  Add all non-server-specific tabs here.
     allTabs.add(new JConfigGeneralTab());
-    allTabs.add(new JConfigEbayTab());
+    allTabs.add(new JConfigEbayTab(false));
 
     //  Stub the browser tab under MacOSX, so they don't try to use it.
     if(Platform.isMac()) {

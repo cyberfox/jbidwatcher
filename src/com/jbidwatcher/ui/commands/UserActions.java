@@ -79,6 +79,7 @@ public class UserActions implements MessageQueue.Listener {
   public static final String ADD_AUCTION="ADD ";
   private static final String GET_SERVER_TIME="GETTIME";
   private static final String SEARCH="SEARCH";
+  public static final String MY_EBAY="My eBay";
 
   public void messageAction(Object deQ) {
     if(deQ instanceof String) {
@@ -97,6 +98,8 @@ public class UserActions implements MessageQueue.Listener {
       String auctionSource = commandStr.substring(ADD_AUCTION.length());
 
       cmdAddAuction(auctionSource);
+    } else if(commandStr.equals(MY_EBAY)) {
+      DoGetMyeBay();
     } else if(commandStr.equals(GET_SERVER_TIME)) {
       /**
        * Resynchronize with the server's 'official' time, so as to make sure
@@ -1480,6 +1483,11 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
 
     else JConfig.log().logDebug('[' + actionString + ']');
+  }
+
+  private void DoGetMyeBay() {
+    AuctionQObject loadMyeBay = new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, "current");
+    MQFactory.getConcrete(AuctionServerManager.getInstance().getServer()).enqueueBean(loadMyeBay);
   }
 
   private SubmitLogDialog mLogSubmitDialog;

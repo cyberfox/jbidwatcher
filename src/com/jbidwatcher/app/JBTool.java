@@ -104,6 +104,7 @@ public class JBTool implements ToolInterface {
       MQFactory.getConcrete(mEbay).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
       try { Thread.sleep(120000); } catch(Exception ignored) { }
     } else if(mParseFile != null) {
+      JConfig.setHomeDirectory("./");
       buildAuctionEntryFromFile(mParseFile);
     } else {
       retrieveAndVerifyAuctions(mParams);
