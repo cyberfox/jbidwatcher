@@ -12,14 +12,14 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 public class Hyperactive implements HyperlinkListener {
-  JBEditorPane _pane;
-  public Hyperactive(JBEditorPane tPane) {
+  JEditorPane _pane;
+  public Hyperactive(JEditorPane tPane) {
     super();
     _pane = tPane;
   }
 
   public void hyperlinkUpdate(HyperlinkEvent e) {
-    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+    if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED)) {
       String desc = e.getDescription();
       if(desc != null)
       if (desc.startsWith("#")) {

@@ -11,6 +11,8 @@ import java.awt.event.*;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 import java.util.List;
 
 public class OptionUI {
@@ -331,13 +333,30 @@ public class OptionUI {
    * @return - The JFrame of the display.
    */
   public JFrame showChoiceTextDisplay(StringBuffer inSB, Dimension inSize, String frameName, List<String> choices, String borderTitle, ActionListener al) {
-    JBEditorPane jep = getBasicEditor(inSB, inSize, true, true);
+    JEditorPane jep = new JEditorPane();
+    HTMLEditorKit hek = new HTMLEditorKit();
+
+    jep.setEditable(false);
+    jep.setEditorKit(hek);
+    jep.addHyperlinkListener(new Hyperactive(jep));
+    jep.setPreferredSize(inSize);
+    jep.setMaximumSize(inSize);
+    jep.setMinimumSize(inSize);
 
     JFrame otherFrame = new JBidFrame(frameName);
-
     JPanel insidePanel = new JPanel(new BorderLayout());
-
     JScrollPane jsp = new JScrollPane(jep);
+    StyleSheet sheet = hek.getStyleSheet();
+    sheet.addRule(".smaller { font-size: 85%; }");
+    sheet.addRule(".banner { font-size: 110%; }");
+    sheet.addRule("body { font-family: Verdana, Geneva, Tahoma, sans-serif; }");
+    sheet.addRule("ul li { margin-bottom: 4px; }");
+    sheet.addRule(".changelog { color: #333333; margin-left: 20px; padding-left: 3px; background-color: #eeeeee; }");
+    sheet.addRule(".changelog h1 { font-size: 110%; }");
+
+    jep.setDocument(hek.createDefaultDocument());
+    jep.setText(inSB.toString());
+
     jsp.getVerticalScrollBar().setValue(0);
     otherFrame.setPreferredSize(inSize);
     otherFrame.setMaximumSize(inSize);

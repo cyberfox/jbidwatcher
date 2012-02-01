@@ -5,6 +5,7 @@ package com.jbidwatcher;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.xml.XMLElement;
@@ -24,6 +25,8 @@ public class UpdaterEntry extends XMLSerializeSimple {
   protected String _severity = "";
   protected String _description = ""; //  Optional
   protected String _url = "";
+  protected String _changelogURL = "";
+  protected String _changelog;
   protected boolean _valid;
   protected ArrayList<XMLInterface> mConfigChanges;
 
@@ -41,7 +44,9 @@ public class UpdaterEntry extends XMLSerializeSimple {
     }
 
     if(_valid && (loadedUpdate == null || loadedUpdate.length() == 0)) _valid = false;
-    if(_valid) loadFromString(loadedUpdate, packageName);
+    if(_valid) {
+      loadFromString(loadedUpdate, packageName);
+    }
   }
 
   public void loadFromString(StringBuffer sb, String packageName) {
@@ -62,7 +67,7 @@ public class UpdaterEntry extends XMLSerializeSimple {
 
   public XMLElement toXML() { throw new RuntimeException("toXML not supported by load-only class."); }
 
-  protected String[] infoTags = { "version", "severity", "description", "url", "config", "knownversion" };
+  protected String[] infoTags = { "version", "severity", "description", "url", "config", "knownversion", "changelog" };
   protected String[] getTags() { return infoTags; }
 
   protected void handleTag(int i, XMLElement curElement) {
@@ -111,6 +116,9 @@ public class UpdaterEntry extends XMLSerializeSimple {
         String known = curElement.getContents();
         if(known.equals(Constants.PROGRAM_VERS)) _version = known;
         break;
+      case 6:
+        _changelogURL = curElement.getContents();
+        break;
       default:
         //  Do absolutely nothing.  New tags (for later versions) should be
         //  ignored, and not cause errors.
@@ -123,12 +131,34 @@ public class UpdaterEntry extends XMLSerializeSimple {
   public String getDescription() { return _description; }
   public String getURL() { return _url; }
 
+  public URL getChangelogURL() {
+    if (_changelogURL != null && _changelogURL.length() != 0) {
+      try {
+        return new URL(_changelogURL);
+      } catch (MalformedURLException ignored) {
+        // This is ignored, and we return null.
+      }
+    }
+    return null;
+  }
+
+  public String getChangelog() {
+    URL changelog = getChangelogURL();
+
+    if(_changelog == null && changelog != null) {
+      _changelog = StringTools.cat(changelog);
+    }
+    return _changelog;
+  }
+
   public static void main(String[] args) {
-    UpdaterEntry ue = new UpdaterEntry("update", "http://www.jbidwatcher.com/jbidwatcher2.xml");
+    UpdaterEntry ue = new UpdaterEntry(Constants.PROGRAM_NAME.toLowerCase(), "http://www.jbidwatcher.com/jbidwatcher2.xml");
     System.out.println("Available version is: " + ue.getVersion());
     System.out.println("How strongly encouraged: " + ue.getSeverity());
     System.out.println("What is new/necessary: " + ue.getDescription());
     System.out.println("The URL to get that version at is: " + ue.getURL());
+    System.out.println("Changelog URL: " + ue.getChangelogURL().toString());
+    System.out.println("The changelog is: " + ue.getChangelog());
   }
 
   public boolean hasConfigurationUpdates() {

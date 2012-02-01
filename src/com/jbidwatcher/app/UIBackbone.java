@@ -355,8 +355,8 @@ public final class UIBackbone implements MessageQueue.Listener {
 
   private static final int ONEK = 1024;
 
-  private static final int UPDATE_FRAME_WIDTH = 512;
-  private static final int UPDATE_FRAME_HEIGHT = 350;
+  private static final int UPDATE_FRAME_WIDTH = 640;
+  private static final int UPDATE_FRAME_HEIGHT = 450;
 
   /**
    * @brief Announce that a new version is available, and let the user
@@ -369,17 +369,20 @@ public final class UIBackbone implements MessageQueue.Listener {
 
     final UpdaterEntry ue = UpdateManager.getInstance().getUpdateInfo();
     StringBuffer fullMsg = new StringBuffer(4 * ONEK);
-    fullMsg.append("<html><body>There is a new version available!<br>The new version is <b>");
-    fullMsg.append(ue.getVersion());
-    fullMsg.append("</b><br>");
-    fullMsg.append("Upgrading is ");
-    fullMsg.append(ue.getSeverity());
-    fullMsg.append("<br>The URL is <a href=\"");
-    fullMsg.append(ue.getURL());
-    fullMsg.append("\">");
-    fullMsg.append(ue.getURL());
-    fullMsg.append("</a><br><br>");
-    fullMsg.append(ue.getDescription()).append("</body></html>");
+    String icon = JConfig.getResource("/jbidwatch64.jpg").toString();
+    fullMsg.append("<html><body><table><tr><td><img src=\"" + icon + "\"></td>");
+    fullMsg.append("<td valign=\"top\"><span class=\"banner\"><b>A new version of " + Constants.PROGRAM_NAME + " is available!</b></span><br>");
+    fullMsg.append("<span class=\"smaller\">" + Constants.PROGRAM_NAME + " <b>").append(ue.getVersion());
+    fullMsg.append("</b> is now available. Would you like to <a href=\"" + ue.getURL() + "\">download it now?</a><br><br>");
+    fullMsg.append("Upgrading is <em>").append(ue.getSeverity()).append("</em></span></td></tr></table>");
+    fullMsg.append("<p><b>Release Notes:</b></p><div class=\"changelog\">");
+    String changelog = ue.getChangelog();
+    if(changelog == null) {
+      fullMsg.append(ue.getDescription());
+    } else {
+      fullMsg.append(changelog);
+    }
+    fullMsg.append("</div></body></html>");
 
     MyActionListener mal = new MyActionListener() {
       private final String go_to = ue.getURL();
