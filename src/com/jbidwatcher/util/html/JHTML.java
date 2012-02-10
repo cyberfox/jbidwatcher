@@ -55,6 +55,47 @@ public class JHTML implements JHTMLListener {
     m_contentIndex = 0;
   }
 
+  public Map extractMicroformat() {
+    XMLElement xe = new XMLElement();
+    String currentProperty = null;
+    Map rval = new HashMap();
+    htmlToken tok;
+
+    while((tok = nextToken()) != null) {
+      int type = tok.getTokenType();
+
+      if(type == htmlToken.HTML_TAG || type == htmlToken.HTML_SINGLETAG) {
+        if(tok.getToken().startsWith("!")) continue;
+
+        try {
+          xe.reset();
+          xe.parseString("<" + tok.getToken() + "/>");
+        } catch(XMLParseException xpe) {
+          JConfig.log().logVerboseDebug("eBay's HTML still sucks.");
+          continue;
+        }
+        String itemprop = xe.getProperty("itemprop");
+        if(itemprop != null) {
+          String content = xe.getProperty("content");
+          if (content != null) {
+            rval.put(itemprop, content);
+          } else {
+            currentProperty = itemprop;
+          }
+        } else if(xe.getTagName().equals("meta")) {
+          String property = xe.getProperty("property");
+          if(property != null && property.startsWith("og:")) {
+            rval.put(property.substring(3), xe.getProperty("content"));
+          }
+        }
+      } else if(type == htmlToken.HTML_CONTENT && currentProperty != null) {
+        rval.put(currentProperty, tok.toString());
+        currentProperty = null;
+      }
+    }
+    return rval;
+  }
+
   private static class intPair {
     private int first;
     private int second;

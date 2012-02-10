@@ -77,6 +77,13 @@ public class JBTool implements ToolInterface {
     }
   }
 
+  private Map testMicroformats(String file) {
+    StringBuffer sb = new StringBuffer(StringTools.cat(file));
+    JHTML hDoc = new JHTML(sb);
+
+    return hDoc.extractMicroformat();
+  }
+
   private void testSearching() {
     Searcher sm = SearchManager.getInstance().addSearch("Title", "zarf", "zarf", "ebay", -1, 12345678);
     sm.execute();
@@ -133,9 +140,11 @@ public class JBTool implements ToolInterface {
   private void buildAuctionEntryFromFile(String fname) {
     StringBuffer sb = new StringBuffer(StringTools.cat(fname));
     try {
+      long start = System.currentTimeMillis();
       AuctionInfo ai = mEbay.doParse(sb);
       AuctionEntry ae = EntryFactory.getInstance().constructEntry();
       ae.setAuctionInfo(ai);
+      System.out.println("Took: " + (System.currentTimeMillis() - start));
       JConfig.log().logMessage(ae.toXML().toString());
     } catch (Exception e) {
       JConfig.log().handleException("Failed to load auction from file: " + fname, e);
@@ -240,6 +249,11 @@ public class JBTool implements ToolInterface {
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);
       if(option.startsWith("password=")) mPassword = option.substring(9);
+      if(option.startsWith("mfparse=")) {
+        long start = System.currentTimeMillis();
+        dumpMap(testMicroformats(option.substring(8)));
+        System.out.println("Took: " + (System.currentTimeMillis() - start));
+      }
       if(option.startsWith("file=")) mParseFile = option.substring(5);
       if(option.startsWith("bidfile=")) testBidHistory(option.substring(8));
       if(option.startsWith("adult")) JConfig.setConfiguration("ebay.mature", "true");
@@ -270,5 +284,24 @@ public class JBTool implements ToolInterface {
   public void forceLogin() {
     mEbay.forceLogin();
     if(mEbayUK != null) mEbayUK.forceLogin();
+  }
+
+  private void dumpMap(Map m) {
+    dumpMap(m, 0);
+    System.out.println();
+  }
+
+  private void dumpMap(Map m, int offset) {
+    System.out.println("{");
+    for (Object o : m.keySet()) {
+      Object value = m.get(o);
+      if (value instanceof String) {
+        System.out.println("\"" + o.toString() + "\" => \"" + value.toString().replace("\"", "\\\"") + "\"");
+      } else if (value instanceof Map) {
+        System.out.print("\"" + o.toString() + "\" => ");
+        dumpMap((Map) value, offset + 2);
+      }
+    }
+    System.out.print("}");
   }
 }

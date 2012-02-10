@@ -1359,4 +1359,12 @@ public class XMLElement implements XMLSerialize, XMLInterface {
     _empty = inXML._empty;
     _contents = inXML._contents;
   }
+
+  public void reset() {
+    _tagName = null;
+    _contents = null;
+    _attributes.clear();
+    mChildren.clear();
+    _lineNr = 0;
+  }
 }
