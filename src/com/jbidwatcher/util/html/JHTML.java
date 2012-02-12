@@ -104,7 +104,7 @@ public class JHTML implements JHTMLListener {
           }
         }
       } else if(type == htmlToken.HTML_CONTENT && currentProperty != null) {
-        if(!currentContent.isEmpty()) currentContent += " ";
+        if(currentContent.length() != 0) currentContent += " ";
         currentContent += tok.toString();
       }
     }
