@@ -51,6 +51,7 @@
   <path id="project.class.path">
     <pathelement path="${build.dir}" />
     <pathelement path="${src.dir}" />
+    <pathelement path="${lib.dir}/annotations.jar" />
     <pathelement path="${lib.dir}/apple.jar" />
     <pathelement path="${lib.dir}/derby.jar" />
     <pathelement path="${lib.dir}/mahalo.jar" />

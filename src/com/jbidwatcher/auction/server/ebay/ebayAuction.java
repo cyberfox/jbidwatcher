@@ -10,6 +10,7 @@ import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.html.htmlToken;
 import com.jbidwatcher.util.Constants;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 import java.util.List;
@@ -29,8 +30,10 @@ class ebayAuction extends SpecificAuction {
   String mStartComment = null;
   private static final int TITLE_LENGTH = 60;
   private static final int HIGH_BIT_SET = 0x80;
-  private final Pattern thumbnailPattern1 = Pattern.compile(Externalized.getString("ebayServer.thumbSearch"), Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-  private final Pattern thumbnailPattern2 = Pattern.compile(Externalized.getString("ebayServer.thumbSearch2"), Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+  private final Pattern thumbnailPattern1 = Pattern.compile(Externalized.getString("ebayServer.thumbSearch"),
+      Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+  private final Pattern thumbnailPattern2 = Pattern.compile(Externalized.getString("ebayServer.thumbSearch2"),
+      Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
   private TT T;
 
   protected ebayAuction(TT countryProperties) {
@@ -60,8 +63,13 @@ class ebayAuction extends SpecificAuction {
 
     //  We ignore the result of this, because it's just useful if it
     //  works, it's not critical.
-    StringTools.deleteFirstToLast(sb, Externalized.getString("ebayServer.description"), Externalized.getString("ebayServer.descriptionMotors"), Externalized.getString("ebayServer.descriptionEnd"), Externalized.getString("ebayServer.descriptionClosedEnd"));
-    StringTools.deleteFirstToLast(sb, Externalized.getString("ebayServer.descStart"), Externalized.getString("ebayServer.descriptionMotors"), Externalized.getString("ebayServer.descEnd"), Externalized.getString("ebayServer.descriptionClosedEnd"));
+    StringTools.deleteFirstToLast(sb, Externalized.getString("ebayServer.description"),
+        Externalized.getString("ebayServer.descriptionMotors"),
+        Externalized.getString("ebayServer.descriptionEnd"),
+        Externalized.getString("ebayServer.descriptionClosedEnd"));
+    StringTools.deleteFirstToLast(sb, Externalized.getString("ebayServer.descStart"),
+        Externalized.getString("ebayServer.descriptionMotors"), Externalized.getString("ebayServer.descEnd"),
+        Externalized.getString("ebayServer.descriptionClosedEnd"));
 
     String skimOver = sb.toString();
 
@@ -225,7 +233,8 @@ class ebayAuction extends SpecificAuction {
 
     //  Default to thinking it's optional if the word 'required' isn't found.
     //  You don't want to make people think it's required if it's not.
-    setInsuranceOptional(insuranceOptionalCheck == null || (insuranceOptionalCheck.toLowerCase().indexOf(T.s("ebayServer.requiredInsurance")) == -1));
+    setInsuranceOptional(insuranceOptionalCheck == null ||
+        (insuranceOptionalCheck.toLowerCase().indexOf(T.s("ebayServer.requiredInsurance")) == -1));
 
     insureString = sanitizeOptionalPrices(insureString);
 
@@ -351,29 +360,36 @@ class ebayAuction extends SpecificAuction {
     }
   }
 
+  /**
+   * Check for Paypal support.
+   *
+   * @param doc - The document to search for Paypal references in.
+   */
   private void loadPaypal(JHTML doc) {
     String pbp = getResult(doc, T.s("ebayServer.paypalMatcherRegex"), 0);
-    if(pbp != null) {
-      setPaypal(true);
-    } else {
+    boolean usePaypal = (pbp != null);
+
+    if(!usePaypal) {
       String preferred = doc.getNextContentAfterRegex("PayPal.?");
       if(preferred != null) {
-        if(preferred.indexOf("preferred") != -1) setPaypal(true);
-        if(preferred.indexOf("accepted") != -1) setPaypal(true);
+        if(preferred.indexOf("preferred") != -1) usePaypal = true;
+        if(preferred.indexOf("accepted") != -1) usePaypal = true;
       }
       String methods = doc.getNextContentAfterRegex("Payment methods:?");
       //  If it's not the first payment method...
       //  It might be the second.
       int i=0;
       while (i<3 && !hasPaypal()) {
-        if (methods != null && methods.equalsIgnoreCase("paypal")) setPaypal(true);
+        if (methods != null && methods.equalsIgnoreCase("paypal")) usePaypal = true;
         else methods = doc.getNextContent();
         i++;
       }
     }
 
     String payments = doc.getNextContentAfterContent("Payments:");
-    if (payments != null && payments.matches("(?si).*paypal.*")) setPaypal(true);
+    if (payments != null && payments.matches("(?si).*paypal.*")) usePaypal = true;
+
+    setPaypal(usePaypal);
   }
 
   private void loadFeedback(JHTML doc) {
@@ -435,11 +451,6 @@ class ebayAuction extends SpecificAuction {
     } catch (ParseException e) {
       finish();
       return e.getError();
-    }
-
-    if(prelimTitle == null) {
-      finish();
-      return ParseErrors.BAD_TITLE;
     }
 
     if(getIdentifier() == null && (ae == null || ae.getIdentifier() == null)) {
@@ -554,18 +565,97 @@ class ebayAuction extends SpecificAuction {
   }
 
   /**
-   * Sets title, and possibly end.
+   * Use the page title to extract several different pieces of information,
+   * and recognize bad pages.  The auction name is also in the title, so we
+   * extract that.  If the end date is available (not really any longer as
+   * of the end of 2011), we set that as well.
    *
    * @return - The preliminary extraction of the title, in its entirety, for later parsing.  null if a failure occurred.
-   * @throws com.jbidwatcher.auction.server.ebay.ebayAuction.ParseException - An exception that describes what's wrong with the title.
+   * @throws com.jbidwatcher.auction.server.ebay.ebayAuction.ParseException - An exception that describes what's wrong with the title/listing.
    */
+  @NotNull
   private String checkTitle() throws ParseException {
+    //  This throws a ParseException if it's an invalid title
+    String prelimTitle = validateTitle();
+
+    //  If we made it past the validity check, mark the link as up.
+    MQFactory.getConcrete("Swing").enqueue("LINK UP");
+
+    boolean ebayMotors = false;
+    if(prelimTitle.matches(T.s("ebayServer.ebayMotorsTitle"))) ebayMotors = true;
+    //  This is mostly a hope, not a guarantee, as eBay might start
+    //  cross-advertising eBay Motors in their normal pages, or
+    //  something.
+    if(doesLabelExist(T.s("ebayServer.ebayMotorsTitle"))) ebayMotors = true;
+
+    setEnd(null);
+    setTitle(null);
+
+    if(prelimTitle.matches(T.s("ebayServer.titleEbay4"))) {
+      // Big Head Bighead-Zarf's Zubrick. US SEALED PRIVATE LP | eBay
+      prelimTitle = prelimTitle.replaceAll(".\\|.eBay(.UK)?", "");
+
+      setTitle(StringTools.decode(prelimTitle, mDocument.getCharset()));
+
+      extractEndDate();
+    } else if(prelimTitle.matches(T.s("ebayServer.titleEbay2")) ||
+      //  This sucks.  They changed to: eBay: {title} (item # end time {endtime})
+      prelimTitle.matches(T.s("ebayServer.titleMotors2"))) {
+      //  Handle the new titles.
+      Pattern newTitlePat = Pattern.compile(T.s("ebayServer.titleMatch"));
+      Matcher newTitleMatch = newTitlePat.matcher(prelimTitle);
+      if (newTitleMatch.find()) {
+        setTitle(StringTools.decode(newTitleMatch.group(1), mDocument.getCharset()));
+        String endDate = newTitleMatch.group(4);
+        if(getEnd() != null) setEnd(StringTools.figureDate(endDate, T.s("ebayServer.dateFormat")).getDate());
+      }
+    }
+
+    if(getTitle() == null) {
+      boolean htmlTitle = false;
+      //  The first element after the title is always the description.  Unfortunately, it's in HTML-encoded format,
+      //  so there are &lt;'s, and such.  While I could translate that, that's something I can wait on.  --  HACKHACK
+      //      title = (String)contentFields.get(1);
+      //  For now, just load from the title, everything after ') - '.
+      int titleIndex = prelimTitle.indexOf(") - ");
+      if(titleIndex == -1) {
+        titleIndex = prelimTitle.indexOf(") -");
+        //  This is an HTML title...  Suck.
+        htmlTitle = true;
+      }
+
+      //  Always convert, at this point, from iso-8859-1 (iso latin-1) to UTF-8.
+      if(htmlTitle) {
+        setTitle(StringTools.decode(buildTitle(mDocument), mDocument.getCharset()));
+      } else {
+        setTitle(StringTools.decode(prelimTitle.substring(titleIndex+4).trim(), mDocument.getCharset()));
+      }
+    }
+
+    if(getTitle().length() == 0) setTitle("(bad title)");
+    setTitle(JHTML.deAmpersand(getTitle()));
+
+    // eBay Motors titles are really a combination of the make/model,
+    // and the user's own text.  Under BIBO, the user's own text is
+    // below the 'description' fold.  For now, we don't get the user
+    // text.
+    if(ebayMotors) {
+      extractMotorsTitle();
+    }
+
+    return prelimTitle;
+  }
+
+  private String validateTitle() throws ParseException {
     String prelimTitle = mDocument.getTitle();
-    if( prelimTitle == null) {
+    if(prelimTitle == null) {
       if(mDocument.grep("(?si).*not available for purchase on eBay United States.*") != null) {
         prelimTitle = T.s("ebayServer.invalidItem");
-      } else prelimTitle = T.s("ebayServer.unavailable");
+      } else {
+        prelimTitle = T.s("ebayServer.unavailable");
+      }
     }
+
     if(prelimTitle.equals(T.s("ebayServer.adultPageTitle")) || prelimTitle.indexOf("Terms of Use") != -1) {
       throw new ParseException(ParseErrors.NOT_ADULT);
     }
@@ -574,7 +664,7 @@ class ebayAuction extends SpecificAuction {
       String realListing = mDocument.getLinkForContent(T.s("view.original.listing"));
       if(realListing != null) {
         setURL(realListing);
-        throw new ParseException(ParseErrors.WRONG_SITE);        
+        throw new ParseException(ParseErrors.WRONG_SITE);
       }
       throw new ParseException(ParseErrors.DELETED);
     }
@@ -584,7 +674,7 @@ class ebayAuction extends SpecificAuction {
     }
 
     //  Is this a valid eBay item page?
-    if(prelimTitle != null && !checkValidTitle(prelimTitle)) {
+    if(!checkValidTitle(prelimTitle)) {
       handleBadTitle(prelimTitle);
       if(getURL() != null) {
         throw new ParseException(ParseErrors.WRONG_SITE);
@@ -592,98 +682,35 @@ class ebayAuction extends SpecificAuction {
         throw new ParseException(ParseErrors.BAD_TITLE);
       }
     }
+    return prelimTitle;
+  }
 
-    if(prelimTitle != null) {
-      //  If we got a valid title, mark the link as up, because it worked...
-      MQFactory.getConcrete("Swing").enqueue("LINK UP");
+  private void extractEndDate() {JHTML.SequenceResult time_left = mDocument.findSequence("^\\(.*$", "^.*\\)$");
+    ZoneDate endDate = null;
+    if(time_left != null) {
+      do {
+        String endTime = time_left.get(0) + " " + time_left.get(1);
+        endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
+        time_left = mDocument.findNextSequence(time_left);
+      } while ((endDate == null || endDate.isNull()) && time_left != null);
+    }
 
-      boolean ebayMotors = false;
-      if(prelimTitle.matches(T.s("ebayServer.ebayMotorsTitle"))) ebayMotors = true;
-      //  This is mostly a hope, not a guarantee, as eBay might start
-      //  cross-advertising eBay Motors in their normal pages, or
-      //  something.
-      if(doesLabelExist(T.s("ebayServer.ebayMotorsTitle"))) ebayMotors = true;
-
-      setEnd(null);
-      setTitle(null);
-
-      if(prelimTitle.matches(T.s("ebayServer.titleEbay4"))) {
-        // Big Head Bighead-Zarf's Zubrick. US SEALED PRIVATE LP | eBay
-        prelimTitle = prelimTitle.replaceAll(".\\|.eBay(.UK)?", "");
-        setTitle(StringTools.decode(prelimTitle, mDocument.getCharset()));
-//        List<String> time_left = mDocument.findSequence("^\\((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec).[0-9]+,.[0-9]+$", "^[0-9]+:[0-9]+:[0-9]+.*\\)$");
-        JHTML.SequenceResult time_left = mDocument.findSequence("^\\(.*$", "^.*\\)$");
-        ZoneDate endDate = null;
-        if(time_left != null) {
-          do {
-            String endTime = time_left.get(0) + " " + time_left.get(1);
-            endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
-            time_left = mDocument.findNextSequence(time_left);
-          } while ((endDate == null || endDate.isNull()) && time_left != null);
-        }
-
-        if(endDate == null || endDate.isNull()) {
-          time_left = mDocument.findSequence("Ended:", ".*", ".*");
-          if(time_left != null) {
-            String endTime = "(" + time_left.get(1) + " " + time_left.get(2) + ")";
-            endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
-            if (endDate != null && !endDate.isNull()) {
-              //  Mark this as completed?
-            }
-          }
-        }
-
+    if(endDate == null || endDate.isNull()) {
+      time_left = mDocument.findSequence("Ended:", ".*", ".*");
+      if(time_left != null) {
+        String endTime = "(" + time_left.get(1) + " " + time_left.get(2) + ")";
+        endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
         if (endDate != null && !endDate.isNull()) {
-          setEnd(endDate.getDate());
-        } else {
-          setEnd(null);
+          //  Mark this as completed?
         }
-      } else if(prelimTitle.matches(T.s("ebayServer.titleEbay2")) ||
-        //  This sucks.  They changed to: eBay: {title} (item # end time {endtime})
-        prelimTitle.matches(T.s("ebayServer.titleMotors2"))) {
-        //  Handle the new titles.
-        Pattern newTitlePat = Pattern.compile(T.s("ebayServer.titleMatch"));
-        Matcher newTitleMatch = newTitlePat.matcher(prelimTitle);
-        if (newTitleMatch.find()) {
-          setTitle(StringTools.decode(newTitleMatch.group(1), mDocument.getCharset()));
-          String endDate = newTitleMatch.group(4);
-          if(getEnd() != null) setEnd(StringTools.figureDate(endDate, T.s("ebayServer.dateFormat")).getDate());
-        }
-      }
-
-      if(getTitle() == null) {
-        boolean htmlTitle = false;
-        //  The first element after the title is always the description.  Unfortunately, it's in HTML-encoded format,
-        //  so there are &lt;'s, and such.  While I could translate that, that's something I can wait on.  --  HACKHACK
-        //      title = (String)contentFields.get(1);
-        //  For now, just load from the title, everything after ') - '.
-        int titleIndex = prelimTitle.indexOf(") - ");
-        if(titleIndex == -1) {
-          titleIndex = prelimTitle.indexOf(") -");
-          //  This is an HTML title...  Suck.
-          htmlTitle = true;
-        }
-
-        //  Always convert, at this point, from iso-8859-1 (iso latin-1) to UTF-8.
-        if(htmlTitle) {
-          setTitle(StringTools.decode(buildTitle(mDocument), mDocument.getCharset()));
-        } else {
-          setTitle(StringTools.decode(prelimTitle.substring(titleIndex+4).trim(), mDocument.getCharset()));
-        }
-      }
-
-      if(getTitle().length() == 0) setTitle("(bad title)");
-      setTitle(JHTML.deAmpersand(getTitle()));
-
-      // eBay Motors titles are really a combination of the make/model,
-      // and the user's own text.  Under BIBO, the user's own text is
-      // below the 'description' fold.  For now, we don't get the user
-      // text.
-      if(ebayMotors) {
-        extractMotorsTitle();
       }
     }
-    return prelimTitle;
+
+    if (endDate != null && !endDate.isNull()) {
+      setEnd(endDate.getDate());
+    } else {
+      setEnd(null);
+    }
   }
 
   /**
@@ -693,7 +720,9 @@ class ebayAuction extends SpecificAuction {
    * @param ae - The old auction, in case we need to fall back because we can't figure out the ending date.
    */
   private void checkDates(String prelimTitle, AuctionEntry ae) {
-    setStart(StringTools.figureDate(mDocument.getNextContentAfterRegexIgnoring(T.s("ebayServer.startTime"), T.s("ebayServer.postTitleIgnore")), T.s("ebayServer.dateFormat")).getDate());
+    setStart(StringTools.figureDate(
+        mDocument.getNextContentAfterRegexIgnoring(T.s("ebayServer.startTime"), T.s("ebayServer.postTitleIgnore")),
+        T.s("ebayServer.dateFormat")).getDate());
     if (getStart() == null) {
       setStart(StringTools.figureDate(mStartComment, T.s("ebayServer.dateFormat")).getDate());
     }
@@ -706,7 +735,8 @@ class ebayAuction extends SpecificAuction {
 
     //  Handle odd case...
     if (getEnd() == null) {
-      setEnd(StringTools.figureDate(mDocument.getNextContentAfterRegex(T.s("ebayServer.endsPrequel")), T.s("ebayServer.dateFormat")).getDate());
+      setEnd(StringTools.figureDate(mDocument.getNextContentAfterRegex(T.s("ebayServer.endsPrequel")),
+          T.s("ebayServer.dateFormat")).getDate());
       if (getEnd() == null) {
         String postContent = mDocument.getNextContent().replaceAll("[()]", "");
         setEnd(StringTools.figureDate(postContent, T.s("ebayServer.dateFormat")).getDate());
@@ -787,7 +817,7 @@ class ebayAuction extends SpecificAuction {
       String foundBid = mDocument.getNextContentAfterRegex(T.s("ebayServer.currentBid"));
       if(foundBid != null) cvtCur = Currency.getCurrency(foundBid);
     }
-    if(cvtCur != null) setCurBid(cvtCur);
+    if(cvtCur != null && !cvtCur.isNull()) setCurBid(cvtCur);
     setUSCur(getUSCurrency(getCurBid(), mDocument));
 
     if(getCurBid() == null || getCurBid().isNull()) {
@@ -799,7 +829,7 @@ class ebayAuction extends SpecificAuction {
 
     setMinBid(Currency.getCurrency(mDocument.getNextContentAfterContent(T.s("ebayServer.firstBid"))));
     Currency maxBid = Currency.getCurrency(mDocument.getNextContentAfterContent(T.s("ebayServer.yourMaxBid")));
-    if(maxBid != null && maxBid.getCurrencyType() == Currency.NONE) maxBid = Currency.NoValue();
+    if(maxBid.isNull()) maxBid = Currency.NoValue();
 
     Currency preMin = (ae != null) ? ae.getMinBid() : Currency.NoValue();
     if(getMinBid().isNull()) setMinBid(preMin);

@@ -6,6 +6,7 @@ package com.jbidwatcher.util;
  */
 
 import com.jbidwatcher.util.config.JConfig;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -190,6 +191,7 @@ public class Currency implements Comparable {
     return !getCurrency(test).isNull();
   }
 
+  @NotNull
   public static Currency getCurrency(String wholeValue) {
     if(wholeValue == null || wholeValue.length() == 0 || wholeValue.startsWith("UNK")) return NoValue();
 
