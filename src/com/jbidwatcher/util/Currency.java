@@ -16,7 +16,7 @@ import java.beans.PersistenceDelegate;
 import java.beans.DefaultPersistenceDelegate;
 
 public class Currency implements Comparable {
-  public static final String VALUE_REGEX="^(\\s\\$)?[0-9]+([,.0-9]*)$";
+  public static final String VALUE_REGEX="^(\\s?\\$)?[0-9]+([,.0-9]*)$";
   public static final String NAME_REGEX = "(USD|GBP|JPY|CHF|FRF|EUR|CAD|AUD|NTD|TWD|HKD|MYR|SGD|INR|US)";
 
   private static NumberFormat df = NumberFormat.getNumberInstance(Locale.US); // We create a lot of these, so minimizing memory usage is good.

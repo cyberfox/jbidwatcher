@@ -60,9 +60,22 @@ public class JHTML implements JHTMLListener {
     String currentProperty = null;
     Map rval = new HashMap();
     htmlToken tok;
+    int balance = 0;
 
+    String currentContent = null;
     while((tok = nextToken()) != null) {
       int type = tok.getTokenType();
+
+      if(currentProperty != null) {
+        if(type == htmlToken.HTML_TAG) balance++;
+        if(type == htmlToken.HTML_ENDTAG) {
+          balance--;
+          if(balance == 0) {
+            rval.put(currentProperty, currentContent);
+            currentProperty = null;
+          }
+        }
+      }
 
       if(type == htmlToken.HTML_TAG || type == htmlToken.HTML_SINGLETAG) {
         if(tok.getToken().startsWith("!")) continue;
@@ -81,6 +94,8 @@ public class JHTML implements JHTMLListener {
             rval.put(itemprop, content);
           } else {
             currentProperty = itemprop;
+            currentContent = "";
+            balance = 1;
           }
         } else if(xe.getTagName().equals("meta")) {
           String property = xe.getProperty("property");
@@ -89,8 +104,8 @@ public class JHTML implements JHTMLListener {
           }
         }
       } else if(type == htmlToken.HTML_CONTENT && currentProperty != null) {
-        rval.put(currentProperty, tok.toString());
-        currentProperty = null;
+        if(!currentContent.isEmpty()) currentContent += " ";
+        currentContent += tok.toString();
       }
     }
     return rval;

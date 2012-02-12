@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -461,6 +462,20 @@ class ebayAuction extends SpecificAuction {
 
     //  Get the integer values (Quantity, Bidcount)
     setQuantity(quant == null ? 1 : quant);
+    Map microFormat = mDocument.extractMicroformat();
+    if(microFormat.containsKey("price")) {
+      setCurBid(Currency.getCurrency((String)microFormat.get("price")));
+    }
+
+    if(microFormat.containsKey("image")) {
+      String imageURL = (String) microFormat.get("image");
+      if(imageURL != null) {
+        if(imageURL.matches(".*_\\d+\\.[a-zA-Z]+")) {
+          imageURL = imageURL.replaceFirst("_\\d+\\.", "_10.");
+        }
+        setThumbnailURL(imageURL);
+      }
+    }
 
     checkBuyNowOrFixedPrice();
 
@@ -812,7 +827,16 @@ class ebayAuction extends SpecificAuction {
     //  'Winning bid' so far.
     List<String> curBidSequence = mDocument.findSequence(T.s("ebayServer.currentBid"), Currency.NAME_REGEX, Currency.VALUE_REGEX);
     if (curBidSequence != null) {
-      cvtCur = Currency.getCurrency(curBidSequence.get(1), curBidSequence.get(2));
+      String currency = curBidSequence.get(1);
+      String value = curBidSequence.get(2);
+
+      if(StringTools.isNumberOnly(value)) {
+        // <span><font>GBP</font>22.50</span>
+        cvtCur = Currency.getCurrency(currency.trim(), value.trim());
+      } else {
+        // <span><font>US</font> $22.50</span>
+        cvtCur = Currency.getCurrency(currency.trim() + " " + value.trim());
+      }
     } else {
       String foundBid = mDocument.getNextContentAfterRegex(T.s("ebayServer.currentBid"));
       if(foundBid != null) cvtCur = Currency.getCurrency(foundBid);
