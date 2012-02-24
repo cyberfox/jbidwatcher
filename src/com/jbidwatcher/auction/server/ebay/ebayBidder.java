@@ -67,6 +67,7 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       mResultHash.put("your new total must be higher than your current total", AuctionServer.BID_ERROR_TOO_LOW_SELF);
       mResultHash.put("this exceeds or is equal to your current bid", AuctionServer.BID_ERROR_TOO_LOW_SELF);
       mResultHash.put("you (just )?bought this item", AuctionServer.BID_BOUGHT_ITEM);
+      mResultHash.put("You('ve| have) purchased more than one of these items", AuctionServer.BID_BOUGHT_ITEM);
       mResultHash.put("you committed to buy", AuctionServer.BID_BOUGHT_ITEM);
       mResultHash.put("congratulations! you won!", AuctionServer.BID_BOUGHT_ITEM);
       mResultHash.put("account suspended", AuctionServer.BID_ERROR_ACCOUNT_SUSPENDED);
@@ -128,6 +129,11 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
         List<String> foo = rval.getDocument().findSequence(".*Enter.*", ".*or more.*");
         JConfig.log().dump2File("error-" + ebayServer.BID_ERROR_TOO_LOW + ".html", rval.getBuffer());
         throw new BadBidException(foo.get(0) + " " + foo.get(1), ebayServer.BID_ERROR_TOO_LOW);
+      }
+      List<String> quickBidError = rval.getDocument().findSequence("error", "Enter.(.*).or more");
+      if(quickBidError != null) {
+        JConfig.log().dump2File("error-" + ebayServer.BID_ERROR_TOO_LOW + ".html", rval.getBuffer());
+        throw new BadBidException(quickBidError.get(1), ebayServer.BID_ERROR_TOO_LOW);
       }
 
       // If maxbid wasn't set, log it in the log file so we can debug it later.
