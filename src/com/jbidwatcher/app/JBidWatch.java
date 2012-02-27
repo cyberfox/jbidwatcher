@@ -429,6 +429,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       if (e.getMessage().matches("^Failed to start database.*")) {
         JConfig.log().handleException("JBidwatcher can't access it's database.", e);
         JOptionPane.showMessageDialog(null, "JBidwatcher can't access its database.\nPlease check to see if you are running another instance.", "Can't access auction database", JOptionPane.PLAIN_MESSAGE);
+        JConfig.stopMetrics();
         System.exit(0);
       }
       JConfig.log().handleException("Upgrading error", e);
@@ -740,6 +741,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       JConfig.log().handleException("timeQueue interrupted", e);
     }
     internal_shutdown();
+    JConfig.stopMetrics();
     System.exit(0);
   }
 
