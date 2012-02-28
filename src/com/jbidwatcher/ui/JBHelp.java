@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.net.URL;
 
+import com.github.rjeschke.txtmark.Processor;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.Constants;
@@ -26,16 +27,32 @@ public class JBHelp {
   private JBHelp() {
   }
 
-  public static StringBuffer loadHelp(String helpPath, String title) {
+  public static StringBuffer loadHelp(String helpPath, String bodyPath, String title) {
     StringBuffer outSB = null;
+    String body = null;
+
+    //  First convert markdown to HTML for the body.
+    if(bodyPath != null) {
+      try {
+        URL bodyResource = JConfig.getResource(bodyPath);
+        String originalBody = Http.net().receivePage(bodyResource.openConnection()).toString();
+        body = Processor.process(originalBody);
+      } catch (IOException e) {
+        JConfig.log().logDebug("Couldn't load " + bodyPath + " for reading.");
+      }
+    }
 
     try {
       URL resource = JConfig.getResource(helpPath);
-      if(resource != null) outSB = new StringBuffer(preprocess(Http.net().receivePage(resource.openConnection()), title));
-    } catch(IOException ignored) {
+      if (resource != null) outSB = new StringBuffer(preprocess(Http.net().receivePage(resource.openConnection()), body, title));
+    } catch (IOException ignored) {
       outSB = null;
     }
     return outSB;
+  }
+
+  public static StringBuffer loadHelp(String helpPath, String title) {
+    return loadHelp(helpPath, null, title);
   }
 
   private static String genTOC(StringBuffer data) {
@@ -57,12 +74,14 @@ public class JBHelp {
     return toc.toString();
   }
 
-  public static String preprocess(StringBuffer helpBuf, String title) {
+  public static String preprocess(StringBuffer helpBuf, String body, String title) {
     String munge = helpBuf.toString();
+    String safeBody = (body == null) ? "" : body;
 
     String toc = genTOC(helpBuf);
     String headImage = JConfig.getResource(HEAD_LOC).toString();
     munge = munge.replaceAll("<%que ([0-9]+)%>", "<%que%><a name=\"Q$1\">").
+        replaceAll("<%body%>", Matcher.quoteReplacement(safeBody)).
         replaceAll("<%toc%>", Matcher.quoteReplacement(toc)).
         replaceAll("<%pname%>", Matcher.quoteReplacement(Constants.PROGRAM_NAME)).
         replaceAll("<%ver%>", Matcher.quoteReplacement(Constants.PROGRAM_VERS+"-"+Constants.REVISION())).

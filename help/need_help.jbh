@@ -3,60 +3,12 @@
 <table border="0" cellspacing="0" cellpadding="0" cols="2" width="100%">
   <tr>
     <td width="72" valign="top"><a href="http://www.jbidwatcher.com"><img src="<%jay%>"></a></td>
-    <td><%pname%> (<%ver%>) - Manage your auctions and bids<br><br>by Morgan Schweers</td>
+    <td>JBidwatcher (<%ver%>) - Manage your auctions and bids<br><br>by Morgan Schweers</td>
   </tr>
 </table>
-<br>
-<b>I'm the author of JBidwatcher, and I need your help.</b><br>
-<br>
-Please support JBidwatcher with a donation of
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=cyberfox%40jbidwatcher.com&item_name=JBidwatcher+Software&cn=Personal+message+to+Morgan&amount=20.00&no_shipping=1&return=http%3A//www.jbidwatcher.com/donation_thanks.html">$20</a>,
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=cyberfox%40jbidwatcher.com&item_name=JBidwatcher+Software&cn=Personal+message+to+Morgan&amount=10.00&no_shipping=1&return=http%3A//www.jbidwatcher.com/donation_thanks.html">$10</a>,
-or <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=cyberfox%40jbidwatcher.com&item_name=JBidwatcher+Software&cn=Personal+message+to+Morgan&no_shipping=1&return=http%3A//www.jbidwatcher.com/donation_thanks.html">choose an amount you feel comfortable with</a>.
-<small>If the links don't work, go to <a href="http://www.jbidwatcher.com">http://www.jbidwatcher.com</a> and click 'Donate' on the left.</small><br>
-<br>
-If the program has been useful to you, and you are in a position to help,
-it would mean a lot to me.<br>
-<br>
-If you're seeing this on your first time launching the program, I'm sorry.
-Use JBidwatcher for a while, enjoy it, feel free to
-<a href="http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/overview">report any problems</a>
-you have.  If it's useful to you, and you think you'd like to donate, this
-message will be available under Help | Donate.<br>
-<br>
-<h2>Why are you doing this?</h2>
-I've been unemployed for the last three months, and have reached the end of
-my safety net.  Thankfully interviews have picked up, and I've been able to
-sell some things off (on eBay, naturally), but I can't make my next payment
-on the house, or pay bills.  I wouldn't be asking if it weren't a dire need
-as I know one of the reasons many people use JBidwatcher is that it's free.<br>
-<br>
-<h2>What happens if I don't?</h2>
-Nothing happens; I'm not going to lock people out, or take it down anytime
-soon.  JBidwatcher has been a labor of love for me for 9 years now.  The
-site hosting JBidwatcher is paid for through mid-April.  I'll keep developing,
-trying to <a href="http://svn.jbidwatcher.com">fix bugs</a>,
-<a href="http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/overview">handle tickets</a>,
-and respond to <a href="http://forum.jbidwatcher.com">forum posts</a> and
-email as much as I can.<br>
-<br>
-I'm just asking for help.<br>
-<h2>JBidwatcher is great, but are there any other perks?</h2>
-I'm trying to put some together.  I'm looking at building a mailing list
-from the Paypal donations to auto-notify folks on new version releases.<br>
-<br>
-I'm also creating a web site that will optionally dovetail with JBidwatcher,
-allowing you to track your items remotely, automatically upload error logs,
-report exceptions, and maybe even be a parser-of-last-resort to recognize
-eBay bid-result pages and listings.  It wouldn't store your username or
-password, snipe, bid, or buy for you, all that would remain in your
-JBidwatcher instance for your security.  Because of bandwidth and storage
-costs, it will have a low subscription fee, but I'll give everybody who
-donates now an initial 6 or 3 month subscription to it once it launches.<br>
-<br>
-I believe in giving value; the core JBidwatcher application is certainly
-part of that, but I want to do more.  As I find things that I can do, I will.
-<h3>Thank you, very much, for your time and for your <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=cyberfox%40jbidwatcher.com&item_name=JBidwatcher+Software&cn=Personal+message+to+Morgan&no_shipping=1&return=http%3A//www.jbidwatcher.com/donation_thanks.html">support</a>.</h3>
-<center>--  <i>Morgan Schweers, CyberFOX!</i> <a href="mailto:cyberfox@jbidwatcher.com"><img src="<%head%>"></a></center>
+
+<%body%>
+
+<a href="mailto:cyberfox@jbidwatcher.com"><img src="<%head%>"></a></center>
 </body>
 </html>

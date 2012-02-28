@@ -707,10 +707,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
       }
     });
 
-    //  Because the program is starting to get widely spread around,
-    //  and I can't control the version numbers everywhere, this
-    //  should monitor a certain location once a day and look for an
-    //  update.  The user has the option to turn this off!
     boolean updaterStarted = false;
     if(Platform.isMac()) {
       try {
@@ -755,16 +751,20 @@ public final class JBidWatch implements JConfig.ConfigListener {
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("true")) {
       q.preQueue("TIMECHECK", "auction_manager", now + (Constants.ONE_SECOND * 2), Constants.THIRTY_MINUTES);
     }
+
     //  TODO mrs - This is where things start to suck. Can this become a single VERB+NOUN operation?
     //  The backup server is handled by the primary.
     q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), now + Constants.ONE_SECOND * 3, 481 * Constants.ONE_MINUTE + Constants.ONE_SECOND * 17);
 
     q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 20));
-    //  Disable this, as I am once more gainfully employed.
-//    if(JConfig.queryConfiguration("seen.need_help") == null) {
-//      q.preQueue("Need Help", "user", now + (Constants.ONE_SECOND * 15));
-//      JConfig.setConfiguration("seen.need_help", "true");
-//    }
+
+    //  Disable this when I am once more gainfully employed.
+    if(JConfig.queryConfiguration("seen.need_help2") == null) {
+      if(JConfig.queryConfiguration("first_run", "false").equals("false")) {
+        q.preQueue("Need Help", "user", now + (Constants.ONE_SECOND * 15));
+        JConfig.setConfiguration("seen.need_help2", "true");
+      }
+    }
 
     //  Other interesting examples...
     //q.preQueue("This is a message for the display!", "Swing", System.currentTimeMillis()+Constants.ONE_MINUTE);

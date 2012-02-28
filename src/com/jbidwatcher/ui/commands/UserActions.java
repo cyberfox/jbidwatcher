@@ -1110,10 +1110,10 @@ public class UserActions implements MessageQueue.Listener {
   static private JFrame needHelpFrame = null;
   private void DoNeedHelp() {
     if(needHelpFrame == null) {
-      Dimension boxSize = new Dimension(495, 245);
+      Dimension boxSize = new Dimension(507, 300);
 
       if(_needHelp == null) {
-        _needHelp = JBHelp.loadHelp("/help/need_help.jbh", "A Message from the JBidwatcher Author");
+        _needHelp = JBHelp.loadHelp("/help/need_help.jbh", "/help/need_help.md", "A Message from the JBidwatcher Author");
       }
 
       if(_needHelp != null) {
