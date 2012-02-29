@@ -281,6 +281,8 @@ public class OptionUI {
     final JFrame otherFrame = new JBidFrame(frameName);
     final JScrollPane jsp;
 
+    otherFrame.setUndecorated(true);
+    otherFrame.getRootPane().setWindowDecorationStyle(JRootPane.QUESTION_DIALOG);
     otherFrame.getContentPane().setLayout(new BorderLayout());
     JPanel buttonPanel = new JPanel(new BorderLayout());
     JButton button1 = new JButton(buttonText1);

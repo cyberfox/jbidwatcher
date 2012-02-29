@@ -13,6 +13,8 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.Collections;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
@@ -30,10 +32,20 @@ public class JConfigGeneralTab extends JConfigTab {
   private JCheckBox allowArchival;
   private JCheckBox timeSyncBox;
   private JCheckBox disableThumbnailBox;
+  private JComboBox allowMetricsReporting;
 
   private JCheckBox macMetalBox = null;
   private JCheckBox winTrayBox = null;
   private JCheckBox minimizeTrayBox = null;
+
+  private String[] metricsChoices = {
+      "Ask again later",
+      "Yes",
+      "Pre-release only",
+      "No"
+  };
+
+  private String[] metricsValues = { "ask", "true", "pre", "false" };
 
   private JComboBox dclickAction = null;
 
@@ -73,6 +85,11 @@ public class JConfigGeneralTab extends JConfigTab {
       JConfig.log().closeLog();
     }
     JConfig.setConfiguration("deleted.ignore", ignoreDeletedBox.isSelected() ? "true" : "false");
+
+    int metricsChoice = allowMetricsReporting.getSelectedIndex();
+    if (metricsChoice != -1) {
+      JConfig.setConfiguration("metrics.optin", metricsValues[metricsChoice]);
+    }
 
     int clickAction = dclickAction.getSelectedIndex();
     if (clickAction != -1) {
@@ -224,6 +241,23 @@ public class JConfigGeneralTab extends JConfigTab {
       });
       tp.add(minimizeTrayBox);
     }
+
+    if(tp.getComponentCount() % 2 == 1) {
+      //  Add a placeholder to make the configuration wrap.
+      tp.add(new JLabel(""));
+    }
+
+    String curMetricsChoice = JConfig.queryConfiguration("metrics.optin", "ask");
+    int curIndex = Arrays.asList(metricsValues).indexOf(curMetricsChoice);
+    allowMetricsReporting = new JComboBox(metricsChoices);
+    allowMetricsReporting.setSelectedIndex(curIndex);
+    JLabel metricsLabel = new JLabel("Report anonymized usage");
+    String metricsTooltip = "Reports anonymized usage statistics to me, to be used for improving the software.  Usage data is for statistical purposes only.";
+    metricsLabel.setToolTipText(metricsTooltip);
+//    tp.add(metricsLabel);
+    allowMetricsReporting.setToolTipText(metricsTooltip);
+//    tp.add(allowMetricsReporting);
+    tp.add(makeLine(metricsLabel, allowMetricsReporting));
 
     updateValues();
     return (tp);

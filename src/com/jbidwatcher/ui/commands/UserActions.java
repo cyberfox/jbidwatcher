@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 import com.cyberfox.util.platform.Path;
+import com.github.rjeschke.txtmark.Processor;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
@@ -1124,6 +1125,16 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
+  private void doMetrics() {
+    Dimension boxSize = new Dimension(400, 220);
+    String text = "**I would very much appreciate it if you would allow JBidwatcher to collect _anonymous_ usage statistics to " +
+        "help me know what to improve.**\n\nBy clicking 'Yes' you agree that JBidwatcher may collect and report usage data for " +
+        "support purposes, and to help me improve the quality of JBidwatcher and related applications and services.\n\n" +
+        "<small>You can learn more about what is collected [here](http://www.jbidwatcher.com/help/metrics).  Thank you!";
+    StringBuffer sb = new StringBuffer(Processor.process(text));
+    _oui.showTextDisplayWithButtons(sb, boxSize, "Please help me make JBidwatcher better", "metrics.optin", "No", "false", "Yes", "true");
+  }
+
   static private JFrame donateFrame = null;
   private void DoDonate() {
     if (donateFrame == null) {
@@ -1452,6 +1463,7 @@ public class UserActions implements MessageQueue.Listener {
     else if (actionString.equals("Submit Log File")) DoSubmitLogFile();
     else if (actionString.equals("Restart")) DoRestart();
     else if (actionString.equals("Font")) DoChooseFont();
+    else if (actionString.equals("Metrics")) doMetrics();
     else if (actionString.equals("Selection Color")) DoSetSelectionColor(c_src);
 
     else if (actionString.equals("CopyURL")) DoCopyURL(c_src, whichAuction);
