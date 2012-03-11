@@ -264,7 +264,7 @@ public class JHTML implements JHTMLListener {
           if (showInputs) JConfig.log().logDebug("T: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals(FORM_PASSWORD)) {
           if (showInputs) JConfig.log().logDebug("P: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
-        } else if (inputType.equalsIgnoreCase(FORM_HIDDEN)) {
+        } else if (inputType.equalsIgnoreCase(FORM_HIDDEN) || inputType.equalsIgnoreCase("'hidden'")) {
           if (showInputs) JConfig.log().logDebug("H: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
         } else if(inputType.equals(FORM_CHECKBOX)) {
           if (showInputs) JConfig.log().logDebug("CB: Name: " + inputTag.getProperty("name") + ", Value: " + inputTag.getProperty(FORM_VALUE));
