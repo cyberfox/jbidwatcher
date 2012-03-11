@@ -855,12 +855,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       JConfig.log().logDebug("Cancelling Snipe for: " + getTitle() + '(' + getIdentifier() + ')');
       setLastStatus("Cancelling snipe.");
       if(after_end) {
+        setBoolean("auto_canceled", true);
         mCancelSnipeBid = getSnipe().getAmount();
       }
     }
   }
 
   public void snipeCompleted() {
+    setSnipedAmount(getSnipe().getAmount());
     setBid(getSnipe().getAmount());
     setBidQuantity(getSnipe().getQuantity());
     getSnipe().delete();
@@ -869,6 +871,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     setDirty();
     setNeedsUpdate();
     saveDB();
+  }
+
+  private void setSnipedAmount(Currency amount) {
+    setMonetary("sniped_amount", amount == null ? Currency.NoValue() : amount);
   }
 
   /**
