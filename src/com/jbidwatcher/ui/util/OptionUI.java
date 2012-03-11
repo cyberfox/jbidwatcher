@@ -10,139 +10,39 @@ import com.jbidwatcher.util.config.JConfig;
 import java.awt.event.*;
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import java.util.List;
 
 public class OptionUI {
-  /**
-   * @brief Add the ability to past into a text field using a few different methods.
-   *
-   * @param jtc - The text field to be able to past into.
-   * @param preFill - The initial text of the field.
-   */
-  private void addPasting(JTextField jtc, String preFill) {
-    jtc.addMouseListener(JPasteListener.getInstance());
-    jtc.setText(preFill);
+  public static Object showInputDialog(Component parentComponent,
+                                       Object message, String title, int messageType, Icon icon,
+                                       Object[] selectionValues, Object initialSelectionValue)
+      throws HeadlessException {
+    JOptionPane pane = new JOptionPane(message, messageType, JOptionPane.OK_CANCEL_OPTION, icon, null, null);
 
-    ActionListener doDefault = new ActionListener() {
-        public void actionPerformed(ActionEvent ae) {
-          if(ae.getActionCommand().equals("Escape")) {
-            if(ae.getSource() instanceof JTextField) {
-              JTextField clearMe = (JTextField)ae.getSource();
-              clearMe.setText("");
-            }
-          }
-          JComponent source = (JComponent)ae.getSource();
-          JButton defButton = source.getRootPane().getDefaultButton();
+    pane.setWantsInput(true);
+    pane.setSelectionValues(selectionValues);
+    pane.setInitialSelectionValue(initialSelectionValue);
+    pane.setComponentOrientation(((parentComponent == null) ? JOptionPane.getRootFrame() : parentComponent).getComponentOrientation());
 
-          if(defButton != null) {
-            defButton.doClick();
-          }
-        }
-      };
+    JDialog dialog = pane.createDialog(parentComponent, title);
+    dialog.setResizable(true);
 
-    jtc.addActionListener(doDefault);
-    jtc.registerKeyboardAction(doDefault, "Escape", KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false),
-                               JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-  }
+    pane.selectInitialValue();
+    dialog.show();
+    dialog.dispose();
 
-  private boolean handleDialogResult(JOptionPane jopPrompt, String endResult) {
-    Integer buttonChoiceObject;
-    Object result;
-    int whatButton;
+    Object value = pane.getInputValue();
 
-    result = jopPrompt.getValue();
-
-    if(endResult == null || endResult.equals("") ||
-       result == null || result.equals(JOptionPane.UNINITIALIZED_VALUE)) {
-      buttonChoiceObject = JOptionPane.CANCEL_OPTION;
-    } else {
-      if(result.getClass() == String.class && result.equals("")) {
-        buttonChoiceObject = JOptionPane.OK_OPTION;
-      } else {
-        buttonChoiceObject = new Integer(result.toString());
-      }
+    if (value == JOptionPane.UNINITIALIZED_VALUE) {
+      return null;
     }
-
-    boolean is_cancelled = false;
-    //  Did they click cancel?
-    whatButton = buttonChoiceObject;
-    if(whatButton == JOptionPane.CANCEL_OPTION) {
-      is_cancelled = true;
-    }
-    return(is_cancelled);
-  }
-
-  public String promptString(Component parent, String prePrompt, String preTitle) {
-    return(promptString(parent, prePrompt, preTitle, ""));
+    return value;
   }
 
   public String promptString(Component parent, String prePrompt, String preTitle, String preFill) {
-    String[] result = promptString(parent, prePrompt, preTitle, preFill, null, null);
-
-    if(result == null) return null;
-
-    return result[0];
-  }
-
-  public String[] promptString(Component parent, String prePrompt, String preTitle, String preFill, String postPrompt, String postFill) {
-    final Object[] myComponents;
-
-    if(postPrompt != null) {
-      myComponents = new Object[4];
-      myComponents[2] = "Quantity";
-      myComponents[3] = new JTextField();
-    } else {
-      myComponents = new Object[2];
-    }
-    myComponents[0] = prePrompt;
-    myComponents[1] = new JTextField();
-
-    JOptionPane jopPrompt = new JOptionPane(myComponents, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
-
-    addPasting((JTextField)myComponents[1], preFill);
-
-    if(postPrompt != null) {
-      addPasting((JTextField)myComponents[3], postFill);
-    }
-
-    JDialog jdInput = jopPrompt.createDialog(parent, preTitle);
-    jdInput.addComponentListener(new ComponentAdapter() {
-      public void componentShown(ComponentEvent event) {
-        super.componentShown(event);
-        ((JTextField) myComponents[1]).requestFocus();
-      }
-    });
-    jdInput.addWindowListener(new WindowAdapter() {
-        public void windowActivated(WindowEvent ev) {
-          super.windowActivated(ev);
-          ((JTextField) myComponents[1]).requestFocus();
-        }
-        public void windowDeactivated(WindowEvent ev) {
-          super.windowDeactivated(ev);
-          ev.getWindow().toFront();
-        }
-      });
-    Rectangle rec = OptionUI.findCenterBounds(jdInput.getPreferredSize());
-    jdInput.setLocation(rec.x, rec.y);
-
-    ((JTextField) myComponents[1]).requestFocus();
-    jdInput.setVisible(true);
-
-    //    endResult = (String)jopPrompt.getInputValue();
-    String endResult = ((JTextComponent) myComponents[1]).getText();
-
-    boolean is_cancelled = handleDialogResult(jopPrompt, endResult);
-    if(is_cancelled) return null;
-
-    String[] results = new String[2];
-    results[0] = endResult;
-    if(postPrompt != null) {
-      results[1] = ((JTextComponent) myComponents[3]).getText();
-    }
-    return results;
+    return (String)showInputDialog(parent, prePrompt, preTitle, JOptionPane.PLAIN_MESSAGE, null, null, preFill);
   }
 
   /**

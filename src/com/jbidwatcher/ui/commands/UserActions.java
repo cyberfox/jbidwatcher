@@ -441,10 +441,6 @@ public class UserActions implements MessageQueue.Listener {
     return(_oui.promptString(src, prePrompt, preTitle, preFill));
   }
 
-  private String[] promptString(Component src, String prePrompt, String preTitle, String preFill, String postPrompt, String postFill) {
-    return(_oui.promptString(src, prePrompt, preTitle, preFill, postPrompt, postFill));
-  }
-
   private void CancelSnipe(Component src, AuctionEntry ae) {
     int[] rowList = mTabs.getPossibleRows();
     int len = rowList.length;
@@ -857,20 +853,20 @@ public class UserActions implements MessageQueue.Listener {
 
     String prompt = "<html><body>" + ae.getPresenter().buildInfo(false);
     prompt += "<br><b>How much is shipping?</b></body></html>";
-    String endResult[] = promptString(src, prompt, "Shipping", null, null, null);
+    String endResult = promptString(src, prompt, "Shipping");
 
     //  They closed the window
-    if (endResult == null || endResult[0] == null) {
+    if (endResult == null) {
       return;
     }
 
     Currency shippingAmount;
     try {
-      if(endResult[0] != null) endResult[0] = endResult[0].replace(',', '.');
-      shippingAmount = Currency.getCurrency(ae.getCurrentPrice().fullCurrencyName(), endResult[0]);
+      if(endResult != null) endResult = endResult.replace(',', '.');
+      shippingAmount = Currency.getCurrency(ae.getCurrentPrice().fullCurrencyName(), endResult);
     } catch(NumberFormatException nfe) {
       JOptionPane.showMessageDialog(src, "You have entered a bad shipping amount.\n" +
-                                    endResult[0] + " is not a valid shipping cost.\n" +
+                                    endResult + " is not a valid shipping cost.\n" +
                                     "Punctuation (other than a decimal point) and currency symbols are not legal.\n" +
                                     "The currency used is always the same as the auction.",
                                     "Bad shipping value", JOptionPane.PLAIN_MESSAGE);
@@ -929,34 +925,30 @@ public class UserActions implements MessageQueue.Listener {
     String prompt = genBidSnipeHTML(ae, minimumNextBid);
     prompt += "How much do you wish to bid?</body></html>";
 
-    String[] endResult;
+    String endResult;
     if(minimumNextBid != null) {
-      endResult = promptString(src, prompt, "Bidding", Float.toString((float) minimumNextBid.getValue()), null, null);
-      if (endResult != null) endResult[1] = "1";
+      endResult = promptString(src, prompt, "Bidding", Float.toString((float) minimumNextBid.getValue()));
     } else {
-      endResult = promptString(src, prompt, "Bidding", null, null, null);
-      if (endResult != null) endResult[1] = "1";
+      endResult = promptString(src, prompt, "Bidding");
     }
 
     //  They closed the window
-    if (endResult == null || endResult[0] == null) {
+    if (endResult == null) {
       return;
     }
 
-    if(endResult[1] == null || endResult[1].length() == 0) endResult[1] = "1";
-
     Currency bidAmount;
     try {
-      if(endResult[0] != null) endResult[0] = endResult[0].replace(',','.');
-      bidAmount = Currency.getCurrency(ae.getCurBid().fullCurrencyName(), endResult[0]);
+      if(endResult != null) endResult = endResult.replace(',','.');
+      bidAmount = Currency.getCurrency(ae.getCurBid().fullCurrencyName(), endResult);
     } catch(NumberFormatException nfe) {
       JOptionPane.showMessageDialog(src, "You have entered a bad price for your bid.\n" +
-                                    endResult[0] + " is not a valid bid.\n" +
+                                    endResult + " is not a valid bid.\n" +
                                     "Punctuation (other than a decimal point) and currency symbols are not legal.",
                                     "Bad bid value", JOptionPane.PLAIN_MESSAGE);
       return;
     }
-    MQFactory.getConcrete(ae.getServer()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, Integer.parseInt(endResult[1])), "none"));
+    MQFactory.getConcrete(ae.getServer()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, 1), "none"));
   }
 
   private void DoShowInBrowser(Component src, AuctionEntry inAuction) {
