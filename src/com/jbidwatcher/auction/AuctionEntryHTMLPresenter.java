@@ -4,7 +4,11 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.config.JConfig;
 
+import javax.swing.*;
+import java.awt.MediaTracker;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
 
 public class AuctionEntryHTMLPresenter implements Presenter {
@@ -28,18 +32,21 @@ public class AuctionEntryHTMLPresenter implements Presenter {
     prompt += "<table>";
     boolean addedThumbnail = false;
     if (mAuctionEntry.getThumbnail() != null) {
-      if (false) {
-        try {
-          InetAddress thisIp = InetAddress.getLocalHost();
-          prompt += newRow + "<img src=\"http://" + thisIp.getHostAddress() + ":" + JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING) + "/" + mAuctionEntry.getIdentifier() + ".jpg\">" + newCol + "<table>";
+      String thumb = mAuctionEntry.getThumbnail();
+      try {
+        ImageIcon thumbnail = new ImageIcon(new URL(thumb));
+        if (thumbnail.getImageLoadStatus() == MediaTracker.COMPLETE) {
+          int h = thumbnail.getIconHeight();
+          int w = thumbnail.getIconWidth();
+          int long_side = Math.max(h, w);
+          float scale = 192f / (float) long_side;
+          h = (int) (((float) h) * scale);
+          w = (int) (((float) w) * scale);
+          prompt += newRow + "<img src=\"" + mAuctionEntry.getThumbnail() + "\" height=" + h + " width=" + w + ">" + newCol + "<table>";
           addedThumbnail = true;
-        } catch (UnknownHostException e) {
-          //  Couldn't find THIS host?!?  Perhaps that means we're not online?
-          JConfig.log().logMessage("Unknown host trying to look up the local host.  Is the network off?");
         }
-      } else {
-        prompt += newRow + "<img src=\"" + mAuctionEntry.getThumbnail() + "\">" + newCol + "<table>";
-        addedThumbnail = true;
+      } catch (MalformedURLException e) {
+        JConfig.log().handleDebugException("Couldn't load the thumbnail image", e);
       }
     }
     prompt = buildInfoBody(prompt, includeEvents, addedThumbnail);
