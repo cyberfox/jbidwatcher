@@ -27,7 +27,7 @@ public class JConfig extends com.cyberfox.util.config.JConfig {
       //  has opted in to sending them; this allows us to also send them
       //  (if they allow it) on bug-reporting.
       metrics.start("4f4a195ca14ad72a1d000000", version);
-    } catch (IOException e) {
+    } catch (Exception e) {
       metrics = null;
     }
   }

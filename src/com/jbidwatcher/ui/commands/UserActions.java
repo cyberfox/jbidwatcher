@@ -445,7 +445,7 @@ public class UserActions implements MessageQueue.Listener {
     return(_oui.promptString(src, prePrompt, preTitle, preFill, postPrompt, postFill));
   }
 
-  private void CancelSnipe(Component src, Snipeable ae) {
+  private void CancelSnipe(Component src, AuctionEntry ae) {
     int[] rowList = mTabs.getPossibleRows();
     int len = rowList.length;
 
@@ -457,12 +457,20 @@ public class UserActions implements MessageQueue.Listener {
 
     if(len != 0) {
       for (int aRowList : rowList) {
-        Snipeable tempEntry = (Snipeable) mTabs.getIndexedEntry(aRowList);
+        AuctionEntry tempEntry = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
 
+        // Metrics
+        if(tempEntry.isSniped()) {
+          JConfig.getMetrics().trackEvent("snipe", "cancel");
+        }
         tempEntry.cancelSnipe(false);
         MQFactory.getConcrete("redraw").enqueue(tempEntry.getIdentifier());
       }
     } else {
+      // Metrics
+      if (ae.isSniped()) {
+        JConfig.getMetrics().trackEvent("snipe", "cancel");
+      }
       ae.cancelSnipe(false);
       MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
     }
@@ -723,6 +731,8 @@ public class UserActions implements MessageQueue.Listener {
       aeMS.saveDB();
     }
 
+    // Metrics
+    JConfig.getMetrics().trackEventValue("snipe", "multi", Integer.toString(rowList.length));
     for(i=0; i<rowList.length; i++) {
       AuctionEntry stepAE = (AuctionEntry)mTabs.getIndexedEntry(rowList[i]);
       MultiSnipeManager.getInstance().addAuctionToMultisnipe(stepAE.getIdentifier(), aeMS);
@@ -814,7 +824,14 @@ public class UserActions implements MessageQueue.Listener {
           bidAmount = bidAmount.subtract(shipping);
         }
       }
+      boolean wasSniped = ae.isSniped();
       ae.prepareSnipe(bidAmount, Integer.parseInt(snipeQuant));
+      // Metrics
+      if (wasSniped) {
+        JConfig.getMetrics().trackEvent("snipe", "changed");
+      } else {
+        JConfig.getMetrics().trackEvent("snipe", "new");
+      }
     } catch(NumberFormatException nfe) {
       JOptionPane.showMessageDialog(src, "You have entered a bad price for your snipe.\n" +
                                     snipeAmount + " is not a valid snipe.\n" +

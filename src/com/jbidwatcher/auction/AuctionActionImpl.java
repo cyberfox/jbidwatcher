@@ -35,14 +35,21 @@ public abstract class AuctionActionImpl implements AuctionAction {
 
   public String activate() {
     Currency amount = Currency.getCurrency(mAmount);
-    JConfig.increment("stats.bid");
     AuctionEntry entry = (AuctionEntry) EntryCorral.getInstance().takeForWrite(mIdentifier);
     try {
       if (entry == null) {
         mResult = AuctionServer.BID_ERROR_AUCTION_GONE;
         return getBidResult(amount, mResult);
       }
+      JConfig.increment("stats.bid");
       mResult = execute(entry, amount, mQuantity);
+      boolean success = (mResult == AuctionServer.BID_WINNING || mResult == AuctionServer.BID_BOUGHT_ITEM || mResult == AuctionServer.BID_SELFWIN);
+      // Metrics
+      if(!success) {
+        JConfig.getMetrics().trackEventValue("bid", "fail", Integer.toString(mResult));
+      } else {
+        JConfig.getMetrics().trackEvent("bid", "success");
+      }
       String bidResultString = getBidResult(amount, mResult);
       entry.setLastStatus(bidResultString);
       entry.update();

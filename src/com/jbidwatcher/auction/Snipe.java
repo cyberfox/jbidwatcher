@@ -66,7 +66,16 @@ public class Snipe {
     MQFactory.getConcrete("Swing").enqueue("Sniping on " + mEntry.getTitle());
     mEntry.setLastStatus("Firing actual snipe.");
 
+    // Metrics
+    JConfig.getMetrics().trackEvent("snipe", "fired");
     int rval = mBidder.placeFinalBid(mCJ, mBidForm, mEntry, mEntry.getSnipeAmount(), mEntry.getSnipeQuantity());
+    boolean success = (rval == AuctionServer.BID_WINNING || rval == AuctionServer.BID_SELFWIN);
+    // Metrics
+    if(success) {
+      JConfig.getMetrics().trackEvent("snipe", "success");
+    } else {
+      JConfig.getMetrics().trackEventValue("snipe", "fail", Integer.toString(rval));
+    }
     JConfig.increment("stats.sniped");
     String snipeResult = getSnipeResult(rval, mEntry.getTitle(), mEntry);
     mEntry.setLastStatus(snipeResult);
@@ -103,12 +112,16 @@ public class Snipe {
         // We have a problem.
         mBidForm.setText("maxbid", mEntry.getSnipeAmount().getValueString());
       }
+      // Metrics
+      JConfig.getMetrics().trackEvent("presnipe", "success");
     } catch (BadBidException bbe) {
       String result = getSnipeResult(bbe.getResult(), mEntry.getTitle(), mEntry);
       mEntry.setLastStatus(result);
       MQFactory.getConcrete("Swing").enqueue("NOTIFY " + result);
       JConfig.log().logDebug(result);
       presnipeResult = FAIL;
+      // Metrics
+      JConfig.getMetrics().trackEventValue("presnipe", "fail", Integer.toString(bbe.getResult()));
     }
     UpdateBlocker.endBlocking();
 
