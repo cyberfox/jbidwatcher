@@ -529,8 +529,8 @@ public class UserActions implements MessageQueue.Listener {
       AuctionEntry stepAE = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
       prompt.append(stepAE.getPresenter().buildInfo(true)).append("<hr>");
     }
-    int width = getInteger("info.width", 480);
-    int height = getInteger("info.height", Math.min(372, rowList.length * 30 + 200));
+    int width = getInteger("info.width", 620);
+    int height = getInteger("info.height", 440);
 
     Dimension statusBox = new Dimension(width, height);
     ArrayList<String> buttons = new ArrayList<String>(2);
