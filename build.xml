@@ -145,6 +145,7 @@
       <tarfileset prefix="${TARSRC}/platform" dir="${main.dir}/platform" />
       <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jbh" />
+      <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.md" />
       <tarfileset prefix="${TARSRC}/lib" dir="${main.dir}/lib" />
       <tarfileset prefix="${TARSRC}/onejar" dir="${main.dir}/onejar" />
     </tar>
@@ -182,6 +183,7 @@
       <fileset dir="${main.dir}" includes="db/*.sql" />
       <fileset dir="${main.dir}" includes="help/*.jpg" />
       <fileset dir="${main.dir}" includes="help/*.jbh" />
+      <fileset dir="${main.dir}" includes="help/*.md" />
       <fileset dir="${main.dir}" includes="help/*.html" />
       <fileset dir="${main.dir}" includes="platform/tray.dll" />
       <fileset dir="${main.dir}" includes="jbidwatcher.properties" />
