@@ -758,13 +758,17 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 20));
 
-    //  Disable this when I am once more gainfully employed.
-    if(JConfig.queryConfiguration("seen.need_help2") == null) {
-      if(JConfig.queryConfiguration("first_run", "false").equals("false")) {
-        q.preQueue("Need Help", "user", now + (Constants.ONE_SECOND * 15));
-        JConfig.setConfiguration("seen.need_help2", "true");
-      }
+    //  Ask the user to allow anonymized statistics gathering.
+    if(JConfig.queryConfiguration("metrics.optin", "ask").equals("ask")) {
+      q.preQueue("Metrics", "user", now + (Constants.ONE_SECOND * 5));
     }
+    //  Disable this when I am once more gainfully employed.
+//    if(JConfig.queryConfiguration("seen.need_help2") == null) {
+//      if(JConfig.queryConfiguration("first_run", "false").equals("false")) {
+//        q.preQueue("Need Help", "user", now + (Constants.ONE_SECOND * 15));
+//        JConfig.setConfiguration("seen.need_help2", "true");
+//      }
+//    }
 
     //  Other interesting examples...
     //q.preQueue("This is a message for the display!", "Swing", System.currentTimeMillis()+Constants.ONE_MINUTE);

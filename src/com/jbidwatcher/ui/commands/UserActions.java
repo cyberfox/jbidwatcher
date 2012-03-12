@@ -119,6 +119,8 @@ public class UserActions implements MessageQueue.Listener {
       UndoDonate();
     } else if(commandStr.equals("Need Help")) {
       DoNeedHelp();
+    } else if(commandStr.equals("Metrics")) {
+      doMetrics();
     } else if(commandStr.equals("Configure")) {
       DoConfigure();
     } else if(commandStr.equals("Upload")) {
