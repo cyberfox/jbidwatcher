@@ -32,13 +32,18 @@ public class JConfig extends com.cyberfox.util.config.JConfig {
     }
   }
 
+  public static boolean sendMetricsAllowed() {
+    return queryConfiguration("metrics.optin", "false").equals("true") ||
+           (queryConfiguration("metrics.optin", "false").equals("pre") && Constants.PROGRAM_VERS.matches(".*(pre|alpha|beta).*"));
+  }
+
   public static void stopMetrics() {
     try {
       if(metrics != null) {
         //  With the exception of certain metrics operations which upload
         //  immediately (and that I don't use), this will prevent the metrics
         //  code from uploading anything until the end of the session.
-        if(queryConfiguration("metrics.optin", "false").equals("true")) {
+        if(sendMetricsAllowed()) {
           metrics.stop();
         }
       }
