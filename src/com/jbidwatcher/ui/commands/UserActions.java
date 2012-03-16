@@ -991,6 +991,7 @@ public class UserActions implements MessageQueue.Listener {
       }
     }
 
+    JConfig.getMetrics().trackEvent("browse", "auction");
     MQFactory.getConcrete("browse").enqueue(browseTo);
   }
 
