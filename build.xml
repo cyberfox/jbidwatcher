@@ -211,13 +211,6 @@
 
   <property name="packaging" value="platform" />
 
-  <target name="scripting" depends="scripting-jar">
-    <antcall target="scripting-jar" />
-    <antcall target="osx-app-scripting" />
-    <antcall target="dmg-scripting" />
-    <antcall target="exe-real" />
-  </target>
-
   <target name="exe" depends="jar">
     <antcall target="exe-real" />
   </target>
@@ -403,9 +396,21 @@
     <delete file="/tmp/jbidwatcher.ico"/>
   </target>
 
+  <target name="scripting" depends="scripting-jar">
+    <antcall target="scripting-jar" />
+    <antcall target="osx-app-scripting" />
+    <antcall target="dmg-scripting" />
+    <antcall target="exe-real" />
+  </target>
+
   <target name="apps" depends="tar,osx,exe,dmg" />
 
   <target name="release" depends="apps" description="Build for a full release.">
+    <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/enhanced/downloads" />
+    <antcall target="upload" />
+  </target>
+
+  <target name="scripting-release" depends="tar,scripting" description="Build for a full release with scripting.">
     <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/enhanced/downloads" />
     <antcall target="upload" />
   </target>
