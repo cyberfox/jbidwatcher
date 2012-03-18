@@ -14,7 +14,7 @@
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidwatcher" />
-  <property name="VER" value="2.2pre3" />
+  <property name="VER" value="2.5" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
@@ -81,36 +81,6 @@
           <include name="**/*.java" />
       </javac>
   </target>
-
-  <!--
-  <taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"/>
-        rulesets/basic.xml
-        rulesets/design.xml
-        rulesets/imports.xml
-        rulesets/codesize.xml
-        rulesets/coupling.xml
-        rulesets/controversial.xml
-        rulesets/unusedcode.xml
-
-        rulesets/braces.xml
-        rulesets/favorites.xml
-        rulesets/finalizers.xml
-        rulesets/javabeans.xml
-        rulesets/junit.xml
-        rulesets/naming.xml
-        rulesets/newrules.xml
-        rulesets/scratchpad.xml
-        rulesets/strictexception.xml
-        rulesets/strings.xml
-    <target name="pmd">
-      <pmd rulesetfiles="rulesets/basic.xml,rulesets/design.xml,rulesets/imports.xml,rulesets/codesize.xml,rulesets/coupling.xml,rulesets/controversial.xml,rulesets/unusedcode.xml">
-        <formatter type="html" toFile="pmd_jbidwatcher.html"/>
-        <fileset dir="${src.dir}">
-          <include name="**/*.java"/>
-        </fileset>
-      </pmd>
-    </target>
-    -->
 
   <target name="whatsnew">
     <cvschangelog destfile="changelog.xml" start="31 March 2006">
@@ -236,17 +206,16 @@
       <fileset dir="${main.dir}" includes="lib/*.jar" />
       <fileset dir="${main.dir}" includes="lib/jbidwatcher/**" />
     </jar>
-    <move file="${BINARY}" tofile="${BINARYSCRIPTING}" />
     <delete dir="${build.path}/main" />
   </target>
 
   <property name="packaging" value="platform" />
 
   <target name="scripting" depends="scripting-jar">
+    <antcall target="scripting-jar" />
     <antcall target="osx-app-scripting" />
-    <move file="${APPFILE}" tofile="${APPSCRIPTING}" />
-<!--    <antcall target="exe-real" />
-    <move file="${EXEFILE}" tofile="${EXESCRIPTING}" /> -->
+    <antcall target="dmg-scripting" />
+    <antcall target="exe-real" />
   </target>
 
   <target name="exe" depends="jar">
@@ -280,7 +249,19 @@
     <antcall target="osx-app" />
   </target>
 
+  <target name="dmg-scripting" depends="osx-distribution">
+    <copy todir="${osx.app.path}/Contents/Resources/Java">
+      <fileset dir="${lib.dir}" includes="jruby-incomplete.jar" />
+      <fileset dir="${main.dir}" includes="lib/jbidwatcher/**" />
+    </copy>
+    <antcall target="dmg-real" />
+  </target>
+
   <target name="dmg" depends="osx-distribution">
+    <antcall target="dmg-real" />
+  </target>
+
+  <target name="dmg-real">
     <exec executable="ln">
       <arg value="-s" />
       <arg value="/Applications" />
