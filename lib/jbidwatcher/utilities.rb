@@ -1,16 +1,21 @@
-require 'md5'
-require 'net/http'
+require 'java'
+
+$: << "META-INF/jruby.home/lib/ruby/1.8"
+
+require 'digest/md5'
+require 'net/http.rb'
 require 'cgi'
 
-import com.jbidwatcher.util.config.JConfig
-import com.cyberfox.util.platform.Path
-import com.jbidwatcher.util.Currency
-import com.jbidwatcher.util.queue.MQFactory
-import com.jbidwatcher.auction.AuctionEntry
-import com.jbidwatcher.auction.server.AuctionServerManager
-import com.jbidwatcher.ui.AuctionsManager
-import com.jbidwatcher.ui.FilterManager
-import com.jbidwatcher.ui.table.TableColumnController
+java_import com.jbidwatcher.util.config.JConfig
+java_import com.cyberfox.util.platform.Path
+java_import com.jbidwatcher.util.Currency
+java_import com.jbidwatcher.util.queue.MQFactory
+java_import com.jbidwatcher.auction.AuctionEntry
+java_import com.jbidwatcher.auction.Category
+java_import com.jbidwatcher.auction.server.AuctionServerManager
+java_import com.jbidwatcher.ui.AuctionsManager
+java_import com.jbidwatcher.ui.FilterManager
+java_import com.jbidwatcher.ui.table.TableColumnController
 
 puts "Loading JBidwatcher Ruby Utilities"
 
@@ -20,7 +25,7 @@ class JBidwatcherUtilities
   def test_basics
     # Check that the basic libraries work.
     puts "This is a test..."
-    puts MD5.hexdigest('foo')
+    puts Digest::MD5.hexdigest('foo')
 
     # Check that accessing objects defined by JBidwatcher works
     c = Currency.getCurrency("$54.98")
