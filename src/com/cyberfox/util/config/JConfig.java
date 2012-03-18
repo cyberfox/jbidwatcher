@@ -425,9 +425,23 @@ public class JConfig {
     return dispIS;
   }
 
+  private static boolean validResource(URL path) {
+    if (path == null) return false;
+    InputStream is = JConfig.class.getClassLoader().getResourceAsStream(path.toString());
+    if (is != null) {
+      try {
+        is.close();
+      } catch (IOException ignored) {
+        //  We don't actually care here.
+      }
+      return true;
+    }
+    return false;
+  }
+
   public static URL getResource(String path) {
     URL rval = JConfig.class.getClassLoader().getResource(path);
-    if(rval == null && path.charAt(0) == '/') {
+    if((rval == null || !validResource(rval)) && path.charAt(0) == '/') {
       rval = JConfig.class.getClassLoader().getResource(path.substring(1));
     }
 
