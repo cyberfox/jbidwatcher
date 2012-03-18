@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, P. Simon Tuffs (simon@simontuffs.com)
+ * Copyright (c) 2004-2010, P. Simon Tuffs (simon@simontuffs.com)
  * All rights reserved.
  *
  * See the full license at http://one-jar.sourceforge.net/one-jar-license.html
@@ -23,7 +23,7 @@ import java.net.URLStreamHandler;
 public class Handler extends URLStreamHandler {
 
 	/**
-	 * This procol name must match the name of the package in which this class
+	 * This protocol name must match the name of the package in which this class
 	 * lives.
 	 */
 	public static String PROTOCOL = "onejar";
@@ -43,11 +43,16 @@ public class Handler extends URLStreamHandler {
                     contentType = "text/plain";
                 return contentType;
             }
-			public InputStream getInputStream() {
+			public InputStream getInputStream() throws IOException {
 				// Use the Boot classloader to get the resource.  There
 				// is only one per one-jar.
 				JarClassLoader cl = Boot.getClassLoader();
-				return cl.getByteStream(resource);
+				InputStream is = cl.getByteStream(resource);
+				// sun.awt image loading does not like null input streams returned here.
+				// Throw IOException (probably better anyway).
+				if (is == null) 
+					throw new IOException("cl.getByteStream() returned null for " + resource);
+				return is;
 			}
 		};
 	}
