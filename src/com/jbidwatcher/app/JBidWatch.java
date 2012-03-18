@@ -605,7 +605,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       }
 
       private void preloadLibrary() {
-        String jrubyFile = JConfig.queryConfiguration("platform.path") + File.separator + "jruby-complete.jar";
+        String jrubyFile = JConfig.queryConfiguration("platform.path") + File.separator + "jruby-incomplete.jar";
         File fp = new File(jrubyFile);
 
         if (fp.exists()) {

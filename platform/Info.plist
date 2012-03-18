@@ -61,7 +61,7 @@
       <string>1.5+</string>
 
       <key>ClassPath</key>
-      <string>$JAVAROOT/`binary`:$JAVAROOT/quaqua.jar:$JAVAROOT/apple.jar:$JAVAROOT/mp3codec.jar:$JAVAROOT/jdesktop.jar:$JAVAROOT/jruby-complete.jar:$JAVAROOT/derby.jar:$JAVAROOT/l2fprod-common-fontchooser.jar:$JAVAROOT/mysql-connector-java-5.1.7-bin.jar:$JAVAROOT/mahalo.jar:$JAVAROOT/json_simple-1.1.jar:$JAVAROOT/txtmark.jar:$JAVAROOT/jDeskMetrics.jar:$JAVAROOT</string>
+      <string>$JAVAROOT/`binary`:$JAVAROOT/quaqua.jar:$JAVAROOT/apple.jar:$JAVAROOT/mp3codec.jar:$JAVAROOT/jdesktop.jar:$JAVAROOT/jruby-incomplete.jar:$JAVAROOT/derby.jar:$JAVAROOT/l2fprod-common-fontchooser.jar:$JAVAROOT/mysql-connector-java-5.1.7-bin.jar:$JAVAROOT/mahalo.jar:$JAVAROOT/json_simple-1.1.jar:$JAVAROOT/txtmark.jar:$JAVAROOT/jDeskMetrics.jar:$JAVAROOT</string>
 
       <key>VMOptions</key>
       <string>-Xms64m -Xmx512m</string>
