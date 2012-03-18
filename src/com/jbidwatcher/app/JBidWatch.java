@@ -43,6 +43,7 @@ import com.jbidwatcher.my.MyJBidwatcher;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -757,11 +758,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
     q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null), AuctionServerManager.getInstance().getServer(), now + Constants.ONE_SECOND * 3, 481 * Constants.ONE_MINUTE + Constants.ONE_SECOND * 17);
 
     q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 20));
+    establishMetrics(q, now);
 
-    //  Ask the user to allow anonymized statistics gathering.
-    if(JConfig.queryConfiguration("metrics.optin", "ask").equals("ask")) {
-      q.preQueue("Metrics", "user", now + (Constants.ONE_SECOND * 5));
-    }
     //  Disable this when I am once more gainfully employed.
 //    if(JConfig.queryConfiguration("seen.need_help2") == null) {
 //      if(JConfig.queryConfiguration("first_run", "false").equals("false")) {
@@ -775,6 +773,34 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //q.preQueue(UserActions.ADD_AUCTION + "5582606163", "user", System.currentTimeMillis() + (Constants.ONE_MINUTE / 2));
     //q.preQueue("http://www.jbidwatcher.com", "browse", System.currentTimeMillis() + (Constants.ONE_MINUTE / 4));
     //q.preQueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), AuctionServerManager.getInstance().getServer(), System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
+  }
+
+  /**
+   * Prompt the user to allow metrics, if they haven't been asked before.  Set up a daily flush, which only happens if the user
+   * opts in.
+   *
+   * @param q - The super-queue to put the one-time and recurring events on.
+   * @param now - What time is it now, so everything starts with the same time-base.
+   */
+  private void establishMetrics(SuperQueue q, long now) {
+  //  Ask the user to allow anonymized statistics gathering.
+    if(JConfig.queryConfiguration("metrics.optin", "ask").equals("ask")) {
+      q.preQueue("Metrics", "user", now + (Constants.ONE_SECOND * 5));
+    }
+
+    MQFactory.getConcrete("metrics").registerListener(new MessageQueue.Listener() {
+      public void messageAction(Object deQ) {
+        if(JConfig.sendMetricsAllowed()) {
+          try {
+            JConfig.getMetrics().flush();
+          } catch (IOException e) {
+            JConfig.log().handleDebugException("Couldn't flush analytics to the server.", e);
+          }
+        }
+      }
+    });
+
+    q.preQueue("Flush Metrics", "metrics", now + Constants.ONE_DAY, Constants.ONE_DAY);
   }
 
   /**
