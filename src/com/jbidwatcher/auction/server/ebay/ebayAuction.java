@@ -889,10 +889,16 @@ class ebayAuction extends SpecificAuction {
       //  bid are 'Starts at', 'Current bid', 'Starting bid', 'Lowest bid',
       //  'Winning bid' so far.  'Starts at' is mainly for live auctions!
       String cvtCur = mDocument.getNextContentAfterRegex(T.s("ebayServer.currentBid"));
-      setCurBid(Currency.getCurrency(cvtCur));
+      Currency[] order = {Currency.getCurrency(cvtCur), getCurBid(), ae == null ? null : ae.getCurBid()};
+      Currency chosen = Currency.NoValue();
+      for (Currency anOrder : order) {
+        if (anOrder != null && !anOrder.isNull()) {
+          chosen = anOrder;
+          break;
+        }
+      }
+      setCurBid(chosen);
       setUSCur(getUSCurrency(getCurBid(), mDocument));
-
-      setCurBid((Currency)ensureSafeValue(getCurBid(), ae!=null?ae.getCurBid()  :Currency.NoValue(), Currency.NoValue()));
       setUSCur((Currency)ensureSafeValue(getUSCur(), ae!=null?ae.getUSCurBid():zeroDollars, Currency.NoValue()));
     }
   }
