@@ -18,6 +18,7 @@ public class JConfig extends com.cyberfox.util.config.JConfig {
   static {
     setBaseName("JBidWatch.cfg");
     metrics = DeskMetrics.getInstance();
+    metrics.setEndpoint("https://my.jbidwatcher.com/report/usage");
     try {
       String version = Constants.class.getPackage().getImplementationVersion();
       if(version == null) {
