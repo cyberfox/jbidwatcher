@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 import com.cyberfox.util.platform.Path;
+import com.cyberfox.util.platform.Platform;
 import com.github.rjeschke.txtmark.Processor;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.util.config.*;
@@ -424,7 +425,8 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private void DoAdd(Component src) {
-    String prompt = "Enter the auction number to add";
+    String keyModifier = Platform.isMac() ? "Cmd" : "Ctrl";
+    String prompt = "<html><body>Enter the auction number to add <small>(Press " + keyModifier + "-V to paste)</small></body></html>";
 
     String endResult = promptString(src, prompt, "Adding");
 
