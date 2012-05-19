@@ -3,8 +3,6 @@ package com.jbidwatcher.util.config;
 import com.DeskMetrics.DeskMetrics;
 import com.jbidwatcher.util.Constants;
 
-import java.io.IOException;
-
 /**
  * User: mrs
  * Date: 6/9/11
