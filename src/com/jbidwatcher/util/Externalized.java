@@ -5,8 +5,6 @@ package com.jbidwatcher.util;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.config.JConfig;
-
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -27,14 +25,9 @@ public class Externalized {
 	}
 	/**
 	 * @param key - The key to get out of the properties file.
-	 * @return - The value of the provided key in the properties file, or the overridden value if override.{key} is set.
+	 * @return - The value of the provided key in the properties file.
 	 */
 	public static String getString(String key) {
-    String override = JConfig.queryConfiguration("replace." + JConfig.getVersion() + '.' + key);
-    if(override != null) {
-      return override;
-    }
-
 		try {
 			return RESOURCE_BUNDLE.getString(key);
 		} catch (MissingResourceException e) {
