@@ -5,6 +5,8 @@ $: << "META-INF/jruby.home/lib/ruby/1.8"
 require 'digest/md5'
 require 'net/http.rb'
 require 'cgi'
+require 'nokogiri'
+require 'ebay_parser'
 
 java_import com.jbidwatcher.util.config.JConfig
 java_import com.cyberfox.util.platform.Path
@@ -144,7 +146,6 @@ class JBidwatcherUtilities
     params, arity = {-1 => [[nil], 1], -2 => [[params[1]], 1]}[arity] if arity < 0
 
     if action_manager.respond_to? method
-      JConfig.log.logMessage "Got #{method} with arity #{arity}"
       params = [method] + params[0...arity]
       action_manager.send(*params)
     else
@@ -172,6 +173,10 @@ class JBidwatcherUtilities
   end
 
   def after_startup
+  end
+
+  def parse(body)
+    Ebay::Parser.new(body).parse
   end
 end
 

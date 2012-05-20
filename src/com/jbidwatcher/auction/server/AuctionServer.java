@@ -315,7 +315,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
             break;
           }
         }
-        if(result != SpecificAuction.ParseErrors.SUCCESS && error == null) error = "Bad Parse!";
+        if(error == null) error = "Bad Parse!";
       }
       if (result == SpecificAuction.ParseErrors.SUCCESS) curAuction.save();
     } else error = "Bad pre-parse!";
