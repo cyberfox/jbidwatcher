@@ -16,6 +16,7 @@ package com.jbidwatcher.auction.server;
  * the factory can identify which site (ebay, yahoo, amazon, etc.) it
  * is, and do the appropriate parsing for that site.
  */
+import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
@@ -25,6 +26,7 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
+import com.jbidwatcher.util.script.Scripting;
 
 import java.util.*;
 import java.net.*;
@@ -274,8 +276,14 @@ public abstract class AuctionServer implements AuctionServerInterface {
     curAuction.setContent(sb, false);
     String error = null;
     SpecificAuction.ParseErrors result = null;
+    long before = System.currentTimeMillis();
     if (curAuction.preParseAuction()) {
       result = curAuction.parseAuction(ae);
+      long after = System.currentTimeMillis();
+
+//      Map<String, String> parsed = tryRuby(sb);
+      System.out.println("Java took " + (after - before));
+
       if (result != SpecificAuction.ParseErrors.SUCCESS) {
         switch(result) {
           case WRONG_SITE: {
@@ -326,6 +334,20 @@ public abstract class AuctionServer implements AuctionServerInterface {
       curAuction = null;
     }
     return curAuction;
+  }
+
+  public Record tryRuby(StringBuffer sb) {
+    long before = System.currentTimeMillis();
+    Record rubyResults = null;
+    try {
+      Map<String, String> maps = (Map<String, String>) Scripting.rubyMethod("parse", sb.toString());
+      rubyResults = new Record();
+      rubyResults.putAll(maps);
+    } catch (Exception e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
+    System.out.println("Ruby took " + (System.currentTimeMillis() - before));
+    return rubyResults;
   }
 
   private String markAuctionDeleted(AuctionEntry ae) {
