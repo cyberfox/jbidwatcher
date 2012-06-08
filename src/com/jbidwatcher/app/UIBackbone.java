@@ -410,13 +410,14 @@ public final class UIBackbone implements MessageQueue.Listener {
    * the default auction server is down.
    */
   void checkClock() {
+    long now = System.currentTimeMillis();
     if (lastTime != 0) {
-      if ((lastTime + Constants.ONE_MINUTE) < System.currentTimeMillis()) {
+      if ((lastTime + Constants.ONE_MINUTE) < now) {
         //  We've been out for more than a minute!
-        handleSleepDeprivation();
+        handleSleepDeprivation(now - lastTime);
       }
     }
-    lastTime = System.currentTimeMillis();
+    lastTime = now;
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
     if (JConfig.queryConfiguration("display.toolbar", "true").equals("true")) {
       defaultServerTime = "<b>" + defaultServerTime.replace("@", "</b><br>");
@@ -430,10 +431,11 @@ public final class UIBackbone implements MessageQueue.Listener {
     MQFactory.getConcrete("Swing").enqueue("HEADER " + headerLine);
   }
 
-  private void handleSleepDeprivation() {
+  private void handleSleepDeprivation(long delta) {
     Date now = new Date();
     String status = "We appear to be waking from sleep; networking may not be up yet.";
     JConfig.log().logDebug(status);
+    JConfig.getMetrics().trackEventTimed("sleep", "sleep", (int)delta, true);
     List<AuctionEntry> sniped = EntryCorral.getInstance().findAllSniped();
     if (sniped != null && !sniped.isEmpty()) {
       boolean foundSnipe = false;
@@ -444,7 +446,10 @@ public final class UIBackbone implements MessageQueue.Listener {
           foundSnipe = true;
         }
       }
-      if (foundSnipe) status += "  One or more snipes may not have been fired.";
+      if (foundSnipe) {
+        status += "  One or more snipes may not have been fired.";
+        JConfig.getMetrics().trackEvent("sleep", "snipe_missed");
+      }
       MQFactory.getConcrete("Swing").enqueue(NOTIFY_MSG + status);
     }
     //  Pause updates for 20 seconds
