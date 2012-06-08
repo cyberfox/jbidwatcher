@@ -138,6 +138,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
     int entryCount = AuctionEntry.count();
     // Metrics
+    JConfig.getMetrics().trackCustomData("categories", Integer.toString(Category.count(Category.class)));
     JConfig.getMetrics().trackCustomData("entries", Integer.toString(entryCount));
     int auctionCount = AuctionInfo.count();
     int uniqueEntries = AuctionEntry.uniqueCount();
