@@ -125,8 +125,14 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       // back.
       if (!mPauseManager.isPaused()) {
         boolean forced = ae.isUpdateRequired();
+
+        MQFactory.getConcrete("update " + ae.getCategory()).enqueue("start " + ae.getIdentifier());
+
         Auctions.doUpdate(ae);
         EntryCorral.getInstance().putWeakly(ae);
+
+        MQFactory.getConcrete("update " + ae.getCategory()).enqueue("stop " + ae.getIdentifier());
+
         if (forced) MQFactory.getConcrete("redraw").enqueue(ae.getCategory()); // Redraw a tab that has a forced update.
       }
     }

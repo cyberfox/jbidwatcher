@@ -120,22 +120,18 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   public void paintComponent(Graphics g) {
     if(g != null) {
       boolean painted = false;
-      if(JConfig.queryDisplayProperty("background.complex", "false").equals("true")) {
-        drawComplexBackground(g);
+      if (mSelected) {
+        Color selected = UIManager.getColor("Table.selectionBackground");
+        String userColor = JConfig.queryConfiguration("selection.color");
+        if(userColor != null) {
+          selected = MultiSnipe.reverseColor(userColor);
+        }
+        renderGradient(g, selected);
       } else {
-        if (mSelected) {
-          Color selected = UIManager.getColor("Table.selectionBackground");
-          String userColor = JConfig.queryConfiguration("selection.color");
-          if(userColor != null) {
-            selected = MultiSnipe.reverseColor(userColor);
-          }
-          renderGradient(g, selected);
-        } else {
-          painted = drawCustomBackground(g);
-        }
-        if (mThumbnail) {
-          drawThumbnailBox(g);
-        }
+        painted = drawCustomBackground(g);
+      }
+      if (mThumbnail) {
+        drawThumbnailBox(g);
       }
       if(!painted) super.paintComponent(g);
     }
@@ -166,9 +162,11 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
 
     Graphics2D g2d = (Graphics2D) g;
     float alpha = .1f;
+    Composite saved = g2d.getComposite();
     g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
     g.setColor(Color.BLACK);
-    g.drawLine(0, getHeight()-1, getWidth(), getHeight()-1);
+    g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
+    g2d.setComposite(saved);
 
     return painted;
   }
@@ -192,21 +190,6 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
     g2d.setComposite(oldComp);
   }
 
-  private void drawComplexBackground(Graphics g) {
-    Graphics2D g2d = (Graphics2D) g;
-    Rectangle bounds = g2d.getClipBounds();
-    if (bounds != null) {
-      if (!mSelected) {
-        setOpaque(false);
-        GradientPaint paint = getGradientPaint();
-        g2d.setPaint(paint);
-      } else {
-        g.setColor(getBackground());
-      }
-      g2d.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
-    }
-  }
-
   private void renderGradient(Graphics g, Color selected) {
     if(mLastColor != null && !mLastColor.equals(selected)) gradientCache.clear();
     mLastColor = selected;
@@ -228,19 +211,6 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   }
 
   private int cacheMapper() {return 10000 * (mRow % 2) + getHeight();}
-
-  private GradientPaint getGradientPaint() {
-    GradientPaint paint = gradientCache.get(cacheMapper());
-    if(paint == null) {
-      if ((mRow % 2) == 0) {
-        paint = new GradientPaint(0, 0, Color.WHITE, 0, getHeight(), Color.LIGHT_GRAY, false);
-      } else {
-        paint = new GradientPaint(0, 0, Color.LIGHT_GRAY, 0, getHeight(), Color.WHITE, false);
-      }
-    }
-    gradientCache.put(cacheMapper(), paint);
-    return paint;
-  }
 
   private Color chooseForeground(AuctionEntry ae, int col, Color foreground) {
     switch(col) {
