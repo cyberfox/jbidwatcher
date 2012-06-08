@@ -29,10 +29,10 @@ class AuctionListHolder {
     mAuctionUI.setBackground(presetBackground);
   }
 
-  AuctionListHolder(String name, AuctionUpdateMonitor monitor, boolean _completed, boolean deletable) {
+  AuctionListHolder(String name, boolean _completed, boolean deletable) {
     mAuctionList = new Auctions(name);
     if(_completed) mAuctionList.setComplete();
-    mAuctionUI = new AuctionsUIModel(mAuctionList, sTableContext, sFrameContext, sCornerButtonListener, monitor);
+    mAuctionUI = new AuctionsUIModel(mAuctionList, sTableContext, sFrameContext, sCornerButtonListener);
     mDeletable = deletable;
     JTabManager.getInstance().add(name, mAuctionUI.getPanel(), mAuctionUI.getTableSorter());
   }

@@ -26,31 +26,12 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private static Font boldFont = null;
   private static Font fixedFont = null;
 
-  private static String selectionColorString = null;
-  private static Color selectionColor = null;
-
   private static final Color darkGreen = new Color(0, 127, 0);
   private static final Color darkRed = new Color(127, 0, 0);
   private static final Color medBlue = new Color(0, 0, 191);
-  private static final Color linuxSelection = new Color(204,204,255);
   private int mRow = 0;
   private boolean mThumbnail = false;
   private boolean mSelected;
-  private AuctionUpdateMonitor mMonitor = null;
-
-  public void setUpdateMonitor(AuctionUpdateMonitor monitor) {
-    mMonitor = monitor;
-  }
-
-  private static class Colors {
-    Color mForeground;
-    Color mBackground;
-
-    private Colors(Color foreground, Color background) {
-      mForeground = foreground;
-      mBackground = background;
-    }
-  }
 
   public static void resetBehavior() { boldFont = null; fixedFont = null; }
 
@@ -368,16 +349,6 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   }
 
   private Color chooseIDColor(AuctionEntry ae) {
-    if(ae != null) {
-      boolean recent = ae.isJustAdded();
-      boolean isUpdating = mMonitor != null && mMonitor.isCurrentlyUpdating(ae.getIdentifier());
-
-      if(isUpdating) {
-        return darkRed;
-      } else if(recent) {
-        return darkGreen;
-      }
-    }
-    return Color.BLACK;
+    return ae != null && ae.isJustAdded() ? darkGreen : Color.BLACK;
   }
 }
