@@ -7,6 +7,7 @@ require 'net/http.rb'
 require 'cgi'
 require 'nokogiri'
 require 'ebay_parser'
+require 'pp'
 
 java_import com.jbidwatcher.util.config.JConfig
 java_import com.cyberfox.util.platform.Path
@@ -177,6 +178,10 @@ class JBidwatcherUtilities
 
   def parse(body)
     Ebay::Parser.new(body).parse
+  end
+
+  def dump_hash(h)
+    pp h
   end
 end
 
