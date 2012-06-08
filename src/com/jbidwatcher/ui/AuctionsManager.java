@@ -31,7 +31,7 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 
 /** @noinspection Singleton*/
-public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager, JConfig.ConfigListener, AuctionUpdateMonitor {
+public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager, JConfig.ConfigListener {
   private static AuctionsManager mInstance = null;
   private FilterManager mFilter;
 
@@ -41,7 +41,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   private static final int AUCTIONCOUNT = 100;
   private static final int MAX_PERCENT = AUCTIONCOUNT;
   private static TimerHandler sTimer = null;
-  private AuctionEntry mCurrentlyUpdating = null;
   private final PauseManager mPauseManager = PauseManager.getInstance();
 
   /**
@@ -53,7 +52,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     mCheckpointFrequency = 10 * Constants.ONE_MINUTE;
     mLastCheckpointed = System.currentTimeMillis();
 
-    mFilter = new FilterManager(this);
+    mFilter = new FilterManager();
   }
 
   static {
@@ -126,20 +125,10 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       // back.
       if (!mPauseManager.isPaused()) {
         boolean forced = ae.isUpdateRequired();
-        mCurrentlyUpdating = ae;
         Auctions.doUpdate(ae);
         EntryCorral.getInstance().putWeakly(ae);
-        mCurrentlyUpdating = null;
         if (forced) MQFactory.getConcrete("redraw").enqueue(ae.getCategory()); // Redraw a tab that has a forced update.
       }
-    }
-  }
-
-  public boolean isCurrentlyUpdating(String identifier) {
-    try {
-      return mCurrentlyUpdating != null && mCurrentlyUpdating.getIdentifier().equals(identifier);
-    } catch(NullPointerException npe) {
-      return false;
     }
   }
 

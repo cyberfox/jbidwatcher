@@ -1,12 +1,17 @@
 package com.jbidwatcher.ui.table;
 
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.Pair;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.SuperQueue;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableCellEditor;
@@ -23,8 +28,10 @@ import java.util.*;
 * Time: 12:06:56 PM
 * Handle tooltips, at least.  A very cool feature.
 */
-public class AuctionTable extends JTable {
+public class AuctionTable extends JTable implements MessageQueue.Listener {
   private static TableCellEditor FAUX = new FauxEditor();
+  private Integer currentRow;
+
   public TableCellEditor getCellEditor() {
     return FAUX;
   }
@@ -47,6 +54,7 @@ public class AuctionTable extends JTable {
    */
   public AuctionTable(String name, TableModel atm) {
     super();
+    MQFactory.getConcrete("update " + name).addListener(this);
     createDefaultRenderers();
     setShowGrid(false);
     setIntercellSpacing(new Dimension(0, 0));
@@ -76,6 +84,26 @@ public class AuctionTable extends JTable {
     }
 
     return result == null ? super.getToolTipText(event) : result;
+  }
+
+  public void messageAction(Object deQ) {
+    int start = ((String)deQ).lastIndexOf(' ');
+    final String identifier = ((String)deQ).substring(start+1);
+    String command = ((String)deQ).substring(0, start);
+    int activeRow = currentRow == null ? 0 : currentRow.intValue();
+
+    if(command.equals("start")) {
+      currentRow = ((TableSorter)getModel()).findRow(new Comparison() {
+        public boolean match(Object o) {
+          return ((AuctionEntry)o).getIdentifier().equals(identifier);
+        }
+      });
+      if(currentRow == -1) currentRow = null;
+    } else {
+      currentRow = null;
+    }
+    activeRow = currentRow == null ? activeRow : currentRow.intValue();
+    tableChanged(new TableModelEvent(getModel(), activeRow, activeRow, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE));
   }
 
   static class MouseListenerSelectProxy implements MouseListener {
@@ -237,5 +265,9 @@ public class AuctionTable extends JTable {
     addColumn(tc);
     getColumn(curColumnName).setPreferredWidth(Integer.parseInt(colWidth));
     getColumn(curColumnName).setWidth(Integer.parseInt(colWidth));
+  }
+
+  private boolean isCurrentRow(int i) {
+    return currentRow != null && currentRow.intValue() == i;
   }
 }

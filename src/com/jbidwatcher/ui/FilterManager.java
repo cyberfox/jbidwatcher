@@ -23,10 +23,8 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
   private AuctionListHolder mMainTab = null;
   private AuctionListHolder mDefaultCompleteTab = null;
   private AuctionListHolder mDefaultSellingTab = null;
-  private AuctionUpdateMonitor mMonitor = null;
 
-  protected FilterManager(AuctionUpdateMonitor monitor) {
-    mMonitor = monitor;
+  protected FilterManager() {
     mIdentifierToList = new HashMap<String, AuctionListHolder>();
 
     MQFactory.getConcrete("redraw").registerListener(this);
@@ -43,9 +41,9 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
   }
 
   public void loadFilters() {
-    mMainTab = mList.add(new AuctionListHolder("current", mMonitor, false, false));
-    mDefaultCompleteTab = mList.add(new AuctionListHolder("complete", mMonitor, true, false));
-    mDefaultSellingTab = mList.add(new AuctionListHolder("selling", mMonitor, false, false));
+    mMainTab = mList.add(new AuctionListHolder("current", false, false));
+    mDefaultCompleteTab = mList.add(new AuctionListHolder("complete", true, false));
+    mDefaultSellingTab = mList.add(new AuctionListHolder("selling", false, false));
 
     String tabName;
     int i = 0;
@@ -53,7 +51,7 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
     do {
       tabName = JConfig.queryDisplayProperty("tabs.name." + i++);
       if (tabName != null && mList.findCategory(tabName) == null) {
-        mList.add(new AuctionListHolder(tabName, mMonitor, false, true));
+        mList.add(new AuctionListHolder(tabName, false, true));
       }
     } while (i < 3 || tabName != null);  //  Do at least the first three, and then keep going until we miss an index.
   }
@@ -75,7 +73,7 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
       mMainTab.getUI().getColumnWidthsToProperties(dispProps, newTab);
       JConfig.addAllToDisplay(dispProps);
     }
-    AuctionListHolder newList = new AuctionListHolder(newTab, mMonitor, false, true);
+    AuctionListHolder newList = new AuctionListHolder(newTab, false, true);
     newList.setBackground(mainBackground);
     mList.add(newList);
     Category.findOrCreateByName(newTab);

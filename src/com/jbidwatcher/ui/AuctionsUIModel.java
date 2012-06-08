@@ -55,9 +55,8 @@ public class AuctionsUIModel {
    * @param cornerButtonListener - The button to sit above the scrollbar.
    * @param monitor
    */
-  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, final JContext frameContextMenu, ActionListener cornerButtonListener, AuctionUpdateMonitor monitor) {
+  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, final JContext frameContextMenu, ActionListener cornerButtonListener) {
     _dataModel = newAuctionList;
-    _myRenderer.setUpdateMonitor(monitor);
 
     _targets = new DropTarget[2];
 
