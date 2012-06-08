@@ -5,6 +5,7 @@ package com.jbidwatcher.ui.table;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.config.JConfig;
 
@@ -72,6 +73,13 @@ public abstract class BaseTransformation extends AbstractTableModel implements B
 
   protected static int getInt(List<Integer> l, int index) {
     return l.get(index);
+  }
+
+  public synchronized int findRow(Comparison c) {
+    for(int i=0; i<getRowCount(); i++) {
+      if(c.match(getValueAt(i, -1))) return i;
+    }
+    return -1;
   }
 
   public synchronized int findRow(Object o) {
