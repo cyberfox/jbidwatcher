@@ -174,7 +174,7 @@ public class AuctionTable extends JTable implements MessageQueue.Listener {
   }
 
   private static final String[][] DEFAULT_COLUMNS = new String[][]{
-          {"Number", "100"},
+          {"Thumbnail", "100"},
           {"Current", "89"},
           {"Max", "62"},
           {"Description", "297"},
