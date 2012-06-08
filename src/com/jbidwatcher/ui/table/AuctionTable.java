@@ -15,6 +15,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableCellEditor;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Point;
@@ -269,5 +271,19 @@ public class AuctionTable extends JTable implements MessageQueue.Listener {
 
   private boolean isCurrentRow(int i) {
     return currentRow != null && currentRow.intValue() == i;
+  }
+
+  public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+    Component c = super.prepareRenderer(renderer, row, column);
+    if(isCurrentRow(row)) {
+      JComponent jc = (JComponent) c;
+
+      int left = column == 0 ? 1 : 0;
+      int right = column == getColumnCount() - 1 ? 1 : 0;
+
+      // TODO(cyberfox) Cache borders so only 3*(2^4) borders are created (4 binary variables times three distinct background colors).
+      jc.setBorder(BorderFactory.createMatteBorder(1, left, 1, right, Color.RED));
+    }
+    return c;
   }
 }
