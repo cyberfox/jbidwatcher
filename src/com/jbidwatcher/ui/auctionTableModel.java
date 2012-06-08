@@ -367,73 +367,19 @@ public class auctionTableModel extends BaseTransformation
       switch(columnIndex) {
         case TableColumnController.ID: return aEntry.getIdentifier();
         case TableColumnController.CUR_BID:
-          Currency curPrice = aEntry.getCurrentPrice();
-          if(aEntry.isFixed()) {
-            return curPrice + " (FP" + ((aEntry.getQuantity() > 1) ? " x " + aEntry.getQuantity() + ")" : ")");
-          } else {
-            return curPrice + " (" + Integer.toString(aEntry.getNumBidders()) + ')';
-          }
+          return currentBid(aEntry);
         case TableColumnController.SNIPE_OR_MAX: return formatSnipeAndBid(aEntry);
         case TableColumnController.MAX: return aEntry.isBidOn()?formatBid(aEntry, errorNote):neverBid;
         case TableColumnController.SNIPE:
-          if (aEntry.isSniped()) {
-            return formatSnipe(aEntry, errorNote);
-          }
-          if(aEntry.snipeCancelled() && aEntry.isComplete()) {
-            return errorNote + '(' + aEntry.getCancelledSnipe() + ')';
-          }
-
-          return neverBid;
-        case TableColumnController.TIME_LEFT: {
-          if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE))
-            return "N/A";
-          String endTime = aEntry.getTimeLeft();
-          if(endTime.equals(AuctionEntry.endedAuction)) {
-            SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
-            endTime = fmt.format(aEntry.getEndDate());
-            if(!aEntry.isComplete()) {
-              endTime = "<html><body color=\"red\">" + endTime + "</body></html>";
-            }
-          }
-          return endTime;
-        }
-        case TableColumnController.END_DATE: {
-          if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE))
-            return "N/A";
-          SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
-          return fmt.format(aEntry.getEndDate());
-        }
+          return snipeColumn(aEntry, errorNote);
+        case TableColumnController.TIME_LEFT:
+          return timeLeftColumn(aEntry);
+        case TableColumnController.END_DATE:
+          return endDateColumn(aEntry);
         case TableColumnController.TITLE: return XMLElement.decodeString(aEntry.getTitle());
         case TableColumnController.STATUS: return getEntryIcon(aEntry);
-        case TableColumnController.THUMBNAIL: {
-          String thumb = aEntry.getThumbnail();
-          if (thumb != null) {
-            if(iconCache.containsKey(thumb)) return iconCache.get(thumb);
-            thumb = thumb.replaceAll("file:", "");
-            ImageIcon base = new ImageIcon(thumb);
-            int h = base.getIconHeight();
-            int w = base.getIconWidth();
-            if (h <= 64 && w <= 64) {
-              h = -1;
-              w = -1;
-            }
-            if (h != -1 && w != -1) {
-              if (h > w) {
-                h = 64;
-                w = -1;
-              } else if (w > h) {
-                w = 64;
-                h = -1;
-              } else if (h == w && h != -1) {
-                h = 64;
-                w = -1;
-              }
-            }
-            ImageIcon thumbIcon = new ImageIcon(base.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH));
-            if(thumbIcon != null) iconCache.put(thumb, thumbIcon);
-            return thumbIcon;
-          } else return dummyIcon;
-        }
+        case TableColumnController.THUMBNAIL:
+          return thumbnailColumn(aEntry);
         case TableColumnController.SELLER: return aEntry.getSeller();
         case TableColumnController.COMMENT:
           String comment = aEntry.getComment();
@@ -463,18 +409,7 @@ public class auctionTableModel extends BaseTransformation
           String fbp = aEntry.getPositiveFeedbackPercentage();
           return (fbp == null || fbp.length() == 0)?"--":fbp;
         case TableColumnController.CUR_TOTAL:
-          Currency shipping = aEntry.getShippingWithInsurance();
-          if(shipping.getCurrencyType() == Currency.NONE) {
-            return "--"; // shipping not set so cannot add up values
-          }
-          try {
-            return aEntry.getCurrentPrice().add(shipping);
-          } catch (Currency.CurrencyTypeException e) {
-            JConfig.log().handleException("Currency addition threw a bad currency exception, which is odd...", e); //$NON-NLS-1$
-          }
-          return "--";
-        case TableColumnController.WATCHERS:
-          if(aEntry.getWatchers() == -1) return "(not available)"; else return aEntry.getWatchers();
+          return priceWithShippingColumn(aEntry);
         case TableColumnController.SNIPE_TOTAL:
           return formatTotalSnipe(aEntry, errorNote);
         default: {
@@ -486,6 +421,88 @@ public class auctionTableModel extends BaseTransformation
       }
     } catch(ArrayIndexOutOfBoundsException aioobe) {
       return(getDummyValueAtColumn(columnIndex));
+    }
+  }
+
+  private Object priceWithShippingColumn(AuctionEntry aEntry) {Currency shipping = aEntry.getShippingWithInsurance();
+    if(shipping.getCurrencyType() == Currency.NONE) {
+      return "--"; // shipping not set so cannot add up values
+    }
+    try {
+      return aEntry.getCurrentPrice().add(shipping);
+    } catch (Currency.CurrencyTypeException e) {
+      JConfig.log().handleException("Currency addition threw a bad currency exception, which is odd...", e); //$NON-NLS-1$
+    }
+    return "--";
+  }
+
+  private Object thumbnailColumn(AuctionEntry aEntry) {
+    String thumb = aEntry.getThumbnail();
+    if (thumb != null) {
+      if(iconCache.containsKey(thumb)) return iconCache.get(thumb);
+      thumb = thumb.replaceAll("file:", "");
+      ImageIcon base = new ImageIcon(thumb);
+      int h = base.getIconHeight();
+      int w = base.getIconWidth();
+      if (h <= 64 && w <= 64) {
+        h = -1;
+        w = -1;
+      }
+      if (h != -1 && w != -1) {
+        if (h > w) {
+          h = 64;
+          w = -1;
+        } else if (w > h) {
+          w = 64;
+          h = -1;
+        } else if (h == w && h != -1) {
+          h = 64;
+          w = -1;
+        }
+      }
+      ImageIcon thumbIcon = new ImageIcon(base.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH));
+      if(thumbIcon != null) iconCache.put(thumb, thumbIcon);
+      return thumbIcon;
+    } else return dummyIcon;
+  }
+
+  private Object endDateColumn(AuctionEntry aEntry) {
+    if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE))
+      return "N/A";
+    SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
+    return fmt.format(aEntry.getEndDate());
+  }
+
+  private Object timeLeftColumn(AuctionEntry aEntry) {
+    if (aEntry.getEndDate() == null || aEntry.getEndDate().equals(Constants.FAR_FUTURE))
+      return "N/A";
+    String endTime = aEntry.getTimeLeft();
+    if(endTime.equals(AuctionEntry.endedAuction)) {
+      SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yy HH:mm:ss zzz");
+      endTime = fmt.format(aEntry.getEndDate());
+      if(!aEntry.isComplete()) {
+        endTime = "<html><body color=\"red\">" + endTime + "</body></html>";
+      }
+    }
+    return endTime;
+  }
+
+  private Object snipeColumn(AuctionEntry aEntry, String errorNote) {
+    if (aEntry.isSniped()) {
+      return formatSnipe(aEntry, errorNote);
+    }
+    if(aEntry.snipeCancelled() && aEntry.isComplete()) {
+      return errorNote + '(' + aEntry.getCancelledSnipe() + ')';
+    }
+
+    return neverBid;
+  }
+
+  private Object currentBid(AuctionEntry aEntry) {Currency curPrice = aEntry.getCurrentPrice();
+    if(aEntry.isFixed()) {
+      return curPrice + " (FP" + ((aEntry.getQuantity() > 1) ? " x " + aEntry.getQuantity() + ")" : ")");
+    } else {
+      return curPrice + " (" + Integer.toString(aEntry.getNumBidders()) + ')';
     }
   }
 
