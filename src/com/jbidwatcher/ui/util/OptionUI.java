@@ -30,7 +30,7 @@ public class OptionUI {
     dialog.setResizable(true);
 
     pane.selectInitialValue();
-    dialog.show();
+    dialog.setVisible(true);
     dialog.dispose();
 
     Object value = pane.getInputValue();
