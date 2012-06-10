@@ -422,7 +422,7 @@ public class UserActions implements MessageQueue.Listener {
     return(_oui.promptString(src, prePrompt, preTitle, preFill));
   }
 
-  @MenuCommand(params = 2)
+  @MenuCommand(params = 2, action = "Cancel Snipe")
   private void CancelSnipe(Component src, AuctionEntry ae) {
     int[] rowList = mTabs.getPossibleRows();
     int len = rowList.length;
