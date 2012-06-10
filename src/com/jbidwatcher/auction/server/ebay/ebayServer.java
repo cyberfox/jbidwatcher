@@ -111,7 +111,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *
    */
   public ServerMenu establishMenu() {
-    ServerMenu esm = new ebayServerMenu(this, Constants.EBAY_DISPLAY_NAME, 'b');
+    ServerMenu esm = new ebayServerMenu(this.getFriendlyName(), Constants.EBAY_DISPLAY_NAME, 'b');
     esm.initialize();
 
     return esm;
@@ -280,7 +280,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
 
       if(ac.getData().equals("Dump eBay Activity Queue")) {
-        if(getBackupServer() != null && getBackupServer() != this) MQFactory.getConcrete(getBackupServer()).enqueueBean(ac);
+        if(getBackupServer() != null && getBackupServer() != this) MQFactory.getConcrete(getBackupServer().getFriendlyName()).enqueueBean(ac);
         _etqm.dumpQueue(T.getBundle());
         return;
       }
@@ -343,8 +343,8 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         ae.setLastStatus("Establishing a snipe for " + ae.getSnipeAmount());
 
         _etqm.add("TIMECHECK", "auction_manager", (endDate.getTime() - snipeDelta) - FIVE_MINUTES);
-        _etqm.add(auctionId, mSnipeQueue, (endDate.getTime() - snipeDelta) - TWO_MINUTES);
-        _etqm.add(auctionId, mSnipeQueue, (endDate.getTime() - snipeDelta));
+        _etqm.add(auctionId, mSnipeQueue.getQueueName(), (endDate.getTime() - snipeDelta) - TWO_MINUTES);
+        _etqm.add(auctionId, mSnipeQueue.getQueueName(), (endDate.getTime() - snipeDelta));
         _etqm.add(auctionId, "drop",       endDate.getTime() + THIRTY_SECONDS);
       } else {
         JConfig.log().logMessage("Failing to set snipe for " + auctionId + ", endDate is null or in the far future (" + endDate + ")");
@@ -436,9 +436,9 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     //noinspection CallToThreadStartDuringObjectConstruction
     eQueue.start();
 
-    mSnipeQueue = new SnipeListener();
-    MQFactory.getConcrete(mSnipeQueue).registerListener(mSnipeQueue);
-    MQFactory.getConcrete(this).registerListener(this);
+    mSnipeQueue = new SnipeListener(getFriendlyName());
+    MQFactory.getConcrete(mSnipeQueue.getQueueName()).registerListener(mSnipeQueue);
+    MQFactory.getConcrete(getFriendlyName()).registerListener(this);
 
     JConfig.registerListener(this);
   }
@@ -590,7 +590,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    *  This queue is basically only used for starting searches.
    */
   public void cancelSearches() {
-    MQFactory.getConcrete(this).clear();
+    MQFactory.getConcrete(this.getFriendlyName()).clear();
   }
 
   /**
@@ -626,6 +626,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   private class SnipeListener implements MessageQueue.Listener {
+    private String queueName = "sniper";
+    private SnipeListener(String suffix) {
+      queueName = suffix + " sniper";
+    }
+
+    public String getQueueName() { return queueName; }
+
     //  mSnipeMap maps identifiers to Snipe objects which contain sniping state.
     private Map<String, Snipe> mSnipeMap = new HashMap<String, Snipe>();
 
@@ -667,16 +674,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       long timeLeft = snipe.getItem().getEndDate().getTime() - _etqm.getCurrentTime();
       long snipeTime = snipe.getItem().getSnipeTime();
       if (timeLeft > snipeTime) {
-        _etqm.add(identifier, mSnipeQueue, _etqm.getCurrentTime() + (timeLeft - snipeTime));
+        _etqm.add(identifier, getQueueName(), _etqm.getCurrentTime() + (timeLeft - snipeTime));
       } else if (timeLeft > Constants.THREE_SECONDS) {
         long retry_wait = (timeLeft / 10) * 2;
         if (retry_wait < Constants.THREE_SECONDS) retry_wait = Constants.THREE_SECONDS;
 
-        _etqm.add(identifier, mSnipeQueue, _etqm.getCurrentTime() + retry_wait);
+        _etqm.add(identifier, getQueueName(), _etqm.getCurrentTime() + retry_wait);
         return true;
       } else if (force) {
         //  Requeue it for _now_
-        MQFactory.getConcrete(mSnipeQueue).enqueue(identifier);
+        MQFactory.getConcrete(getQueueName()).enqueue(identifier);
       }
       return false;
     }

@@ -26,7 +26,15 @@ public class MQFactory {
     MQs.put(queueName, whatQueue);
   }
 
-  public static MessageQueue getConcrete(Object whatConcrete) {
+  /**
+   * Find or create a message queue with a given name.  The first time this is called, it will create a plain message queue with
+   * this name, and return it.  Subsequent calls will return the same message queue.
+   *
+   * @param whatConcrete The name of the queue; this also becomes its thread name.
+   *
+   * @return A queue addressable by the provided name.
+   */
+  public static MessageQueue getConcrete(String whatConcrete) {
     if(MQs == null) {
       MQs = new HashMap<Object, MessageQueue>();
     }

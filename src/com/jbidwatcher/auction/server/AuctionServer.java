@@ -367,7 +367,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
     //  Only retry the login cookie once every ten minutes of these errors.
     if ((sLastUpdated + Constants.ONE_MINUTE * 10) > System.currentTimeMillis()) {
       sLastUpdated = System.currentTimeMillis();
-      MQFactory.getConcrete(this).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$ //$NON-NLS-2$
+      MQFactory.getConcrete(this.getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$ //$NON-NLS-2$
     }
   }
 

@@ -110,7 +110,7 @@ public class JBTool implements ToolInterface {
     if(mRunServer) {
       spawnServer();
     } else if(mJustMyeBay) {
-      MQFactory.getConcrete(mEbay).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
+      MQFactory.getConcrete(mEbay.getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
       try { Thread.sleep(120000); } catch(Exception ignored) { }
     } else if(mParseFile != null) {
       JConfig.setHomeDirectory("./");
