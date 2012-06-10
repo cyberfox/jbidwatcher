@@ -15,7 +15,7 @@ import java.awt.event.ActionEvent;
 * To change this template use File | Settings | File Templates.
 */
 class ebayServerMenu extends ServerMenu {
-  Object mQueueServer = null;
+  String mQueueServer = null;
   public void initialize() {
     addMenuItem("Search eBay", 'F');
     addMenuItem("Get My eBay Items", 'M');
@@ -32,7 +32,7 @@ class ebayServerMenu extends ServerMenu {
     else MQFactory.getConcrete(mQueueServer).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, actionString, null));
   }
 
-  protected ebayServerMenu(Object qServer, String serverName, char ch) {
+  protected ebayServerMenu(String qServer, String serverName, char ch) {
     super(serverName, ch);
     mQueueServer = qServer;
   }

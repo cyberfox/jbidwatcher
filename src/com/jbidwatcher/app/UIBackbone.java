@@ -460,9 +460,9 @@ public final class UIBackbone implements MessageQueue.Listener {
     long wakeUp = System.currentTimeMillis() + (25 * Constants.ONE_SECOND);
     AuctionQObject updateEvent = new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null);
 
-    SuperQueue.getInstance().getQueue().add(updateEvent, mainServer, wakeUp);
+    SuperQueue.getInstance().getQueue().add(updateEvent, mainServer.getFriendlyName(), wakeUp);
     if(mainServer.getBackupServer() != null) {
-      SuperQueue.getInstance().getQueue().add(updateEvent, mainServer.getBackupServer(), wakeUp);
+      SuperQueue.getInstance().getQueue().add(updateEvent, mainServer.getBackupServer().getFriendlyName(), wakeUp);
     }
   }
 

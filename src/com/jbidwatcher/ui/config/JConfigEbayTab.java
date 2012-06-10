@@ -54,7 +54,7 @@ public class JConfigEbayTab extends JConfigTab
 
     if(old_pass == null || !new_pass.equals(old_pass) ||
        old_user == null || !new_user.equals(old_user)) {
-      MQFactory.getConcrete(AuctionServerManager.getInstance().getServer()).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
+      MQFactory.getConcrete(AuctionServerManager.getInstance().getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
     }
 
     //  If it's the first time running the program, try to load My eBay for them in about 12 seconds.

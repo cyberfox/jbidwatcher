@@ -23,7 +23,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
   private List<Searcher> _searches = new ArrayList<Searcher>();
   private static SearchManager _instance = null;
   private static TimerHandler sTimer;
-  private Object destinationQueue;
+  private String destinationQueue;
 
   private SearchManager() { }
   public static SearchManager getInstance() {
@@ -44,7 +44,7 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
     return null;
   }
 
-  public void setDestinationQueue(Object dQueue) {
+  public void setDestinationQueue(String dQueue) {
     destinationQueue = dQueue;
   }
 

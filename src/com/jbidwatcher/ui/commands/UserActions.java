@@ -913,7 +913,7 @@ public class UserActions implements MessageQueue.Listener {
                                             "Buy Item", "prompt.bin_confirm");
 
     if(endResult != JOptionPane.CANCEL_OPTION && endResult != JOptionPane.CLOSED_OPTION) {
-      MQFactory.getConcrete(ae.getServer()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBuy(ae, Currency.NoValue(), 1), "none"));
+      MQFactory.getConcrete(ae.getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBuy(ae, Currency.NoValue(), 1), "none"));
     }
   }
 
@@ -952,7 +952,7 @@ public class UserActions implements MessageQueue.Listener {
                                     "Bad bid value", JOptionPane.PLAIN_MESSAGE);
       return;
     }
-    MQFactory.getConcrete(ae.getServer()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, 1), "none"));
+    MQFactory.getConcrete(ae.getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, 1), "none"));
   }
 
   private void DoShowInBrowser(Component src, AuctionEntry inAuction) {
@@ -1513,7 +1513,7 @@ public class UserActions implements MessageQueue.Listener {
 
   private void DoGetMyeBay() {
     AuctionQObject loadMyeBay = new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, "current");
-    MQFactory.getConcrete(AuctionServerManager.getInstance().getServer()).enqueueBean(loadMyeBay);
+    MQFactory.getConcrete(AuctionServerManager.getInstance().getServer().getFriendlyName()).enqueueBean(loadMyeBay);
   }
 
   private SubmitLogDialog mLogSubmitDialog;

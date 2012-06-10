@@ -20,17 +20,17 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
 
   protected class TQCarrier {
     private Object payload;
-    private Object destination_queue;
+    private String destination_queue;
     private long repeatRate;
     private int repeatCount;
 
     public Object getPayload() { return payload; }
-    public Object getDestinationQueue() { return destination_queue; }
+    public String getDestinationQueue() { return destination_queue; }
     public long getRepeatRate() { return repeatRate; }
     public long getRepeatCount() { return repeatCount; }
     public void decrementCount() { repeatCount--; }
 
-    public TQCarrier(Object o, Object s, long r, int c) {
+    public TQCarrier(Object o, String s, long r, int c) {
       destination_queue = s;
       payload = o;
       repeatRate = r;
@@ -74,15 +74,15 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
     return false;
   }
 
-  private TQCarrier createCarrier(Object payload, Object destination, long repeat, int howmany) {
+  private TQCarrier createCarrier(Object payload, String destination, long repeat, int howmany) {
     return new TQCarrier(payload, destination, repeat, howmany);
   }
 
-  public void add(Object payload, Object destination, long when) {
+  public void add(Object payload, String destination, long when) {
     mTQ.addEvent(when, createCarrier(payload, destination, 0, 1));
   }
 
-  public void add(Object payload, Object destination, long when, long repeat) {
+  public void add(Object payload, String destination, long when, long repeat) {
     mTQ.addEvent(when, createCarrier(payload, destination, repeat, -1));
   }
 
