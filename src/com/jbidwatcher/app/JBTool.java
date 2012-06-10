@@ -51,6 +51,7 @@ public class JBTool implements ToolInterface {
   private ebayServer mEbayUK;
   private String mParseFile = null;
   private boolean mCompare = false;
+  private boolean mMultiFiles = false;
 
   private void testBasicAuthentication(final String user, final String key) throws Exception {
     URL retrievalURL = JConfig.getURL("http://localhost:9909/services/sqsurl");
@@ -118,6 +119,10 @@ public class JBTool implements ToolInterface {
         comparative(mParseFile);
       } else {
         buildAuctionEntryFromFile(mParseFile);
+      }
+    } else if(mMultiFiles) {
+      for (String file : mParams) {
+        comparative(file);
       }
     } else {
       retrieveAndVerifyAuctions(mParams);
@@ -280,6 +285,7 @@ public class JBTool implements ToolInterface {
       }
       if(option.startsWith("file=")) mParseFile = option.substring(5);
       if(option.startsWith("compare=")) { mParseFile = option.substring(8); mCompare = true; }
+      if(option.startsWith("bulk")) { mCompare = true; mMultiFiles = true; }
       if(option.startsWith("bidfile=")) testBidHistory(option.substring(8));
       if(option.startsWith("adult")) JConfig.setConfiguration("ebay.mature", "true");
       if(option.startsWith("upload=")) MyJBidwatcher.getInstance().sendFile(new File(option.substring(7)), "http://my.jbidwatcher.com/upload/log", "cyberfox@jbidwatcher.com", "This is a <test> of descriptions & stuff.");
