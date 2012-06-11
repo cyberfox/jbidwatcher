@@ -75,7 +75,7 @@ public class Database {
      */
     try {
       if(isMySQL()) {
-        mConn = DriverManager.getConnection(protocol + "jbidwatcher", props);
+        mConn = DriverManager.getConnection(protocol + JConfig.queryConfiguration("db.mysql.database", "jbidwatcher"), props);
       } else {
         mConn = DriverManager.getConnection(protocol + "jbdb", props);
       }
@@ -84,7 +84,7 @@ public class Database {
       if(isMySQL()) {
         mConn = DriverManager.getConnection(protocol, props);
         Statement s = mConn.createStatement();
-        s.executeUpdate("CREATE DATABASE jbidwatcher");
+        s.executeUpdate("CREATE DATABASE " + JConfig.queryConfiguration("db.mysql.database", "jbidwatcher"));
         mConn.close();
         mConn = DriverManager.getConnection(protocol + JConfig.queryConfiguration("db.mysql.database", "jbidwatcher"), props);
       } else {
