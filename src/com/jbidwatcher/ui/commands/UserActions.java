@@ -703,7 +703,6 @@ public class UserActions implements MessageQueue.Listener {
       SnipeDialog sd = new SnipeDialog();
       sd.clear();
       sd.setPrompt(prompt);
-      sd.useQuantity(false);
       sd.pack();
       Rectangle rec = OptionUI.findCenterBounds(sd.getPreferredSize());
       sd.setLocation(rec.x, rec.y);
@@ -805,7 +804,6 @@ public class UserActions implements MessageQueue.Listener {
     SnipeDialog sd = new SnipeDialog(previous);
     sd.clear();
     sd.setPrompt(prompt);
-    sd.useQuantity(false);
     sd.pack();
     Rectangle rec = OptionUI.findCenterBounds(sd.getPreferredSize());
     sd.setLocation(rec.x, rec.y);
@@ -814,7 +812,6 @@ public class UserActions implements MessageQueue.Listener {
     if(sd.isCancelled() || sd.getAmount().length() == 0) return;
 
     String snipeAmount = sd.getAmount();
-    String snipeQuant = sd.getQuantity();
 
     try {
       Currency bidAmount = Currency.getCurrency(ae.getCurBid().fullCurrencyName(), snipeAmount);
@@ -825,7 +822,7 @@ public class UserActions implements MessageQueue.Listener {
         }
       }
       boolean wasSniped = ae.isSniped();
-      ae.prepareSnipe(bidAmount, Integer.parseInt(snipeQuant));
+      ae.prepareSnipe(bidAmount);
       // Metrics
       if (wasSniped) {
         JConfig.getMetrics().trackEvent("snipe", "changed");
@@ -905,6 +902,7 @@ public class UserActions implements MessageQueue.Listener {
 
     return false;
   }
+
   // TODO -- Add the ability to pick a quantity to buy, defaulting to 1.
   private void DoBuy(Component src, AuctionEntry ae) {
     if(anyBiddingErrors(src, ae)) return;
