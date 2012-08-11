@@ -98,6 +98,7 @@ class ebayAuction extends SpecificAuction {
         T.s("ebayServer.titleEbay4"),
         T.s("ebayServer.titleMotors"),
         T.s("ebayServer.titleMotors2"),
+        T.s("ebayServer.titleMotors3"),
         T.s("ebayServer.titleDisney"),
         T.s("ebayServer.titleCollections")};
 
