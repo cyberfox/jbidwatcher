@@ -467,6 +467,10 @@ class ebayAuction extends SpecificAuction {
     if(microFormat.containsKey("price")) {
       setCurBid(Currency.getCurrency((String)microFormat.get("price")));
     }
+	else if (microFormat.containsKey("binPrice")) {
+      setCurBid(Currency.getCurrency((String)microFormat.get("binPrice")));
+    }
+	
 
     if(microFormat.containsKey("image")) {
       String imageURL = (String) microFormat.get("image");
@@ -529,13 +533,19 @@ class ebayAuction extends SpecificAuction {
       if(nextContent.matches("(?i).*(Buy.It.Now|Buy.another).*")) {
         String startingPrice = mDocument.getNextContentAfterRegex("(Starting|Current) bid:");
         if(startingPrice != null && startingPrice.matches(Currency.NAME_REGEX)) startingPrice += " " + mDocument.getNextContent();
-        if(startingPrice == null || !Currency.isCurrency(startingPrice)) setFixedPrice(true);
+        if(startingPrice == null || !Currency.isCurrency(startingPrice)) 
+		{
+			JConfig.log().logMessage("checkBuyNowOrFixedPrice: fixed detected");
+
+			setFixedPrice(true);
+		}
         if(Currency.isCurrency(postPrice)) {
           setBuyNow(Currency.getCurrency(postPrice));
           setBuyNowUS(getUSCurrency(Currency.getCurrency(postPrice), mDocument));
           buyNowSet = true;
         }
       } else if(postPrice.matches("([oO]riginal.price)|([Ss]old.[Ff]or:?)")) {
+		JConfig.log().logMessage("checkBuyNowOrFixedPrice: fixed detected2");
         setFixedPrice(true);
         String price = mDocument.getNextContentAfterContent("Discounted price");
         setBuyNow(Currency.getCurrency(price));
@@ -985,7 +995,8 @@ class ebayAuction extends SpecificAuction {
     if(rawBidCount != null) {
       if(rawBidCount.equals(T.s("ebayServer.purchasesBidCount")) ||
          rawBidCount.matches(T.s("ebayServer.offerRecognition"))) {
-        setFixedPrice(true);
+        JConfig.log().logMessage("getBidCount: fixed detected");
+		setFixedPrice(true);
         bidCount = -1;
       } else {
         if(rawBidCount.matches(T.s("ebayServer.bidderListCount"))) {
@@ -1001,7 +1012,8 @@ class ebayAuction extends SpecificAuction {
     //  this is a store or FP item.  Still true under BIBO?
     if (rawBidCount == null || bidCount == -1) {
       setHighBidder(T.s("ebayServer.fixedPrice"));
-      setFixedPrice(true);
+      JConfig.log().logMessage("checkBuyNowOrFixedPrice: fixed detected2");
+	  setFixedPrice(true);
 
       if (doesLabelExist(T.s("ebayServer.hasBeenPurchased")) ||
           doesLabelPrefixExist(T.s("ebayServer.endedEarly"))) {
@@ -1018,26 +1030,39 @@ class ebayAuction extends SpecificAuction {
   }
 
   private String getRawBidCount(JHTML doc) {
-    List<String> bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", ".*", "[0-9]+", "bids?");
+    List<String> bidSequence; 
     String rawBidCount;
-    if(bidSequence == null) {
-      bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids?");
+	bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", ".*", ".*", "[0-9]+", "bids?");
+    if(bidSequence != null) {
+      rawBidCount = bidSequence.get(4);
+	} else {
+	  bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", ".*", "[0-9]+", "bids?");
       if(bidSequence != null) {
-        rawBidCount = bidSequence.get(2);
-      } else if( (bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+ bids?")) != null) {
-        String bidsString = bidSequence.get(2);
-        rawBidCount = bidsString.substring(0, bidsString.indexOf(' '));
+	    rawBidCount = bidSequence.get(3);
       } else {
-        rawBidCount = doc.getNextContentAfterRegex(T.s("ebayServer.bidCount"));
+        bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids?");
+        if(bidSequence != null) {
+          rawBidCount = bidSequence.get(2);
+        } else {
+		  bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+ bids?");
+		  if(bidSequence != null) {
+            String bidsString = bidSequence.get(2);
+            rawBidCount = bidsString.substring(0, bidsString.indexOf(' '));
+		  } else {
+            rawBidCount = doc.getNextContentAfterRegex(T.s("ebayServer.bidCount"));
+          }
+		}
       }
-    } else {
-      rawBidCount = bidSequence.get(3);
     }
 
     if(rawBidCount == null) {
       rawBidCount = doc.getContentBeforeContent("See history");
       if(rawBidCount != null && rawBidCount.matches("^(Purchased|Bid).*")) {
-        if (rawBidCount.matches("^Purchased.*")) setFixedPrice(true);
+        if (rawBidCount.matches("^Purchased.*")) 
+		{
+			JConfig.log().logMessage("GetRawBidCount: fixed detected");
+			setFixedPrice(true);
+		}
         rawBidCount = doc.getPrevContent();
       }
       if(rawBidCount != null && !StringTools.isNumberOnly(rawBidCount)) rawBidCount = null;
