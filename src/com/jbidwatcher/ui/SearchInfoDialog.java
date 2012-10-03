@@ -49,7 +49,7 @@ public class SearchInfoDialog extends BasicDialog {
     1, 6, 12, 24, 48, 168, -1
   };
 
-  public String getType() { return (String)searchTypeBox.getSelectedItem(); }
+  public String getSearchType() { return searchTypeBox.getSelectedItem().toString(); }
   public String getName() { return searchNameField.getText(); }
   public String getSearch(){return searchField.getText(); }
   public String getPeriod(){return (String)periodList.getSelectedItem(); }
@@ -80,7 +80,7 @@ public class SearchInfoDialog extends BasicDialog {
 
   protected void onOK() {
     if(curSearch == null) {
-      curSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), getType(), getName(), getSearch(), Constants.EBAY_SERVER_NAME, getCurrency(), -1);
+      curSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), getSearchType(), getName(), getSearch(), Constants.EBAY_SERVER_NAME, getCurrency(), -1);
       SearchManager.getInstance().addSearch(curSearch);
     } else {
       curSearch.setName(getName());
