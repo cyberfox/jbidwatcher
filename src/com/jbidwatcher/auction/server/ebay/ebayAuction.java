@@ -466,6 +466,8 @@ class ebayAuction extends SpecificAuction {
     Map microFormat = mDocument.extractMicroformat();
     if(microFormat.containsKey("price")) {
       setCurBid(Currency.getCurrency((String)microFormat.get("price")));
+    } else if(microFormat.containsKey("binPrice")) {
+      setCurBid(Currency.getCurrency((String)microFormat.get("binPrice")));
     }
 
     if(microFormat.containsKey("image")) {
@@ -1018,21 +1020,30 @@ class ebayAuction extends SpecificAuction {
   }
 
   private String getRawBidCount(JHTML doc) {
-    List<String> bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", ".*", "[0-9]+", "bids?");
-    String rawBidCount;
-    if(bidSequence == null) {
-      bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids?");
+    final String[][] SEQUENCES = {
+        {T.s("ebayServer.currentBid"), ".*", ".*", ".*", "[0-9]+", "bids?"},
+        {T.s("ebayServer.currentBid"), ".*", ".*", "[0-9]+", "bids?"},
+        {T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids?"},
+        {T.s("ebayServer.currentBid"), ".*", "[0-9]+ bids?"}
+    };
+
+    List<String> bidSequence;
+    String rawBidCount = null;
+
+    for(int i=0; i<SEQUENCES.length; i++) {
+      bidSequence = doc.findSequence(SEQUENCES[i]);
       if(bidSequence != null) {
-        rawBidCount = bidSequence.get(2);
-      } else if( (bidSequence = doc.findSequence(T.s("ebayServer.currentBid"), ".*", "[0-9]+ bids?")) != null) {
-        String bidsString = bidSequence.get(2);
-        rawBidCount = bidsString.substring(0, bidsString.indexOf(' '));
-      } else {
-        rawBidCount = doc.getNextContentAfterRegex(T.s("ebayServer.bidCount"));
+        int index = 2;
+        // For the first entry, it should be the 4th element (i.e. .get(3))
+        if(i == 0) index++;
+
+        rawBidCount = bidSequence.get(index);
+
+        if(i == 3) rawBidCount = rawBidCount.substring(0, rawBidCount.indexOf(' '));
       }
-    } else {
-      rawBidCount = bidSequence.get(3);
     }
+
+    if(rawBidCount == null) rawBidCount = doc.getNextContentAfterRegex(T.s("ebayServer.bidCount"));
 
     if(rawBidCount == null) {
       rawBidCount = doc.getContentBeforeContent("See history");
