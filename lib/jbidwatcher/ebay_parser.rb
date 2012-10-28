@@ -20,9 +20,11 @@ class Ebay
     ENDED_DATE_MATCH=[%r{^Ended:$},%r{.*}, %r{.*(P[SD]T|GMT)$}]
     SHIPPING_MATCH=[%r{^Shipping:$}, %r{.*}]
     ITEM_MATCH=[%r{^Item.number:}, %r{[0-9]+}]
+    REVERSE_ITEM_MATCH=[%r{[0-9]+}, %r{Item.number:}]
     HISTORY_MATCH=[%r{^Bid.history:$}, %r{[0-9]+}, %r{bids?}]
     ENDED_HISTORY_MATCH=[%r{^Bid.history:$}, %r{[0-9]+.bids?}]
     LIVE_HISTORY_MATCH = PRICE_MATCH + ["\\[", %r{[0-9]+ bids?}]
+    BIDCOUNT_MATCH = ["\\[", %r{\d+}, %r{bids?}, "\\]"]
     LIVE_SELLER_MATCH = [%r{Member id}, %r{.*}, %r{\(}, %r{Feedback Score.*}, %r{[0-9]+}, %r{\)}, %r{[0-9.]+.*}]
     ENDED_SELLER_MATCH= ['Seller:'] + LIVE_SELLER_MATCH[0..4]
 
@@ -53,15 +55,25 @@ class Ebay
     end
 
     def extract_id(title_array)
+      id_match = match_set(REVERSE_ITEM_MATCH)
+      return id_match.first
+    end
+
+    def old_extract_id(title_array)
+#      return "261116602845"
       id = title_array[1]
       unless id
         id_match = match_set(ITEM_MATCH)
         id = id_match.last if id_match
         unless id
-          item_id_search = @page.css('span:contains("Item number")').text
-          if item_id_search && item_id_search != []
-            potential_id = item_id_search.match(%r{Item.number:?.(\d+)})
-            id = potential_id[1]
+          id_match = match_set(REVERSE_ITEM_MATCH)
+          id = id_match.first if id_match
+          unless id
+            item_id_search = @page.css('span:contains("Item number")').text
+            if item_id_search && item_id_search != []
+              potential_id = item_id_search.match(%r{Item.number:?.(\d+)})
+              id = potential_id[1]
+            end
           end
         end
       end
@@ -124,11 +136,19 @@ class Ebay
       ends_at = title_info[:ends_at] || parse_extended_end_date
       bid_count = parse_bid_count
 
+      test_price = @page.css("[itemprop='offers'] .convPrice #bidPrice").text
+
+      unless bid_count
+        found = match_set(BIDCOUNT_MATCH)
+        bid_count = found[1] if found
+      end
+
       feedback_percent, feedback_score, seller_name = extract_seller_info
 
       { :title => title_info[:title].to_s.strip,
         :location => location.to_s.strip,
         :current_price => price,
+        :us_price => test_price,
         :end_date => ends_at,
         :shipping => shipping,
         :bid_count => bid_count,
