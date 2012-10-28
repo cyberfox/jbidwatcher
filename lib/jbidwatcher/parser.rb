@@ -19,7 +19,7 @@ class Parser
     result = []
     @page.root.traverse do |node|
       if node.text?
-        if node.text.match(match[match_step])
+        if node.text.strip.match(match[match_step])
           result << node.text
           match_step += 1
           return result if match_step == match.length
