@@ -86,8 +86,11 @@ public class TargetDrop implements JDropHandler
       }
     } else {
       String newEntry = dropped.toString();
-
-      MQFactory.getConcrete("drop").enqueueBean(new DropQObject(newEntry.trim(), mTargetName, true));
+      if(newEntry.matches("^.*(\\.(jpg|png|jpeg|gif|bmp))$")) {
+        imageResolver.handle(newEntry, location);
+      } else {
+        MQFactory.getConcrete("drop").enqueueBean(new DropQObject(newEntry.trim(), mTargetName, true));
+      }
     }
   }
 }

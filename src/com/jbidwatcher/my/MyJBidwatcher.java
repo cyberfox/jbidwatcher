@@ -369,6 +369,7 @@ public class MyJBidwatcher {
 
   public boolean getAccountInfo(String username, String password) {
     if(username == null || password == null) return false;
+    if (username.length() == 0 || password.length() == 0) return false;
     StringBuffer sb = getRawAccountXML(username, password);
     if(sb == null) return false;
 

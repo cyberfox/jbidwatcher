@@ -8,6 +8,9 @@ package com.jbidwatcher.ui;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.util.JDropHandler;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import java.io.*;
 import java.awt.*;
 import java.awt.dnd.*;
@@ -17,17 +20,10 @@ import java.awt.datatransfer.Clipboard;
 public class JDropListener implements DropTargetListener {
   private JDropHandler handler;
 
-  private boolean _windows = false;
-  private DataFlavor _isoFlavor = null;
-  private DataFlavor _ascFlavor = null;
   private DataFlavor _plainFlavor = null;
-  private DataFlavor _utf8HtmlFlavor = null;
-  private DataFlavor _thtmlFlavor = null;
-  private DataFlavor _pl2Flavor = null;
-  private DataFlavor _htmlFlavor = null;
-  private DataFlavor _urlFlavor = null;
 
   private static final String[][] _str_flavors = {
+    {"javaUrlFlavor", "application/x-java-url; class=java.net.URL"},
     { "UTF8Html", "text/html; class=java.io.InputStream; charset=UTF-8" },
     { "isoFlavor", "text/plain; class=java.io.InputStream; charset=iso8859-1" },
     { "utfFlavor", "text/plain; class=java.io.InputStream; charset=UTF-8" },
@@ -47,42 +43,25 @@ public class JDropListener implements DropTargetListener {
     handler = inHandler;
   }
 
-  private DataFlavor getDataFlavor(DataFlavor inFlavor, String whichFlavor) {
-    if(inFlavor != null) return inFlavor;
-
-    for (String[] _str_flavor : _str_flavors) {
-      if (whichFlavor.equals(_str_flavor[0])) {
-        DataFlavor df;
-        try {
-          df = new DataFlavor(_str_flavor[1]);
-        } catch (ClassNotFoundException e) {
-          JConfig.log().logDebug("Failed to initialize " + whichFlavor);
-          df = null;
-        }
-        return df;
-      }
-    }
-    return null;
-  }
+  List<DataFlavor> allFlavors = new ArrayList<DataFlavor>(_str_flavors.length);
 
   private void setupFlavors() {
-    //  If it's NOT Windows
-	  _windows = System.getProperty("os.name").indexOf("indows") != -1;
-
-    //  Deprecated, generally unused, but deprecation didn't provide
-    // a useful alternative w/o rewriting a lot of code, so I'm keeping it for now.
     if(_plainFlavor == null) {
-//      _plainFlavor = DataFlavor.plainTextFlavor;
       _plainFlavor = DataFlavor.getTextPlainUnicodeFlavor();
     }
 
-    _isoFlavor = getDataFlavor(_isoFlavor, "isoFlavor");
-    _ascFlavor = getDataFlavor(_ascFlavor, "ascFlavor");
-    _pl2Flavor = getDataFlavor(_pl2Flavor, "pl2Flavor");
-    _htmlFlavor= getDataFlavor(_htmlFlavor,"htmlFlavor");
-    _utf8HtmlFlavor = getDataFlavor(_utf8HtmlFlavor,"UTF8Html");
-    _thtmlFlavor = getDataFlavor(_thtmlFlavor,"thtmlFlavor");
-    _urlFlavor = getDataFlavor(_urlFlavor, "urlFlavor");
+    if(allFlavors.size() == 0) {
+      for(String[] flavorPair : _str_flavors) {
+        String flavor = flavorPair[1];
+        DataFlavor df;
+        try {
+          df = new DataFlavor(flavor);
+          allFlavors.add(df);
+        } catch (ClassNotFoundException e) {
+          JConfig.log().logDebug("Could not add data flavor: " + flavor);
+        }
+      }
+    }
   }
 
   private void dumpDataFlavors(DataFlavor[] dfa) {
@@ -123,16 +102,11 @@ public class JDropListener implements DropTargetListener {
   }
 
   private DataFlavor testAllFlavors(Transferable t) {
-    if (testFlavor(_htmlFlavor, t)) return _htmlFlavor;
-    if(testFlavor(_utf8HtmlFlavor, t)) return _utf8HtmlFlavor;
-    if(testFlavor(_thtmlFlavor, t)) return _thtmlFlavor;
+    for(DataFlavor df : allFlavors) {
+      if(testFlavor(df, t)) return df;
+    }
 
-    if(testFlavor(_urlFlavor, t)) return _urlFlavor;
-    if(_windows && testFlavor(_ascFlavor, t)) return _ascFlavor;
-
-    if(testFlavor(_isoFlavor, t)) return _isoFlavor;
     if(testFlavor(_plainFlavor, t)) return _plainFlavor;
-    if(testFlavor(_pl2Flavor, t)) return _pl2Flavor;
 
     if(testFlavor(DataFlavor.stringFlavor, t)) return DataFlavor.stringFlavor;
 
@@ -140,16 +114,10 @@ public class JDropListener implements DropTargetListener {
   }
 
   private DataFlavor testAllFlavors(DropTargetDragEvent dtde) {
-    if (testFlavor(_htmlFlavor, dtde)) return _htmlFlavor;
-    if(testFlavor(_utf8HtmlFlavor, dtde)) return _utf8HtmlFlavor;
-    if(testFlavor(_thtmlFlavor, dtde)) return _thtmlFlavor;
-
-    if(testFlavor(_urlFlavor, dtde)) return _urlFlavor;
-    if(_windows && testFlavor(_ascFlavor, dtde)) return _ascFlavor;
-
-    if(testFlavor(_isoFlavor, dtde)) return _isoFlavor;
+    for (DataFlavor df : allFlavors) {
+      if (testFlavor(df, dtde)) return df;
+    }
     if(testFlavor(_plainFlavor, dtde)) return _plainFlavor;
-    if(testFlavor(_pl2Flavor, dtde)) return _pl2Flavor;
 
     if(testFlavor(DataFlavor.stringFlavor, dtde)) return DataFlavor.stringFlavor;
 
@@ -315,12 +283,6 @@ public class JDropListener implements DropTargetListener {
 
     Object dropped;
     try {
-      if(dtf == _htmlFlavor || dtf == _utf8HtmlFlavor || dtf == _thtmlFlavor) {
-        /*
-         * Annoying.
-         */
-        if(JConfig.queryConfiguration("debug.uber", "false").equals("true") && JConfig.debugging) System.out.println("Ick: " + t.getTransferData(DataFlavor.getTextPlainUnicodeFlavor()));
-      }
       dropped = t.getTransferData(dtf);
     } catch(IOException ioe) {
       try { dropped = t.getTransferData(DataFlavor.stringFlavor); } catch(Exception e) {

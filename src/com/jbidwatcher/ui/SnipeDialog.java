@@ -14,10 +14,9 @@ import javax.swing.*;
 import java.awt.*;
 
 public class SnipeDialog extends BasicDialog {
-  private JTextField quantityField, snipeAmount;
+  private JTextField snipeAmount;
   private JCheckBox subtractShipping;
   private JLabel auctionInfo;
-  private JLabel quantityLabel;
   String mInitialValue="";
 
   public SnipeDialog(String initial) {
@@ -47,14 +46,8 @@ public class SnipeDialog extends BasicDialog {
     setVisible(false);
   }
 
-  public String getQuantity() { if(quantityField.isEnabled()) return quantityField.getText(); else return "1"; }
   public String getAmount() { return snipeAmount.getText().replace(',','.'); }
   public boolean subtractShipping() { return subtractShipping.isSelected(); }
-
-  public void useQuantity(boolean enable) {
-    quantityLabel.setEnabled(enable);
-    quantityField.setEnabled(enable);
-  }
 
   public void setPrompt(String prompt) {
     auctionInfo.setText(prompt);
@@ -66,7 +59,6 @@ public class SnipeDialog extends BasicDialog {
 
   public void clear() {
     getRootPane().setDefaultButton(getButtonOK());
-    quantityField.setText("1");
     snipeAmount.setText(mInitialValue);
   }
 
@@ -82,10 +74,6 @@ public class SnipeDialog extends BasicDialog {
     snipeAmount = new JTextField(10);
     snipeAmount.setText(mInitialValue);
 
-    quantityField = new JTextField(10);
-    quantityField.setEnabled(false);
-    quantityField.setText("1");
-
     subtractShipping = new JCheckBox();
     subtractShipping.setSelected(JConfig.queryConfiguration("snipe.subtract_shipping", "false").equals("true"));
     subtractShipping.setText("Auto-subtract shipping and insurance (p/p)");
@@ -95,10 +83,7 @@ public class SnipeDialog extends BasicDialog {
     promptPane.add(snipeLabel = new JLabel("How much do you wish to snipe?", JLabel.TRAILING));
     snipeLabel.setLabelFor(snipeAmount);
     promptPane.add(snipeAmount);
-    promptPane.add(quantityLabel = new JLabel("Quantity?", JLabel.TRAILING));
-    quantityLabel.setLabelFor(quantityField);
-    promptPane.add(quantityField);
-    SpringUtilities.makeCompactGrid(promptPane, 2, 2, 6, 6, 6, 3);
+    SpringUtilities.makeCompactGrid(promptPane, 1, 2, 6, 6, 6, 3);
     getBasicContentPane().add(promptPane);
     getBasicContentPane().add(subtractShipping);
 
