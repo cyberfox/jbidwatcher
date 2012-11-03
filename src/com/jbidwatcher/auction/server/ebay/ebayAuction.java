@@ -1026,7 +1026,7 @@ class ebayAuction extends SpecificAuction {
         {T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids?"},
         {T.s("ebayServer.currentBid"), ".*", "[0-9]+ bids?"}
     };
-    final int[] SEQUENCE_GROUPS = { 4, 3, 1, 1 };
+    final int[] SEQUENCE_GROUPS = { 4, 3, 2, 2 };
 
     List<String> bidSequence;
     String rawBidCount = null;
