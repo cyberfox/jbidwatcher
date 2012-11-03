@@ -1026,6 +1026,7 @@ class ebayAuction extends SpecificAuction {
         {T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids?"},
         {T.s("ebayServer.currentBid"), ".*", "[0-9]+ bids?"}
     };
+    final int[] SEQUENCE_GROUPS = { 4, 3, 1, 1 };
 
     List<String> bidSequence;
     String rawBidCount = null;
@@ -1033,10 +1034,7 @@ class ebayAuction extends SpecificAuction {
     for(int i=0; i<SEQUENCES.length; i++) {
       bidSequence = doc.findSequence(SEQUENCES[i]);
       if(bidSequence != null) {
-        int index = 2;
-        // For the first entry, it should be the 4th element (i.e. .get(3))
-        if(i == 0) index++;
-
+        int index = SEQUENCE_GROUPS[i];
         rawBidCount = bidSequence.get(index);
 
         if(i == 3) rawBidCount = rawBidCount.substring(0, rawBidCount.indexOf(' '));

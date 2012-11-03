@@ -225,7 +225,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if (as != null) {
       if (savedCount != -1 && as.getCount() != savedCount) {
-        MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions.");
+        MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions from database.");
       }
     }
 
@@ -265,7 +265,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if(as != null) {
       if(as.getCount() != auctionTotal || (savedCount != -1 && as.getCount() != savedCount)) {
-        MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions.");
+        MQFactory.getConcrete("Swing").enqueue("NOTIFY Failed to load all auctions from XML file.");
       }
     }
   }

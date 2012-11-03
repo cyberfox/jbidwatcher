@@ -239,15 +239,15 @@ public class AuctionsUIModel {
     try {
       if(ae.getShippingWithInsurance().isNull()) {
         if(newCurrency) {
-          return ae.getCurrentPrice();
+          return getBestBidValue(ae);
         }
-        return inCurr.add(ae.getCurrentPrice());
+        return inCurr.add(getBestBidValue(ae));
       }
 
       if(newCurrency) {
-        inCurr = ae.getCurrentPrice().add(ae.getShippingWithInsurance());
+        inCurr = getBestBidValue(ae).add(ae.getShippingWithInsurance());
       } else {
-        inCurr = inCurr.add(ae.getCurrentPrice().add(ae.getShippingWithInsurance()));
+        inCurr = inCurr.add(getBestBidValue(ae).add(ae.getShippingWithInsurance()));
       }
     } catch(Currency.CurrencyTypeException cte) {
       JConfig.log().handleException("This should have been cleaned up.", cte);
