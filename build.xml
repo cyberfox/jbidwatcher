@@ -58,7 +58,7 @@
     <pathelement path="${lib.dir}/jDeskMetrics.jar" />
     <pathelement path="${lib.dir}/txtmark.jar" />
     <pathelement path="${lib.dir}/jdesktop.jar" />
-    <pathelement path="${lib.dir}/mp3codec.jar" />
+    <pathelement path="${lib.dir}/jl1.0.1.jar" />
     <pathelement path="${lib.dir}/jruby-incomplete.jar" />
     <pathelement path="${lib.dir}/json_simple-1.1.jar" />
     <pathelement path="${lib.dir}/l2fprod-common-fontchooser.jar" />
@@ -97,7 +97,6 @@
       <tarfileset prefix="${TARSRC}/src" dir="${src.dir}" includes="**/*.java" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.sql" />
-      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.ser" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.xsl" />
       <tarfileset prefix="${TARSRC}" dir="${user.home}/.jbidwatcher" includes="display.cfg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="auctions.dtd" />
@@ -142,7 +141,6 @@
     <jar jarfile="${INTERMEDIATE}" manifest="${MANIFEST}" index="true">
       <fileset dir="${main.dir}" includes="*.jpg" />
       <fileset dir="${main.dir}" includes="*.sql" />
-      <fileset dir="${main.dir}" includes="*.ser" />
       <fileset dir="${main.dir}" includes="*.xsl" />
       <fileset dir="${user.home}/.jbidwatcher" includes="display.cfg" />
       <fileset dir="${build.dir}" includes="**/*.class" />
@@ -187,7 +185,7 @@
       <fileset dir="${main.dir}" includes="lib/jDeskMetrics.jar" />
       <fileset dir="${main.dir}" includes="lib/txtmark.jar" />
       <fileset dir="${main.dir}" includes="lib/jdesktop.jar" />
-      <fileset dir="${main.dir}" includes="lib/mp3codec.jar" />
+      <fileset dir="${main.dir}" includes="lib/jl1.0.1.jar" />
       <fileset dir="${main.dir}" includes="lib/json_simple-1.1.jar" />
       <fileset dir="${main.dir}" includes="lib/l2fprod-common-fontchooser.jar" />
       <fileset dir="${main.dir}" includes="lib/mysql-connector-java-5.1.7-bin.jar" />
@@ -330,7 +328,7 @@
       <fileset dir="${lib.dir}" includes="apple.jar" />
       <fileset dir="${lib.dir}" includes="derby.jar" />
       <fileset dir="${lib.dir}" includes="jdesktop.jar" />
-      <fileset dir="${lib.dir}" includes="mp3codec.jar" />
+      <fileset dir="${lib.dir}" includes="jl1.0.1.jar" />
       <fileset dir="${lib.dir}" includes="mahalo.jar" />
       <fileset dir="${lib.dir}" includes="jDeskMetrics.jar" />
       <fileset dir="${lib.dir}" includes="txtmark.jar" />
