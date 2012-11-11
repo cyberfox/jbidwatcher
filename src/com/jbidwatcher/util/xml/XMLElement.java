@@ -968,7 +968,6 @@ public class XMLElement implements XMLSerialize, XMLInterface {
     String key = scanIdentifier(input, offset, end);
 
     if (key == null) {
-      System.err.println("scanIdentifier(\"" + new String(input) + "\", " + offset + ", " + end);
       throw syntaxError("an attribute key (" + new String(input) + ")", lineNr[0]);
     }
 

@@ -11,6 +11,8 @@ import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.html.htmlToken;
 import com.jbidwatcher.util.Constants;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.util.Date;
 import java.util.List;
@@ -459,6 +461,7 @@ class ebayAuction extends SpecificAuction {
       parseIdentifier();
     }
 
+    extractEndDate();
     Integer quant = getNumberFromLabel(mDocument, T.s("ebayServer.quantity"), T.s("ebayServer.postTitleIgnore"));
 
     //  Get the integer values (Quantity, Bidcount)
@@ -607,48 +610,7 @@ class ebayAuction extends SpecificAuction {
     if(doesLabelExist(T.s("ebayServer.ebayMotorsTitle"))) ebayMotors = true;
 
     setEnd(null);
-    setTitle(null);
-
-    if(prelimTitle.matches(T.s("ebayServer.titleEbay4"))) {
-      // Big Head Bighead-Zarf's Zubrick. US SEALED PRIVATE LP | eBay
-      prelimTitle = prelimTitle.replaceAll(".\\|.eBay(.UK)?", "");
-
-      setTitle(StringTools.decode(prelimTitle, mDocument.getCharset()));
-
-      extractEndDate();
-    } else if(prelimTitle.matches(T.s("ebayServer.titleEbay2")) ||
-      //  This sucks.  They changed to: eBay: {title} (item # end time {endtime})
-      prelimTitle.matches(T.s("ebayServer.titleMotors2"))) {
-      //  Handle the new titles.
-      Pattern newTitlePat = Pattern.compile(T.s("ebayServer.titleMatch"));
-      Matcher newTitleMatch = newTitlePat.matcher(prelimTitle);
-      if (newTitleMatch.find()) {
-        setTitle(StringTools.decode(newTitleMatch.group(1), mDocument.getCharset()));
-        String endDate = newTitleMatch.group(4);
-        if(getEnd() != null) setEnd(StringTools.figureDate(endDate, T.s("ebayServer.dateFormat")).getDate());
-      }
-    }
-
-    if(getTitle() == null) {
-      boolean htmlTitle = false;
-      //  The first element after the title is always the description.  Unfortunately, it's in HTML-encoded format,
-      //  so there are &lt;'s, and such.  While I could translate that, that's something I can wait on.  --  HACKHACK
-      //      title = (String)contentFields.get(1);
-      //  For now, just load from the title, everything after ') - '.
-      int titleIndex = prelimTitle.indexOf(") - ");
-      if(titleIndex == -1) {
-        titleIndex = prelimTitle.indexOf(") -");
-        //  This is an HTML title...  Suck.
-        htmlTitle = true;
-      }
-
-      //  Always convert, at this point, from iso-8859-1 (iso latin-1) to UTF-8.
-      if(htmlTitle) {
-        setTitle(StringTools.decode(buildTitle(mDocument), mDocument.getCharset()));
-      } else {
-        setTitle(StringTools.decode(prelimTitle.substring(titleIndex+4).trim(), mDocument.getCharset()));
-      }
-    }
+    setTitle(prelimTitle);
 
     if(getTitle().length() == 0) setTitle("(bad title)");
     setTitle(JHTML.deAmpersand(getTitle()));
@@ -664,65 +626,67 @@ class ebayAuction extends SpecificAuction {
     return prelimTitle;
   }
 
+  private String getCSSContents(String selector) {
+    Elements results = mDocument2.select(selector);
+    if(results.isEmpty()) return "";
+    Element first = results.first();
+    return first.text();
+  }
+
   private String validateTitle() throws ParseException {
-    String prelimTitle = mDocument.getTitle();
-    if(prelimTitle == null) {
-      if(mDocument.grep("(?si).*not available for purchase on eBay United States.*") != null) {
+    String prelimTitle;
+    prelimTitle = getCSSContents("#itemTitle");
+    if (prelimTitle.length() != 0) {
+      return prelimTitle;
+    }
+
+    prelimTitle = mDocument2.title();
+
+    if (prelimTitle == null || prelimTitle.length() == 0) {
+      if (mDocument.grep("(?si).*not available for purchase on eBay United States.*") != null) {
         prelimTitle = T.s("ebayServer.invalidItem");
       } else {
         prelimTitle = T.s("ebayServer.unavailable");
       }
     }
 
-    if(prelimTitle.equals(T.s("ebayServer.adultPageTitle")) || prelimTitle.indexOf("Terms of Use") != -1) {
+    if (prelimTitle.equals(T.s("ebayServer.adultPageTitle")) || prelimTitle.contains("Terms of Use")) {
       throw new ParseException(ParseErrors.NOT_ADULT);
     }
 
-    if(prelimTitle.equals(T.s("ebayServer.invalidItem"))) {
+    if (prelimTitle.equals(T.s("ebayServer.invalidItem"))) {
       String realListing = mDocument.getLinkForContent(T.s("view.original.listing"));
-      if(realListing != null) {
+      if (realListing != null) {
         setURL(realListing);
         throw new ParseException(ParseErrors.WRONG_SITE);
       }
       throw new ParseException(ParseErrors.DELETED);
     }
 
-    if(prelimTitle.equals("Security Measure")) {
+    if (prelimTitle.equals("Security Measure")) {
       throw new ParseException(ParseErrors.CAPTCHA);
     }
 
-    //  Is this a valid eBay item page?
-    if(!checkValidTitle(prelimTitle)) {
-      handleBadTitle(prelimTitle);
-      if(getURL() != null) {
-        throw new ParseException(ParseErrors.WRONG_SITE);
-      } else {
-        throw new ParseException(ParseErrors.BAD_TITLE);
-      }
-    }
     return prelimTitle;
   }
 
-  private void extractEndDate() {JHTML.SequenceResult time_left = mDocument.findSequence("^\\(.*$", "^.*\\)$");
-    ZoneDate endDate = null;
-    if(time_left != null) {
-      do {
-        String endTime = time_left.get(0) + " " + time_left.get(1);
-        endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
-        time_left = mDocument.findNextSequence(time_left);
-      } while ((endDate == null || endDate.isNull()) && time_left != null);
-    }
+  private void extractEndDate() {
+    String endTime = "";
+    Elements parents = mDocument2.select("span.endedDate").parents();
 
-    if(endDate == null || endDate.isNull()) {
-      time_left = mDocument.findSequence("Ended:", ".*", ".*");
-      if(time_left != null) {
-        String endTime = "(" + time_left.get(1) + " " + time_left.get(2) + ")";
-        endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
-        if (endDate != null && !endDate.isNull()) {
-          //  Mark this as completed?
-        }
+    if(parents.isEmpty()) {
+      parents = mDocument2.select(":matchesOwn((?i)ended:)").parents();
+      if(parents.isEmpty()) {
+        endTime = mDocument2.select(":matchesOwn((?i)time.left:)").parents().first().select(":matchesOwn((^\\()|(\\)$))").text();
       }
     }
+
+    if(endTime.length() == 0) {
+      endTime = parents.first().text();
+    }
+    endTime = endTime.replaceAll("([\\(\\s\\)])+", " ").trim();
+
+    ZoneDate endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
 
     if (endDate != null && !endDate.isNull()) {
       setEnd(endDate.getDate());
