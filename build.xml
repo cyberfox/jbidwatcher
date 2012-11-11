@@ -4,6 +4,9 @@
   <!-- Read computers environment -->
   <property environment="env" />
 
+  <!-- Set GITVERSION for local build and remove comment signs -->
+  <!-- <property name="GITVERSION" value="local" /> -->
+
   <property name="build.dir" value="classes" />
   <property name="src.dir" value="src" />
   <property name="dest.dir" value="." />
@@ -74,10 +77,8 @@
 
   <target name="compile" depends="init">
     <echo level="info" message="Compiling all classes." />
-    <mkdir dir="${user.home}/.jbidwatcher" />
     <mkdir dir="${build.dir}" />
-    <copy file="display.cfg" todir="${user.home}/.jbidwatcher" />
-      <javac srcdir="${src.dir}" destdir="${build.dir}" debug="on" >
+      <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="on" >
           <classpath refid="project.class.path" />
           <include name="**/*.java" />
       </javac>
@@ -99,7 +100,7 @@
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.sql" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.xsl" />
-      <tarfileset prefix="${TARSRC}" dir="${user.home}/.jbidwatcher" includes="display.cfg" />
+      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="display.cfg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="auctions.dtd" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="TODO" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="COPYING.html" />
@@ -125,7 +126,7 @@
     <echo level="info" message="Building primary .jar file." />
     <copy todir="help/" file="COPYING.html" />
 
-    <exec executable="git" outputproperty="GITVERSION">
+    <exec executable="git" outputproperty="GITVERSION" errorproperty="" failifexecutionfails="no">
       <arg line="describe --tags --long"/>
     </exec>
 
@@ -143,7 +144,7 @@
       <fileset dir="${main.dir}" includes="*.jpg" />
       <fileset dir="${main.dir}" includes="*.sql" />
       <fileset dir="${main.dir}" includes="*.xsl" />
-      <fileset dir="${user.home}/.jbidwatcher" includes="display.cfg" />
+      <fileset dir="${main.dir}" includes="display.cfg" />
       <fileset dir="${build.dir}" includes="**/*.class" />
       <!-- <fileset dir="${lib.dir}" includes="**/*.class" /> -->
       <fileset dir="${main.dir}" includes="icons/**/*.gif" />
@@ -386,9 +387,9 @@
     <delete file="${EXESCRIPTING}" />
     <delete file="${DMGFILE}" />
     <delete includeEmptyDirs="true" dir="osx"/>
-    <delete>
-      <fileset dir="${build.dir}" includes="**/*.class" />
-    </delete>
+    <delete dir="${log.dir}" />
+    <delete dir="${build.dir}" />
+    <delete dir="META-INF" />
     <antcall target="clean-osx-build" />
     <!--  Delete intermediate files in case they still are around -->
     <delete file="${build.path}/main/main.jar" />
