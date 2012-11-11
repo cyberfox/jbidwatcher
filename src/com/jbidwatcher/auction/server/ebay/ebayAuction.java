@@ -871,10 +871,19 @@ class ebayAuction extends SpecificAuction {
   }
 
   private boolean checkSeller(AuctionEntry ae) {
-    List<String> sellerInfo = mDocument.findSequence(T.s("ebayServer.sellerInfoPrequel"), T.s("ebayServer.seller"), ".*");
     String sellerName = null;
+    String feedbackCount = null;
+
+    List<String> sellerInfo = mDocument.findSequence("(?i)top.rated.seller", ".*", ".*", "\\d+");
     if(sellerInfo != null) {
       sellerName = sellerInfo.get(2);
+      feedbackCount = sellerInfo.get(3);
+    } else {
+      sellerInfo = mDocument.findSequence(T.s("ebayServer.sellerInfoPrequel"), T.s("ebayServer.seller"), ".*");
+
+      if (sellerInfo != null) {
+        sellerName = sellerInfo.get(2);
+      }
     }
 
     if (sellerName == null) {
@@ -900,6 +909,9 @@ class ebayAuction extends SpecificAuction {
       }
     }
     setSellerName(sellerName);
+    if(feedbackCount != null) {
+      mSeller.setFeedback(Integer.parseInt(feedbackCount));
+    }
 
     return false;
   }
