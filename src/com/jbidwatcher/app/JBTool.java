@@ -5,7 +5,6 @@ import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.Observer;
 import com.jbidwatcher.util.config.JConfig;
-import com.cyberfox.util.config.ErrorManagement;
 import com.cyberfox.util.config.Base64;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
@@ -96,7 +95,7 @@ public class JBTool implements ToolInterface {
       SimpleDateFormat sdf = new SimpleDateFormat(siteDateFormat, Locale.US);
       Date endingDate = sdf.parse(testTime);
       TimeZone tz = sdf.getCalendar().getTimeZone();
-      JConfig.log().logMessage("EndingDate: " + endingDate + "\nTZ: " + tz);
+      System.out.println("EndingDate: " + endingDate + "\nTZ: " + tz);
     } catch (ParseException e) {
       e.printStackTrace();
     }
@@ -123,7 +122,7 @@ public class JBTool implements ToolInterface {
   }
 
   public static void main(String[] args) {
-    JConfig.setLogger(new ErrorManagement());
+//    JConfig.setLogger(new ErrorManagement());
     ActiveRecord.disableDatabase();
     AuctionEntry.addObserver(EntryFactory.getInstance());
     AuctionEntry.addObserver(new Observer<AuctionEntry>() {
@@ -145,7 +144,7 @@ public class JBTool implements ToolInterface {
       AuctionEntry ae = EntryFactory.getInstance().constructEntry();
       ae.setAuctionInfo(ai);
       System.out.println("Took: " + (System.currentTimeMillis() - start));
-      JConfig.log().logMessage(ae.toXML().toString());
+      System.out.println(ae.toXML().toString());
     } catch (Exception e) {
       JConfig.log().handleException("Failed to load auction from file: " + fname, e);
     }
@@ -160,18 +159,18 @@ public class JBTool implements ToolInterface {
           XMLElement xmlized = EntryFactory.getInstance().retrieveAuctionXML(id);
           if(xmlized != null) auctionList.addChild(xmlized);
         }
-        JConfig.log().logMessage(auctionList.toString());
+        System.out.println(auctionList.toString());
       } else {
         StringBuffer auctionXML = EntryFactory.getInstance().retrieveAuctionXMLString(params.get(0));
         if (auctionXML != null) {
-          JConfig.log().logMessage(auctionXML.toString());
+          System.out.println(auctionXML.toString());
           XMLElement xmlized = new XMLElement();
           xmlized.parseString(auctionXML.toString());
 
           if (JConfig.debugging() && mTestQuantity) {
             AuctionEntry ae2 = EntryFactory.getInstance().constructEntry();
             ae2.fromXML(xmlized);
-            JConfig.log().logDebug("ae2.quantity == " + ae2.getQuantity());
+            System.out.println("ae2.quantity == " + ae2.getQuantity());
           }
         }
       }
@@ -231,6 +230,7 @@ public class JBTool implements ToolInterface {
         }
         return params;
       }
+      if(option.equals("uk")) { mEbay = mEbayUK; }
       if(option.equals("accountinfo")) { testAccountInfo(); return params; }
       if(option.equals("searching")) { testSearching(); return params; }
       if(option.equals("server")) mRunServer = true;
@@ -244,7 +244,7 @@ public class JBTool implements ToolInterface {
       if(option.equals("sandbox")) JConfig.setConfiguration("replace." + JConfig.getVersion() + ".ebayServer.viewHost", "cgi.sandbox.ebay.com");
       if(option.startsWith("country=")) {
         mCountry = option.substring(8);
-        if(getSiteNumber(mCountry) == -1) JConfig.log().logMessage("That country is not recognized by JBidwatcher's eBay Server.");
+        if(getSiteNumber(mCountry) == -1) System.out.println("That country is not recognized by JBidwatcher's eBay Server.");
       }
       if(option.equals("login")) mLogin = true;
       if(option.startsWith("username=")) mUsername = option.substring(9);

@@ -7,10 +7,13 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.html.*;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 public abstract class SpecificAuction extends AuctionInfo implements CleanupHandler
 {
   protected JHTML mDocument;
+  protected Document mDocument2;
 
   private String mURL;
   public void setURL(String URL) { mURL = URL; }
@@ -30,12 +33,14 @@ public abstract class SpecificAuction extends AuctionInfo implements CleanupHand
 
   protected void finish() {
     mDocument = null;
+    mDocument2 = null;
   }
 
   public boolean preParseAuction() {
     StringBuffer sb = getContent();
     if(sb == null) return(false);
 
+    mDocument2 = Jsoup.parse(sb.toString());
     cleanup(sb);
 
     mDocument = new JHTML(sb);
