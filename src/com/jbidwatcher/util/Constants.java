@@ -1,4 +1,4 @@
-package com.jbidwatcher.util;
+0;95;cpackage com.jbidwatcher.util;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -14,7 +14,7 @@ public class Constants {
  * in just one place.
  */
   public static final String PROGRAM_NAME = "JBidwatcher";
-  public static final String PROGRAM_VERS = "2.5.3pre1";
+  public static final String PROGRAM_VERS = "2.5.3pre2";
   public static String REVISION() {
     String rval = Constants.class.getPackage().getImplementationVersion();
     if(rval == null) return "debug";
