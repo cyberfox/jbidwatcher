@@ -1,5 +1,6 @@
 package com.jbidwatcher.ui.config;
 
+import com.cyberfox.util.platform.Platform;
 import com.jbidwatcher.ui.commands.UserActions;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -16,6 +17,10 @@ import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * User: Morgan
@@ -28,8 +33,8 @@ public class JConfigEbayTab extends JConfigTab
   JTextField username;
   JTextField password;
   JComboBox siteSelect;
+  JCheckBox homeSite;
   JEditorPane siteWarning;
-  MessageQueue.Listener oldLoginListener = null;
   private String mDisplayName;
   //  mSitename is only used to look up configuration values.
   private String mSitename = Constants.EBAY_SERVER_NAME;
@@ -38,8 +43,6 @@ public class JConfigEbayTab extends JConfigTab
   public void cancel() { }
 
   public void apply() {
-    int selectedSite = siteSelect.getSelectedIndex();
-
     String old_user = JConfig.queryConfiguration(mSitename + ".user");
     JConfig.setConfiguration(mSitename + ".user", username.getText());
     String new_user = JConfig.queryConfiguration(mSitename + ".user");
@@ -48,13 +51,21 @@ public class JConfigEbayTab extends JConfigTab
     JConfig.setConfiguration(mSitename + ".password", password.getText());
     String new_pass = JConfig.queryConfiguration(mSitename + ".password");
 
-    if(selectedSite != -1) {
-      JConfig.setConfiguration(mSitename + ".browse.site", Integer.toString(selectedSite));
-    }
-
     if(old_pass == null || !new_pass.equals(old_pass) ||
        old_user == null || !new_user.equals(old_user)) {
       MQFactory.getConcrete(AuctionServerManager.getInstance().getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
+    }
+
+    if(homeSite != null) {
+      boolean usOnly = homeSite.isSelected();
+      JConfig.setConfiguration(mSitename + ".us_only", Boolean.toString(usOnly));
+    }
+
+    if(siteSelect != null) {
+      int selectedSite = siteSelect.getSelectedIndex();
+      if (selectedSite != -1) {
+        JConfig.setConfiguration(mSitename + ".browse.site", Integer.toString(selectedSite));
+      }
     }
 
     //  If it's the first time running the program, try to load My eBay for them in about 12 seconds.
@@ -66,6 +77,7 @@ public class JConfigEbayTab extends JConfigTab
   public void updateValues() {
     username.setText(JConfig.queryConfiguration(mSitename + ".user", "default"));
     password.setText(JConfig.queryConfiguration(mSitename + ".password", "default"));
+    homeSite.setSelected(JConfig.queryConfiguration(mSitename + ".non_us", Boolean.toString(!Platform.isUSBased())).equals("true"));
   }
 
   private JPanel buildUsernamePanel() {
@@ -104,10 +116,15 @@ public class JConfigEbayTab extends JConfigTab
     tp.setBorder(BorderFactory.createTitledBorder("General eBay Options"));
 
     tp.setLayout(new BoxLayout(tp, BoxLayout.Y_AXIS));
-
-    String searchNotice = "<html><body><div style=\"margin-left: 10px; font-size: 0.96em;\"><i>To have JBidwatcher regularly retrieve auctions listed on your My eBay<br>" +
-                          "page, go to the <a href=\"/SEARCH\">Search Manager</a> and enable the search also named 'My eBay'.</i></div></body></html>";
-    JBEditorPane jep = OptionUI.getHTMLLabel(searchNotice);
+    homeSite = new JCheckBox("Prefer non-US auction server?");
+    Box siteBox = Box.createHorizontalBox();
+    siteBox.add(homeSite);
+    siteBox.add(Box.createHorizontalGlue());
+    tp.add(siteBox);
+    String nonUSNotice = "<html><body><div style=\"margin-left: 7px; font-size: 0.96em;\"<i>If this is checked, JBidwatcher will " +
+                         "use <b>ebay.co.uk</b> as the source of auctions<br>and destination for placing bids. Otherwise, <b>ebay.com</b> " +
+                         "will be used.";
+    JBEditorPane jep = OptionUI.getHTMLLabel(nonUSNotice);
     tp.add(jep);
 
     return(tp);
@@ -164,6 +181,10 @@ public class JConfigEbayTab extends JConfigTab
       jp.add(panelPack(buildBrowseTargetPanel()), BorderLayout.CENTER);
       add(jp, BorderLayout.NORTH);
       add(panelPack(buildCheckboxPanel()), BorderLayout.CENTER);
+      String searchNotice = "<html><body><div style=\"margin-left: 10px; font-size: 0.96em;\"><i>To have JBidwatcher regularly retrieve auctions listed on your My eBay " +
+          "page,<br>go to the <a href=\"/SEARCH\">Search Manager</a> and enable the search also named 'My eBay'.</i></div></body></html>";
+      JBEditorPane jep = OptionUI.getHTMLLabel(searchNotice);
+      add(jep, BorderLayout.SOUTH);
     } else {
       add(jp, BorderLayout.NORTH);
       JPanel welcomeMessage = new JPanel();
