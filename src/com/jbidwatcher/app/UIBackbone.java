@@ -91,7 +91,7 @@ public final class UIBackbone implements MessageQueue.Listener {
     String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
     String bracketed = " [" + defaultServerTime + ']';
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("false")) {
-      TimeZone tz = AuctionServerManager.getInstance().getServer().getOfficialServerTimeZone();  // TODO mrs -- What about the backup server?
+      TimeZone tz = AuctionServerManager.getInstance().getServer().getOfficialServerTimeZone();
       if (tz != null && tz.hasSameRules(mCal.getTimeZone())) {
         bracketed = " [" + Constants.localClockFormat.format(mNow) + ']';
       }
@@ -461,9 +461,6 @@ public final class UIBackbone implements MessageQueue.Listener {
     AuctionQObject updateEvent = new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null);
 
     SuperQueue.getInstance().getQueue().add(updateEvent, mainServer.getFriendlyName(), wakeUp);
-    if(mainServer.getBackupServer() != null) {
-      SuperQueue.getInstance().getQueue().add(updateEvent, mainServer.getBackupServer().getFriendlyName(), wakeUp);
-    }
   }
 
   public void setMainFrame(MacFriendlyFrame frame) {

@@ -122,8 +122,6 @@ public interface AuctionServerInterface {
 
   boolean isCurrentUser(String checkUser);
 
-  public AuctionServerInterface getBackupServer();
-
   void updateHighBid(String auctionId);
 
   String stripId(String source);
