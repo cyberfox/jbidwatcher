@@ -903,7 +903,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       JConfig.log().handleException("Unexpected exception during auction reload/update.", e);
     }
     try {
-//      getServer().updateWatchers(this);
       updateHighBid();
       checkHighBidder();
     } catch(Exception e) {

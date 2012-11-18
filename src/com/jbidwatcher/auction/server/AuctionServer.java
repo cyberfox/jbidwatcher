@@ -57,9 +57,6 @@ public abstract class AuctionServer implements AuctionServerInterface {
   public abstract void cancelSearches();
   public abstract void addSearches(SearchManagerInterface searchManager);
 
-  //  Exposed to AuctionEntry for checking how many folks are watching.
-  public abstract void updateWatchers(String auctionId);
-
     //  Exposed to AuctionEntry for checking high bidder status.
   public abstract void updateHighBid(String ae);
 

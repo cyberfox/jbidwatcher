@@ -123,16 +123,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         body, mLogin.getNecessaryCookie(false).toString(), null, false);
   }
 
-  public void updateWatchers(String auctionId) {
-    StringBuffer json = Http.net().get("http://cgi1.ebay.com/ws/eBayISAPI.dll?ViewItemMakeTrack&item=" + auctionId);
-    Pattern p = Pattern.compile("\"watcherCount\":([0-9]+)");
-    Matcher m = p.matcher(json);
-    if(m.find()) {
-      String watcherCount = m.group(1);
-//      auctionId.setWatchers(Integer.parseInt(watcherCount));
-    }
-  }
-
   public void updateHighBid(String auctionId) {
     String bidHistory = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file") + Externalized.getString("ebayServer.viewBidsCGI") + auctionId;
     CookieJar cj = mLogin.getNecessaryCookie(false);
