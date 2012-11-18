@@ -10,6 +10,10 @@ import com.cyberfox.util.config.JConfig;
 import javax.swing.*;
 import java.io.*;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 
 public class Platform {
   private static boolean _trayEnabled=false;
@@ -206,5 +210,10 @@ public class Platform {
 
   public static boolean isRawMac() {
     return System.getProperty("mrj.version") != null;
+  }
+
+  public static boolean isUSBased() {
+    Set<String> US_LOCALES = new HashSet<String>(Arrays.asList("", "US", "CA"));
+    return US_LOCALES.contains(Locale.getDefault().getCountry());
   }
 }
