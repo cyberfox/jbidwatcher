@@ -321,7 +321,6 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       AuctionServerInterface defaultServer = getServer();
 
       defaultServer.reloadTime();
-      if(defaultServer.getBackupServer() != null) defaultServer.getBackupServer().reloadTime();
 
       long servTime = defaultServer.getServerTimeDelta();
       Date now = new Date(System.currentTimeMillis() + servTime);

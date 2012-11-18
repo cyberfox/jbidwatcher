@@ -262,15 +262,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
           failString = Externalized.getString("ebayServer.cantUpdateCookieWithoutUser1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
           forceLogin();
-          if (getBackupServer() != null) {
-            ((ebayServer) getBackupServer()).forceLogin();
-          }
           return;
         }
       }
 
       if(ac.getData().equals("Dump eBay Activity Queue")) {
-        if(getBackupServer() != null && getBackupServer() != this) MQFactory.getConcrete(getBackupServer().getFriendlyName()).enqueueBean(ac);
         _etqm.dumpQueue(T.getBundle());
         return;
       }

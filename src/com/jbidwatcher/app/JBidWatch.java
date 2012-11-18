@@ -444,7 +444,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     if(!ebayLoaded) {
       eBayServerSetup();
     }
-    SearchManager.getInstance().setDestinationQueue(AuctionServerManager.getInstance().getServer().getFriendlyName());  //  TODO mrs -- What about the 'backup' server?
+    SearchManager.getInstance().setDestinationQueue(AuctionServerManager.getInstance().getServer().getFriendlyName());
     EntryFactory.setResolver(AuctionServerManager.getInstance());
     AuctionEntry.addObserver(EntryFactory.getInstance());
     MultiSnipe.setCorral(EntryCorral.getInstance());
@@ -492,9 +492,10 @@ public final class JBidWatch implements JConfig.ConfigListener {
   }
 
   private static void eBayServerSetup() {
-    AuctionServer ebay = new ebayServer();
+    boolean nonUS = JConfig.queryConfiguration("ebay.non_us", Boolean.toString(!Platform.isUSBased())).equals("true");
+    String homeSite = nonUS ? JConfig.queryConfiguration("ebay.alternate", "ebay.co.uk") : "ebay.com";
+    AuctionServer ebay = new ebayServer(homeSite);
     AuctionServerManager.getInstance().setServer(ebay);
-    ebay.setBackupServer(new ebayServer("ebay.co.uk"));
   }
 
   private void repaint() {
@@ -758,7 +759,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
 
     //  TODO mrs - This is where things start to suck. Can this become a single VERB+NOUN operation?
-    //  The backup server is handled by the primary.
     q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null),
                AuctionServerManager.getInstance().getServer().getFriendlyName(),
                now + Constants.ONE_SECOND * 3,

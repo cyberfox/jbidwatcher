@@ -97,10 +97,6 @@ class MockAuctionServerInterface implements AuctionServerInterface {
     return false;
   }
 
-  public AuctionServerInterface getBackupServer() {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
-  }
-
   public void updateHighBid(String auctionId) { }
 
   public String stripId(String source) {

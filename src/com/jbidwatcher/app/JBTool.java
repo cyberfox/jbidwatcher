@@ -216,13 +216,11 @@ public class JBTool implements ToolInterface {
 
   private void setupAuctionResolver() {
     mEbay = new ebayServer(mCountry, mUsername, mPassword);
-    mEbayUK = new ebayServer("ebay.co.uk", mUsername, mPassword);
 
     Resolver r = new Resolver() {
       public AuctionServerInterface getServer() { return mEbay; }
     };
     AuctionServerManager.getInstance().setServer(mEbay);
-    mEbay.setBackupServer(mEbayUK);
     EntryFactory.setResolver(r);
   }
 

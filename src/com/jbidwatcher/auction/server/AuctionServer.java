@@ -34,7 +34,6 @@ import java.io.*;
 
 public abstract class AuctionServer implements AuctionServerInterface {
   private static long sLastUpdated = 0;
-  private AuctionServer mBackupServer = null;
 
   public String stripId(String source) {
     String strippedId = source;
@@ -286,11 +285,8 @@ public abstract class AuctionServer implements AuctionServerInterface {
           case WRONG_SITE: {
             String rightURL = curAuction.getURL();
             JConfig.log().logDebug("Need to redirect to: " + rightURL);
-            AuctionServer realServer = getBackupServer();
-            if(ae != null) ae.setServer(realServer);
-            SpecificAuction ai = (SpecificAuction) realServer.loadAuction(item_id, ae);
-            if(ae == null) ai.setServer(realServer);
-            return ai;
+            JConfig.log().logMessage("Attempted to read an auction that is not available on the default site; check eBay's non-US configuration.");
+            return null;
           }
           case CAPTCHA: {
             JConfig.log().logDebug("Failed to load (likely adult) item, captcha intervened.");
@@ -393,13 +389,5 @@ public abstract class AuctionServer implements AuctionServerInterface {
    */
   public boolean isCurrentUser(String username) {
     return !(username == null || isDefaultUser()) && getUserId().trim().equalsIgnoreCase(username.trim());
-  }
-
-  public AuctionServer getBackupServer() {
-    return mBackupServer;
-  }
-
-  public void setBackupServer(AuctionServer backupServer) {
-    mBackupServer = backupServer;
   }
 }
