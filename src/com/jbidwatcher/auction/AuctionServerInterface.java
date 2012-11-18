@@ -124,8 +124,6 @@ public interface AuctionServerInterface {
 
   public AuctionServerInterface getBackupServer();
 
-  void updateWatchers(String auctionId);
-
   void updateHighBid(String auctionId);
 
   String stripId(String source);
