@@ -7,6 +7,9 @@
   <!-- Set GITVERSION for local build and remove comment signs -->
   <!-- <property name="GITVERSION" value="local" /> -->
 
+  <!-- To build the test tool, go: -->
+  <!--   ant -Dmain.class=com.jbidwatcher.app.JBTool jar -->
+  <property name="main.class" value="com.jbidwatcher.app.JBidWatch" />
   <property name="build.dir" value="classes" />
   <property name="src.dir" value="src" />
   <property name="dest.dir" value="." />
@@ -135,7 +138,7 @@
     <manifest file="${MANIFEST}">
       <attribute name="Manifest-Version" value="1.0"/>
       <attribute name="Created-By" value="Morgan Schweers @ Cyberfox Software, Inc"/>
-      <attribute name="Main-Class" value="com.jbidwatcher.app.JBidWatch"/>
+      <attribute name="Main-Class" value="${main.class}"/>
       <attribute name="Built-By" value="${user.name}"/>
       <attribute name="Implementation-Version" value="${GITVERSION}"/>
     </manifest>
