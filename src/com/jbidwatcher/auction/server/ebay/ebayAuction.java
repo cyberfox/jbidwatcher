@@ -682,6 +682,10 @@ class ebayAuction extends SpecificAuction {
     }
 
     if(endTime.length() == 0) {
+      if(parents.isEmpty()) {
+        setEnd(null);
+        return;
+      }
       endTime = parents.first().text();
     }
     endTime = endTime.replaceAll("([\\(\\s\\)])+", " ").trim();
