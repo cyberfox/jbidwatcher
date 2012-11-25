@@ -4,5 +4,5 @@ Created-By: 1.4.2_04-b05 (Sun Microsystems Inc.)
 Main-Class: com.simontuffs.onejar.Boot
 One-Jar-Expand: expand,doc,file.txt
 Built-By: mrs
-Implementation-Version: 2.5.3pre2-0-g34812eb
+Implementation-Version: 2.5.3pre3-0-g3b69e9f
 
