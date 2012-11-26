@@ -574,6 +574,26 @@ class ebayAuction extends SpecificAuction {
       }
     }
 
+    // buy it now/sale detection
+    else if ((postPrice = mDocument.getContentBeforeContent("Buy it now")) != null) {
+      if (postPrice.matches("(?i).*sale ends.*")) {
+        // If it's 'Sale ends in X days', then post price is the previous value.
+        postPrice = mDocument.getPrevContent();
+      }
+      String prevContent = mDocument.getPrevContent();
+      if (prevContent.matches("(?i).*approx.*")) {
+        // If it's 'Approximately', then we got the non-local price and previous value is the local price.
+        postPrice = mDocument.getPrevContent();
+      }
+      String startingPrice = mDocument.getNextContentAfterRegex("(Starting|Current) bid:");
+      if (startingPrice == null || !Currency.isCurrency(startingPrice)) setFixedPrice(true);
+      if (Currency.isCurrency(postPrice)) {
+        setBuyNow(Currency.getCurrency(postPrice));
+        setBuyNowUS(getUSCurrency(Currency.getCurrency(postPrice), mDocument));
+        buyNowSet = true;
+      }
+    }
+
     if(!buyNowSet) {
       try {
         loadBuyNow();
