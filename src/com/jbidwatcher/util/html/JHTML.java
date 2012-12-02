@@ -55,10 +55,10 @@ public class JHTML implements JHTMLListener {
     m_contentIndex = 0;
   }
 
-  public Map extractMicroformat() {
+  public Map<String, String> extractMicroformat() {
     XMLElement xe = new XMLElement();
     String currentProperty = null;
-    Map rval = new HashMap();
+    Map<String, String> rval = new HashMap<String, String>();
     htmlToken tok;
     int balance = 0;
 
@@ -71,7 +71,9 @@ public class JHTML implements JHTMLListener {
         if(type == htmlToken.HTML_ENDTAG) {
           balance--;
           if(balance == 0) {
-            rval.put(currentProperty, currentContent);
+            if(rval.get(currentProperty) == null || rval.get(currentProperty).isEmpty() || !currentContent.isEmpty()) {
+              rval.put(currentProperty, currentContent);
+            }
             currentProperty = null;
           }
         }
@@ -91,7 +93,9 @@ public class JHTML implements JHTMLListener {
         if(itemprop != null) {
           String content = xe.getProperty("content");
           if (content != null) {
-            rval.put(itemprop, content);
+            if(rval.get(itemprop) == null || rval.get(itemprop).isEmpty() || !content.isEmpty()) {
+              rval.put(itemprop, content);
+            }
           } else {
             currentProperty = itemprop;
             currentContent = "";
@@ -100,7 +104,11 @@ public class JHTML implements JHTMLListener {
         } else if(xe.getTagName().equals("meta")) {
           String property = xe.getProperty("property");
           if(property != null && property.startsWith("og:")) {
-            rval.put(property.substring(3), xe.getProperty("content"));
+            itemprop = property.substring(3);
+            String content = xe.getProperty("content");
+            if (rval.get(itemprop) == null || rval.get(itemprop).isEmpty() || !content.isEmpty()) {
+              rval.put(itemprop, content);
+            }
           }
         }
       } else if(type == htmlToken.HTML_CONTENT && currentProperty != null) {
