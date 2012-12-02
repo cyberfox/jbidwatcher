@@ -512,7 +512,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    * @return - An object that can be used as an AuctionInfo object.
    */
   public SpecificAuction getNewSpecificAuction() {
-    return new ebayAuction(T);
+    return new ebayAuction2(T);
   }
 
   public StringBuffer getAuction(String id) throws FileNotFoundException {
