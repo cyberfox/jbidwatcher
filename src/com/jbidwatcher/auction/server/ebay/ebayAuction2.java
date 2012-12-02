@@ -58,6 +58,10 @@ public class ebayAuction2 extends SpecificAuction {
     if(parse.containsKey("price.bin")) setBuyNow(Currency.getCurrency(parse.get("price.bin")));
     if(parse.containsKey("price.bin_us")) setBuyNowUS(Currency.getCurrency(parse.get("price.bin_us")));
 
+    if(parse.containsKey("shipping.shipping")) setShipping(Currency.getCurrency(parse.get("shipping.shipping")));
+    if(parse.containsKey("shipping.insurance")) setInsurance(Currency.getCurrency(parse.get("shipping.insurance")));
+    if(parse.containsKey("shipping.insurance_optional")) setInsuranceOptional(Boolean.valueOf(parse.get("shipping.insurance_optional")));
+
     return ParseErrors.SUCCESS;
   }
 
@@ -99,6 +103,23 @@ public class ebayAuction2 extends SpecificAuction {
     try { parse.put("seller", deprecated.parseSeller(mDocument)); } catch (Exception e) { /* Ignored */ }
 
     parse.put("fixed", Boolean.toString(parse.containsKey("price.bin") && !(parse.containsKey("price.current") || parse.containsKey("price.minimum"))));
+
+    // TODO(cyberfox) - Left to parse:
+    // high_bidder
+    // identifier
+    // num_bids
+    // quantity (fixed price only)
+    // end_date
+    // start_date (is this even available anymore?)
+    // complete?
+    // private?
+    // reserve?
+    // reserve_met?
+    // sticky? (This should be on the AuctionEntry...)
+    // outbid? (This should be on the AuctionEntry...)
+
+    // Currency maxBid = Currency.getCurrency(parse.get("price.max"))
+    // if(!maxBid.isNull()) ae.setBid(maxBid)
 
     return parse;
   }
