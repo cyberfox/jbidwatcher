@@ -58,7 +58,7 @@ public class JConfigEbayTab extends JConfigTab
 
     if(homeSite != null) {
       boolean usOnly = homeSite.isSelected();
-      JConfig.setConfiguration(mSitename + ".us_only", Boolean.toString(usOnly));
+      JConfig.setConfiguration(mSitename + ".non_us", Boolean.toString(usOnly));
     }
 
     if(siteSelect != null) {
