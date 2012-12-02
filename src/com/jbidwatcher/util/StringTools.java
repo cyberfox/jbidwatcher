@@ -260,6 +260,10 @@ public class StringTools {
     }
   }
 
+  public static String nullSafe(String s) {
+    return (s == null) ? "" : s;
+  }
+
   public static String comma(List<?> list) {
     String rval = "";
     if (list == null || list.isEmpty()) return rval;
