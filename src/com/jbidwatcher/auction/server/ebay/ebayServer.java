@@ -117,12 +117,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     return esm;
   }
 
-  public void deleteWatch(String itemId) {
-    String body = "LineID=" + itemId + "&CurrentPage=MyeBayNextWatching&View=WatchingNext&copagenum=1&coentrypage=myebay&SubmitAction.BulkDelete=Delete&coaction=compare&WatchingNext.Filter=All&tagname=";
-    Http.net().postFormPage("http://my.ebay.com/ws/eBayISAPI.dll?MyEbayBeta&f=f#GoTo240",
-        body, mLogin.getNecessaryCookie(false).toString(), null, false);
-  }
-
   public void updateHighBid(String auctionId) {
     String bidHistory = Externalized.getString("ebayServer.protocol") + T.s("ebayServer.bidHost") + Externalized.getString("ebayServer.V3file") + Externalized.getString("ebayServer.viewBidsCGI") + auctionId;
     CookieJar cj = mLogin.getNecessaryCookie(false);
@@ -196,9 +190,10 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       }
     }
   }
-    /**
-     * @brief Process an action, based on messages passed through our internal queues.
-     */
+
+  /**
+   * @brief Process an action, based on messages passed through our internal queues.
+   */
   public void messageAction(Object deQ) {
     AuctionQObject ac = (AuctionQObject)deQ;
     String failString = null;
