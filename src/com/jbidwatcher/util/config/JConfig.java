@@ -17,18 +17,18 @@ public class JConfig extends com.cyberfox.util.config.JConfig {
     setBaseName("JBidWatch.cfg");
     metrics = DeskMetrics.getInstance();
     metrics.setEndpoint("https://my.jbidwatcher.com/report/usage");
-    try {
-      String version = Constants.class.getPackage().getImplementationVersion();
-      if(version == null) {
-        version = "debug";
-      }
-      //  Metrics are kept always, but only shared on shutdown if the user
-      //  has opted in to sending them; this allows us to also send them
-      //  (if they allow it) on bug-reporting.
-      metrics.start("4f4a195ca14ad72a1d000000", version);
-    } catch (Exception e) {
-      metrics = null;
+
+    String version = null;
+    Package pack = Constants.class.getPackage();
+    if (pack != null) version = pack.getImplementationVersion();
+    if (version == null) {
+      version = "debug";
     }
+
+    //  Metrics are kept always, but only shared on shutdown if the user
+    //  has opted in to sending them; this allows us to also send them
+    //  (if they allow it) on bug-reporting.
+    metrics.start("4f4a195ca14ad72a1d000000", version);
   }
 
   public static boolean sendMetricsAllowed() {
