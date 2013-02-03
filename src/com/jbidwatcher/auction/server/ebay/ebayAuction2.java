@@ -6,8 +6,13 @@ import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.TT;
+import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.queue.MQFactory;
+import com.jbidwatcher.util.queue.PlainMessageQueue;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -46,10 +51,18 @@ public class ebayAuction2 extends SpecificAuction {
 
     setTitle(parse.get("title"));
     setURL(parse.get("url"));
-    setThumbnailURL(parse.get("thumbnail_url"));
+    if(parse.get("thumbnail_url") != null) {
+      setThumbnailURL(parse.get("thumbnail_url"));
+      loadThumbnail();
+    }
     setItemLocation(parse.get("location"));
     setPaypal(Boolean.parseBoolean(parse.get("paypal")));
     setFixedPrice(Boolean.parseBoolean(parse.get("fixed")));
+
+    if (parse.containsKey("ending_at")) {
+      Date endDate = StringTools.figureDate(parse.get("ending_at"), T.s("ebayServer.itemDateFormat")).getDate();
+      setEnd(endDate);
+    }
 
     if (parse.containsKey("price.current")) setCurBid(Currency.getCurrency(parse.get("price.current")));
     if (parse.containsKey("price.current_us")) setUSCur(Currency.getCurrency(parse.get("price.current_us")));
@@ -63,6 +76,18 @@ public class ebayAuction2 extends SpecificAuction {
     if(parse.containsKey("shipping.insurance_optional")) setInsuranceOptional(Boolean.valueOf(parse.get("shipping.insurance_optional")));
 
     return ParseErrors.SUCCESS;
+  }
+
+  private void loadThumbnail() {
+    try {
+      if (JConfig.queryConfiguration("show.images", "true").equals("true")) {
+        if (!hasNoThumbnail() && !hasThumbnail()) {
+          ((PlainMessageQueue) MQFactory.getConcrete("thumbnail")).enqueueObject(this);
+        }
+      }
+    } catch (Exception e) {
+      JConfig.log().handleException("Error handling thumbnail loading", e);
+    }
   }
 
   private String handleSellerName(Record parse, AuctionEntry ae) {
@@ -104,17 +129,28 @@ public class ebayAuction2 extends SpecificAuction {
 
     parse.put("fixed", Boolean.toString(parse.containsKey("price.bin") && !(parse.containsKey("price.current") || parse.containsKey("price.minimum"))));
 
-    // TODO(cyberfox) - Left to parse:
+    boolean privateListing = parsePrivate();
+    parse.put("private", Boolean.toString(privateListing));
+
     // high_bidder
+    // Requires loading the bid page...and knowing the count of bids so far.
+    parse.put("high_bidder", privateListing ? "(private)" : parseHighBidder());
+
+    boolean reserve = parseReserveNotMet();
+    parse.put("reserve", Boolean.toString(reserve));
+    if(reserve) {
+      parse.put("reserve_met", "false");
+    }
+
+    parse.put("ending_at", parseEndDate());
+
+    // TODO(cyberfox) - Left to parse:
     // identifier
     // num_bids
     // quantity (fixed price only)
-    // end_date
+
     // start_date (is this even available anymore?)
     // complete?
-    // private?
-    // reserve?
-    // reserve_met?
     // sticky? (This should be on the AuctionEntry...)
     // outbid? (This should be on the AuctionEntry...)
 
@@ -122,6 +158,26 @@ public class ebayAuction2 extends SpecificAuction {
     // if(!maxBid.isNull()) ae.setBid(maxBid)
 
     return parse;
+  }
+
+  private String parseEndDate() {
+    String endDate = "";
+    Elements leaves = mDocument2.getElementsContainingOwnText("Time left:");
+    if(leaves != null && !leaves.isEmpty()) {
+      for(Element leaf : leaves) {
+        Element parent = leaf.parent();
+        Elements kids = parent.getElementsMatchingOwnText("^\\(.*");
+        if(kids != null && !kids.isEmpty()) {
+          Elements lastly = kids.first().parent().getElementsMatchingOwnText("^.*\\)$");
+          if(lastly != null && !lastly.isEmpty()) {
+            endDate = kids.first().text() + " " + lastly.text();
+            endDate = endDate.replaceAll("\\(|\\)", "");
+            return endDate;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -244,5 +300,23 @@ public class ebayAuction2 extends SpecificAuction {
     location = StringTools.decode(location, mDocument.getCharset());
 
     return location;
+  }
+
+  private boolean parsePrivate() {
+    return mDocument.grep(T.s("ebayServer.privateListing")) != null;
+    // Another way of detecting private bidder is as follows:
+    //    String highBidder = getHighBidder();
+    //    if (highBidder != null && highBidder.contains(T.s("ebayServer.keptPrivate"))) {
+    //      return true;
+    //    }
+  }
+
+  private boolean parseReserveNotMet() {
+    return mDocument.findSequence("Reserve.*", ".*", "not met") != null;
+  }
+
+  //  TODO(cyberfox) - This needs to reach out to the eBay bid page and get the list of bidders. :-/
+  private String parseHighBidder() {
+    return "not implemented";
   }
 }
