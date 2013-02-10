@@ -97,7 +97,7 @@ public class ebayAuction2 extends SpecificAuction {
       if (ae != null) {
         ae.setLastStatus("Seller away - item unavailable.");
       }
-    } else if(sellerName.isEmpty()) {
+    } else if(sellerName.length() == 0) {
       if (ae == null || ae.getSeller() == null) {
         sellerName = "(unknown)";
       } else {
@@ -201,7 +201,7 @@ public class ebayAuction2 extends SpecificAuction {
     if(offers.size() == 1) {
       // It's either FP or Current...TODO(cyberfox) but it's possible it's the minimum bid, and so minimum should be set to true!
       boolean auction = convertedBinPrice.length() == 0;
-      auction = auction || offers.select(":containsOwn(Price)").text().isEmpty();
+      auction = auction || offers.select(":containsOwn(Price)").text().length() == 0;
 
       if(auction) {
         optional_conversion = convertedBidPrice;
