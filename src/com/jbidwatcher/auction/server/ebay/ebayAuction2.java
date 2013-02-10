@@ -200,7 +200,7 @@ public class ebayAuction2 extends SpecificAuction {
 
     if(offers.size() == 1) {
       // It's either FP or Current...TODO(cyberfox) but it's possible it's the minimum bid, and so minimum should be set to true!
-      boolean auction = convertedBinPrice.isEmpty();
+      boolean auction = convertedBinPrice.length() == 0;
       auction = auction || offers.select(":containsOwn(Price)").text().isEmpty();
 
       if(auction) {
@@ -212,7 +212,7 @@ public class ebayAuction2 extends SpecificAuction {
     } else if(offers.size() == 2) {
       // If there are 2 offers, the last is the Buy-It-Now amount and the first is the minimum bid amount.
       record.put("bin", offers.last().select("[itemprop=price]").text());
-      if (!convertedBinPrice.isEmpty()) record.put("bin_us", convertedBinPrice);
+      if (convertedBinPrice.length() != 0) record.put("bin_us", convertedBinPrice);
 
       minimum = true;
       optional_conversion = convertedBidPrice;
@@ -220,7 +220,7 @@ public class ebayAuction2 extends SpecificAuction {
 
     record.put("minimum", Boolean.toString(minimum));
     record.put(key, price);
-    if (!optional_conversion.isEmpty()) record.put(key + "_us", optional_conversion);
+    if (optional_conversion.length() != 0) record.put(key + "_us", optional_conversion);
 
     // Either bin, current, or [bin, current] will be set.
     // If minimum is true, then current is the minimum bid.
@@ -250,7 +250,7 @@ public class ebayAuction2 extends SpecificAuction {
   /* @NotNull */
   private String extractMicroformatInfo(String key) {
     String value = microFormat.get(key);
-    if(value == null || value.isEmpty()) {
+    if(value == null || value.length() == 0) {
       value = mDocument2.select("meta[property=og:" + key + "]").attr("content");
     }
 
@@ -266,7 +266,7 @@ public class ebayAuction2 extends SpecificAuction {
   /* @NotNull */
   private String parseURL() {
     String url = extractMicroformatInfo("url");
-    if(url.isEmpty()) {
+    if(url.length() == 0) {
       url = mDocument2.select("link[rel=canonical]").attr("href");
     }
 

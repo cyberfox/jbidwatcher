@@ -71,7 +71,7 @@ public class JHTML implements JHTMLListener {
         if(type == htmlToken.HTML_ENDTAG) {
           balance--;
           if(balance == 0) {
-            if(rval.get(currentProperty) == null || rval.get(currentProperty).isEmpty() || !currentContent.isEmpty()) {
+            if(rval.get(currentProperty) == null || rval.get(currentProperty).length() == 0 || currentContent.length() != 0) {
               rval.put(currentProperty, currentContent);
             }
             currentProperty = null;
@@ -93,7 +93,7 @@ public class JHTML implements JHTMLListener {
         if(itemprop != null) {
           String content = xe.getProperty("content");
           if (content != null) {
-            if(rval.get(itemprop) == null || rval.get(itemprop).isEmpty() || !content.isEmpty()) {
+            if(rval.get(itemprop) == null || rval.get(itemprop).length() == 0 || content.length() != 0) {
               rval.put(itemprop, content);
             }
           } else {
@@ -106,7 +106,7 @@ public class JHTML implements JHTMLListener {
           if(property != null && property.startsWith("og:")) {
             itemprop = property.substring(3);
             String content = xe.getProperty("content");
-            if (rval.get(itemprop) == null || rval.get(itemprop).isEmpty() || !content.isEmpty()) {
+            if (rval.get(itemprop) == null || rval.get(itemprop).length() == 0 || content.length() != 0) {
               rval.put(itemprop, content);
             }
           }

@@ -251,7 +251,7 @@ public class DeprecatedEbayAuction {
       foundBid = doc.getNextContentAfterRegex(T.s("ebayServer.currentBid"));
     }
 
-    if (foundBid != null && !foundBid.isEmpty()) {
+    if (foundBid != null && foundBid.length() != 0) {
       record.put("current", foundBid);
       record.put("current_us", getUSCurrency(Currency.getCurrency(foundBid), doc).toString());
     }
@@ -263,7 +263,7 @@ public class DeprecatedEbayAuction {
     }
 
     String maxBid = doc.getNextContentAfterContent(T.s("ebayServer.yourMaxBid"));
-    if(maxBid != null && !maxBid.isEmpty()) record.put("max", maxBid);
+    if(maxBid != null && maxBid.length() != 0) record.put("max", maxBid);
 
     return record;
   }
