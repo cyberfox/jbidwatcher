@@ -211,6 +211,11 @@ public class DeprecatedEbayAuction {
 
       if (sellerInfo != null) {
         sellerName = sellerInfo.get(2);
+      } else {
+        sellerInfo = doc.findSequence(T.s("ebayServer.sellerInfoPrequel"), ".*", "\\d+");
+        if(sellerInfo != null) {
+          sellerName = sellerInfo.get(1);
+        }
       }
     }
 
