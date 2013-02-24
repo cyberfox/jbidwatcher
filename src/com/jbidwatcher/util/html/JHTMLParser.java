@@ -235,23 +235,10 @@ public class JHTMLParser {
     return(checkTag.length() != 0 && checkTag.charAt(checkTag.length()-1)=='/');
   }
 
-  private String clearBlankSpaceEscaped(String cleanupString) {
-    String workingString = cleanupString;
-
-    int i = workingString.indexOf("&nbsp;");
-    while(i != -1) {
-      workingString = workingString.substring(0, i) + ' ' + workingString.substring(i+6);
-
-      i = workingString.indexOf("&nbsp;");
-    }
-
-    return workingString;
-  }
-
   //  Strip whitespace, including 'faked' whitespace (&nbsp;) from both sides of the provided string,
   //  and faked whitespace from the inside of the string.
   private String stripWhitespace(String cleanupString) {
-    String resultString = clearBlankSpaceEscaped(cleanupString);
+    String resultString = cleanupString.replaceAll("&nbsp;?", " ");
 
     if(resultString.length() != 0) {
       resultString = resultString.replace((char)160, (char)32);
