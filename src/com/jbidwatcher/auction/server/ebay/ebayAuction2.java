@@ -7,6 +7,7 @@ import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.TT;
 import com.jbidwatcher.util.config.JConfig;
+import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.PlainMessageQueue;
 import org.jsoup.nodes.Element;
@@ -74,6 +75,9 @@ public class ebayAuction2 extends SpecificAuction {
     if(parse.containsKey("shipping.shipping")) setShipping(Currency.getCurrency(parse.get("shipping.shipping")));
     if(parse.containsKey("shipping.insurance")) setInsurance(Currency.getCurrency(parse.get("shipping.insurance")));
     if(parse.containsKey("shipping.insurance_optional")) setInsuranceOptional(Boolean.valueOf(parse.get("shipping.insurance_optional")));
+
+    if(parse.containsKey("identifier")) setIdentifier(parse.get("identifier"));
+    if(parse.containsKey("bin")) setFixedPrice(parse.get("bin").equals("true"));
 
     return ParseErrors.SUCCESS;
   }
@@ -145,7 +149,10 @@ public class ebayAuction2 extends SpecificAuction {
     parse.put("ending_at", parseEndDate());
 
     // TODO(cyberfox) - Left to parse:
-    // identifier
+    parse.put("identifier", parseIdentifier());
+
+    parse.put("bin", Boolean.toString(parseFixedPrice()));
+
     // num_bids
     // quantity (fixed price only)
 
@@ -160,6 +167,14 @@ public class ebayAuction2 extends SpecificAuction {
     return parse;
   }
 
+  public boolean parseFixedPrice() {
+    boolean hasBIN = mDocument.hasSequence("Price:", ".*", "(?i)Buy.It.Now") || !mDocument2.select("input[value=Buy It Now]").isEmpty();
+    boolean hasBid = !mDocument2.select("input[value=Place bid]").isEmpty();
+    return hasBIN && !hasBid;
+  }
+
+  //  Mozilla/5.0 (iPhone; CPU iPhone OS 6_1 like Mac OS X; en-us) AppleWebKit/536.26 (KHTML, like Gecko) CriOS/23.0.1271.100 Mobile/10B144 Safari/8536.25
+  //  http://item.mobileweb.ebay.com/viewitem?itemId=200891621147
   private String parseEndDate() {
     String endDate = "";
     Elements leaves = mDocument2.getElementsContainingOwnText("Time left:");
@@ -312,7 +327,13 @@ public class ebayAuction2 extends SpecificAuction {
   }
 
   private boolean parseReserveNotMet() {
-    return mDocument.findSequence("Reserve.*", ".*", "not met") != null;
+    return mDocument.hasSequence("Reserve.*", ".*", "not met");
+  }
+
+  private String parseIdentifier() {
+    JHTML.SequenceResult result = mDocument.findSequence("\\d+", "Item number:");
+    if(result == null || result.isEmpty()) return null;
+    return result.get(0);
   }
 
   //  TODO(cyberfox) - This needs to reach out to the eBay bid page and get the list of bidders. :-/
