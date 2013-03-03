@@ -1,10 +1,14 @@
 package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.html.JHTML;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +20,8 @@ import java.util.regex.Pattern;
  * Time: 7:39 PM
  */
 public class DeprecatedEbayAuction {
+  private String mBidCountScript = null;
+  private String mStartComment = null;
   private static Currency zeroDollars = new Currency("$0.00");
   protected TT T;
 
@@ -312,5 +318,115 @@ public class DeprecatedEbayAuction {
     } while (count++ < 6 && newCur == zeroDollars);
 
     return newCur;
+  }
+
+  public void setPage(StringBuffer sb) {
+    String skimOver = sb.toString();
+
+    Matcher startCommentSearch = Pattern.compile(Externalized.getString("ebayServer.startedRegex")).matcher(skimOver);
+    if (startCommentSearch.find())
+      mStartComment = startCommentSearch.group(1);
+    else
+      mStartComment = "";
+
+    Matcher bidCountSearch = Pattern.compile(T.s("ebayServer.bidCountRegex")).matcher(skimOver);
+    if (bidCountSearch.find())
+      mBidCountScript = bidCountSearch.group(1);
+    else
+      mBidCountScript = "";
+  }
+
+  private Pair<String,Boolean> getRawBidCount(JHTML doc) {
+    Boolean fixed = null;
+    final String[][] SEQUENCES = {
+        {T.s("ebayServer.currentBid"), ".*", ".*", ".*", "[0-9]+", "bids?"},
+        {T.s("ebayServer.currentBid"), ".*", ".*", "[0-9]+", "bids?"},
+        {T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids?"},
+        {T.s("ebayServer.currentBid"), ".*", "[0-9]+ bids?"}
+    };
+    final int[] SEQUENCE_GROUPS = {4, 3, 2, 2};
+
+    List<String> bidSequence;
+    String rawBidCount = null;
+
+    for (int i = 0; i < SEQUENCES.length; i++) {
+      bidSequence = doc.findSequence(SEQUENCES[i]);
+      if (bidSequence != null) {
+        int index = SEQUENCE_GROUPS[i];
+        rawBidCount = bidSequence.get(index);
+
+        if (i == 3) rawBidCount = rawBidCount.substring(0, rawBidCount.indexOf(' '));
+      }
+    }
+
+    if (rawBidCount == null) rawBidCount = doc.getNextContentAfterRegex(T.s("ebayServer.bidCount"));
+
+    if (rawBidCount == null) {
+      rawBidCount = doc.getContentBeforeContent("See history");
+      if (rawBidCount != null && rawBidCount.matches("^(Purchased|Bid).*")) {
+        if (rawBidCount.matches("^Purchased.*")) fixed = true;
+        rawBidCount = doc.getPrevContent();
+      }
+      if (rawBidCount != null && !StringTools.isNumberOnly(rawBidCount)) rawBidCount = null;
+    }
+
+    return new Pair<String, Boolean>(rawBidCount, fixed);
+  }
+
+  private Pattern digits = Pattern.compile("([0-9]+)");
+
+  int getDigits(String digitsStarting) {
+    Matcher m = digits.matcher(digitsStarting);
+    if (m.find()) {
+      String rawCount = m.group();
+      if (rawCount != null) {
+        return Integer.parseInt(rawCount);
+      }
+    }
+    return -1;
+  }
+
+  private Map<String, Object> getBidCount(JHTML doc, int quantity) {
+    Map<String, Object> result = new HashMap<String, Object>();
+    Pair<String, Boolean> rawBidCountResult = getRawBidCount(doc);
+    String rawBidCount = rawBidCountResult.getFirst();
+    if(rawBidCountResult.getLast() != null) {
+      result.put("fixed", rawBidCountResult.getLast());
+    }
+    int bidCount = 0;
+    if (rawBidCount != null) {
+      if (rawBidCount.equals(T.s("ebayServer.purchasesBidCount")) ||
+          rawBidCount.matches(T.s("ebayServer.offerRecognition"))) {
+        result.put("fixed", "true");
+        bidCount = -1;
+      } else {
+        if (rawBidCount.matches(T.s("ebayServer.bidderListCount"))) {
+          bidCount = Integer.parseInt(mBidCountScript);
+          mBidCountScript = null;
+        } else {
+          bidCount = getDigits(rawBidCount);
+        }
+      }
+    }
+
+    //  If we can't match any digits in the bidcount, or there is no match for the eBayBidCount regex, then
+    //  this is a store or FP item.  Still true under BIBO?
+    if (rawBidCount == null || bidCount == -1) {
+      result.put("high_bidder", T.s("ebayServer.fixedPrice"));
+      result.put("fixed", "true");
+
+      if (doc.lookup(T.s("ebayServer.hasBeenPurchased"), false) != null ||
+          doc.lookup(T.s("ebayServer.endedEarly"), false) != null) {
+        bidCount = quantity;
+        Date now = new Date();
+        result.put("ended_at", now);
+        result.put("started_at", now); // TODO - Make sure this only overrides if no other start date is set.
+      } else {
+        bidCount = 0;
+      }
+    }
+
+    result.put("bid_count", Integer.toString(bidCount));
+    return result;
   }
 }
