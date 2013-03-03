@@ -2,10 +2,7 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
-import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.Record;
-import com.jbidwatcher.util.StringTools;
-import com.jbidwatcher.util.TT;
+import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -14,7 +11,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Extract information from a parsed auction details page.
@@ -33,7 +33,9 @@ public class ebayAuction2 extends SpecificAuction {
     deprecated = new DeprecatedEbayAuction(T);
   }
 
-  public void cleanup(StringBuffer sb) { /*  Trust that jsoup has this? */ }
+  public void cleanup(StringBuffer sb) {
+    deprecated.setPage(sb);
+  }
 
   @Override
   public SpecificAuction.ParseErrors parseAuction(AuctionEntry ae) {
@@ -45,6 +47,13 @@ public class ebayAuction2 extends SpecificAuction {
     return setFields(parse, ae);
   }
 
+  /**
+   * Sets title, url, thumbnail url, location, paypal, fixed price, end date, current price[+US], minimum bid, BIN price[+US],
+   * shipping, insurance[+optionality], and identifier.
+   * @param parse
+   * @param ae
+   * @return
+   */
   private ParseErrors setFields(Record parse, AuctionEntry ae) {
     String sellerName = handleSellerName(parse, ae);
     if (sellerName == null) return ParseErrors.SELLER_AWAY;
@@ -77,7 +86,6 @@ public class ebayAuction2 extends SpecificAuction {
     if(parse.containsKey("shipping.insurance_optional")) setInsuranceOptional(Boolean.valueOf(parse.get("shipping.insurance_optional")));
 
     if(parse.containsKey("identifier")) setIdentifier(parse.get("identifier"));
-    if(parse.containsKey("bin")) setFixedPrice(parse.get("bin").equals("true"));
 
     return ParseErrors.SUCCESS;
   }
@@ -131,7 +139,7 @@ public class ebayAuction2 extends SpecificAuction {
     try { insertChild(parse, "shipping", deprecated.parseShippingInsurance(mDocument)); } catch (Exception e) { /* Ignored */ }
     try { parse.put("seller", deprecated.parseSeller(mDocument)); } catch (Exception e) { /* Ignored */ }
 
-    parse.put("fixed", Boolean.toString(parse.containsKey("price.bin") && !(parse.containsKey("price.current") || parse.containsKey("price.minimum"))));
+    parse.put("fixed", Boolean.toString((parse.containsKey("price.bin") && !(parse.containsKey("price.current")))));
 
     boolean privateListing = parsePrivate();
     parse.put("private", Boolean.toString(privateListing));
@@ -151,8 +159,6 @@ public class ebayAuction2 extends SpecificAuction {
     // TODO(cyberfox) - Left to parse:
     parse.put("identifier", parseIdentifier());
 
-    parse.put("bin", Boolean.toString(parseFixedPrice()));
-
     // num_bids
     // quantity (fixed price only)
 
@@ -169,8 +175,8 @@ public class ebayAuction2 extends SpecificAuction {
 
   public boolean parseFixedPrice() {
     boolean hasBIN = mDocument.hasSequence("Price:", ".*", "(?i)Buy.It.Now") || !mDocument2.select("input[value=Buy It Now]").isEmpty();
-    boolean hasBid = !mDocument2.select("input[value=Place bid]").isEmpty();
-    return hasBIN && !hasBid;
+//    boolean hasBid = !mDocument2.select("input[value=Place bid]").isEmpty();
+    return hasBIN;// && !hasBid;
   }
 
   //  Mozilla/5.0 (iPhone; CPU iPhone OS 6_1 like Mac OS X; en-us) AppleWebKit/536.26 (KHTML, like Gecko) CriOS/23.0.1271.100 Mobile/10B144 Safari/8536.25
@@ -215,8 +221,8 @@ public class ebayAuction2 extends SpecificAuction {
 
     if(offers.size() == 1) {
       // It's either FP or Current...TODO(cyberfox) but it's possible it's the minimum bid, and so minimum should be set to true!
-      boolean auction = convertedBinPrice.length() == 0;
-      auction = auction || offers.select(":containsOwn(Price)").text().length() == 0;
+      boolean auction = !parseFixedPrice();
+//      auction = auction || offers.select(":contains(Price)").text().length() == 0;
 
       if(auction) {
         optional_conversion = convertedBidPrice;
@@ -339,5 +345,80 @@ public class ebayAuction2 extends SpecificAuction {
   //  TODO(cyberfox) - This needs to reach out to the eBay bid page and get the list of bidders. :-/
   private String parseHighBidder() {
     return "not implemented";
+  }
+
+  // OLD CODE - OLD CODE - OLD CODE - OLD CODE - OLD CODE
+  private Date extractEndDate() {
+    String endTime = "";
+    Elements parents = mDocument2.select("span.endedDate").parents();
+
+    if (parents.isEmpty()) {
+      parents = mDocument2.select(":matchesOwn((?i)ended:)").parents();
+      if (parents.isEmpty()) {
+        endTime = mDocument2.select(":matchesOwn((?i)time.left:)").parents().first().select(":matchesOwn((^\\()|(\\)$))").text();
+      }
+    }
+
+    if (endTime.length() == 0) {
+      if (parents.isEmpty()) {
+        return null;
+      }
+      endTime = parents.first().text();
+    }
+    endTime = endTime.replaceAll("([\\(\\s\\)])+", " ").trim();
+
+    ZoneDate endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
+
+    if (endDate != null && !endDate.isNull()) {
+      return endDate.getDate();
+    } else {
+      return null;
+    }
+  }
+
+  private boolean checkSeller(AuctionEntry ae) {
+    String sellerName = null;
+    String feedbackCount = null;
+
+    List<String> sellerInfo = mDocument.findSequence("(?i)top.rated.seller", ".*", ".*", "\\d+");
+    if (sellerInfo != null) {
+      sellerName = sellerInfo.get(2);
+      feedbackCount = sellerInfo.get(3);
+    } else {
+      sellerInfo = mDocument.findSequence(T.s("ebayServer.sellerInfoPrequel"), T.s("ebayServer.seller"), ".*");
+
+      if (sellerInfo != null) {
+        sellerName = sellerInfo.get(2);
+      }
+    }
+
+    if (sellerName == null) {
+      sellerName = mDocument.getNextContentAfterRegex(T.s("ebayServer.seller"));
+    }
+
+    if (sellerName == null) {
+      sellerName = mDocument.getNextContentAfterRegex(T.s("ebayServer.sellerInfoPrequel"));
+    }
+
+    if (sellerName == null) {
+      if (mDocument.grep(T.s("ebayServer.sellerAwayRegex")) != null) {
+        if (ae != null) {
+          ae.setLastStatus("Seller away - item unavailable.");
+        }
+        finish();
+        return true;
+      } else {
+        if (ae == null)
+          sellerName = "(unknown)";
+        else
+          sellerName = ae.getSeller();
+      }
+    }
+    setSellerName(sellerName);
+    if (feedbackCount != null) {
+      mSeller.setFeedback(Integer.parseInt(feedbackCount));
+    }
+
+    return false;
   }
 }
