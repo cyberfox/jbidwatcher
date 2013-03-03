@@ -97,7 +97,7 @@ public class AuctionTable extends JTable implements MessageQueue.Listener {
     if(command.equals("start")) {
       currentRow = ((TableSorter)getModel()).findRow(new Comparison() {
         public boolean match(Object o) {
-          return ((AuctionEntry)o).getIdentifier().equals(identifier);
+          return o != null && ((AuctionEntry)o).getIdentifier().equals(identifier);
         }
       });
       if(currentRow == -1) currentRow = null;
