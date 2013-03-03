@@ -33,7 +33,7 @@ public class JConfigFrame implements ActionListener {
   private List<JConfigTab> allTabs;
   private static int cfgCount = 1;
   private static JButton advancedToggleButton;
-  private JConfigTab quickTab;
+  private JConfigTab quickTab, advancedTab;
   private JPanel cards;
 
   public void spinWait() {
@@ -151,26 +151,14 @@ public class JConfigFrame implements ActionListener {
 
     Container contentPane = w.getContentPane();
     contentPane.setLayout(new BorderLayout());
-    CardLayout swapper = new CardLayout();
-    cards = new JPanel(swapper);
-    contentPane.add(cards, BorderLayout.CENTER);
-    quickTab = new JConfigEbayTab(true);
-    JPanel quickPanel = new JPanel(new BorderLayout());
-    quickPanel.setBorder(BorderFactory.createTitledBorder(null, "Quick Start Configuration", TitledBorder.CENTER, TitledBorder.ABOVE_TOP));
-    quickPanel.add(quickTab, BorderLayout.CENTER);
-
-    // First added is default
-    cards.add(quickPanel, QUICK_CARD);
-    cards.add(jtpAllTabs, ADVANCED_CARD);
-    if(JConfig.queryConfiguration("config.level", "quick").equals("advanced")) {
-      swapper.show(cards, ADVANCED_CARD);
-    }
+    establishCards(jtpAllTabs, contentPane);
 
     allTabs = new ArrayList<JConfigTab>();
 
     //  Add all non-server-specific tabs here.
     allTabs.add(new JConfigGeneralTab());
     allTabs.add(new JConfigEbayTab(false));
+    allTabs.add(quickTab);
 
     //  Stub the browser tab under MacOSX, so they don't try to use it.
     if(Platform.isMac()) {
@@ -198,8 +186,10 @@ public class JConfigFrame implements ActionListener {
 
     //  Loop over all tabs, and add them to the display.
     for (JConfigTab allTab : allTabs) {
-      allTab.setOpaque(true);
-      jtpAllTabs.addTab(allTab.getTabName(), allTab);
+      if(allTab != quickTab) {
+        allTab.setOpaque(true);
+        jtpAllTabs.addTab(allTab.getTabName(), allTab);
+      }
     }
 
     jtpAllTabs.setSelectedIndex(0);
@@ -209,6 +199,22 @@ public class JConfigFrame implements ActionListener {
     w.pack();
     w.setResizable(false);
     return w;
+  }
+
+  private void establishCards(JTabbedPane jtpAllTabs, Container contentPane) {CardLayout swapper = new CardLayout();
+    cards = new JPanel(swapper);
+    contentPane.add(cards, BorderLayout.CENTER);
+    quickTab = new JConfigEbayTab(true);
+    JPanel quickPanel = new JPanel(new BorderLayout());
+    quickPanel.setBorder(BorderFactory.createTitledBorder(null, "Quick Start Configuration", TitledBorder.CENTER, TitledBorder.ABOVE_TOP));
+    quickPanel.add(quickTab, BorderLayout.CENTER);
+
+    // First added is default
+    cards.add(quickPanel, QUICK_CARD);
+    cards.add(jtpAllTabs, ADVANCED_CARD);
+    if(JConfig.queryConfiguration("config.level", "quick").equals("advanced")) {
+      swapper.show(cards, ADVANCED_CARD);
+    }
   }
 
   private class JConfigSecurityTab extends JConfigStubTab {
