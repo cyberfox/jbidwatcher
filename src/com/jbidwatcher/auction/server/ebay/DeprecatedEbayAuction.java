@@ -4,6 +4,7 @@ import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.html.JHTML;
+import org.jsoup.select.Elements;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -428,5 +429,79 @@ public class DeprecatedEbayAuction {
 
     result.put("bid_count", Integer.toString(bidCount));
     return result;
+  }
+
+  private Date extractEndDate(JHTML doc) {
+    String endTime = "";
+    Elements parents = mDocument2.select("span.endedDate").parents();
+
+    if (parents.isEmpty()) {
+      parents = mDocument2.select(":matchesOwn((?i)ended:)").parents();
+      if (parents.isEmpty()) {
+        endTime = mDocument2.select(":matchesOwn((?i)time.left:)").parents().first().select(":matchesOwn((^\\()|(\\)$))").text();
+      }
+    }
+
+    if (endTime.length() == 0) {
+      if (parents.isEmpty()) {
+        return null;
+      }
+      endTime = parents.first().text();
+    }
+    endTime = endTime.replaceAll("([\\(\\s\\)])+", " ").trim();
+
+    ZoneDate endDate = StringTools.figureDate(endTime, T.s("ebayServer.itemDateFormat"), true, true);
+
+    if (endDate != null && !endDate.isNull()) {
+      return endDate.getDate();
+    } else {
+      return null;
+    }
+  }
+
+  private boolean checkSeller(JHTML doc, AuctionEntry ae) {
+    String sellerName = null;
+    String feedbackCount = null;
+
+    List<String> sellerInfo = doc.findSequence("(?i)top.rated.seller", ".*", ".*", "\\d+");
+    if (sellerInfo != null) {
+      sellerName = sellerInfo.get(2);
+      feedbackCount = sellerInfo.get(3);
+    } else {
+      sellerInfo = doc.findSequence(T.s("ebayServer.sellerInfoPrequel"), T.s("ebayServer.seller"), ".*");
+
+      if (sellerInfo != null) {
+        sellerName = sellerInfo.get(2);
+      }
+    }
+
+    if (sellerName == null) {
+      sellerName = doc.getNextContentAfterRegex(T.s("ebayServer.seller"));
+    }
+
+    if (sellerName == null) {
+      sellerName = doc.getNextContentAfterRegex(T.s("ebayServer.sellerInfoPrequel"));
+    }
+
+    if (sellerName == null) {
+      if (doc.grep(T.s("ebayServer.sellerAwayRegex")) != null) {
+        if (ae != null) {
+          ae.setLastStatus("Seller away - item unavailable.");
+        }
+        return true;
+      } else {
+        if (ae == null)
+          sellerName = "(unknown)";
+        else
+          sellerName = ae.getSeller();
+      }
+    }
+    Record r = new Record();
+    r.put("seller_name", sellerName);
+    if (feedbackCount != null) {
+      r.put("feedback_count", Integer.toString(Integer.parseInt(feedbackCount)));
+    }
+
+    return false;
   }
 }
