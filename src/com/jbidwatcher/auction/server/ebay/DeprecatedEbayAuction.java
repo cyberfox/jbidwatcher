@@ -4,6 +4,7 @@ import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.html.JHTML;
+import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.util.Date;
@@ -431,14 +432,14 @@ public class DeprecatedEbayAuction {
     return result;
   }
 
-  private Date extractEndDate(JHTML doc) {
+  private Date extractEndDate(Document doc) {
     String endTime = "";
-    Elements parents = mDocument2.select("span.endedDate").parents();
+    Elements parents = doc.select("span.endedDate").parents();
 
     if (parents.isEmpty()) {
-      parents = mDocument2.select(":matchesOwn((?i)ended:)").parents();
+      parents = doc.select(":matchesOwn((?i)ended:)").parents();
       if (parents.isEmpty()) {
-        endTime = mDocument2.select(":matchesOwn((?i)time.left:)").parents().first().select(":matchesOwn((^\\()|(\\)$))").text();
+        endTime = doc.select(":matchesOwn((?i)time.left:)").parents().first().select(":matchesOwn((^\\()|(\\)$))").text();
       }
     }
 
