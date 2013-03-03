@@ -43,6 +43,11 @@ public class JConfigEbayTab extends JConfigTab
   public void cancel() { }
 
   public void apply() {
+    if (JConfig.queryConfiguration("config.level", "quick").equals("quick") != quickConfig) {
+      //  Do not run advanced, if the mode is quick, or quick if the mode is advanced.
+      return;
+    }
+
     String old_user = JConfig.queryConfiguration(mSitename + ".user");
     JConfig.setConfiguration(mSitename + ".user", username.getText());
     String new_user = JConfig.queryConfiguration(mSitename + ".user");
@@ -77,7 +82,9 @@ public class JConfigEbayTab extends JConfigTab
   public void updateValues() {
     username.setText(JConfig.queryConfiguration(mSitename + ".user", "default"));
     password.setText(JConfig.queryConfiguration(mSitename + ".password", "default"));
-    homeSite.setSelected(JConfig.queryConfiguration(mSitename + ".non_us", Boolean.toString(!Platform.isUSBased())).equals("true"));
+    if (homeSite != null) {
+      homeSite.setSelected(JConfig.queryConfiguration(mSitename + ".non_us", Boolean.toString(!Platform.isUSBased())).equals("true"));
+    }
   }
 
   private JPanel buildUsernamePanel() {
@@ -186,6 +193,7 @@ public class JConfigEbayTab extends JConfigTab
       JBEditorPane jep = OptionUI.getHTMLLabel(searchNotice);
       add(jep, BorderLayout.SOUTH);
     } else {
+      mDisplayName += " (quick)";
       add(jp, BorderLayout.NORTH);
       JPanel welcomeMessage = new JPanel();
       welcomeMessage.setLayout(new BoxLayout(welcomeMessage, BoxLayout.Y_AXIS));
