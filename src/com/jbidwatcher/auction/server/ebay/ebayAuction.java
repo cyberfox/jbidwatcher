@@ -376,8 +376,8 @@ class ebayAuction extends SpecificAuction {
     if(!usePaypal) {
       String preferred = doc.getNextContentAfterRegex("PayPal.?");
       if(preferred != null) {
-        if(preferred.indexOf("preferred") != -1) usePaypal = true;
-        if(preferred.indexOf("accepted") != -1) usePaypal = true;
+        if(preferred.contains("preferred")) usePaypal = true;
+        if(preferred.contains("accepted")) usePaypal = true;
       }
       String methods = doc.getNextContentAfterRegex("Payment methods:?");
       //  If it's not the first payment method...
@@ -439,7 +439,8 @@ class ebayAuction extends SpecificAuction {
   }
 
   /**
-   * @brief - Not brief at all; wow...this is way too long.
+   * Perform basic parsing on the auction data.  Obsolete.
+   * Not brief at all; wow...this is way too long.
    *
    * @param ae - The auction entry to update or null if it's a new auction.
    *
@@ -474,13 +475,7 @@ class ebayAuction extends SpecificAuction {
     }
 
     if(microFormat.containsKey("image")) {
-      String imageURL = (String) microFormat.get("image");
-      if(imageURL != null) {
-        if(imageURL.matches(".*_\\d+\\.[a-zA-Z]+")) {
-          imageURL = imageURL.replaceFirst("_\\d+\\.", "_10.");
-        }
-        setThumbnailURL(imageURL);
-      }
+      setThumbnailFromMicroformat(microFormat);
     }
 
     checkBuyNowOrFixedPrice();
@@ -517,6 +512,16 @@ class ebayAuction extends SpecificAuction {
     finish();
     this.saveDB();
     return ParseErrors.SUCCESS;
+  }
+
+  private void setThumbnailFromMicroformat(Map microFormat) {
+    String imageURL = (String) microFormat.get("image");
+    if(imageURL != null) {
+      if(imageURL.matches(".*_\\d+\\.[a-zA-Z]+")) {
+        imageURL = imageURL.replaceFirst("_\\d+\\.", "_10.");
+      }
+      setThumbnailURL(imageURL);
+    }
   }
 
   private void checkBuyNowOrFixedPrice() {
@@ -954,7 +959,7 @@ class ebayAuction extends SpecificAuction {
 
   private void checkPrivate() {
     String highBidder = getHighBidder();
-    if ((highBidder != null && highBidder.indexOf(T.s("ebayServer.keptPrivate")) != -1) ||
+    if ((highBidder != null && highBidder.contains(T.s("ebayServer.keptPrivate"))) ||
         mDocument.grep("This is a private listing.*") != null) {
       setPrivate(true);
       setHighBidder("(private)"); //$NON-NLS-1$
