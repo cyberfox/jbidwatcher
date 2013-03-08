@@ -15,6 +15,7 @@ import java.util.Map;
 
 /**
  * Extract information from a parsed auction details page.
+ *
  * User: mrs
  * Date: 12/1/12
  * Time: 5:53 PM
@@ -24,12 +25,22 @@ public class ebayAuction2 extends SpecificAuction {
   private DeprecatedEbayAuction deprecated = null;
   protected TT T;
 
+  /**
+   * Construct with a specific country property list.
+   *
+   * @param countryProperties The country file/property list to pull overrides and matchable text from.
+   */
   protected ebayAuction2(TT countryProperties) {
     super();
     T = countryProperties;
     deprecated = new DeprecatedEbayAuction(T);
   }
 
+  /**
+   * Clean up the page loaded and prepare it for parsing later.
+   *
+   * @param sb The object containing the entire HTML source for the page to parse.
+   */
   public void cleanup(StringBuffer sb) {
     deprecated.setPage(sb);
   }
@@ -83,8 +94,17 @@ public class ebayAuction2 extends SpecificAuction {
     if(parse.containsKey("shipping.insurance_optional")) setInsuranceOptional(Boolean.valueOf(parse.get("shipping.insurance_optional")));
 
     if(parse.containsKey("identifier")) setIdentifier(parse.get("identifier"));
+    if(parse.containsKey("bid_count")) setNumBids(Integer.valueOf(parse.get("bid_count")));
 
     return ParseErrors.SUCCESS;
+  }
+
+  private void requestHighBidder() {
+    MQFactory.getConcrete("high_bidder").enqueue(getIdentifier());
+  }
+
+  private void requestEndDate() {
+    MQFactory.getConcrete("end_date").enqueue(getIdentifier());
   }
 
   private void loadThumbnail() {
@@ -155,6 +175,9 @@ public class ebayAuction2 extends SpecificAuction {
 
     // TODO(cyberfox) - Left to parse:
     parse.put("identifier", parseIdentifier());
+
+    Record complex = deprecated.getBidCount(mDocument, getQuantity());
+    parse.put("bid_count", complex.get("bid_count"));
 
     // num_bids
     // quantity (fixed price only)

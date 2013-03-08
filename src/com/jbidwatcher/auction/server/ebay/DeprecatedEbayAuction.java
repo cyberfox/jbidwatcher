@@ -388,12 +388,12 @@ public class DeprecatedEbayAuction {
     return -1;
   }
 
-  private Map<String, Object> getBidCount(JHTML doc, int quantity) {
-    Map<String, Object> result = new HashMap<String, Object>();
+  public Record getBidCount(JHTML doc, int quantity) {
+    Record result = new Record();
     Pair<String, Boolean> rawBidCountResult = getRawBidCount(doc);
     String rawBidCount = rawBidCountResult.getFirst();
     if(rawBidCountResult.getLast() != null) {
-      result.put("fixed", rawBidCountResult.getLast());
+      result.put("fixed", rawBidCountResult.getLast().toString());
     }
     int bidCount = 0;
     if (rawBidCount != null) {
@@ -421,8 +421,8 @@ public class DeprecatedEbayAuction {
           doc.lookup(T.s("ebayServer.endedEarly"), false) != null) {
         bidCount = quantity;
         Date now = new Date();
-        result.put("ended_at", now);
-        result.put("started_at", now); // TODO - Make sure this only overrides if no other start date is set.
+        result.put("ended_at", "now");
+        result.put("started_at", "now"); // TODO - Make sure this only overrides if no other start date is set.
       } else {
         bidCount = 0;
       }
