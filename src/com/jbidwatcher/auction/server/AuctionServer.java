@@ -210,23 +210,25 @@ public abstract class AuctionServer implements AuctionServerInterface {
    * @return - An object containing the information extracted from the auction.
    */
   private AuctionInfo loadAuction(String item_id, AuctionEntry ae) {
-    StringBuffer sb = retrieveAuctionAlternatives(item_id, ae);
+    StringBuffer sb = null;
     SpecificAuction curAuction = null;
+    int runCount = 0;
 
-    if(sb != null) {
+    // Retry loop
+    while(sb == null && runCount < 2) {
+      sb = retrieveAuction(item_id, ae);
+
       try {
         curAuction = doParse(sb, ae, item_id);
       } catch (ReloadItemException e) {
-        sb = retrieveAuctionAlternatives(item_id, ae);
-        try {
-          curAuction = doParse(sb, ae, item_id);
-        } catch (ReloadItemException e1) {
-          JConfig.log().logMessage("Multiple failures attempting to load item " + item_id + ", giving up.");
-        }
+        sb = null;
       }
+      runCount++;
     }
 
     if (curAuction == null) {
+      JConfig.log().logMessage("Multiple failures attempting to load item " + item_id + ", giving up.");
+
       if (ae != null && ae.getLastStatus().contains("Seller away - item unavailable.")) {
         ae.setInvalid();
       } else if (ae == null || !ae.isDeleted()) {
@@ -236,7 +238,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
     return curAuction;
   }
 
-  private StringBuffer retrieveAuctionAlternatives(String item_id, AuctionEntry ae) {
+  private StringBuffer retrieveAuction(String item_id, AuctionEntry ae) {
     StringBuffer sb = null;
 
     try {
