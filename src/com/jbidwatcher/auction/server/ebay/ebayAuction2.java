@@ -96,6 +96,8 @@ public class ebayAuction2 extends SpecificAuction {
     if(parse.containsKey("identifier")) setIdentifier(parse.get("identifier"));
     if(parse.containsKey("bid_count")) setNumBids(Integer.valueOf(parse.get("bid_count")));
 
+    if("true".equals(parse.get("complete"))) setEnded(true);
+
     return ParseErrors.SUCCESS;
   }
 
@@ -179,13 +181,16 @@ public class ebayAuction2 extends SpecificAuction {
     Record complex = deprecated.getBidCount(mDocument, getQuantity());
     parse.put("bid_count", complex.get("bid_count"));
 
-    // num_bids
-    // quantity (fixed price only)
+    if(mDocument.grep(T.s("ebayServer.ended")) != null) {
+      parse.put("complete", "true");
+    }
 
+    // TODO(cyberfox) - Left to parse:
+    // quantity (fixed price only)
     // start_date (is this even available anymore?)
-    // complete?
     // sticky? (This should be on the AuctionEntry...)
     // outbid? (This should be on the AuctionEntry...)
+    // Feedback (base and percentage)
 
     // Currency maxBid = Currency.getCurrency(parse.get("price.max"))
     // if(!maxBid.isNull()) ae.setBid(maxBid)
@@ -215,6 +220,16 @@ public class ebayAuction2 extends SpecificAuction {
             endDate = endDate.replaceAll("\\(|\\)", "");
             return endDate;
           }
+        }
+      }
+    }
+
+    //  Ended date stamps are formatted a little peculiarly.
+    Elements endedDates = mDocument2.select(".endedDate");
+    if(!endedDates.isEmpty()) {
+      for(Element e : endedDates) {
+        if("Ended:".equals(e.parent().parent().previousElementSibling().text())) {
+          return e.parent().text();
         }
       }
     }

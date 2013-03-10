@@ -28,6 +28,7 @@ CREATE TABLE auctions (
   fixed_price smallint default NULL,
   optional_insurance smallint default NULL,
   outbid smallint default NULL,
+  ended smallint default NULL,
   created_at timestamp default NULL,
   updated_at timestamp default NULL,
   PRIMARY KEY  (id)

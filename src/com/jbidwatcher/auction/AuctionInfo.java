@@ -509,6 +509,7 @@ public class AuctionInfo extends ActiveRecord
   protected void setHasThumb(boolean hasThumb) { setBoolean("hasThumb", hasThumb); }
   protected void setOutbid(boolean outbid) { setBoolean("outbid", outbid); }
   protected void setPaypal(boolean paypal) { setBoolean("paypal", paypal); }
+  protected void setEnded(boolean ended) { setBoolean("ended", ended); }
 
   public void setThumbnailURL(String url) {
     setNoThumbnail(false);

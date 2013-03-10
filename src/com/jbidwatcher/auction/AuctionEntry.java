@@ -1517,7 +1517,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * don't waste time on it afterwards, even as much as creating a
    * Date object, and comparing.
    */
-  public boolean isComplete() { return getBoolean("ended"); }
+  public boolean isComplete() { return mAuction.isEnded() || getBoolean("ended"); }
   public void setComplete(boolean complete) { setBoolean("ended", complete); saveDB(); }
 
   /*************************/
@@ -1663,7 +1663,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return getRealDatabase().countBySQL("SELECT COUNT(DISTINCT(identifier)) FROM entries WHERE identifier IS NOT NULL");
   }
 
-  private static final String snipeFinder = "(snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL) AND (ended != 1 OR ended IS NULL)";
+  private static final String snipeFinder = "(snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL) AND (entries.ended != 1 OR entries.ended IS NULL)";
 
   public static int snipedCount() {
     return getRealDatabase().countBy(snipeFinder);
