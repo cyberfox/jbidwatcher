@@ -104,6 +104,15 @@ public class DeprecatedEbayAuction {
           newPercent = score;
         }
       }
+
+      // If nothing else, it's possible the item is ended, and the seller info is less detailed.
+      if (score == null) {
+        JHTML.SequenceResult result = doc.findSequence("Seller:", ".*", "\\d+");
+        if(result != null) {
+          score = result.get(2);
+          feedback.put("feedback", score);
+        }
+      }
     }
 
     if (newPercent == null) {
@@ -229,6 +238,13 @@ public class DeprecatedEbayAuction {
 
     if (sellerName == null) {
       sellerName = doc.getNextContentAfterRegex(T.s("ebayServer.seller"));
+    }
+
+    if (sellerName == null) {
+      sellerInfo = doc.findSequence("Seller:", ".*", "\\d+");
+      if(sellerInfo != null) {
+        sellerName = sellerInfo.get(1);
+      }
     }
 
     if (sellerName == null) {

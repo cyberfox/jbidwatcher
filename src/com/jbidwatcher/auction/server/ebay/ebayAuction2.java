@@ -58,14 +58,13 @@ public class ebayAuction2 extends SpecificAuction {
   /**
    * Sets title, url, thumbnail url, location, paypal, fixed price, end date, current price[+US], minimum bid, BIN price[+US],
    * shipping, insurance[+optionality], and identifier.
-   * @param parse
-   * @param ae
-   * @return
+   * @param parse The record created containing all the fields detected.
+   * @param ae The auction entry wrapper
+   *
+   * @return The parsing status; typically SELLER_AWAY, or SUCCESS right now. TODO: What other errors are possible...
    */
   private ParseErrors setFields(Record parse, AuctionEntry ae) {
-    String sellerName = handleSellerName(parse, ae);
-    if (sellerName == null) return ParseErrors.SELLER_AWAY;
-    setSellerName(sellerName);
+    if(setSellerInfo(parse, ae)) return ParseErrors.SELLER_AWAY;
 
     setTitle(parse.get("title"));
     setURL(parse.get("url"));
@@ -99,6 +98,22 @@ public class ebayAuction2 extends SpecificAuction {
     if("true".equals(parse.get("complete"))) setEnded(true);
 
     return ParseErrors.SUCCESS;
+  }
+
+  private boolean setSellerInfo(Record parse, AuctionEntry ae) {
+    String sellerName = handleSellerName(parse, ae);
+    if (sellerName == null) return true;
+    setSellerName(sellerName);
+    if(mSeller != null) {
+      if(parse.containsKey("feedback.feedback")) {
+        mSeller.setFeedback(Integer.parseInt(parse.get("feedback.feedback")));
+      }
+
+      if(parse.containsKey("feedback.percentage")) {
+        mSeller.setPositivePercentage(parse.get("feedback.percentage"));
+      }
+    }
+    return false;
   }
 
   private void requestHighBidder() {
@@ -175,7 +190,6 @@ public class ebayAuction2 extends SpecificAuction {
 
     parse.put("ending_at", parseEndDate());
 
-    // TODO(cyberfox) - Left to parse:
     parse.put("identifier", parseIdentifier());
 
     Record complex = deprecated.getBidCount(mDocument, getQuantity());
@@ -199,9 +213,7 @@ public class ebayAuction2 extends SpecificAuction {
   }
 
   public boolean parseFixedPrice() {
-    boolean hasBIN = mDocument.hasSequence("Price:", ".*", "(?i)Buy.It.Now") || !mDocument2.select("input[value=Buy It Now]").isEmpty();
-//    boolean hasBid = !mDocument2.select("input[value=Place bid]").isEmpty();
-    return hasBIN;// && !hasBid;
+    return mDocument.hasSequence("Price:", ".*", "(?i)Buy.It.Now") || !mDocument2.select("input[value=Buy It Now]").isEmpty();
   }
 
   //  Mozilla/5.0 (iPhone; CPU iPhone OS 6_1 like Mac OS X; en-us) AppleWebKit/536.26 (KHTML, like Gecko) CriOS/23.0.1271.100 Mobile/10B144 Safari/8536.25
@@ -372,7 +384,7 @@ public class ebayAuction2 extends SpecificAuction {
   }
 
   private String parseIdentifier() {
-    JHTML.SequenceResult result = mDocument.findSequence("\\d+", "Item number:");
+    JHTML.SequenceResult result = mDocument.findSequence("\\d+", ".*Item number:.*");
     if(result == null || result.isEmpty()) return null;
     return result.get(0);
   }
