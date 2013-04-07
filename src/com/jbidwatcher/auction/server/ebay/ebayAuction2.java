@@ -384,9 +384,17 @@ public class ebayAuction2 extends SpecificAuction {
   }
 
   private String parseIdentifier() {
+    int resultIndex = 0;
     JHTML.SequenceResult result = mDocument.findSequence("\\d+", ".*Item number:.*");
-    if(result == null || result.isEmpty()) return null;
-    return result.get(0);
+    if(result == null || result.isEmpty()) {
+      result = mDocument.findSequence("\\s*Item number:\\s*", "\\d+");
+      if (result == null || result.isEmpty()) {
+        return null;
+      } else {
+        resultIndex = 1;
+      }
+    }
+    return result.get(resultIndex);
   }
 
   //  TODO(cyberfox) - This needs to reach out to the eBay bid page and get the list of bidders. :-/
