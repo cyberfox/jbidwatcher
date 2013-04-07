@@ -50,16 +50,22 @@ public final class PlainMessageQueue extends MessageQueue {
       if(data != null) {
         boolean empty;
         do {
-          if (!_listeners.isEmpty()) {
+          boolean listeners = !_listeners.isEmpty();
+          boolean heard = false;
+          if (listeners) {
             try {
               for(Listener l : _listeners) {
-                l.messageAction(data);
+                if(l != null) {
+                  heard = true;
+                  l.messageAction(data);
+                }
               }
             } catch (Exception e) {
               JConfig.log().handleException("PMQ Caught exception: " + e, e);
               clear();
             }
-          } else {
+          }
+          if(!heard) {
             JConfig.log().logDebug(_myself.getName() + ": Postponing Message: " + data);
             if(_postpone != null) _postpone.add(data);
           }
