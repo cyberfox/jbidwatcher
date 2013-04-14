@@ -33,8 +33,10 @@ public class JConfig extends com.cyberfox.util.config.JConfig {
 
   public static boolean sendMetricsAllowed() {
     return queryConfiguration("metrics.optin", "false").equals("true") ||
-           (queryConfiguration("metrics.optin", "false").equals("pre") && Constants.PROGRAM_VERS.matches(".*(pre|alpha|beta).*"));
+           (queryConfiguration("metrics.optin", "false").equals("pre") && isPrerelease());
   }
+
+  public static boolean isPrerelease() {return Constants.PROGRAM_VERS.matches(".*(pre|alpha|beta).*");}
 
   public static void stopMetrics() {
     try {
