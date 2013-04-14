@@ -72,7 +72,7 @@ auction server site.
 Bold on an auction identifier (number) means that there is a
 comment associated with that auction.  Right click on the auction and
 select 'View Comment' to see the comment.  Using 'View Information'
-will give it as well.  If your windowing system suppors tooltips, the
+will give it as well.  If your windowing system supports tooltips, the
 comment will also show up in the tooltip for that item.
 </li>
 <li>Pinned Note <img src="<%res:/icons/note3.gif%>"><br>

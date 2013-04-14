@@ -61,7 +61,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
     //  If not, treat it as an item number alone, in the space of the default auction server.
     //  If so, we get the identifier from the URL (which is multi-country),
     String aucId;
-    if(auctionURL.indexOf(":") != -1) {
+    if(auctionURL.contains(":")) {
       AuctionServer aucServ = AuctionServerManager.getInstance().getServer();
       aucId = aucServ.extractIdentifierFromURLString(auctionURL);
     } else {
@@ -79,6 +79,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
       if(label != null) aeNew.setCategory(label);
       JConfig.log().logDebug("Loaded " + aeNew.getIdentifier() + '.');
       lastSeen = aeNew.getIdentifier();
+      EntryCorral.getInstance().put(aeNew);
       AuctionsManager.getInstance().addEntry(aeNew);
       MQFactory.getConcrete("Swing").enqueue("Successfully added auction: " + aucId + ": " + aeNew.getTitle());
     } else {
