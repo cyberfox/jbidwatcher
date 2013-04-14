@@ -81,7 +81,7 @@
   <target name="compile" depends="init">
     <echo level="info" message="Compiling all classes." />
     <mkdir dir="${build.dir}" />
-      <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="on" >
+      <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="on" source="1.5">
           <classpath refid="project.class.path" />
           <include name="**/*.java" />
       </javac>
@@ -436,7 +436,7 @@
   </target>
 
   <target name="upload" description="Upload the code to a given destination">
-    <scp verbose="true" todir="${server.path}" keyfile="/home/mrs/.ssh/id_rsa" passphrase="">
+    <scp verbose="true" todir="${server.path}" keyfile="/home/build/.ssh/id_rsa" passphrase="">
       <fileset dir="${main.dir}">
 	<include name="${BINARY}" />
 	<include name="${APPFILE}" />
