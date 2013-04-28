@@ -45,11 +45,10 @@ public class TableColumnController {
   public static final int CUR_TOTAL=19;
   public static final int SNIPE_TOTAL=20;
   public static final int THUMBNAIL = 21;
-  public static final int WATCHERS = 22;
 
-  public static final int MAX_FIXED_COLUMN=22;
+  public static final int MAX_FIXED_COLUMN=21;
 
-  private static int columnCount =23;
+  private static int columnCount =22;
   private static Map<Integer, String> m_column_map;
 
   public static int columnCount() {
@@ -81,7 +80,6 @@ public class TableColumnController {
     m_column_map.put(CUR_TOTAL, "Total");
     m_column_map.put(SNIPE_TOTAL, "Snipe Max");
     m_column_map.put(THUMBNAIL, "Thumbnail");
-    m_column_map.put(WATCHERS, "# of watchers");
   }
 
   public static TableColumnController getInstance() {
