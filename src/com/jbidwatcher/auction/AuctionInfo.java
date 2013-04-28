@@ -397,7 +397,6 @@ public class AuctionInfo extends AuctionCore {
   protected void setBuyNowUS(Currency buyNowUS) {   setMonetary("buy_now_us", buyNowUS); }
   protected void setBuyNow(Currency buyNow) {       setMonetary("buy_now", buyNow); }
 
-  protected void setStart(Date start) { setDate("start", start); }
   protected void setEnd(Date end) {
     if(end == null || end.equals(Constants.FAR_FUTURE)) {
       end = null;
@@ -405,14 +404,9 @@ public class AuctionInfo extends AuctionCore {
     setDate("end", end);
   }
 
-  protected void setQuantity(int quantity) { setInteger("quantity", quantity); }
-  protected void setNumBids(int numBids) { setInteger("numBids", numBids); }
-
-  protected void setReserve(boolean isReserve) { setBoolean("isReserve", isReserve); }
+  public void setNumBids(int numBids) { setInteger("numBids", numBids); }
   public void setPrivate(boolean isPrivate) { setBoolean("private", isPrivate); }
-  protected void setReserveMet(boolean reserveMet) { setBoolean("reserve_met", reserveMet); }
   protected void setHasThumb(boolean hasThumb) { setBoolean("hasThumb", hasThumb); }
-  protected void setOutbid(boolean outbid) { setBoolean("outbid", outbid); }
   protected void setPaypal(boolean paypal) { setBoolean("paypal", paypal); }
   protected void setEnded(boolean ended) { setBoolean("ended", ended); }
 
