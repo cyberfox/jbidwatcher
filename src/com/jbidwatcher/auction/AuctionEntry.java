@@ -1337,7 +1337,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     boolean doRefresh = (mAuction != null && mAuction.getEndDate() != null &&
         !mAuction.getEndDate().equals(inAI.getEndDate()) && getSnipe() != null);
 
-    AuctionInfo oldAuction = mAuction;
+//    AuctionInfo oldAuction = mAuction;
     mAuction = inAI;
     String newAuctionId = mAuction.saveDB();
     if(doRefresh) refreshSnipe();
@@ -1347,13 +1347,14 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       //  If we had an old auction, and it's not the same as the new one,
       //  and the IDs are different, delete the old one.
       //noinspection ObjectEquality
-      if (oldAuction != null &&
-          oldAuction != mAuction &&
-          mAuction.getId() != null &&
-          oldAuction.getId() != null &&
-          !mAuction.getId().equals(oldAuction.getId())) {
-        oldAuction.delete();
-      }
+//      if (oldAuction != null &&
+//          oldAuction != mAuction &&
+//          mAuction.getId() != null &&
+//          oldAuction.getId() != null &&
+//          !mAuction.getId().equals(oldAuction.getId())) {
+//        // TODO(cyberfox) Determine if there is any way we can avoid rolling deletes of auctions as we parse new ones.
+//        oldAuction.delete();
+//      }
     }
 
     checkHighBidder();
