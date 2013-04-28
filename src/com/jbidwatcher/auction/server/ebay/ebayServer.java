@@ -14,7 +14,6 @@ package com.jbidwatcher.auction.server.ebay;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.auction.server.ServerMenu;
-import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.html.JHTML;
@@ -443,16 +442,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     if(siteAddr != null) {
       String lastPart = siteAddr.toString();
-      if(lastPart.indexOf(Externalized.getString("ebayServer.viewCmd")) != -1) {
+      if(lastPart.contains(Externalized.getString("ebayServer.viewCmd"))) {
         int index = lastPart.indexOf(Externalized.getString("ebayServer.viewCGI"));
         if(index != -1) {
           String aucId = lastPart.substring(index+ Externalized.getString("ebayServer.viewCGI").length());
 
-          if (aucId.indexOf("&") != -1) {
+          if (aucId.contains("&")) {
             aucId = aucId.substring(0, aucId.indexOf("&"));
           }
 
-          if (aucId.indexOf("#") != -1) {
+          if (aucId.contains("#")) {
             aucId = aucId.substring(0, aucId.indexOf("#"));
           }
 

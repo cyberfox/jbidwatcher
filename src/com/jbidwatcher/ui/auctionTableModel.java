@@ -406,27 +406,8 @@ public class auctionTableModel extends BaseTransformation
           if (thumb != null) {
             if(iconCache.containsKey(thumb)) return iconCache.get(thumb);
             thumb = thumb.replaceAll("file:", "");
-            ImageIcon base = new ImageIcon(thumb);
-            int h = base.getIconHeight();
-            int w = base.getIconWidth();
-            if (h <= 64 && w <= 64) {
-              h = -1;
-              w = -1;
-            }
-            if (h != -1 && w != -1) {
-              if (h > w) {
-                h = 64;
-                w = -1;
-              } else if (w > h) {
-                w = 64;
-                h = -1;
-              } else if (h == w && h != -1) {
-                h = 64;
-                w = -1;
-              }
-            }
-            ImageIcon thumbIcon = new ImageIcon(base.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH));
-            if(thumbIcon != null) iconCache.put(thumb, thumbIcon);
+            ImageIcon thumbIcon = scaleImage(thumb);
+            iconCache.put(thumb, thumbIcon);
             return thumbIcon;
           } else return dummyIcon;
         }
@@ -481,6 +462,29 @@ public class auctionTableModel extends BaseTransformation
     } catch(ArrayIndexOutOfBoundsException aioobe) {
       return(getDummyValueAtColumn(columnIndex));
     }
+  }
+
+  private ImageIcon scaleImage(String thumb) {
+    ImageIcon base = new ImageIcon(thumb);
+    int h = base.getIconHeight();
+    int w = base.getIconWidth();
+    if (h <= 64 && w <= 64) {
+      h = -1;
+      w = -1;
+    }
+    if (h != -1 && w != -1) {
+      if (h > w) {
+        h = 64;
+        w = -1;
+      } else if (w > h) {
+        w = 64;
+        h = -1;
+      } else if (h == w) {
+        h = 64;
+        w = -1;
+      }
+    }
+    return new ImageIcon(base.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH));
   }
 
   public auctionTableModel(AuctionList inList) {

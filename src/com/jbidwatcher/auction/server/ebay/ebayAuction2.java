@@ -219,7 +219,7 @@ public class ebayAuction2 extends SpecificAuction {
   //  Mozilla/5.0 (iPhone; CPU iPhone OS 6_1 like Mac OS X; en-us) AppleWebKit/536.26 (KHTML, like Gecko) CriOS/23.0.1271.100 Mobile/10B144 Safari/8536.25
   //  http://item.mobileweb.ebay.com/viewitem?itemId=200891621147
   private String parseEndDate() {
-    String endDate = "";
+    String endDate;
     Elements leaves = mDocument2.getElementsContainingOwnText("Time left:");
     if(leaves != null && !leaves.isEmpty()) {
       for(Element leaf : leaves) {
