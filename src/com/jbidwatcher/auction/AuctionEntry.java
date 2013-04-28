@@ -87,13 +87,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     return mSnipe;
   }
 
-  /** All the auction-independent information like high bidder's name,
-   * seller's name, etc...  This is directly queried when this object
-   * is queried about any of those fields.
-   *
-   */
-  private AuctionInfo mAuction = null;
-
   /**
    * A logging class for keeping track of events.
    *
@@ -151,8 +144,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *                            is used to key the auction.
    */
   private synchronized void prepareAuctionEntry(String auctionIdentifier) {
-    mAuction = mServer.create(auctionIdentifier);
-    mLoaded = mAuction != null;
+    AuctionInfo info = mServer.create(auctionIdentifier);
+    mLoaded = info != null;
 
     /**
      * Note that a bad auction (couldn't get an auction server, or a
@@ -161,9 +154,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
      * will never be added to the items list.
      */
     if (mLoaded) {
-      AuctionServerInterface newServer = (AuctionServerInterface) mAuction.getServer();
+      AuctionServerInterface newServer = (AuctionServerInterface) info.getServer();
       if(newServer != null) setServer(newServer);
-      Currency currentPrice = mAuction.getBestPrice();
+      Currency currentPrice = info.getBestPrice();
       setDate("last_updated_at", new Date());
       setDefaultCurrency(currentPrice);
       saveDB();
@@ -410,13 +403,6 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     saveDB();
   }
 
-  public int getWatchers() { Integer cnt = getInteger("watcher_count"); return (cnt == null) ? -1 : cnt; }
-
-  public void setWatchers(int watcherCount) {
-    setInteger("watcher_count", watcherCount);
-    saveDB();
-  }
-
   /**
    * @brief What was the most recent number of items actually
    * submitted to the server as part of a bid?
@@ -659,8 +645,8 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
     switch(tagId) {
       case 0:  //  Get the general auction information
         //  TODO -- What if it's already in the database?
-        mAuction.fromXML(curElement);
-        mAuction.saveDB();
+//        mAuction.fromXML(curElement);
+//        mAuction.saveDB();
         break;
       case 1:  //  Get bid info
         Currency bidAmount = Currency.getCurrency(curElement.getProperty("CURRENCY"),
@@ -799,8 +785,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public void fromXML(XMLInterface inXML) {
     String inID = inXML.getProperty("ID", null);
     if(inID != null) {
-      mAuction = new AuctionInfo();
-      mAuction.setIdentifier(inID);
+      set("identifier", inID);
 
       super.fromXML(inXML);
 
@@ -1281,44 +1266,39 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
 
   private static AuctionInfo sAuction = new AuctionInfo();
   @SuppressWarnings({"ObjectEquality"})
-  public boolean isNullAuction() { return mAuction == null || mAuction == sAuction; }
+  public boolean isNullAuction() { return getAuction() == sAuction; }
 
   public AuctionInfo getAuction() {
-    if(isNullAuction()) {
-      String aid = get("auction_id");
-      if(aid != null && aid.length() != 0) {
-        mAuction = AuctionInfo.find(aid);
-      }
-      if(isNullAuction() && getString("identifier") != null) {
-        mAuction = AuctionInfo.findByIdentifier(getString("identifier"));
-      }
-      boolean dirty = false;
+    String identifier = getString("identifier");
+    Integer auctionId = getInteger("auction_id");
 
-      //  If we successfully loaded an auction info object...
-      if(mAuction != null) {
-        if(!getDefaultCurrency().equals(mAuction.getDefaultCurrency())) {
-          setDefaultCurrency(mAuction.getDefaultCurrency());
-          dirty = true;
-        }
-
-        if(getString("identifier") == null) {
-          setString("identifier", mAuction.getIdentifier());
-          dirty = true;
-        }
-        Integer auctionId = getInteger("auction_id");
-        if(aid == null || !auctionId.equals(mAuction.getId())) {
-          setInteger("auction_id", mAuction.getId());
-          dirty = true;
-        }
-        if(dirty) {
-          saveDB();
-        }
-      }
+    AuctionInfo info = AuctionInfo.findByIdentifier(identifier);
+    if(info == null) {
+      info = AuctionInfo.find(auctionId.toString());
     }
 
-    if(mAuction == null) mAuction = sAuction;
+    if(info == null) return sAuction;
 
-    return mAuction;
+    boolean dirty = false;
+    if (!getDefaultCurrency().equals(info.getDefaultCurrency())) {
+      setDefaultCurrency(info.getDefaultCurrency());
+      dirty = true;
+    }
+
+    if (getString("identifier") == null) {
+      setString("identifier", info.getIdentifier());
+      dirty = true;
+    }
+
+    if (auctionId == null || !auctionId.equals(info.getId())) {
+      setInteger("auction_id", info.getId());
+      dirty = true;
+    }
+    if (dirty) {
+      saveDB();
+    }
+
+    return info;
   }
 
   /**
@@ -1329,32 +1309,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * @param inAI - The AuctionInfo object to make the new core data.  Must not be null.
    */
   public void setAuctionInfo(AuctionInfo inAI) {
-    if(isNullAuction()) {
+    if(inAI.getId() != null) {
       setDefaultCurrency(inAI.getDefaultCurrency());
-    }
-
-    //  If the end date has changed, let's reschedule the snipes for the new end date...?
-    boolean doRefresh = (mAuction != null && mAuction.getEndDate() != null &&
-        !mAuction.getEndDate().equals(inAI.getEndDate()) && getSnipe() != null);
-
-//    AuctionInfo oldAuction = mAuction;
-    mAuction = inAI;
-    String newAuctionId = mAuction.saveDB();
-    if(doRefresh) refreshSnipe();
-    if(newAuctionId != null) {
-      set("auction_id", newAuctionId);
-      setString("identifier", mAuction.getIdentifier());
-      //  If we had an old auction, and it's not the same as the new one,
-      //  and the IDs are different, delete the old one.
-      //noinspection ObjectEquality
-//      if (oldAuction != null &&
-//          oldAuction != mAuction &&
-//          mAuction.getId() != null &&
-//          oldAuction.getId() != null &&
-//          !mAuction.getId().equals(oldAuction.getId())) {
-//        // TODO(cyberfox) Determine if there is any way we can avoid rolling deletes of auctions as we parse new ones.
-//        oldAuction.delete();
-//      }
+      setInteger("auction_id", inAI.getId());
+      setString("identifier", inAI.getIdentifier());
     }
 
     checkHighBidder();
@@ -1518,7 +1476,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    * don't waste time on it afterwards, even as much as creating a
    * Date object, and comparing.
    */
-  public boolean isComplete() { return mAuction.isEnded() || getBoolean("ended"); }
+  public boolean isComplete() { return getAuction().isEnded() || getBoolean("ended"); }
   public void setComplete(boolean complete) { setBoolean("ended", complete); saveDB(); }
 
   /*************************/
@@ -1528,7 +1486,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public String saveDB() {
     if(isNullAuction()) return null;
 
-    String auctionId = mAuction.saveDB();
+    String auctionId = getAuction().getId().toString();
     if(auctionId != null) set("auction_id", auctionId);
 
     //  This just makes sure we have a default category before saving.
@@ -1558,7 +1516,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
       AuctionEntry ae = AuctionEntry.findFirstBy("id", get("id"));
       if (ae != null) {
         setBacking(ae.getBacking());
-        mAuction = ae.getAuction();
+        ae.getAuction();
         ae.getCategory();
         mCategory = ae.mCategory;
         mSnipe = ae.getSnipe();
@@ -1747,7 +1705,9 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   }
 
   public void setNumBids(int bidCount) {
-    mAuction.setNumBids(bidCount);
+    AuctionInfo info = getAuction();
+    info.setNumBids(bidCount);
+    info.saveDB();
   }
 
   @SuppressWarnings({"unchecked"})
