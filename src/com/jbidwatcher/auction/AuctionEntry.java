@@ -314,7 +314,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *
    * @return Whether this entry has ever been loaded from the server.
    */
-  public boolean isLoaded()    { return(mLoaded); }
+  private boolean isLoaded()    { return(mLoaded); }
 
   /**
    * @brief Check if the current snipe value would be a valid bid currently.

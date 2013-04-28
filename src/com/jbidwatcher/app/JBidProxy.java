@@ -321,13 +321,7 @@ public class JBidProxy extends AbstractMiniServer {
    */
   public StringBuffer addAuction(String identifier) {
     //Add new Auction to Auction Manager
-    AuctionEntry auctionEntry = EntryFactory.getInstance().constructEntry(identifier);
-
-    if (auctionEntry != null && auctionEntry.isLoaded()) {
-      AuctionsManager.getInstance().addEntry(auctionEntry);
-    } else if (auctionEntry != null) {
-      auctionEntry.delete();
-    }
+    AuctionEntry auctionEntry = EntryFactory.getInstance().conditionallyAddEntry(false, identifier, null);
 
     //show Overview
     AuctionsManager.getInstance().saveAuctions();

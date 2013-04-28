@@ -130,22 +130,19 @@ public class UserActions implements MessageQueue.Listener {
       AbstractCommand cmd = commands.get(commandStr);
       if(cmd != null) cmd.execute();
       else {
-        JConfig.log().logDebug("Recevied unrecognized 'user' message: " + commandStr);
+        JConfig.log().logDebug("Received unrecognized 'user' message: " + commandStr);
       }
     }
   }
 
   private AuctionEntry addAuction(String auctionSource) {
     AuctionEntry aeNew = EntryFactory.getInstance().constructEntry(auctionSource);
-    if (aeNew != null && aeNew.isLoaded()) {
+    if (aeNew != null) {
       aeNew.setCategory(mTabs.getCurrentTableTitle());
       AuctionsManager.getInstance().addEntry(aeNew);
       MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
-      return aeNew;
-    } else {
-      if (aeNew != null) aeNew.delete();
-      return null;
     }
+    return aeNew;
   }
 
   private void cmdAddAuction(String auctionSource) {
@@ -155,23 +152,15 @@ public class UserActions implements MessageQueue.Listener {
 
     auctionSource = auctionSource.trim();
 
-    AuctionEntry aeNew = addAuction(auctionSource);
-    if (aeNew == null) {
-      String id = AuctionServerManager.getInstance().getServer().stripId(auctionSource);
-      //  For user-interactive adds, always override the deleted state.
-      if (DeletedEntry.exists(id)) {
-        DeletedEntry.remove(id);
-        aeNew = addAuction(auctionSource);
+    String id = AuctionServerManager.getInstance().getServer().stripId(auctionSource);
+    if(EntryFactory.isInvalid(true, id)) {
+      AuctionEntry found = AuctionEntry.findByIdentifier(id);
+      if (found != null) {
+        JConfig.log().logMessage("Found auction " + id + " in category " + found.getCategory());
+        mTabs.showEntry(found);
       }
-      if (aeNew == null) {
-        AuctionEntry found = AuctionEntry.findByIdentifier(id);
-        if (found != null) {
-          mTabs.showEntry(found);
-          MQFactory.getConcrete("Swing").enqueue("ERROR " + "Cannot add auction " + auctionSource + ", it is already in your auction list in '" + found.getCategory() + "'.");
-        } else {
-          MQFactory.getConcrete("Swing").enqueue("ERROR " + "Cannot add auction " + auctionSource + ", either invalid or\ncommunication error talking to server.");
-        }
-      }
+    } else {
+      EntryFactory.getInstance().conditionallyAddEntry(true, id, mTabs.getCurrentTableTitle());
     }
   }
 
