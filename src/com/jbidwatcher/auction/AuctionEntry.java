@@ -146,6 +146,11 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private synchronized void prepareAuctionEntry(String auctionIdentifier) {
     AuctionInfo info = mServer.create(auctionIdentifier);
     mLoaded = info != null;
+    if(mLoaded) {
+      setString("identifier", auctionIdentifier);
+      info.saveDB();
+      setInteger("auction_id", info.getId());
+    }
 
     /**
      * Note that a bad auction (couldn't get an auction server, or a
