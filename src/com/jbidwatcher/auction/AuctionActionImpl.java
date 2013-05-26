@@ -61,6 +61,10 @@ public abstract class AuctionActionImpl implements AuctionAction {
 
   protected abstract int execute(AuctionEntry ae, Currency curr, int quant);
 
+  public void setIdentifier(String identifier) { mIdentifier = identifier; }
+  public void setAmount(String amount) { mAmount = amount; }
+  public void setQuantity(int quantity) { mQuantity = quantity; }
+
   public String getIdentifier() { return mIdentifier; }
   public String getAmount() { return mAmount; }
   public int getQuantity() { return mQuantity; }
