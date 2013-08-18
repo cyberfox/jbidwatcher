@@ -274,6 +274,8 @@ public abstract class AuctionServer implements AuctionServerInterface {
 
     if (item_id != null) {
       curAuction.setIdentifier(item_id);
+    } else if(ae != null && ae.getIdentifier() != null) {
+      curAuction.setIdentifier(ae.getIdentifier());
     }
     curAuction.setContent(sb, false);
     String error = null;
@@ -318,10 +320,16 @@ public abstract class AuctionServer implements AuctionServerInterface {
             break;
           }
         }
-        if(result != SpecificAuction.ParseErrors.SUCCESS && error == null) error = "Bad Parse!";
+        if(result != SpecificAuction.ParseErrors.SUCCESS && error == null) {
+          error = "Bad Parse!";
+        }
       }
-      if (result == SpecificAuction.ParseErrors.SUCCESS) curAuction.save();
-    } else error = "Bad pre-parse!";
+      if (result == SpecificAuction.ParseErrors.SUCCESS) {
+        curAuction.save();
+      }
+    } else {
+      error = "Bad pre-parse!";
+    }
 
     if(error != null) {
       JConfig.log().logMessage(error);
