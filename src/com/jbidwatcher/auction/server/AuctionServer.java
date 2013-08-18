@@ -36,7 +36,9 @@ public abstract class AuctionServer implements AuctionServerInterface {
   public String stripId(String source) {
     String strippedId = source;
 
-    if (source.startsWith("http")) strippedId = extractIdentifierFromURLString(source);
+    if (source.startsWith("http")) {
+      strippedId = extractIdentifierFromURLString(source);
+    }
 
     return strippedId;
   }
@@ -103,7 +105,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
    * @return - a URL to use to pull that item.
    */
   protected URL getURLFromItem(String itemID) {
-    return (StringTools.getURLFromString(getStringURLFromItem(itemID)));
+    return StringTools.getURLFromString(getStringURLFromItem(itemID));
   }
 
   /**
@@ -160,7 +162,9 @@ public abstract class AuctionServer implements AuctionServerInterface {
         uc = Http.net().makeRequest(auctionURL, null);
       }
       loadedPage = Http.net().receivePage(uc);
-      if(loadedPage != null && loadedPage.length() == 0) loadedPage = null;
+      if(loadedPage != null && loadedPage.length() == 0) {
+        loadedPage = null;
+      }
     } catch(FileNotFoundException fnfe) {
       JConfig.log().logDebug("Item not found: " + auctionURL.toString());
       throw fnfe;
@@ -243,7 +247,9 @@ public abstract class AuctionServer implements AuctionServerInterface {
 
     try {
       sb = getAuction(item_id);
-      if(sb != null && ae != null) ae.clearDeleted();
+      if(sb != null && ae != null) {
+        ae.clearDeleted();
+      }
     } catch (FileNotFoundException ignored) {
       //  Just get out.  The item no longer exists on the auction
       //  server, so we shouldn't be trying any of the rest.  The
@@ -284,7 +290,9 @@ public abstract class AuctionServer implements AuctionServerInterface {
           }
           case CAPTCHA: {
             JConfig.log().logDebug("Failed to load (likely adult) item, captcha intervened.");
-            if(ae != null) ae.setLastStatus("Couldn't access auction on server; captcha blocked.");
+            if(ae != null) {
+              ae.setLastStatus("Couldn't access auction on server; captcha blocked.");
+            }
             break;
           }
           case NOT_ADULT: {
@@ -317,7 +325,9 @@ public abstract class AuctionServer implements AuctionServerInterface {
 
     if(error != null) {
       JConfig.log().logMessage(error);
-      if(ae == null || !ae.isDeleted() && result != SpecificAuction.ParseErrors.SELLER_AWAY) checkLogError(ae);
+      if(ae == null || !ae.isDeleted() && result != SpecificAuction.ParseErrors.SELLER_AWAY) {
+        checkLogError(ae);
+      }
       curAuction = null;
     }
     return curAuction;
