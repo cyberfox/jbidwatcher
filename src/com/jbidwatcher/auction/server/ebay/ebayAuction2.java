@@ -385,9 +385,9 @@ public class ebayAuction2 extends SpecificAuction {
 
   private String parseIdentifier() {
     int resultIndex = 0;
-    JHTML.SequenceResult result = mDocument.findSequence("\\d+", ".*Item number:.*");
+    JHTML.SequenceResult result = mDocument.findSequence("\\d+", ".*[Ii]tem.[nN]umber:.*");
     if(result == null || result.isEmpty()) {
-      result = mDocument.findSequence("\\s*Item number:\\s*", "\\d+");
+      result = mDocument.findSequence("\\s*(e[Bb]ay.)?[Ii]tem.[Nn]umber:\\s*", "\\d+");
       if (result == null || result.isEmpty()) {
         return null;
       } else {
