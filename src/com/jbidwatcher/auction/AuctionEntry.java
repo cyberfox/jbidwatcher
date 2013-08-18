@@ -1272,17 +1272,23 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private static AuctionInfo sAuction = new AuctionInfo();
   @SuppressWarnings({"ObjectEquality"})
   public boolean isNullAuction() { return getAuction() == sAuction; }
-
+  private boolean deleting = false;
   public AuctionInfo getAuction() {
     String identifier = getString("identifier");
     Integer auctionId = getInteger("auction_id");
 
     AuctionInfo info = AuctionInfo.findByIdentifier(identifier);
-    if(info == null) {
+    if(info == null && auctionId != null) {
       info = AuctionInfo.find(auctionId.toString());
     }
 
-    if(info == null) return sAuction;
+    if(info == null) {
+      if(!deleting) {
+        deleting = true;
+        this.delete();
+      }
+      return sAuction;
+    }
 
     boolean dirty = false;
     if (!getDefaultCurrency().equals(info.getDefaultCurrency())) {
