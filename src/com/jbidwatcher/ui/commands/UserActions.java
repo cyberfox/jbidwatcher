@@ -9,6 +9,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -21,6 +25,7 @@ import com.jbidwatcher.ui.*;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.*;
+import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
@@ -424,6 +429,48 @@ public class UserActions implements MessageQueue.Listener {
 
     endResult = endResult.trim();
     MQFactory.getConcrete("user").enqueue(ADD_AUCTION + endResult);
+  }
+
+  /*****************/
+  private Record getFirstResult(ResultSet rs) throws SQLException {
+    Record rval = new Record();
+    ResultSetMetaData rsm = rs.getMetaData();
+    if (rsm != null) {
+      if (rs.next()) {
+        for (int i = 1; i <= rsm.getColumnCount(); i++) {
+          rval.put(rs.getMetaData().getColumnName(i).toLowerCase(), rs.getString(i));
+        }
+      }
+    }
+    rs.close();
+    return rval;
+  }
+
+  private void DoSQL(Component src) {
+    String sql = promptString(src, "Enter the command to run", "Executing");
+    if (sql == null || sql.length() == 0) return;
+    sql = sql.trim();
+
+    try {
+      Database db = new Database(null);
+      Statement s = db.getStatement();
+      boolean resultType = db.executeCanonicalizedSQL(s, sql);
+      if(resultType) {
+        ResultSet rs = s.getResultSet();
+        Record r = getFirstResult(rs);
+        MQFactory.getConcrete("Swing").enqueue("ALERT " + r.dump());
+      } else {
+        MQFactory.getConcrete("Swing").enqueue("ALERT " + s.getUpdateCount());
+      }
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    } catch (SQLException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    } catch (InstantiationException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
   }
 
   private String promptString(Component src, String prePrompt, String preTitle) {
@@ -1450,6 +1497,7 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Exit")) DoCloseDown();
     else if(actionString.equals("Explain Colors And Icons")) DoHelpColors();
     else if(actionString.equals("RSS")) DoRSS();
+    else if(actionString.equals("SQL")) DoSQL(c_src);
     else if(actionString.equals("Serialize")) DoSerialize();
     else if(actionString.equals("Upload")) DoUploadAuctions();
     else if(actionString.equals("Paste")) DoPasteFromClipboard();

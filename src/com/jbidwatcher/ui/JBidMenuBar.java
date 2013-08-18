@@ -138,6 +138,7 @@ public class JBidMenuBar extends JMenuBar {
   protected void establishDebugMenu(JMenu inMenu) {
     makeMenuItem(inMenu, "Serialize");
     makeMenuItem(inMenu, "Deserialize");
+    makeMenuItem(inMenu, "SQL");
     inMenu.add(new JSeparator());
     makeMenuItem(inMenu, "Submit Log File");
   }
