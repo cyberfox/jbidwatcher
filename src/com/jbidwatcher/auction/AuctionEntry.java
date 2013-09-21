@@ -17,7 +17,6 @@ import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.xml.XMLInterface;
 
-import java.io.File;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -378,7 +377,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
    *
    * @return Whether the current user is the seller.
    */
-  public boolean isSeller() { return getServer().isCurrentUser(getSeller()); }
+  public boolean isSeller() { return getServer().isCurrentUser(getSellerName()); }
 
   /**
    * @brief What was the highest amount actually submitted to the
@@ -1372,9 +1371,10 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   public int getQuantity() { return getAuction().getQuantity(); }
   public int getNumBidders() { return getAuction().getNumBidders(); }
 
-  public String getSeller() { return getAuction().getSellerName(); }
   public String getHighBidder() { return getAuction().getHighBidder(); }
   public String getTitle() { return getAuction().getTitle(); }
+  // TODO: Values from the info hash do NOT override values from the entry hash, even if both are set.
+  public String getSellerName() { return getAuction().getSellerName(); }
 
   public Date getStartDate() {
     if (getAuction() != null && getAuction().getStartDate() != null) {
@@ -1428,7 +1428,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private Currency addInsurance(Currency ship) {
     if(getInsurance() != null &&
        !getInsurance().isNull() &&
-       !getInsuranceOptional()) {
+       !isInsuranceOptional()) {
       try {
         ship = ship.add(getInsurance());
       } catch(Currency.CurrencyTypeException cte) {

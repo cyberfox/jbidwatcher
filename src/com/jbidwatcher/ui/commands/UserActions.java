@@ -400,7 +400,7 @@ public class UserActions implements MessageQueue.Listener {
       result = ae.getHighBidder();
       if(result == null) result = "";
     } else {
-      result = ae.getSeller();
+      result = ae.getSellerName();
     }
     result += "  " + ae.getIdentifier() + "  " + currentPrice + " (" + ae.getTitle() + ")\n";
 
@@ -790,7 +790,7 @@ public class UserActions implements MessageQueue.Listener {
     String highBidder = ae.getHighBidder();
     if(highBidder == null || highBidder.equals("null")) highBidder = "(n/a)";
     prompt += "<tr><td>High bidder:</td><td>" + highBidder + "</td></tr>";
-    prompt += "<tr><td>Seller:</td><td>" + ae.getSeller() + "</td></tr>";
+    prompt += "<tr><td>Seller:</td><td>" + ae.getSellerName() + "</td></tr>";
     prompt += "</table>";
     if(minBid != null) {
       prompt += "Minimum legal bid is " + minBid + "<br>";

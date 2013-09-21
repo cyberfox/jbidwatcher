@@ -1,15 +1,12 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.*;
 import java.awt.MediaTracker;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.UnknownHostException;
 
 public class AuctionEntryHTMLPresenter implements Presenter {
   private final AuctionEntry mAuctionEntry;
@@ -94,9 +91,9 @@ public class AuctionEntryHTMLPresenter implements Presenter {
       prompt += buildRow("Shipping", mAuctionEntry.getShipping());
     }
     if (!mAuctionEntry.getInsurance().isNull()) {
-      prompt += buildRow("Insurance (" + (mAuctionEntry.getInsuranceOptional() ? "optional" : "required") + ")", mAuctionEntry.getInsurance());
+      prompt += buildRow("Insurance (" + (mAuctionEntry.isInsuranceOptional() ? "optional" : "required") + ")", mAuctionEntry.getInsurance());
     }
-    prompt += buildRow("Seller", mAuctionEntry.getSeller());
+    prompt += buildRow("Seller", mAuctionEntry.getSellerName());
     if (mAuctionEntry.isComplete()) {
       prompt += buildRow("Listing ended at ", mAuctionEntry.getEndDate());
     } else {

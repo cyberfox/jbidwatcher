@@ -1,16 +1,13 @@
 package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.html.JHTML;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -510,7 +507,7 @@ public class DeprecatedEbayAuction {
         if (ae == null)
           sellerName = "(unknown)";
         else
-          sellerName = ae.getSeller();
+          sellerName = ae.getSellerName();
       }
     }
     Record r = new Record();

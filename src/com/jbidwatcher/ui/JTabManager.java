@@ -172,7 +172,7 @@ public class JTabManager extends JMouseAdapter {
         boolean match = false;
         AuctionEntry ae = (AuctionEntry) inTable.getValueAt(i, -1);
 
-        if (          seller_t) match = ae.getSeller().matches(trueSearch);
+        if (          seller_t) match = ae.getSellerName().matches(trueSearch);
         if (!match && buyer_t && ae.getHighBidder() != null) match = ae.getHighBidder().matches(trueSearch);
         if (!match && comment_t && ae.getComment() != null) match = ae.getComment().matches(trueSearch);
         if (!match && number_t) match = ae.getIdentifier().matches(trueSearch);

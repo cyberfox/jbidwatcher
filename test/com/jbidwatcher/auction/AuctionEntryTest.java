@@ -172,7 +172,7 @@ public class AuctionEntryTest extends TestCase {
   }
 
   public void testGetInsuranceOptional() throws Exception {
-    assertFalse(mAE.getInsuranceOptional());
+    assertFalse(mAE.isInsuranceOptional());
   }
 
   public void testGetBuyNow() throws Exception {
@@ -188,7 +188,7 @@ public class AuctionEntryTest extends TestCase {
   }
 
   public void testGetSeller() throws Exception {
-    assertEquals("cyberfox", mAE.getSeller());
+    assertEquals("cyberfox", mAE.getSellerName());
   }
 
   public void testGetHighBidder() throws Exception {

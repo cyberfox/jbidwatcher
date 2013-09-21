@@ -145,7 +145,7 @@ public class Snipe {
           JConfig.increment("stats.sniped.too_late");
           break;
         case AuctionServerInterface.BID_ERROR_BANNED:
-          snipeOutput = "Snipe failed, as you are disallowed from bidding on " + aeFire.getSeller() + "'s items.";
+          snipeOutput = "Snipe failed, as you are disallowed from bidding on " + aeFire.getSellerName() + "'s items.";
           JConfig.increment("stats.sniped.banned");
           break;
         case AuctionServerInterface.BID_ERROR_TOO_LOW:

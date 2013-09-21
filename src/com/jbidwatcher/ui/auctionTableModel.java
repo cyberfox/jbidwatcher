@@ -183,7 +183,7 @@ public class auctionTableModel extends BaseTransformation
         case TableColumnController.TITLE: return aEntry.getTitle();
         case TableColumnController.STATUS: return buildEntryFlags(aEntry);
         case TableColumnController.THUMBNAIL: return aEntry.getThumbnail().hashCode();
-        case TableColumnController.SELLER: return aEntry.getSeller();
+        case TableColumnController.SELLER: return aEntry.getSellerName();
         case TableColumnController.FIXED_PRICE:
           return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), aEntry.getBuyNow());
         case TableColumnController.SHIPPING_INSURANCE:
@@ -411,7 +411,7 @@ public class auctionTableModel extends BaseTransformation
             return thumbIcon;
           } else return dummyIcon;
         }
-        case TableColumnController.SELLER: return aEntry.getSeller();
+        case TableColumnController.SELLER: return aEntry.getSellerName();
         case TableColumnController.COMMENT:
           String comment = aEntry.getComment();
           return(comment==null?"":comment);

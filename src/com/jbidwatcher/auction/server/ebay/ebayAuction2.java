@@ -144,10 +144,10 @@ public class ebayAuction2 extends SpecificAuction {
         ae.setLastStatus("Seller away - item unavailable.");
       }
     } else if(sellerName.length() == 0) {
-      if (ae == null || ae.getSeller() == null) {
+      if (ae == null || ae.getSellerName() == null) {
         sellerName = "(unknown)";
       } else {
-        sellerName = ae.getSeller();
+        sellerName = ae.getSellerName();
       }
     }
 
