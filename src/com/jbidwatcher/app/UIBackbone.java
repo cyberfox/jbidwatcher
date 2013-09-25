@@ -211,7 +211,9 @@ public final class UIBackbone implements MessageQueue.Listener {
     } else if (msg.equals("TOOLBAR")) {
       JBidToolBar.getInstance().togglePanel();
     } else if (msg.startsWith(PRICE)) {
-      mFrame.setPrice(msg.substring(PRICE.length()));
+      if(mFrame != null) {
+        mFrame.setPrice(msg.substring(PRICE.length()));
+      }
     } else {
       logActivity(msg);
       setStatus(msg);
