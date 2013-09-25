@@ -155,6 +155,10 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     timeStart("findAll");
     List<AuctionEntry> entries = AuctionEntry.findActive();
     timeStop("findAll");
+    timeStart("findAuctions");
+    connectEntries(entries);
+    timeStop("findAuctions");
+
     final List<AuctionEntry> sniped = new ArrayList<AuctionEntry>();
     JConfig.log().logMessage("Done with the initial load (got " + entries.size() + " active entries)");
     importListingsToUI(newServer, entries, new Report() {
@@ -179,6 +183,22 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     }
     JConfig.log().logDebug("Snipes processed");
     timeDump("addEntry");
+  }
+
+  private void connectEntries(List<AuctionEntry> entries) {
+    List<String> auctionIDs = new ArrayList<String>(entries.size());
+    for(AuctionEntry entry : entries) {
+      auctionIDs.add(entry.getAuctionId());
+    }
+    List<AuctionInfo> auctions = AuctionInfo.findAllByIds(auctionIDs);
+    Map<String, AuctionInfo> joining = new HashMap<String, AuctionInfo>(entries.size());
+    for(AuctionInfo info : auctions) {
+      joining.put(info.getId().toString(), info);
+    }
+    for (AuctionEntry entry : entries) {
+      AuctionInfo ai = joining.get(entry.getAuctionId());
+      entry.setAuctionInfo(ai);
+    }
   }
 
   private void spinOffCompletedLoader(final AuctionServer newServer) {
