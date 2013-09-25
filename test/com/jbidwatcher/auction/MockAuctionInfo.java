@@ -36,7 +36,7 @@ class MockAuctionInfo extends AuctionInfo {
     setTitle("A test auction.");
     setNumBids(1);
     setPrivate(false);
-    setHasThumb(false);
+//    setHasThumb(false);
     setItemLocation("Test County, USA");
     setPaypal(true);
     mLoadedPage = null;

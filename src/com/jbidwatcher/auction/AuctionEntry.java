@@ -40,7 +40,7 @@ import java.util.*;
  * @see AuctionInfo
  * @see SpecificAuction
  */
-public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntry>, EntryInterface {
+public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry>, EntryInterface {
   private Category mCategory;
   private Presenter mAuctionEntryPresenter = null;
 

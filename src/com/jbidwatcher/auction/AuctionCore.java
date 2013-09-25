@@ -4,6 +4,7 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.db.ActiveRecord;
 
+import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,7 @@ import java.util.Map;
  */
 public abstract class AuctionCore extends ActiveRecord {
   private static Map<String, String> mKeys;
+  protected String mThumbnailPath;
 
   private static void setupKeys() {
     mKeys = new HashMap<String, String>();
@@ -39,7 +41,6 @@ public abstract class AuctionCore extends ActiveRecord {
     mKeys.put("fixed", "fixed_price");
     mKeys.put("fixedPrice", "fixed_price");
     mKeys.put("isDutch", "dutch");
-    mKeys.put("hasThumb", "has_thumbnail");
     mKeys.put("currently", "current_bid");
     mKeys.put("curBid", "current_bid");
     mKeys.put("minimum", "minimum_bid");
@@ -67,7 +68,7 @@ public abstract class AuctionCore extends ActiveRecord {
   //  public String getHighBidderEmail() { return getString("highBidderEmail"); }
   public String getItemLocation() { return getString("itemLocation", ""); }
 
-  public boolean isEnded() { return getBoolean("ended"); }
+  public boolean isComplete() { return getBoolean("ended"); }
 
   public Currency getBestPrice() {
     Currency currentPrice = getCurBid();
@@ -108,17 +109,15 @@ public abstract class AuctionCore extends ActiveRecord {
     return end;
   }
 
-  protected boolean isReserve() { return getBoolean("isReserve"); }
+  public boolean isReserve() { return getBoolean("isReserve"); }
 
   public boolean isPrivate() { return getBoolean("isPrivate"); }
 
-  protected boolean isFixedPrice() { return getBoolean("fixed_price"); }
+  public boolean isFixed() { return getBoolean("fixed_price"); }
 
-  boolean isReserveMet() { return getBoolean("reserve_met"); }
+  public boolean isReserveMet() { return getBoolean("reserve_met"); }
 
-  protected boolean hasPaypal() { return getBoolean("paypal"); }
-
-  boolean hasThumb() { return getBoolean("has_thumbnail"); }
+  public boolean hasPaypal() { return getBoolean("paypal"); }
 
   boolean isInsuranceOptional() { return getBoolean("insurance_optional", true); }
 
@@ -131,4 +130,38 @@ public abstract class AuctionCore extends ActiveRecord {
   public Date getStart() { return getDate("start"); }
 
   public Date getEnd() { return getDate("end"); }
+
+  public String getSellerId() { return get("seller_id"); }
+
+  private boolean hasThumb() { return getBoolean("has_thumbnail"); }
+
+  private void setHasThumb(boolean hasThumb) { setBoolean("has_thumbnail", hasThumb); }
+
+  protected boolean hasThumbnail() {
+    String imgPath = mThumbnailPath;
+
+    if(imgPath == null) {
+      imgPath = Thumbnail.getValidImagePath(getIdentifier());
+      if(imgPath == null) return false;
+    }
+
+    File tester = new File(imgPath);
+    boolean rval= tester.exists();
+
+    if(rval && mThumbnailPath == null) mThumbnailPath = imgPath;
+
+    return rval;
+  }
+
+  public String getThumbnail() {
+    //  Bad optimization -- BUGBUG -- mrs: 21-March-2004 18:28
+    //  If it doesn't have a thumbnail, we check.
+    if(!hasThumb() || mThumbnailPath == null) {
+      if(!hasThumbnail()) return null;
+    }
+
+    setHasThumb(true);
+
+    return "file:" + mThumbnailPath;
+  }
 }

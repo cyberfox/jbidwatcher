@@ -168,7 +168,7 @@ public class JBidProxy extends AbstractMiniServer {
       XMLElement xauctions = new XMLElement("auctions");
       for(AuctionEntry ae : auctions) {
         XMLElement child = ae.toXML();
-        if(ae.getAuction().hasThumbnail()) {
+        if(ae.getThumbnail() != null) {
           XMLElement thumbnail = new XMLElement("thumbnail");
           thumbnail.setContents(serviceURL + "/" + ae.getIdentifier() + ".jpg");
           child.addChild(thumbnail);

@@ -26,7 +26,6 @@ import java.util.List;
 
 //  TODO -- Interface-ize all the getters, and make AuctionEntry and AuctionInfo both implement it.
 public class AuctionInfo extends AuctionCore {
-  private String mThumbnailPath;
   private String potentialThumbnail = null;
   private Object mServer = null; //  TODO --  This is a hack!
   //  It's so that the AuctionServer that creates this can record
@@ -201,34 +200,6 @@ public class AuctionInfo extends AuctionCore {
   public void setThumbnail(String thumbPath) {
     if(thumbPath == null) setNoThumbnail(true);
     mThumbnailPath = thumbPath;
-  }
-
-  public boolean hasThumbnail() {
-    String imgPath = mThumbnailPath;
-
-    if(imgPath == null) {
-      imgPath = Thumbnail.getValidImagePath(getIdentifier());
-      if(imgPath == null) return false;
-    }
-
-    File tester = new File(imgPath);
-    boolean rval= tester.exists();
-
-    if(rval && mThumbnailPath == null) mThumbnailPath = imgPath;
-
-    return rval;
-  }
-
-  protected String getThumbnail() {
-    //  Bad optimization -- BUGBUG -- mrs: 21-March-2004 18:28
-    //  If it doesn't have a thumbnail, we check.
-    if(!hasThumb() || mThumbnailPath == null) {
-      if(!hasThumbnail()) return null;
-    }
-
-    setHasThumb(true);
-
-    return "file:" + mThumbnailPath;
   }
 
   public void save() {
@@ -406,7 +377,7 @@ public class AuctionInfo extends AuctionCore {
 
   public void setNumBids(int numBids) { setInteger("numBids", numBids); }
   public void setPrivate(boolean isPrivate) { setBoolean("private", isPrivate); }
-  protected void setHasThumb(boolean hasThumb) { setBoolean("hasThumb", hasThumb); }
+
   protected void setPaypal(boolean paypal) { setBoolean("paypal", paypal); }
   protected void setEnded(boolean ended) { setBoolean("ended", ended); }
 

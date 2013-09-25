@@ -182,7 +182,7 @@ public class auctionTableModel extends BaseTransformation
         case TableColumnController.TIME_LEFT: return aEntry.getEndDate();
         case TableColumnController.TITLE: return aEntry.getTitle();
         case TableColumnController.STATUS: return buildEntryFlags(aEntry);
-        case TableColumnController.THUMBNAIL: return aEntry.getThumbnail().hashCode();
+        case TableColumnController.THUMBNAIL: return 0;
         case TableColumnController.SELLER: return aEntry.getSellerName();
         case TableColumnController.FIXED_PRICE:
           return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), aEntry.getBuyNow());
