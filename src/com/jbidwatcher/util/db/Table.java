@@ -307,6 +307,8 @@ public class Table
     if(value != null) {
       oldRow = getRow(tableName, columnKey, value, true);
     }
+    newRow = cleanRow(newRow);
+
     if(value == null || oldRow == null) {
       //  Magic columns; created_at automatically gets set.
       if (mColumnMap.containsKey("created_at")) {
@@ -339,6 +341,17 @@ public class Table
       e.printStackTrace();
     }
     return null;
+  }
+
+  private Record cleanRow(Record newRow) {
+    Record cleanedNewRow = new Record();
+    for(String column : newRow.keySet()) {
+      if(hasColumn(column)) {
+        cleanedNewRow.put(column, newRow.get(column));
+      }
+    }
+    newRow = cleanedNewRow;
+    return newRow;
   }
 
   public Record findByColumn(String columnKey, String value) {
