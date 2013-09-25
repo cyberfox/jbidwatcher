@@ -207,8 +207,8 @@ public class JBidProxy extends AbstractMiniServer {
 
     if (isCached) {
       sbOut = new StringBuffer("<html><head><title>").append(ae.getTitle()).append("<link rel=\"shortcut icon\" href=\"/favicon.ico\"/></head><body><b>This is <a href=\"http://www.jbidwatcher.com\">JBidwatcher</a>'s cached copy.</b><br>");
-      sbOut.append("Click here for the <a href=\"").append(ae.getBrowseableURL()).append("\">current page</a>.<hr>");
-      sbOut.append(ae.getContent());
+      sbOut.append("This feature has been removed as it unnecessarily complicated the code.  Click here for the <a href=\"").append(ae.getBrowseableURL()).append("\">current page</a>.<hr>");
+//      sbOut.append(ae.getContent());
     } else {
       sbOut = getAuctionHTMLFromServer(ae);
     }
