@@ -33,7 +33,7 @@ public class HashBacked extends XMLSerializeSimple {
   public HashBacked(Record data) {
     mDateFormat.setTimeZone(TimeZone.getDefault());
     mBacking = data;
-    if(get("currency") == null) mDefaultCurrency = ONE_DOLLAR.fullCurrencyName();
+    if(data.get("currency") == null) mDefaultCurrency = ONE_DOLLAR.fullCurrencyName();
     else mDefaultCurrency = get("currency");
   }
 
@@ -164,12 +164,37 @@ public class HashBacked extends XMLSerializeSimple {
       return rval;
   }
 
+  private Record mSecondary = null;
+  private boolean mSecondaryAttempted = false;
+
+  protected void setSecondary(Record r) {
+    mSecondary = r;
+  }
+
+  protected void loadSecondary() { }
+
   public String get(String key) {
     if (mTranslationTable != null && mTranslationTable.containsKey(key)) {
       key = mTranslationTable.get(key);
     }
 
-    return mBacking.get(key);
+    String result = mBacking.get(key);
+    if(result == null) {
+      if(get("id") != null) {
+        if (mSecondary != null) {
+          if (mSecondary.containsKey(key)) {
+            result = mSecondary.get(key);
+          }
+        } else if (!mSecondaryAttempted) {
+          mSecondaryAttempted = true;
+          loadSecondary();
+          if (mSecondary != null) {
+            result = mSecondary.get(key);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   public void set(String key, String value) {
@@ -231,7 +256,7 @@ public class HashBacked extends XMLSerializeSimple {
   public Record getBacking() { return mBacking; }
   public void setBacking(Record r) {
     mBacking = r;
-    if(get("currency") == null) mDefaultCurrency = ONE_DOLLAR.fullCurrencyName();
+    if(r.get("currency") == null) mDefaultCurrency = ONE_DOLLAR.fullCurrencyName();
     else mDefaultCurrency = get("currency");    
     clearDirty();
   }

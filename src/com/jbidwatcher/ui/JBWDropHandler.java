@@ -27,7 +27,7 @@ public class JBWDropHandler implements MessageQueue.Listener {
     if (deQ instanceof String && StringTools.isNumberOnly((String)deQ)) {
       AuctionEntry ae = EntryCorral.getInstance().takeForRead((String) deQ);
       if (ae != null) {
-        boolean lostAuction = ae.getAuction() == null;
+        boolean lostAuction = !ae.hasAuction();
         ae.update();
         if (lostAuction) AuctionsManager.getInstance().addEntry(ae);
         return;

@@ -200,6 +200,11 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     notifyObservers(ObserverMode.AFTER_CREATE);
   }
 
+  public boolean hasAuction() {
+    AuctionInfo ai = findByIdOrIdentifier(getAuctionId(), getIdentifier());
+    return (ai != null);
+  }
+
   public enum ObserverMode { AFTER_CREATE, AFTER_SAVE }
   private static List<Observer<AuctionEntry>> allObservers = new ArrayList<Observer<AuctionEntry>>();
 
@@ -484,10 +489,6 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     return (d != null) && (d.getTime() > (System.currentTimeMillis() - (Constants.ONE_MINUTE * 5)));
   }
 
-  public String getIdentifier() {
-    return getAuction() == null ? null : getAuction().getIdentifier();
-  }
-
   ///////////////////////////
   //  Actual logic functions
 
@@ -649,8 +650,6 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     switch(tagId) {
       case 0:  //  Get the general auction information
         //  TODO -- What if it's already in the database?
-//        mAuction.fromXML(curElement);
-//        mAuction.saveDB();
         break;
       case 1:  //  Get bid info
         Currency bidAmount = Currency.getCurrency(curElement.getProperty("CURRENCY"),
@@ -720,7 +719,8 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     XMLElement xmlResult = new XMLElement("auction");
 
     xmlResult.setProperty("id", getIdentifier());
-    xmlResult.addChild(getAuction().toXML());
+    AuctionInfo ai = findByIdOrIdentifier(getAuctionId(), getIdentifier());
+    xmlResult.addChild(ai.toXML());
 
     if(isBidOn()) {
       XMLElement xbid = new XMLElement("bid");
@@ -1270,16 +1270,13 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
 
   private static AuctionInfo sAuction = new AuctionInfo();
   @SuppressWarnings({"ObjectEquality"})
-  public boolean isNullAuction() { return getAuction() == sAuction; }
+  public boolean isNullAuction() { return get("auction_id") == null; }
   private boolean deleting = false;
   public AuctionInfo getAuction() {
     String identifier = getString("identifier");
-    Integer auctionId = getInteger("auction_id");
+    String auctionId = getString("auction_id");
 
-    AuctionInfo info = AuctionInfo.findByIdentifier(identifier);
-    if(info == null && auctionId != null) {
-      info = AuctionInfo.find(auctionId.toString());
-    }
+    AuctionInfo info = findByIdOrIdentifier(auctionId, identifier);
 
     if(info == null) {
       if(!deleting) {
@@ -1300,7 +1297,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
       dirty = true;
     }
 
-    if (auctionId == null || !auctionId.equals(info.getId())) {
+    if (auctionId == null || !auctionId.equals(info.get("id"))) {
       setInteger("auction_id", info.getId());
       dirty = true;
     }
@@ -1311,6 +1308,11 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     return info;
   }
 
+  protected void loadSecondary() {
+    AuctionInfo ai = findByIdOrIdentifier(getAuctionId(), getIdentifier());
+    if(ai != null) setAuctionInfo(ai);
+  }
+
   /**
    * @brief Force this auction to use a particular set of auction
    * information for it's core data (like seller's name, current high
@@ -1319,26 +1321,21 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
    * @param inAI - The AuctionInfo object to make the new core data.  Must not be null.
    */
   public void setAuctionInfo(AuctionInfo inAI) {
-    if(inAI.getId() != null) {
+    if (inAI.getId() != null) {
+      setSecondary(inAI.getBacking());
+
       setDefaultCurrency(inAI.getDefaultCurrency());
       setInteger("auction_id", inAI.getId());
-      setString("identifier", inAI.getIdentifier());
-    }
+      setString("identifier", inAI.getIdentifier()); //?
 
-    checkHighBidder();
-    checkEnded();
-    saveDB();
+      checkHighBidder();
+      checkEnded();
+      saveDB();
+    }
   }
 
   ////////////////////////////////////////
   //  Passthrough functions to AuctionInfo
-
-  /* Accessor functions that are passed through directly down
-   * to the internal AuctionInfo object.
-   */
-  public Currency getCurBid() { return getAuction().getCurBid(); }
-  public Currency getUSCurBid() { return getAuction().getUSCurBid(); }
-  public Currency getMinBid() { return getAuction().getMinBid(); }
 
   /**
    * Check current price, and fall back to buy-now price if 'current' isn't set.
@@ -1353,64 +1350,28 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
 
   public Currency getCurrentUSPrice() {
     Currency curPrice = getCurBid();
-    if (curPrice == null || curPrice.isNull()) return getAuction().getBuyNowUS();
+    if (curPrice == null || curPrice.isNull()) return getBuyNowUS();
     return getUSCurBid();
   }
 
   /**
    * @return - Shipping amount, overrides AuctionInfo shipping amount if present.
    */
-  public Currency getShipping() {
-    if(!getMonetary("shipping").isNull()) return getMonetary("shipping");
-    return getAuction().getShipping();
-  }
-  public Currency getInsurance() { return getAuction().getInsurance(); }
-  public boolean getInsuranceOptional() { return getAuction().isInsuranceOptional(); }
-  public Currency getBuyNow() { return getAuction().getBuyNow(); }
-
-  public int getQuantity() { return getAuction().getQuantity(); }
-  public int getNumBidders() { return getAuction().getNumBidders(); }
-
-  public String getHighBidder() { return getAuction().getHighBidder(); }
-  public String getTitle() { return getAuction().getTitle(); }
   // TODO: Values from the info hash do NOT override values from the entry hash, even if both are set.
   public String getSellerName() { return getAuction().getSellerName(); }
 
   public Date getStartDate() {
-    if (getAuction() != null && getAuction().getStartDate() != null) {
-      Date start = getAuction().getStartDate();
-      if(start != null) return start;
+    Date start = super.getStartDate();
+    if(start != null) {
+      return start;
     }
 
     return Constants.LONG_AGO;
   }
 
-  public Date getEndDate() {
-    if(getAuction() != null) {
-      Date auctionEnd = getAuction().getEndDate();
-      if(auctionEnd != null) {
-        return auctionEnd;
-      }
-    }
+  public Date getSnipeDate() { return new Date(getEndDate().getTime() - getSnipeTime()); }
 
-    return Constants.FAR_FUTURE;
-  }
-  public Date getSnipeDate() { return new Date(getAuction().getEndDate().getTime() - getSnipeTime()); }
-
-  public boolean isReserve() { return getAuction().isReserve(); }
-  public boolean isReserveMet() { return getAuction().isReserveMet(); }
-  public boolean isPrivate() { return getAuction().isPrivate(); }
-  public boolean isFixed() { return getAuction().isFixedPrice(); }
-
-  public StringBuffer getContent() { return getAuction().getContent(); }
-  public File getContentFile() { return getAuction().getContentFile(); }
-  public String getThumbnail() { return getAuction().getThumbnail(); }
   public String getBrowseableURL() { return getServer().getBrowsableURLFromItem(getIdentifier()); }
-
-  public boolean hasPaypal() { return getAuction().hasPaypal(); }
-  public String getItemLocation() { return getAuction().getItemLocation(); }
-  public String getPositiveFeedbackPercentage() { return getAuction().getPositiveFeedbackPercentage(); }
-  public int getFeedbackScore() { return getAuction().getFeedbackScore(); }
 
   public void setErrorPage(StringBuffer page) { mLastErrorPage = page; }
   public StringBuffer getErrorPage() { return mLastErrorPage; }
@@ -1482,12 +1443,13 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     }
   }
 
+  public String getAuctionId() { return get("auction_id"); }
+
   /**
    * @return - Has this auction already ended?  We keep track of this, so we
    * don't waste time on it afterwards, even as much as creating a
    * Date object, and comparing.
    */
-  public boolean isComplete() { return getAuction().isEnded() || getBoolean("ended"); }
   public void setComplete(boolean complete) { setBoolean("ended", complete); saveDB(); }
 
   /*************************/
@@ -1497,7 +1459,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
   public String saveDB() {
     if(isNullAuction()) return null;
 
-    String auctionId = getAuction().getId().toString();
+    String auctionId = getAuctionId();
     if(auctionId != null) set("auction_id", auctionId);
 
     //  This just makes sure we have a default category before saving.
@@ -1527,7 +1489,10 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
       AuctionEntry ae = AuctionEntry.findFirstBy("id", get("id"));
       if (ae != null) {
         setBacking(ae.getBacking());
-        ae.getAuction();
+
+        AuctionInfo ai = findByIdOrIdentifier(getAuctionId(), getIdentifier());
+        setAuctionInfo(ai);
+
         ae.getCategory();
         mCategory = ae.mCategory;
         mSnipe = ae.getSnipe();
@@ -1645,6 +1610,18 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     return (AuctionEntry) findFirstBySQL(AuctionEntry.class, sql);
   }
 
+  private static AuctionInfo findByIdOrIdentifier(String id, String identifier) {
+    AuctionInfo ai = null;
+    if(id != null) {
+      ai = AuctionInfo.find(id);
+    }
+
+    if (ai == null && identifier != null) {
+      ai = AuctionInfo.findByIdentifier(identifier);
+    }
+    return ai;
+  }
+
   /**
    * Locate an AuctionEntry by first finding an AuctionInfo with the passed
    * in auction identifier, and then looking for an AuctionEntry which
@@ -1656,16 +1633,19 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
    */
   public static AuctionEntry findByIdentifier(String identifier) {
     AuctionEntry ae = findFirstBy("identifier", identifier);
+    AuctionInfo ai;
 
     if(ae != null) {
-      if(ae.getAuction() == null) {
+      ai = findByIdOrIdentifier(ae.getAuctionId(), identifier);
+      if(ai == null) {
         JConfig.log().logMessage("Error loading auction #" + identifier + ", entry found, auction missing.");
         ae = null;
       }
     }
 
     if(ae == null) {
-      AuctionInfo ai = AuctionInfo.findByIdentifier(identifier);
+      ai = findByIdOrIdentifier(null, identifier);
+
       if(ai != null) {
         ae = AuctionEntry.findFirstBy("auction_id", ai.getString("id"));
         if (ae != null) ae.setAuctionInfo(ai);
@@ -1679,24 +1659,25 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     if(toDelete.isEmpty()) return true;
 
     String entries = makeCommaList(toDelete);
-    List<AuctionInfo> auctions = new ArrayList<AuctionInfo>();
+    List<Integer> auctions = new ArrayList<Integer>();
     List<AuctionSnipe> snipes = new ArrayList<AuctionSnipe>();
 
     for(AuctionEntry entry : toDelete) {
-      auctions.add(entry.getAuction());
+      auctions.add(entry.getInteger("auction_id"));
       if(entry.isSniped()) snipes.add(entry.getSnipe());
     }
 
     boolean success = new EventStatus().deleteAllEntries(entries);
     if(!snipes.isEmpty()) success &= AuctionSnipe.deleteAll(snipes);
     success &= AuctionInfo.deleteAll(auctions);
-    success &= toDelete.get(0).getDatabase().deleteBy("id IN (" + entries + ")");
+    success &= getRealDatabase().deleteBy("id IN (" + entries + ")");
 
     return success;
   }
 
   public boolean delete() {
-    if(getAuction() != null) getAuction().delete();
+    AuctionInfo ai = findByIdOrIdentifier(getAuctionId(), getIdentifier());
+    if(ai != null) ai.delete();
     if(getSnipe() != null) getSnipe().delete();
     return super.delete();
   }
@@ -1716,7 +1697,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
   }
 
   public void setNumBids(int bidCount) {
-    AuctionInfo info = getAuction();
+    AuctionInfo info = findByIdOrIdentifier(getAuctionId(), getIdentifier());
     info.setNumBids(bidCount);
     info.saveDB();
   }

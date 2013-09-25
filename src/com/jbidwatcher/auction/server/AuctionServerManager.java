@@ -244,10 +244,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
       ae.setServer(newServer);
       timeStop("setServer");
 
-      timeStart("getAuction");
-      AuctionInfo result = ae.getAuction();
-      timeStop("getAuction");
-      if (ae.isNullAuction() || result == null) {
+      if (!ae.hasAuction()) {
         JConfig.log().logMessage("We lost the underlying auction for: " + ae.dumpRecord());
         boolean recentlyUpdated = ae.getLastUpdated() != null && ae.getLastUpdated().after(new Date(System.currentTimeMillis() - Constants.ONE_DAY * 45));
         if(ae.getString("identifier") != null && recentlyUpdated) {
@@ -270,9 +267,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
           sEntryManager.addEntry(ae);
         } catch(Exception e) {
           String errorMessage = "Failed to add an auction entry";
-          if(ae != null) {
-            errorMessage += " for item " + ae.getIdentifier() + " (" + ae.getId() + ") " + result;
-          }
+          errorMessage += " for item " + ae.getIdentifier() + " (" + ae.getId() + ") ";
           JConfig.log().handleException(errorMessage, e);
         }
         timeStop("addEntry-" + ae.getCategory());
