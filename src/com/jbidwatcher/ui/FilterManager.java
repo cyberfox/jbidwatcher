@@ -85,7 +85,7 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
     if(StringTools.isNumberOnly(cmd)) {
       AuctionEntry ae = EntryCorral.getInstance().takeForRead(cmd);
       if(ae != null) {
-        ae.reload();
+//        ae.reload();
         AuctionListHolder old = mIdentifierToList.get(ae.getIdentifier());
         AuctionListHolder newAuction = refilterAuction(ae);
         if (newAuction != null) {

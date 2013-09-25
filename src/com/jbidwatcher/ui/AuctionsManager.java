@@ -82,7 +82,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   private void checkSnapshot() {
     if( (mLastCheckpointed + mCheckpointFrequency) < System.currentTimeMillis() ) {
       mLastCheckpointed = System.currentTimeMillis();
-      saveAuctions();
+//      saveAuctions();
       System.gc();
     }
   }
