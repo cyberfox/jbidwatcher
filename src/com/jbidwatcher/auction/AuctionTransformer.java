@@ -6,13 +6,11 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.xml.XMLSerialize;
 
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.*;
 import java.io.*;
-import java.util.List;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 
@@ -24,16 +22,6 @@ import java.text.SimpleDateFormat;
  *
  */
 public class AuctionTransformer implements ErrorListener, URIResolver {
-  public void transform(List<XMLSerialize> auctions) {
-    StringBuffer data = new StringBuffer("<auctions>\n");
-    for (XMLSerialize xs : auctions) {
-      data.append(xs.toXML().toString(1));
-    }
-    data.append("</auctions>\n");
-  }
-
-  public String foo() { return "Foo!"; }
-
   public static String getTimeLeft(String auctionId) {
     AuctionEntry ae = AuctionEntry.findByIdentifier(auctionId);
     return (ae == null)?"(unknown)" : ae.getTimeLeft();
@@ -56,6 +44,7 @@ public class AuctionTransformer implements ErrorListener, URIResolver {
   public static StringBuffer outputHTML(String loadFile, String xmlOutputFile) {
     InputStream xmlIn = null;
     InputStream xslIn = null;
+    Source xmlSource;
     FileOutputStream htmlOut = null;
 
     // create the XML content input source
@@ -65,9 +54,10 @@ public class AuctionTransformer implements ErrorListener, URIResolver {
       //String xmlInputFile = "myXMLinput.xml";
       try {
         xmlIn = new FileInputStream(loadFile);
+        xmlSource = new StreamSource(xmlIn);
       } catch(FileNotFoundException fnfe) {
         //noinspection deprecation
-        xmlIn = new StringBufferInputStream(
+        Reader xmlReader = new StringReader(
             "<?xml version=\"1.0\"?>\n" +
             "\n" +
             "<!DOCTYPE auctions SYSTEM \"http://www.jbidwatcher.com/auctions.dtd\">\n" +
@@ -76,8 +66,8 @@ public class AuctionTransformer implements ErrorListener, URIResolver {
             "</auctions>" +
             "</jbidwatcher>"
         );
+        xmlSource = new StreamSource(xmlReader);
       }
-      Source xmlSource = new StreamSource(xmlIn);
 
       // create the XSLT Stylesheet input source
       // can be a DOM node, SAX stream, or a
@@ -141,7 +131,7 @@ public class AuctionTransformer implements ErrorListener, URIResolver {
 
   public Source resolve(String href, String base) throws TransformerException {
     System.err.println("href == " + href + ", base == " + base);
-    if(href.indexOf("jar") == -1) {
+    if(!href.contains("jar")) {
       return new StreamSource(JConfig.bestSource(AuctionTransformer.class.getClassLoader(), href));
     }
     return null;
