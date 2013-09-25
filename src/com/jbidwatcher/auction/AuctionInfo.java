@@ -13,11 +13,13 @@ package com.jbidwatcher.auction;
  * server, etc.) is stored in AuctionEntry
  */
 
+import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.db.*;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.xml.XMLElement;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -431,11 +433,34 @@ public class AuctionInfo extends AuctionCore {
     return getRealDatabase().countBySQL("SELECT COUNT(DISTINCT(identifier)) FROM auctions WHERE identifier IS NOT NULL");
   }
 
-  public static boolean deleteAll(List<AuctionInfo> toDelete) {
+  public static boolean deleteAll(List<Integer> toDelete) {
     if(toDelete.isEmpty()) return true;
-    String auctions = makeCommaList(toDelete);
+    //  TODO - Replace with Guava?
+    String auctions = buildCSL(toDelete);
 
-    return toDelete.get(0).getDatabase().deleteBy("id IN (" + auctions + ")");
+    return getRealDatabase().deleteBy("id IN (" + auctions + ")");
+  }
+
+  public static List<AuctionInfo> findAllByIds(List<? extends Object> toFind) {
+    if(toFind.isEmpty()) return new ArrayList<AuctionInfo>(0);
+
+    String auctions = buildCSL(toFind);
+
+    return (List<AuctionInfo>) ActiveRecord.findAllBySQL(AuctionInfo.class, "SELECT * FROM auctions WHERE id IN (" + auctions + ")");
+  }
+
+  private static String buildCSL(List<? extends Object> toDelete) {
+    StringBuilder ids = new StringBuilder("");
+    boolean first = true;
+    for (Object id : toDelete) {
+      if (!first) {
+        ids.append(", ");
+      }
+      ids.append(id);
+      first = false;
+    }
+
+    return ids.toString();
   }
 
   @SuppressWarnings({"unchecked"})
