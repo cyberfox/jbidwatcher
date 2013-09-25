@@ -21,8 +21,7 @@ import com.jbidwatcher.util.xml.XMLElement;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 //  TODO -- Interface-ize all the getters, and make AuctionEntry and AuctionInfo both implement it.
 public class AuctionInfo extends AuctionCore {
@@ -263,19 +262,9 @@ public class AuctionInfo extends AuctionCore {
   }
 
   GZip getRealContent() {
-    File fp = getContentFile();
+    File fp = JConfig.getContentFile(getIdentifier());
     if(fp != null) return loadFile(fp);
     return mLoadedPage;
-  }
-
-  File getContentFile() {
-    File fp = null;
-    String outPath = JConfig.queryConfiguration("auctions.savepath");
-    if(outPath != null && outPath.length() != 0) {
-      String filePath = outPath + System.getProperty("file.separator") + getIdentifier() + ".html.gz";
-      fp = new File(filePath);
-    }
-    return fp;
   }
 
   public void setContent(StringBuffer inContent, boolean final_data) {

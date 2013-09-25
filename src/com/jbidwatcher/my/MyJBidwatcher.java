@@ -285,7 +285,7 @@ public class MyJBidwatcher {
 
   private void uploadAuctionHTML(AuctionEntry ae, String uploadType) {
     if(canUploadHTML()) {
-      String s3Result = sendFile(ae.getContentFile(), url(ITEM_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), ae.getLastStatus());
+      String s3Result = sendFile(JConfig.getContentFile(ae.getIdentifier()), url(ITEM_UPLOAD_URL), JConfig.queryConfiguration("my.jbidwatcher.id"), ae.getLastStatus());
       XMLElement root = new XMLElement(uploadType);
       XMLElement s3Key = new XMLElement("s3");
       s3Key.setContents(s3Result);

@@ -3,6 +3,8 @@ package com.jbidwatcher.util.config;
 import com.DeskMetrics.DeskMetrics;
 import com.jbidwatcher.util.Constants;
 
+import java.io.File;
+
 /**
  * User: mrs
  * Date: 6/9/11
@@ -71,5 +73,15 @@ public class JConfig extends com.cyberfox.util.config.JConfig {
 
   public static String getVersion() {
     return Constants.PROGRAM_VERS;
+  }
+
+  public static File getContentFile(String identifier) {
+    File fp = null;
+    String outPath = queryConfiguration("auctions.savepath");
+    if(outPath != null && outPath.length() != 0) {
+      String filePath = outPath + System.getProperty("file.separator") + identifier + ".html.gz";
+      fp = new File(filePath);
+    }
+    return fp;
   }
 }
