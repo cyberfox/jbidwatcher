@@ -5,12 +5,9 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.auction.MultiSnipe;
-import com.jbidwatcher.auction.MultiSnipeManager;
+import com.jbidwatcher.auction.*;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.AuctionList;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.IconFactory;
 import com.jbidwatcher.ui.table.ColumnState;
@@ -165,9 +162,12 @@ public class auctionTableModel extends BaseTransformation
 
   Integer Zero = 0;
 
+  static Map<String, Seller> sellers = new HashMap<String, Seller>();
+
   public Object getSortByValueAt(int i, int j) {
     try {
       AuctionEntry aEntry = dispList.get(i);
+      Seller seller = getSeller(aEntry.getSellerId());
       switch(j) {
         case -1: return aEntry;
         case TableColumnController.ID: return aEntry.getIdentifier();
@@ -199,12 +199,12 @@ public class auctionTableModel extends BaseTransformation
           return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), snipe);
         case TableColumnController.COMMENT:String s = aEntry.getComment(); return (s==null?"":s);
         case TableColumnController.END_DATE:return aEntry.getEndDate();
-        case TableColumnController.SELLER_FEEDBACK: if(aEntry.getFeedbackScore()==0) return Zero; else return aEntry.getFeedbackScore();
+        case TableColumnController.SELLER_FEEDBACK: if(seller.getFeedback()==0) return Zero; else return seller.getFeedback();
         case TableColumnController.ITEM_LOCATION: return aEntry.getItemLocation();
         case TableColumnController.BIDCOUNT: return aEntry.getNumBidders();
         case TableColumnController.JUSTPRICE: return aEntry.getUSCurBid();
         case TableColumnController.SELLER_POSITIVE_FEEDBACK: try {
-          String feedbackPercent = aEntry.getPositiveFeedbackPercentage();
+          String feedbackPercent = seller.getPositivePercentage();
           if(feedbackPercent != null) feedbackPercent = feedbackPercent.replace("%", "");
           return safeConvert(feedbackPercent);
         } catch(Exception e) {
@@ -249,6 +249,15 @@ public class auctionTableModel extends BaseTransformation
     } catch(ArrayIndexOutOfBoundsException ignored) {
       return getDummyValueAtColumn(j);
     }
+  }
+
+  private static Seller getSeller(String sellerId) {Seller seller;
+    if(sellers.containsKey(sellerId)) {
+      seller = sellers.get(sellerId);
+    } else {
+      seller = Seller.findFirstBy("id", sellerId);
+    }
+    return seller;
   }
 
   private int safeConvert(String feedbackPercent)
@@ -360,6 +369,7 @@ public class auctionTableModel extends BaseTransformation
         return "*";
       }
       String errorNote = aEntry.getErrorPage()==null?"":"*";
+      Seller seller = getSeller(aEntry.getSellerId());
       switch(columnIndex) {
         case TableColumnController.ID: return aEntry.getIdentifier();
         case TableColumnController.CUR_BID:
@@ -435,9 +445,9 @@ public class auctionTableModel extends BaseTransformation
         case TableColumnController.JUSTPRICE:
           return aEntry.getCurrentPrice();
         case TableColumnController.SELLER_FEEDBACK:
-          return aEntry.getFeedbackScore();
+          return seller.getFeedback();
         case TableColumnController.SELLER_POSITIVE_FEEDBACK:
-          String fbp = aEntry.getPositiveFeedbackPercentage();
+          String fbp = seller.getPositivePercentage();
           return (fbp == null || fbp.length() == 0)?"--":fbp;
         case TableColumnController.CUR_TOTAL:
           Currency shipping = aEntry.getShippingWithInsurance();
