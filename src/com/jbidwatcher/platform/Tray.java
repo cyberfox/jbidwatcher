@@ -38,7 +38,7 @@ public class Tray implements ItemListener, MessageQueue.Listener {
   //  This creates a new Thread (currently named Thread 9).
   private SystemTray tray;
   private TrayIcon ti;
-  private Class java6TrayClass, java6TrayIconClass;
+  private Class<?> java6TrayClass, java6TrayIconClass;
   private Object java6tray=null, java6icon=null;
   private Object infoMessageType = null;
   private Class trayMessageTypeClass = null;

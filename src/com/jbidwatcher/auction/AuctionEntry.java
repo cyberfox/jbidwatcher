@@ -204,7 +204,7 @@ public class AuctionEntry extends ActiveRecord implements Comparable<AuctionEntr
   private static List<Observer<AuctionEntry>> allObservers = new ArrayList<Observer<AuctionEntry>>();
 
   private void notifyObservers(ObserverMode event) {
-    for(Observer toNotify : allObservers) {
+    for(Observer<AuctionEntry> toNotify : allObservers) {
       switch (event) {
         case AFTER_CREATE: {
           toNotify.afterCreate(this);
