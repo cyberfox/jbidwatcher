@@ -191,6 +191,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
       curAuction = (SpecificAuction) loadAuction(auctionId, ae);
 
       if (curAuction != null) {
+        curAuction.saveDB();
         ae.setAuctionInfo(curAuction);
         ae.clearInvalid();
         MQFactory.getConcrete("Swing").enqueue("LINK UP");

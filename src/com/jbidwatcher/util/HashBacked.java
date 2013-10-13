@@ -180,7 +180,7 @@ public class HashBacked extends XMLSerializeSimple {
 
     String result = mBacking.get(key);
     if(result == null) {
-      if(get("id") != null) {
+      if(mBacking.get("id") != null) {
         if (mSecondary != null) {
           if (mSecondary.containsKey(key)) {
             result = mSecondary.get(key);
