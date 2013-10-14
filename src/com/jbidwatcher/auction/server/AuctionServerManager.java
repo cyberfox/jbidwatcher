@@ -153,7 +153,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
 
     JConfig.log().logMessage("Loading listings from the database (" + activeEntries + "/" + uniqueEntries + "/" + entryCount + " entries, " + uniqueCount + "/" + auctionCount + " auctions)");
     timeStart("findAll");
-    List<AuctionEntry> entries = AuctionEntry.findActive();
+    List<AuctionEntry> entries = AuctionEntry.findActive(); //TODO EntryCorral these
     timeStop("findAll");
     timeStart("findAuctions");
     connectEntries(entries);
@@ -209,7 +209,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
         tabQ.enqueue("SHOW");
 
         timeStart("findEnded");
-        List<AuctionEntry> entries = AuctionEntry.findEnded();
+        List<AuctionEntry> entries = AuctionEntry.findEnded();//TODO EntryCorral these?
         timeStop("findEnded");
 
         int endedCount = entries.size();
@@ -351,7 +351,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
   public XMLElement toXML() {
     XMLElement xmlResult = new XMLElement("auctions");
     XMLElement serverChild = new XMLElement("server");
-    List<AuctionEntry> entryList = AuctionEntry.findAll();
+    List<AuctionEntry> entryList = AuctionEntry.findAll();//TODO EntryCorral these?
 
     if (entryList == null || entryList.isEmpty()) return null;
 
@@ -413,7 +413,7 @@ public class AuctionServerManager implements XMLSerialize, MessageQueue.Listener
     outStat._count = AuctionEntry.count();
     outStat._completed = AuctionEntry.completedCount();
     outStat._snipes = AuctionEntry.snipedCount();
-    outStat._nextSnipe = AuctionEntry.nextSniped();
+    outStat._nextSnipe = AuctionEntry.nextSniped(); //TODO EntryCorral this?
     outStat._nextEnd = null;
     outStat._nextUpdate = null;
 

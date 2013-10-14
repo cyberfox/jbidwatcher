@@ -87,6 +87,14 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     }
   }
 
+  private List<AuctionEntry> normalizeEntries(List<AuctionEntry> entries) {
+    List<AuctionEntry> output = new ArrayList<AuctionEntry>();
+    for(AuctionEntry ae : entries) {
+      output.add(EntryCorral.getInstance().takeForRead(ae.getIdentifier()));
+    }
+    return output;
+  }
+
   /**
    * @brief Check all the auctions for active events, and check if we
    * should snapshot the auctions off to disk.
@@ -97,18 +105,18 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     boolean neededUpdate = false;
     List<AuctionEntry> needUpdate;
     if(!mPauseManager.isPaused()) {
-      needUpdate = AuctionEntry.findAllNeedingUpdates(Constants.ONE_MINUTE * 69);
+      needUpdate = normalizeEntries(AuctionEntry.findAllNeedingUpdates(Constants.ONE_MINUTE * 69));
       updateList(needUpdate);
       neededUpdate = !needUpdate.isEmpty();
 
       //  These could be two separate threads, doing slow and fast updates.
-      needUpdate = AuctionEntry.findEndingNeedingUpdates(Constants.ONE_MINUTE);
+      needUpdate = normalizeEntries(AuctionEntry.findEndingNeedingUpdates(Constants.ONE_MINUTE));
       updateList(needUpdate);
       neededUpdate |= !needUpdate.isEmpty();
     }
 
     //  Or three, doing slow, fast, and manual...
-    needUpdate = AuctionEntry.findManualUpdates();
+    needUpdate = normalizeEntries(AuctionEntry.findManualUpdates());
     updateList(needUpdate);
     neededUpdate |= !needUpdate.isEmpty();
 

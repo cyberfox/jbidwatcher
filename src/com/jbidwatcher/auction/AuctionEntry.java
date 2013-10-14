@@ -1537,6 +1537,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     return (List<AuctionEntry>) findAllBy(AuctionEntry.class, "ended", "1");
   }
 
+  /** Already corralled... **/
   @SuppressWarnings({"unchecked"})
   public static List<AuctionEntry> findAllSniped() {
     return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT * FROM " + getTableName() + " WHERE (snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL)");
@@ -1627,6 +1628,8 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
    * in auction identifier, and then looking for an AuctionEntry which
    * refers to that AuctionInfo row.
    *
+   * TODO EntryCorral callers? (Probably!)
+   *
    * @param identifier - The auction identifier to search for.
    * @return - null indicates that the auction isn't in the database yet,
    * otherwise an AuctionEntry will be loaded and returned.
@@ -1655,6 +1658,11 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     return ae;
   }
 
+  /**
+   * TODO: Clear from the entry corral?
+   * @param toDelete
+   * @return
+   */
   public static boolean deleteAll(List<AuctionEntry> toDelete) {
     if(toDelete.isEmpty()) return true;
 
