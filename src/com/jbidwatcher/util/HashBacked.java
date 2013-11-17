@@ -179,18 +179,16 @@ public class HashBacked extends XMLSerializeSimple {
     }
 
     String result = mBacking.get(key);
-    if(result == null) {
-      if(mBacking.get("id") != null) {
+    if (result == null && mBacking.get("id") != null) {
+      if (mSecondary != null) {
+        if (mSecondary.containsKey(key)) {
+          result = mSecondary.get(key);
+        }
+      } else if (!mSecondaryAttempted) {
+        mSecondaryAttempted = true;
+        loadSecondary();
         if (mSecondary != null) {
-          if (mSecondary.containsKey(key)) {
-            result = mSecondary.get(key);
-          }
-        } else if (!mSecondaryAttempted) {
-          mSecondaryAttempted = true;
-          loadSecondary();
-          if (mSecondary != null) {
-            result = mSecondary.get(key);
-          }
+          result = mSecondary.get(key);
         }
       }
     }
