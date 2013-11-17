@@ -3,7 +3,7 @@
    <property name="hide-externals" value="true" />
    <property name="detail-mode" value="true" />
    <classpath>
-      <classpathentry kind="lib" path="/Users/mrs/IdeaProjects/jbidwatcher/classes" />
+      <classpathentry kind="lib" path="/Users/mrs/IdeaProjects/bidwatcher/classes" />
    </classpath>
    <excludes>
       <exclude expression="com.jbidwatcher.util.db.TableTest" />
