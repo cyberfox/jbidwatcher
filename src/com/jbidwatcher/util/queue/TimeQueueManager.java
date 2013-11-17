@@ -45,7 +45,7 @@ public class TimeQueueManager implements TimerHandler.WakeupProcess {
     while( (deQ = mTQ.getAnyLessThan(getCurrentTime()+900)) != null) {
       TQCarrier interim = (TQCarrier) deQ;
       MessageQueue q = MQFactory.getConcrete(interim.getDestinationQueue());
-      //  TODO -- This is grossly wrong, but it will do for now.  Fix it when not sleep-deprived.
+
       Object payload = interim.getPayload();
       if(payload instanceof QObject) {
         q.enqueueBean((QObject)payload);

@@ -278,8 +278,6 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
   /**
    * @brief Return the server associated with this entry.
    *
-   * TODO mrs -- This needs to be set in the data record.
-   *
    * @return The server that this auction entry is associated with.
    */
   public AuctionServerInterface getServer() {
@@ -897,7 +895,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     } catch(Exception e) {
       JConfig.log().handleException("Unexpected exception during high bidder check.", e);
     }
-    //  TODO Move all this to 'setComplete' on 'true'...
+
     if (isComplete()) {
       onComplete();
     } else {
@@ -1357,7 +1355,6 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
   /**
    * @return - Shipping amount, overrides AuctionInfo shipping amount if present.
    */
-  // TODO: Values from the info hash do NOT override values from the entry hash, even if both are set.
   public String getSellerName() { return getAuction().getSellerName(); }
 
   public Date getStartDate() {

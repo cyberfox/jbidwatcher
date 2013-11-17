@@ -364,7 +364,6 @@ public class JBidProxy extends AbstractMiniServer {
     sbOut.append("<hr><br>");
     AuctionServerInterface aucServ = ae.getServer();
     try {
-      //  TODO -- This is nauseating.  Fix it.
       sbOut.append(checkError(aucServ.getAuction(StringTools.getURLFromString(ae.getBrowseableURL()))));
     } catch (FileNotFoundException ignored) {
       sbOut.append("<b><i>Item no longer appears on the server.</i></b><br>\n");

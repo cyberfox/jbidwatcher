@@ -105,7 +105,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     boolean neededUpdate = false;
     List<AuctionEntry> needUpdate;
     if(!mPauseManager.isPaused()) {
-      needUpdate = normalizeEntries(AuctionEntry.findAllNeedingUpdates(Constants.ONE_MINUTE * 69));
+      needUpdate = normalizeEntries(AuctionEntry.findAllNeedingUpdates(Constants.ONE_MINUTE * 69)); // TODO: Simplify to load just identifiers?
       updateList(needUpdate);
       neededUpdate = !needUpdate.isEmpty();
 

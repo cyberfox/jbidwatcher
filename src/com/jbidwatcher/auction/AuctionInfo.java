@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-//  TODO -- Interface-ize all the getters, and make AuctionEntry and AuctionInfo both implement it.
 public class AuctionInfo extends AuctionCore {
   private String potentialThumbnail = null;
   private Object mServer = null; //  TODO --  This is a hack!

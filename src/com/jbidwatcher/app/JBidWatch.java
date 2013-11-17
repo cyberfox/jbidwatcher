@@ -849,7 +849,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
         AuctionsManager.getInstance().saveAuctions();
       }
       JConfig.saveConfiguration(cfgFilename);
-      ActiveRecord.shutdown(); //  TODO -- Can this be put before the saveDBConfig?
+      ActiveRecord.shutdown();
     } catch(Exception e) {
       JConfig.log().handleException("Threw an error during shutdown!  Shutting down anyway!", e);
     } finally {
