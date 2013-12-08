@@ -357,9 +357,10 @@ public class DeprecatedEbayAuction {
         {T.s("ebayServer.currentBid"), ".*", ".*", ".*", "[0-9]+", "bids?"},
         {T.s("ebayServer.currentBid"), ".*", ".*", "[0-9]+", "bids?"},
         {T.s("ebayServer.currentBid"), ".*", "[0-9]+", "bids?"},
-        {T.s("ebayServer.currentBid"), ".*", "[0-9]+ bids?"}
+        {T.s("ebayServer.currentBid"), ".*", "[0-9]+ bids?"},
+        {"[0-9]+", "bids?"}
     };
-    final int[] SEQUENCE_GROUPS = {4, 3, 2, 2};
+    final int[] SEQUENCE_GROUPS = {4, 3, 2, 2, 0};
 
     List<String> bidSequence;
     String rawBidCount = null;
