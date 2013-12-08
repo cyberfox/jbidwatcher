@@ -81,11 +81,16 @@ public class HashBacked extends XMLSerializeSimple {
   }
 
   public void setMonetary(String key, Currency c) {
+    setMonetary(key, c, true);
+  }
+
+  public void setMonetary(String key, Currency c, boolean updateDefault) {
     if (c == null || c.isNull())
       set(key, null);
     else {
       //  Only set the default currency to some non-USD currency if a non-USD currency is being passed in.
-      if(!c.fullCurrencyName().equals(mDefaultCurrency) &&
+      if(updateDefault &&
+          !c.fullCurrencyName().equals(mDefaultCurrency) &&
           c.getCurrencyType() != Currency.US_DOLLAR &&
           c.getCurrencyType() != Currency.NONE) setDefaultCurrency(c);
       set(key, Double.toString(c.getValue()));

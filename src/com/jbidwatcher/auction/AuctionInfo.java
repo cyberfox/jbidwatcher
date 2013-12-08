@@ -77,14 +77,14 @@ public class AuctionInfo extends AuctionCore {
       case 14: //  Current US price
       case 16: //  Minimum price/bid
         Currency amount = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
-        setMonetary(infoTags[i], amount);
+        setMonetary(infoTags[i], amount, i != 22 && i != 14);
         switch(i) {
           case 13:
             setDefaultCurrency(amount);
             break;
           case 6:
             if (amount.getCurrencyType() == Currency.US_DOLLAR) {
-              setMonetary("us_cur", amount);
+              setMonetary("us_cur", amount, false);
               setString("currency", amount.fullCurrencyName());
             }
             setDefaultCurrency(amount);
@@ -354,8 +354,8 @@ public class AuctionInfo extends AuctionCore {
   protected void setMinBid(Currency minBid) {       setMonetary("minBid", minBid); }
   protected void setShipping(Currency shipping) {   setMonetary("shipping", shipping); }
   protected void setInsurance(Currency insurance) { setMonetary("insurance", insurance); }
-  protected void setUSCur(Currency USCur) {         setMonetary("us_cur", USCur); }
-  protected void setBuyNowUS(Currency buyNowUS) {   setMonetary("buy_now_us", buyNowUS); }
+  protected void setUSCur(Currency USCur) {         setMonetary("us_cur", USCur, false); }
+  protected void setBuyNowUS(Currency buyNowUS) {   setMonetary("buy_now_us", buyNowUS, false); }
   protected void setBuyNow(Currency buyNow) {       setMonetary("buy_now", buyNow); }
 
   protected void setEnd(Date end) {
