@@ -19,6 +19,8 @@ public interface XMLInterface {
 
   String getProperty(String key, String defaultValue);
 
+  StringBuffer toStringBuffer();
+
   StringBuffer toStringBuffer(StringBuffer wholeXML, int depth);
 
   String getTagName();

@@ -5,6 +5,8 @@ import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.ToolInterface;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.auction.*;
+import com.jbidwatcher.util.xml.XMLInterface;
+import com.jbidwatcher.util.xml.XMLSerialize;
 
 import java.io.FileNotFoundException;
 import java.net.Socket;
@@ -65,7 +67,12 @@ public class MiniServer extends AbstractMiniServer {
 
   public StringBuffer showItem(String identifier) {
     JConfig.log().logDebug("Retrieving auction: " + identifier);
-    return EntryFactory.getInstance().retrieveAuctionXMLString(identifier);
+    XMLSerialize xmlable = EntryFactory.getInstance().constructEntry(identifier);
+    if(xmlable != null) {
+      XMLInterface xe = xmlable.toXML();
+      return xe.toStringBuffer();
+    }
+    return null;
   }
 
   public StringBuffer buy(String identifier, String howMany) {

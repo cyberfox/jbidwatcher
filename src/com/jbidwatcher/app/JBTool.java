@@ -153,27 +153,12 @@ public class JBTool implements ToolInterface {
   private void retrieveAndVerifyAuctions(List<String> params) {
     if(params.size() == 0) return;
     try {
-      if(params.size() > 1) {
-        XMLElement auctionList = new XMLElement("auctions");
-        for(String id : params) {
-          XMLElement xmlized = EntryFactory.getInstance().retrieveAuctionXML(id);
-          if(xmlized != null) auctionList.addChild(xmlized);
-        }
-        System.out.println(auctionList.toString());
-      } else {
-        StringBuffer auctionXML = EntryFactory.getInstance().retrieveAuctionXMLString(params.get(0));
-        if (auctionXML != null) {
-          System.out.println(auctionXML.toString());
-          XMLElement xmlized = new XMLElement();
-          xmlized.parseString(auctionXML.toString());
-
-          if (JConfig.debugging() && mTestQuantity) {
-            AuctionEntry ae2 = EntryFactory.getInstance().constructEntry();
-            ae2.fromXML(xmlized);
-            System.out.println("ae2.quantity == " + ae2.getQuantity());
-          }
-        }
+      XMLElement auctionList = new XMLElement("auctions");
+      for (String id : params) {
+        XMLElement xmlized = mEbay.create(id).toXML();
+        if (xmlized != null) auctionList.addChild(xmlized);
       }
+      System.out.println(auctionList.toString());
     } catch(Exception dumpMe) {
       JConfig.log().handleException("Failure during serialization or deserialization of an auction", dumpMe);
     }

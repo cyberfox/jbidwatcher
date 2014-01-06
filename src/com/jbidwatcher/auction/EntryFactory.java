@@ -91,21 +91,6 @@ public class EntryFactory extends Observer<AuctionEntry> {
     sResolver = resolver;
   }
 
-  public XMLElement retrieveAuctionXML(String identifier) {
-    AuctionEntry ae = constructEntry(identifier);
-    if (ae != null) {
-      return ae.toXML(); //  TODO -- Check high bidder (a separate request).
-    }
-
-    return null;
-  }
-
-  public StringBuffer retrieveAuctionXMLString(String identifier) {
-    XMLElement xe = retrieveAuctionXML(identifier);
-
-    return xe != null ? xe.toStringBuffer() : null;
-  }
-
   public void afterCreate(AuctionEntry auctionEntry) {
     if(auctionEntry.getServer() == null) {
       auctionEntry.setServer(sResolver.getServer());
