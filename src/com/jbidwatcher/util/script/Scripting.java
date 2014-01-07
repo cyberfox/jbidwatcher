@@ -84,9 +84,11 @@ public class Scripting {
     if(JConfig.queryConfiguration("platform.path") != null) {
       loadPath.add(JConfig.queryConfiguration("platform.path"));
     }
+    loadPath.add("lib/jbidwatcher");
+    loadPath.add("lib/jbidwatcher/nokogiri-1.5.2-java/lib");
     runtime.getLoadService().init(loadPath);
 
-    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'lib/jbidwatcher/utilities';");
+    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'utilities';");
 
     sRuby = runtime;
   }

@@ -3,16 +3,15 @@ package com.jbidwatcher.app;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Observer;
 import com.jbidwatcher.util.config.JConfig;
 import com.cyberfox.util.config.Base64;
 import com.jbidwatcher.util.db.ActiveRecord;
+import com.jbidwatcher.util.script.Scripting;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.util.ToolInterface;
-import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.webserver.SimpleProxy;
 import com.jbidwatcher.my.MyJBidwatcher;
@@ -50,6 +49,8 @@ public class JBTool implements ToolInterface {
   private String mCountry = "ebay.com";
   private ebayServer mEbayUK;
   private String mParseFile = null;
+  private boolean mCompare = false;
+  private boolean mMultiFiles = false;
 
   private void testBasicAuthentication(final String user, final String key) throws Exception {
     URL retrievalURL = JConfig.getURL("http://localhost:9909/services/sqsurl");
@@ -111,7 +112,15 @@ public class JBTool implements ToolInterface {
       try { Thread.sleep(120000); } catch(Exception ignored) { }
     } else if(mParseFile != null) {
       JConfig.setHomeDirectory("./");
-      buildAuctionEntryFromFile(mParseFile);
+      if (mCompare) {
+        comparative(mParseFile);
+      } else {
+        buildAuctionEntryFromFile(mParseFile);
+      }
+    } else if(mMultiFiles) {
+      for (String file : mParams) {
+        comparative(file);
+      }
     } else {
       retrieveAndVerifyAuctions(mParams);
     }
@@ -145,6 +154,24 @@ public class JBTool implements ToolInterface {
       ae.setAuctionInfo(ai);
       System.out.println("Took: " + (System.currentTimeMillis() - start));
       System.out.println(ae.toXML().toString());
+    } catch (Exception e) {
+      JConfig.log().handleException("Failed to load auction from file: " + fname, e);
+    }
+  }
+
+  private void comparative(String fname) {
+    JBidWatch.enableScripting();
+    StringBuffer sb = new StringBuffer(StringTools.cat(fname));
+    try {
+      Record jResults = mEbay.doParse(sb).getBacking();
+      Record rResults = mEbay.tryRuby(sb);
+
+      System.out.println("Java:");
+      dumpMap(jResults);
+
+      System.out.println("\n\nRuby:");
+      dumpMap(rResults);
+      System.out.println();
     } catch (Exception e) {
       JConfig.log().handleException("Failed to load auction from file: " + fname, e);
     }
@@ -238,6 +265,8 @@ public class JBTool implements ToolInterface {
         System.out.println("Took: " + (System.currentTimeMillis() - start));
       }
       if(option.startsWith("file=")) mParseFile = option.substring(5);
+      if(option.startsWith("compare=")) { mParseFile = option.substring(8); mCompare = true; }
+      if(option.startsWith("bulk")) { mCompare = true; mMultiFiles = true; }
       if(option.startsWith("bidfile=")) testBidHistory(option.substring(8));
       if(option.startsWith("adult")) JConfig.setConfiguration("ebay.mature", "true");
       if(option.startsWith("upload=")) MyJBidwatcher.getInstance().sendFile(new File(option.substring(7)), "http://my.jbidwatcher.com/upload/log", "cyberfox@jbidwatcher.com", "This is a <test> of descriptions & stuff.");
@@ -270,21 +299,6 @@ public class JBTool implements ToolInterface {
   }
 
   private void dumpMap(Map m) {
-    dumpMap(m, 0);
-    System.out.println();
-  }
-
-  private void dumpMap(Map m, int offset) {
-    System.out.println("{");
-    for (Object o : m.keySet()) {
-      Object value = m.get(o);
-      if (value instanceof String) {
-        System.out.println("\"" + o.toString() + "\" => \"" + value.toString().replace("\"", "\\\"") + "\"");
-      } else if (value instanceof Map) {
-        System.out.print("\"" + o.toString() + "\" => ");
-        dumpMap((Map) value, offset + 2);
-      }
-    }
-    System.out.print("}");
+    Scripting.rubyMethod("dump_hash", m);
   }
 }

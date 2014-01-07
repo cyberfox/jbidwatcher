@@ -5,6 +5,9 @@ $: << "META-INF/jruby.home/lib/ruby/1.8"
 require 'digest/md5'
 require 'net/http.rb'
 require 'cgi'
+require 'nokogiri'
+require 'ebay_parser'
+require 'pp'
 
 java_import com.jbidwatcher.util.config.JConfig
 java_import com.cyberfox.util.platform.Path
@@ -16,6 +19,8 @@ java_import com.jbidwatcher.auction.server.AuctionServerManager
 java_import com.jbidwatcher.ui.AuctionsManager
 java_import com.jbidwatcher.ui.FilterManager
 java_import com.jbidwatcher.ui.table.TableColumnController
+java_import com.jbidwatcher.ui.commands.UserActions
+java_import com.jbidwatcher.ui.commands.MenuCommand
 
 puts "Loading JBidwatcher Ruby Utilities"
 
@@ -116,6 +121,39 @@ class JBidwatcherUtilities
     @columns = {}    
   end
 
+  COMMANDS = {}
+
+  UserActions.java_class.declared_instance_methods.each do |m|
+    if m.annotation_present?(MenuCommand.java_class)
+      annotation = m.annotation(MenuCommand.java_class)
+      COMMANDS[annotation.action] = { :name => m.name.to_sym, :arity => annotation.params } if annotation.action && annotation.action != ""
+      COMMANDS[m.name.to_sym] =     { :name => m.name.to_sym, :arity => annotation.params }
+    end
+  end
+
+  TRANSLATIONS = {
+      "Add New" => "Add",
+      "Check For Updates" => "Check Updates",
+      "Explain Colors And Icons" => "Help Colors"
+  }
+
+  def handle_action(action, action_manager, *params)
+    pair = COMMANDS[action] || COMMANDS["Do#{action.gsub(' ', '')}".to_sym]
+
+    method = pair.nil? ? "Do#{action.gsub(' ', '')}".to_sym : pair[:name]
+    arity = pair.nil? ? 0 : pair[:arity]
+
+    # Special case params: -1 means pass in null as the sole parameter, -2 means just the auction entry.
+    params, arity = {-1 => [[nil], 1], -2 => [[params[1]], 1]}[arity] if arity < 0
+
+    if action_manager.respond_to? method
+      params = [method] + params[0...arity]
+      action_manager.send(*params)
+    else
+      JConfig.log.logMessage "Did not know how to handle #{action}"
+    end
+  end
+
   def load_scripts
     script_dir = Path.getCanonicalFile "scripts","jbidwatcher",false
     if File.exist?(script_dir) && File.directory?(script_dir)
@@ -136,6 +174,14 @@ class JBidwatcherUtilities
   end
 
   def after_startup
+  end
+
+  def parse(body)
+    Ebay::Parser.new(body).parse
+  end
+
+  def dump_hash(h)
+    pp h
   end
 end
 

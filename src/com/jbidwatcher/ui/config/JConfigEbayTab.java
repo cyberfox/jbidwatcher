@@ -129,8 +129,8 @@ public class JConfigEbayTab extends JConfigTab
     siteBox.add(Box.createHorizontalGlue());
     tp.add(siteBox);
     String nonUSNotice = "<html><body><div style=\"margin-left: 7px; font-size: 0.96em;\"<i>If this is checked, JBidwatcher will " +
-                         "use <b>ebay.co.uk</b> as the source of auctions<br>and destination for placing bids. Otherwise, <b>ebay.com</b> " +
-                         "will be used.";
+        "use <b>ebay.co.uk</b> as the source of auctions<br>and destination for placing bids. Otherwise, <b>ebay.com</b> " +
+        "will be used.";
     JBEditorPane jep = OptionUI.getHTMLLabel(nonUSNotice);
     tp.add(jep);
 
