@@ -137,7 +137,7 @@ public class DeprecatedEbayAuction {
 
   public Record parseShippingInsurance(JHTML doc) {
     Record shipping = new Record();
-    String shipString = doc.getNextContentAfterRegex(T.s("ebayServer.shipping"));
+    String shipString = doc.getNextContentAfterRegexIgnoring(T.s("ebayServer.shipping"), "(?i)approximately");
     //  Sometimes the next content might not be the shipping amount, it might be the next-next.
     Matcher amount = null;
     boolean amountFound = false;
