@@ -626,8 +626,8 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private void DoMultiSnipe(Component src) {
-    if(JConfig.isPrerelease()) {
-      JOptionPane.showMessageDialog(src, "Creating new multi-snipes is disabled in this pre-release, as the underlying high-bidder detection code isn't certain to work.", "MultiSniping Disabled", JOptionPane.WARNING_MESSAGE);
+    if(JConfig.isPrerelease() || true) {
+      JOptionPane.showMessageDialog(src, "Creating new multi-snipes is disabled in this version, as the underlying high-bidder detection code isn't currently working.", "MultiSniping Disabled", JOptionPane.WARNING_MESSAGE);
       return;
     }
 
