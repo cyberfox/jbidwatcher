@@ -36,7 +36,6 @@ import java.net.HttpURLConnection;
 @SuppressWarnings({"UtilityClass", "UtilityClassWithoutPrivateConstructor"})
 public class JBTool implements ToolInterface {
   private boolean mLogin = false;
-  private boolean mTestQuantity = false;
   private String mUsername = null;
   private String mPassword = null;
   private SimpleProxy mServer = null;
@@ -47,7 +46,6 @@ public class JBTool implements ToolInterface {
   private List<String> mParams;
   private ebayServer mEbay;
   private String mCountry = "ebay.com";
-  private ebayServer mEbayUK;
   private String mParseFile = null;
   private boolean mCompare = false;
   private boolean mMultiFiles = false;
@@ -240,7 +238,7 @@ public class JBTool implements ToolInterface {
         }
         return params;
       }
-      if(option.equals("uk")) { mEbay = mEbayUK; }
+      if(option.equals("uk")) { option="country=ebay.co.uk"; }
       if(option.equals("accountinfo")) { testAccountInfo(); return params; }
       if(option.equals("searching")) { testSearching(); return params; }
       if(option.equals("server")) mRunServer = true;
@@ -295,7 +293,6 @@ public class JBTool implements ToolInterface {
 
   public void forceLogin() {
     mEbay.forceLogin();
-    if(mEbayUK != null) mEbayUK.forceLogin();
   }
 
   private void dumpMap(Map m) {
