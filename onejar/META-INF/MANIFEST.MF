@@ -3,6 +3,5 @@ Ant-Version: Apache Ant 1.7.0
 Created-By: 1.4.2_04-b05 (Sun Microsystems Inc.)
 Main-Class: com.simontuffs.onejar.Boot
 One-Jar-Expand: expand,doc,file.txt
-Built-By: build
-Implementation-Version: 2.5.5pre2-0-g6a56697
-
+Built-By: mrs
+Implementation-Version: 2.5.5-5-g9fecd73
