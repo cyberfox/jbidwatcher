@@ -3,6 +3,7 @@ package com.jbidwatcher.util.script;
 import com.jbidwatcher.util.config.JConfig;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.Ruby;
+import org.jruby.internal.runtime.GlobalVariable;
 import org.jruby.internal.runtime.ValueAccessor;
 import org.jruby.javasupport.JavaEmbedUtils;
 
@@ -79,16 +80,21 @@ public class Scripting {
 
     final Ruby runtime = Ruby.newInstance(config);
 
-    runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))));
+    runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))), GlobalVariable.Scope.GLOBAL);
     List<String> loadPath = new ArrayList<String>();
     if(JConfig.queryConfiguration("platform.path") != null) {
       loadPath.add(JConfig.queryConfiguration("platform.path"));
     }
-    loadPath.add("lib/jbidwatcher");
-    loadPath.add("lib/jbidwatcher/nokogiri-1.5.2-java/lib");
-    runtime.getLoadService().init(loadPath);
 
-    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'utilities';");
+    //    loadPath.add("lib/jbidwatcher");
+    //    loadPath.add("lib/jbidwatcher/nokogiri-1.5.2-java/lib");
+    //    runtime.getLoadService().init(loadPath);
+
+    //    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'utilities';");
+
+    //    runtime.getLoadService().init(loadPath);
+
+    runtime.evalScriptlet("require 'lib/jbidwatcher/utilities';");
 
     sRuby = runtime;
   }
