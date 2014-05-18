@@ -3,6 +3,7 @@ package com.jbidwatcher.util.script;
 import com.jbidwatcher.util.config.JConfig;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.Ruby;
+import org.jruby.internal.runtime.GlobalVariable;
 import org.jruby.internal.runtime.ValueAccessor;
 import org.jruby.javasupport.JavaEmbedUtils;
 
@@ -79,14 +80,14 @@ public class Scripting {
 
     final Ruby runtime = Ruby.newInstance(config);
 
-    runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))));
+    runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))), GlobalVariable.Scope.GLOBAL);
     List<String> loadPath = new ArrayList<String>();
     if(JConfig.queryConfiguration("platform.path") != null) {
       loadPath.add(JConfig.queryConfiguration("platform.path"));
     }
-    runtime.getLoadService().init(loadPath);
+//    runtime.getLoadService().init(loadPath);
 
-    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'lib/jbidwatcher/utilities';");
+    runtime.evalScriptlet("require 'lib/jbidwatcher/utilities';");
 
     sRuby = runtime;
   }
