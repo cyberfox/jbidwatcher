@@ -1,7 +1,5 @@
 require 'java'
 
-$: << "META-INF/jruby.home/lib/ruby/1.8"
-
 require 'digest/md5'
 require 'net/http.rb'
 require 'cgi'

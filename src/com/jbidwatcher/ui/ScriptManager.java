@@ -8,7 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
 
-import org.jruby.demo.TextAreaReadline;
+import org.jruby.demo.readline.TextAreaReadline;
 import org.jruby.Ruby;
 import org.jruby.RubyInstanceConfig;
 
