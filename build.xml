@@ -17,6 +17,7 @@
   <property name="log.dir" value="logs" />
   <property name="lib.dir" value="lib" />
   <property name="sparkle.dir" value="platform/sparkle" />
+  <property name="platform.dir" value="platform" />
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidwatcher" />
@@ -59,6 +60,7 @@
     <pathelement path="${src.dir}" />
     <pathelement path="${lib.dir}/annotations.jar" />
     <pathelement path="${lib.dir}/apple.jar" />
+    <pathelement path="${platform.dir}/nonap.jar" />
     <pathelement path="${lib.dir}/derby.jar" />
     <pathelement path="${lib.dir}/mahalo.jar" />
     <pathelement path="${lib.dir}/jDeskMetrics.jar" />
@@ -81,7 +83,7 @@
   <target name="compile" depends="init">
     <echo level="info" message="Compiling all classes." />
     <mkdir dir="${build.dir}" />
-      <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="on" source="1.5">
+      <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="on" source="1.5" target="1.5">
           <classpath refid="project.class.path" />
           <include name="**/*.java" />
       </javac>
@@ -321,11 +323,14 @@
     <copy file="${sparkle.dir}/dsa_pub.pem" todir="${osx.app.path}/Contents/Resources/"/>
     <copy file="${packaging}/jbidicon.icns" todir="${osx.app.path}/Contents/Resources" />
     <copy file="${packaging}/quaqua.jar" todir="${osx.app.path}/Contents/Resources/Java" />
+    <copy file="${packaging}/nonap.jar" todir="${osx.app.path}/Contents/Resources/Java" />
     <copy file="${packaging}/libquaqua.jnilib" todir="${osx.app.path}/Contents/Resources/Java" />
     <copy file="${packaging}/libquaqua64.jnilib" todir="${osx.app.path}/Contents/Resources/Java" />
+    <copy file="${packaging}/libNoNap.jnilib" todir="${osx.app.path}/Contents/Resources/Java" />
     <copy file="${packaging}/libsparkle_init.dylib" todir="${osx.app.path}/Contents/Resources/Java/"/>
     <chmod file="${osx.app.path}/Contents/Resources/Java/libquaqua.jnilib" perm="755" />
     <chmod file="${osx.app.path}/Contents/Resources/Java/libquaqua64.jnilib" perm="755" />
+    <chmod file="${osx.app.path}/Contents/Resources/Java/libNoNap.jnilib" perm="755" />
     <chmod file="${osx.app.path}/Contents/Resources/Java/libsparkle_init.dylib" perm="755" />
     <symlink link="${osx.app.path}/Contents/Resources/Java/libsparkle_init.jnilib" resource="libsparkle_init.dylib" />
     <copy file="${dest.dir}/${INTERMEDIATE}" todir="${osx.app.path}/Contents/Resources/Java" />
@@ -350,6 +355,7 @@
       <tarfileset dir="${osx.app.path}" prefix="${app.name}.app" mode="755">
 	<include name="Contents/MacOS/JavaApplicationStub" />
 	<include name="Contents/Resources/Java/libquaqua.jnilib" />
+	<include name="Contents/Resources/Java/libNoNap.jnilib" />
       </tarfileset>
 
       <tarfileset dir="${osx.app.path}" prefix="${app.name}.app">
@@ -360,6 +366,7 @@
 	<exclude name="Contents/Resources/Java" />
 	<exclude name="Contents/MacOS/JavaApplicationStub" />
 	<exclude name="Contents/Resources/Java/libquaqua.jnilib" />
+	<exclude name="Contents/Resources/Java/libNoNap.jnilib" />
       </tarfileset>
     </tar>
   </target>

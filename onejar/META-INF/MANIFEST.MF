@@ -5,4 +5,3 @@ Main-Class: com.simontuffs.onejar.Boot
 One-Jar-Expand: expand,doc,file.txt
 Built-By: mrs
 Implementation-Version: 2.6pre2-0-g78700dc
-
