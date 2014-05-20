@@ -81,20 +81,16 @@ public class Scripting {
     final Ruby runtime = Ruby.newInstance(config);
 
     runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))), GlobalVariable.Scope.GLOBAL);
-    List<String> loadPath = new ArrayList<String>();
     if(JConfig.queryConfiguration("platform.path") != null) {
-      loadPath.add(JConfig.queryConfiguration("platform.path"));
+      runtime.getLoadService().addPaths(JConfig.queryConfiguration("platform.path"));
     }
 
-    //    loadPath.add("lib/jbidwatcher");
-    //    loadPath.add("lib/jbidwatcher/nokogiri-1.5.2-java/lib");
-    //    runtime.getLoadService().init(loadPath);
+    runtime.getLoadService().addPaths("lib/jbidwatcher", "lib/jbidwatcher/nokogiri-1.5.2-java/lib");
 
     //    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'utilities';");
-
     //    runtime.getLoadService().init(loadPath);
 
-    runtime.evalScriptlet("require 'lib/jbidwatcher/utilities';");
+    runtime.evalScriptlet("require 'utilities';");
 
     sRuby = runtime;
   }
