@@ -18,8 +18,10 @@ import com.jbidwatcher.UpdaterEntry;
 import com.jbidwatcher.UpdateManager;
 
 import javax.swing.*;
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.*;
 
@@ -175,7 +177,9 @@ public final class UIBackbone implements MessageQueue.Listener {
     } else if (msg.startsWith(ALERT_MSG)) {
       String alertMsg = msg.substring(ALERT_MSG.length());
       logActivity("Alert: " + alertMsg);
-      JOptionPane.showMessageDialog(null, alertMsg, "Alert", JOptionPane.PLAIN_MESSAGE);
+      if(!duplicateDialog(alertMsg)) {
+        JOptionPane.showMessageDialog(null, alertMsg, "Alert", JOptionPane.PLAIN_MESSAGE);
+      }
     } else if (msg.startsWith(NOACCOUNT_MSG)) {
       String noAcctMsg = msg.substring(NOACCOUNT_MSG.length());
       logActivity("Alert: " + noAcctMsg);
@@ -218,6 +222,23 @@ public final class UIBackbone implements MessageQueue.Listener {
       logActivity(msg);
       setStatus(msg);
     }
+  }
+
+  private boolean duplicateDialog(String alertMsg) {
+    for (Window w : JDialog.getWindows()) {
+      if (w instanceof JDialog) {
+        JDialog jd = (JDialog)w;
+        if(jd.isVisible()) {
+          Component[] components = jd.getContentPane().getComponents();
+          for(Component c : components) {
+            if(c instanceof JOptionPane) {
+              if(((JOptionPane)c).getMessage().equals(alertMsg)) return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
   }
 
   private void handleLoginStatus(String msg) {
