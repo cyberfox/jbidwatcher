@@ -254,6 +254,13 @@ public class ebayLoginManager implements LoginManager {
         JConfig.log().logDebug("Cookies after posting form: \n" + cj.dump());
       }
 
+      boolean fixYourPassword = false;
+      for(String page : resultPages) {
+        if(page.indexOf("FYPShow") != -1) {
+          fixYourPassword = true;
+        }
+      }
+
       if (adult) {
         if (getAdultRedirector(uc_signin, cj)) {
           if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
@@ -264,8 +271,10 @@ public class ebayLoginManager implements LoginManager {
         StringBuffer confirm = Http.net().receivePage(uc_signin);
         JConfig.log().dump2File("sign_in-2.html", confirm);
         JHTML doc = new JHTML(confirm);
-        //  Check for CAPTCHA and bad passwords...
-        if (checkSecurityConfirmation(doc)) {
+        if(fixYourPassword || doc.getTitle().equals("Reset your password")) {
+          JConfig.log().logMessage("eBay is requesting that you change your password.");
+          MQFactory.getConcrete("login").enqueue("FAILED You must change your password on eBay.");
+        } else if (checkSecurityConfirmation(doc)) { //  Check for CAPTCHA and bad passwords...
           cj = null;
           MQFactory.getConcrete("login").enqueue("FAILED Sign in information is not valid.");
         } else {
