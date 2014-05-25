@@ -226,6 +226,7 @@ public final class UIBackbone implements MessageQueue.Listener {
       JBidToolBar.getInstance().setToolTipText("Login failed.");
       JBidToolBar.getInstance().setTextIcon(redStatus, redStatus16);
       JConfig.getMetrics().trackEvent("login", "fail");
+      notifyAlert(status.substring("FAILED ".length()));
     } else if(status.startsWith("CAPTCHA")) {
       JBidToolBar.getInstance().setToolTipText("Login failed due to CAPTCHA.");
       JBidToolBar.getInstance().setTextIcon(redStatus, redStatus16);
