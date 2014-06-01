@@ -3,9 +3,7 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.Task;
 
-import java.util.List;
-import java.util.Collections;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -15,33 +13,39 @@ import java.util.ArrayList;
 * To change this template use File | Settings | File Templates.
 */
 public class AuctionList {
-  private final List<String> mList = Collections.synchronizedList(new ArrayList<String>());
+  private final List<String> mIdentifierList = Collections.synchronizedList(new ArrayList<String>());
+  private final Set<String> mIdentifierSet = Collections.synchronizedSet(new HashSet<String>());
 
-  public int size() { synchronized(mList) { return mList.size(); } }
+  public int size() { synchronized(mIdentifierList) { return mIdentifierList.size(); } }
   public AuctionEntry get(int i) {
-    synchronized (mList) {
-      String identifier = mList.get(i);
+    synchronized (mIdentifierList) {
+      String identifier = mIdentifierList.get(i);
       return EntryCorral.getInstance().takeForRead(identifier);
     }
   }
   public void remove(int i) {
-    synchronized (mList) {
-      String identifier = mList.get(i);
+    synchronized (mIdentifierList) {
+      String identifier = mIdentifierList.get(i);
       EntryCorral.getInstance().takeForRead(identifier);
-      mList.remove(i);
+      mIdentifierList.remove(i);
+      mIdentifierSet.remove(identifier);
     }
   }
 
   public void add(AuctionEntry ae) {
-    synchronized (mList) {
+    if(ae.getIdentifier() == null || ae.getIdentifier().length() == 0 || mIdentifierSet.contains(ae.getIdentifier())) {
+      return;
+    }
+    synchronized (mIdentifierList) {
       EntryCorral.getInstance().put(ae);
-      mList.add(ae.getIdentifier());
+      mIdentifierList.add(ae.getIdentifier());
+      mIdentifierSet.add(ae.getIdentifier());
     }
   }
 
   public AuctionEntry find(Comparison c) {
-    synchronized (mList) {
-      for (String identifier : mList) {
+    synchronized (mIdentifierList) {
+      for (String identifier : mIdentifierList) {
         AuctionEntry result = EntryCorral.getInstance().takeForRead(identifier);
         if (c.match(result)) return result;
       }
@@ -50,8 +54,8 @@ public class AuctionList {
   }
 
   public void each(Task task) {
-    synchronized(mList) {
-      for (String identifier : mList) {
+    synchronized(mIdentifierList) {
+      for (String identifier : mIdentifierList) {
         AuctionEntry result = (AuctionEntry) EntryCorral.getInstance().takeForWrite(identifier);
         try { task.execute(result); } finally { EntryCorral.getInstance().release(identifier); }
       }
