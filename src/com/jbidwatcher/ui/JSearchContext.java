@@ -10,11 +10,11 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.search.SearchManager;
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -74,9 +74,9 @@ public class JSearchContext extends JBidTableContext {
   }
 
   private void changeTable() {
-    TableSorter tm = (TableSorter)_inTable.getModel();
+    TableModel tm = _inTable.getModel();
 
-    tm.tableChanged(new TableModelEvent(tm));
+    _inTable.tableChanged(new TableModelEvent(tm));
   }
 
   private void handleSave(boolean success) {

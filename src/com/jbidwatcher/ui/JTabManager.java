@@ -9,19 +9,22 @@ import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.PlainMessageQueue;
 import com.jbidwatcher.ui.table.Selector;
-import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class JTabManager extends JMouseAdapter {
   private JTabbedPane mAuctionTypes;
-  private Map<String, TableSorter> mNameTableMap = new TreeMap<String, TableSorter>();
+  private Map<String, JTable> mNameTableMap = new TreeMap<String, JTable>();
   private static JTabManager sInstance;
   private FilterInterface mFilter;
 
@@ -57,8 +60,8 @@ public class JTabManager extends JMouseAdapter {
       // This method is called whenever the selected tab changes
       public void stateChanged(ChangeEvent evt) {
         // Get current tab
-        TableSorter ts = getCurrentTable();
-        if(ts != null) ts.sort();
+        JTable ts = getCurrentTable();
+        if(ts != null) ((TableRowSorter<TableModel>)ts.getRowSorter()).sort();
       }
     });
   }
@@ -72,12 +75,12 @@ public class JTabManager extends JMouseAdapter {
     mAuctionTypes.setSelectedIndex(idx);
   }
 
-  public void add(String tabName, JComponent tabComponent, TableSorter inTS) {
+  public void add(String tabName, JComponent tabComponent, JTable inTable) {
     mAuctionTypes.add(tabName, tabComponent);
-    mNameTableMap.put(tabName, inTS);
+    mNameTableMap.put(tabName, inTable);
   }
 
-  public TableSorter getCurrentTable() {
+  public JTable getCurrentTable() {
     String title = getCurrentTableTitle();
     if(title == null) return null;
     return mNameTableMap.get(title);
@@ -95,8 +98,8 @@ public class JTabManager extends JMouseAdapter {
   }
 
   public void deselect() {
-    TableSorter curTable = getCurrentTable();
-    curTable.select(new ClearSelector());
+    JTable curTable = getCurrentTable();
+    curTable.clearSelection();
   }
 
   public void showEntry(AuctionEntry found) {
@@ -109,15 +112,8 @@ public class JTabManager extends JMouseAdapter {
       selectBySearch("~n" + found.getIdentifier());
       rows = getCurrentTable().getSelectedRows();
     }
-    getCurrentTable().getTable().scrollRectToVisible(getCurrentTable().getTable().getCellRect(rows[0], 1, true));
-    getCurrentTable().getTable().requestFocus();
-  }
-
-  private static class ClearSelector implements Selector {
-    public boolean select(JTable inTable) {
-      inTable.clearSelection();
-      return true;
-    }
+    getCurrentTable().scrollRectToVisible(getCurrentTable().getCellRect(rows[0], 1, true));
+    getCurrentTable().requestFocus();
   }
 
   private class mySelector implements Selector
@@ -191,9 +187,9 @@ public class JTabManager extends JMouseAdapter {
   }
 
   public void selectBySearch(String srch) {
-    TableSorter curTable = getCurrentTable();
+    JTable curTable = getCurrentTable();
     Selector mySelector = new mySelector(srch);
-    if(!curTable.select(mySelector)) {
+    if(!mySelector.select(curTable)) {
       java.awt.Toolkit.getDefaultToolkit().beep();
       MQFactory.getConcrete("Swing").enqueue("No entries matched!");
     }
@@ -203,10 +199,28 @@ public class JTabManager extends JMouseAdapter {
     return getCurrentTable().getValueAt(i, -1);
   }
 
+  public Object getObjectAt(JTable _table, int x, int y) {
+    if (_table != null) {
+      int rowPoint = _table.rowAtPoint(new Point(x, y));
+
+      //  A menu item has been selected, instead of a context menu.
+      //  This is NOT a valid test, because the popup locations aren't
+      //  reset!
+      if (x == 0 && y == 0) {
+        rowPoint = _table.getSelectedRow();
+      }
+
+      if (rowPoint != -1) {
+        return _table.getValueAt(rowPoint, -1);
+      }
+    }
+    return null;
+  }
+
   public void actionPerformed(ActionEvent event) {
     AuctionEntry whichAuction = null;
     String actionString = event.getActionCommand();
-    TableSorter chosenTable = getCurrentTable();
+    JTable chosenTable = getCurrentTable();
     boolean isButton = false;
 
     if(actionString.startsWith("BT-")) {
@@ -216,7 +230,7 @@ public class JTabManager extends JMouseAdapter {
 
     if(chosenTable != null) {
       if(!isButton) {
-        whichAuction = (AuctionEntry)chosenTable.getObjectAt(this.getPopupX(), this.getPopupY());
+        whichAuction = (AuctionEntry)getObjectAt(chosenTable, this.getPopupX(), this.getPopupY());
       } else {
         int temp[] = chosenTable.getSelectedRows();
         if(temp.length == 0) {
@@ -231,15 +245,22 @@ public class JTabManager extends JMouseAdapter {
   }
 
   public void sortDefault() {
-    TableSorter ts = getCurrentTable();
+    JTable ts = getCurrentTable();
     if (ts != null) {
-      ts.enableInsertionSorting();
-      ts.sort();
+      ((TableRowSorter)ts.getRowSorter()).sort();
     }
   }
 
+  public void updateTime(final JTable table) {
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        table.tableChanged(new TableModelEvent(table.getModel(), 0, table.getRowCount(), table.getColumnModel().getColumnIndex("Time left")));
+      }
+    });
+  }
+
   public void updateTime() {
-    TableSorter ts = getCurrentTable();
-    if(ts != null) ts.updateTime();
+    JTable ts = getCurrentTable();
+    if(ts != null) updateTime(ts);
   }
 }

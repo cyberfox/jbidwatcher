@@ -1,6 +1,7 @@
 package com.jbidwatcher.ui.table;
 
 import com.jbidwatcher.auction.AuctionEntry;
+import com.jbidwatcher.ui.auctionTableModel;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Constants;
@@ -95,7 +96,7 @@ public class AuctionTable extends JTable implements MessageQueue.Listener {
     int activeRow = currentRow == null ? 0 : currentRow.intValue();
 
     if(command.equals("start")) {
-      currentRow = ((TableSorter)getModel()).findRow(new Comparison() {
+      currentRow = ((auctionTableModel)getModel()).findRow(new Comparison() {
         public boolean match(Object o) {
           String foundIdentifier = null;
           if(o != null) foundIdentifier = ((AuctionEntry)o).getIdentifier();

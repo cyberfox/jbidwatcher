@@ -7,12 +7,15 @@ package com.jbidwatcher.ui.table;
 
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;
-import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.config.JConfig;
 
+import javax.swing.table.AbstractTableModel;
 import java.util.*;
 import java.text.SimpleDateFormat;
 
-public class SearchTableModel extends BaseTransformation
+public class SearchTableModel extends AbstractTableModel
 {
   String[] column_names = {
     "Name", "Type", "Search Value", "Site", "Repeat Time", "Next Run"
@@ -103,28 +106,6 @@ public class SearchTableModel extends BaseTransformation
 
   public SearchTableModel() {
     super();
-  }
-
-  public int compare(int row1, int row2, ColumnStateList columnStateList) {
-	  int result = 0;
-	  
-	  for(ListIterator<ColumnState> li = columnStateList.listIterator(); li.hasNext();) {
-		  ColumnState cs = li.next();
-		  
-		  Class type = getSortByColumnClass(cs.getColumn());
-
-		  Object o1 = getSortByValueAt(row1, cs.getColumn());
-		  Object o2 = getSortByValueAt(row2, cs.getColumn());
-		  
-		  result = compareByClass(o1, o2, type) * cs.getSort();
-		  
-		  // The nth column is different
-		  if(result != 0) {
-			  break;
-		  }
-	  }
-	  
-	  return result;
   }
 
   public boolean isCellEditable(int row, int column) {

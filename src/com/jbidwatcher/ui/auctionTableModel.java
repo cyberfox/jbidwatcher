@@ -6,22 +6,21 @@ package com.jbidwatcher.ui;
  */
 
 import com.jbidwatcher.auction.*;
+import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.IconFactory;
-import com.jbidwatcher.ui.table.ColumnState;
-import com.jbidwatcher.ui.table.ColumnStateList;
 import com.jbidwatcher.ui.table.TableColumnController;
-import com.jbidwatcher.ui.table.BaseTransformation;
 import com.jbidwatcher.util.xml.XMLElement;
 
 import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
 import java.awt.Image;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class auctionTableModel extends BaseTransformation
+public class auctionTableModel extends AbstractTableModel
 {
   private static final String neverBid = "--";
   private AuctionList dispList;
@@ -33,6 +32,33 @@ public class auctionTableModel extends BaseTransformation
 
   public void delete(int row) {
     dispList.remove(row);
+  }
+
+  public synchronized int findRow(Comparison c) {
+    for(int i=0; i<getRowCount(); i++) {
+      if(c.match(getValueAt(i, -1))) return i;
+    }
+    return -1;
+  }
+
+  public synchronized int findRow(Object o) {
+    List<Object> cache = new ArrayList<Object>();
+    for(int i=0; i<getRowCount(); i++) {
+      Object curStep = getValueAt(i, -1);
+      if(curStep == o) return i;
+      cache.add(curStep);
+    }
+
+    for(int i=0; i<cache.size(); i++) {
+      if(cache.get(i).equals(o)) return i;
+    }
+    return -1;
+  }
+
+  public boolean delete(Object o) {
+    int row = findRow(o);
+    if(row != -1) delete(row);
+    return row != -1;
   }
 
   public int insert(Object o) {
@@ -160,128 +186,48 @@ public class auctionTableModel extends BaseTransformation
     return ret_icon;
   }
 
-  Integer Zero = 0;
-
-  static Map<String, Seller> sellers = new HashMap<String, Seller>();
-
   public Object getSortByValueAt(int i, int j) {
+    JConfig.log().logMessage("Trying to sort by value at (" + i + ", " + j + ")");
     try {
-      AuctionEntry aEntry = dispList.get(i);
-      Seller seller = getSeller(aEntry.getSellerId());
+      AuctionEntry entry = dispList.get(i);
+      AuctionSortable sortBy = new AuctionSortable(entry);
+
       switch(j) {
-        case -1: return aEntry;
-        case TableColumnController.ID: return aEntry.getIdentifier();
-        case TableColumnController.CUR_BID:
-          Currency rval = aEntry.getUSCurBid();
-          if(rval.getValue() == 0.0 && rval.getCurrencyType() == Currency.US_DOLLAR) {
-            return aEntry.getCurrentUSPrice();
-          }
-          return rval;
-        case TableColumnController.SNIPE_OR_MAX:
-          return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), getMaxOrSnipe(aEntry));
-        case TableColumnController.TIME_LEFT: return aEntry.getEndDate();
-        case TableColumnController.TITLE: return aEntry.getTitle();
-        case TableColumnController.STATUS: return buildEntryFlags(aEntry);
+        case -1: return entry;
+        case TableColumnController.ID: return sortBy.getId();
+        case TableColumnController.CUR_BID: return sortBy.getCurrentBid();
+        case TableColumnController.SNIPE_OR_MAX: return sortBy.getSnipeOrMax();
+        case TableColumnController.TIME_LEFT: return entry.getEndDate();
+        case TableColumnController.TITLE: return entry.getTitle();
+        case TableColumnController.STATUS: return buildEntryFlags(entry);
         case TableColumnController.THUMBNAIL: return 0;
-        case TableColumnController.SELLER: return aEntry.getSellerName();
-        case TableColumnController.FIXED_PRICE:
-          return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), aEntry.getBuyNow());
-        case TableColumnController.SHIPPING_INSURANCE:
-          Currency si = (!aEntry.getShipping().isNull())?aEntry.getShippingWithInsurance(): Currency.NoValue();
-          //  This is crack.  I'm insane to even think about doing this, but it works...
-          return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), si);
-        case TableColumnController.BIDDER: return aEntry.getHighBidder();
-        case TableColumnController.MAX:
-          Currency bid = aEntry.isBidOn()?aEntry.getBid(): Currency.NoValue();
-          return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), bid);
-        case TableColumnController.SNIPE:
-          Currency snipe = aEntry.getSnipeAmount();
-          return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), snipe);
-        case TableColumnController.COMMENT:String s = aEntry.getComment(); return (s==null?"":s);
-        case TableColumnController.END_DATE:return aEntry.getEndDate();
-        case TableColumnController.SELLER_FEEDBACK: if(seller.getFeedback()==0) return Zero; else return seller.getFeedback();
-        case TableColumnController.ITEM_LOCATION: return aEntry.getItemLocation();
-        case TableColumnController.BIDCOUNT: return aEntry.getNumBidders();
-        case TableColumnController.JUSTPRICE: return aEntry.getUSCurBid();
-        case TableColumnController.SELLER_POSITIVE_FEEDBACK: try {
-          String feedbackPercent = seller.getPositivePercentage();
-          if(feedbackPercent != null) feedbackPercent = feedbackPercent.replace("%", "");
-          return safeConvert(feedbackPercent);
-        } catch(Exception e) {
-          return Zero;
-        }
-        case TableColumnController.CUR_TOTAL:
-          Currency shipping = aEntry.getShippingWithInsurance();
-          if (shipping.getCurrencyType() == Currency.NONE) {
-            return shipping; // shipping not set so cannot add up values
-          }
-
-          Currency shippingUSD = Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), aEntry.getShippingWithInsurance());
-          try {
-            return aEntry.getUSCurBid().add(shippingUSD);
-          } catch (Currency.CurrencyTypeException e) {
-            JConfig.log().handleException("Threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
-            return Currency.NoValue();
-          }
-        case TableColumnController.SNIPE_TOTAL: {
-          Currency shipping2 = aEntry.getShippingWithInsurance();
-          if (shipping2.getCurrencyType() == Currency.NONE) {
-            return shipping2; // shipping not set so cannot add up values
-          }
-
-          Currency shippingUSD2 = Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), aEntry.getShippingWithInsurance());
-          try {
-            return Currency.convertToUSD(aEntry.getCurrentUSPrice(), aEntry.getCurrentPrice(), aEntry.getSnipeAmount()).add(shippingUSD2);
-          } catch (Currency.CurrencyTypeException e) {
-            JConfig.log().handleException("Currency addition or conversion threw a bad currency exception, which should be unlikely.", e); //$NON-NLS-1$
-            return Currency.NoValue();
-          }
-        }
-
-        //  This should never happen, but to be safe...
+        case TableColumnController.SELLER: return entry.getSellerName();
+        case TableColumnController.FIXED_PRICE: return sortBy.getFixedPrice();
+        case TableColumnController.SHIPPING_INSURANCE: return sortBy.getShippingInsurance();
+        case TableColumnController.BIDDER: return entry.getHighBidder();
+        case TableColumnController.MAX: return sortBy.getMax();
+        case TableColumnController.SNIPE: return sortBy.getSnipe();
+        case TableColumnController.COMMENT: return sortBy.getComment();
+        case TableColumnController.END_DATE: return entry.getEndDate();
+        case TableColumnController.SELLER_FEEDBACK: return sortBy.getSellerFeedback();
+        case TableColumnController.ITEM_LOCATION: return entry.getItemLocation();
+        case TableColumnController.BIDCOUNT: return entry.getNumBidders();
+        case TableColumnController.JUSTPRICE: return entry.getUSCurBid();
+        case TableColumnController.SELLER_POSITIVE_FEEDBACK: return sortBy.getSellerPositiveFeedback();
+        case TableColumnController.CUR_TOTAL: return sortBy.getCurrentTotal();
+        case TableColumnController.SNIPE_TOTAL: return sortBy.getSnipeTotal();
+        //  Columns beyond the MAX_FIXED_COLUMN are custom columns, or a bug.
         default: {
           if(j > TableColumnController.MAX_FIXED_COLUMN && j < TableColumnController.columnCount()) {
-            return TableColumnController.getInstance().customColumn(j, aEntry);
+            return TableColumnController.getInstance().customColumn(j, entry);
           }
+          //  This should never happen, but to be safe...
           return "";
         }
       }
     } catch(ArrayIndexOutOfBoundsException ignored) {
       return getDummyValueAtColumn(j);
     }
-  }
-
-  private static Seller getSeller(String sellerId) {Seller seller;
-    if(sellers.containsKey(sellerId)) {
-      seller = sellers.get(sellerId);
-    } else {
-      seller = Seller.findFirstBy("id", sellerId);
-    }
-    return seller;
-  }
-
-  private int safeConvert(String feedbackPercent)
-  {
-    int rval;
-    try {
-      rval = (int) (Double.parseDouble(feedbackPercent) * 10.0);
-    } catch (NumberFormatException e) {
-      rval = 0;
-    }
-    return rval;
-  }
-
-  private Currency getMaxOrSnipe(AuctionEntry aEntry) {
-    if(aEntry.isSniped()) {
-      return aEntry.getSnipeAmount();
-    }
-    if(aEntry.isBidOn()) {
-      return aEntry.getBid();
-    }
-    if(aEntry.snipeCancelled() && aEntry.isComplete()) {
-      return aEntry.getCancelledSnipe();
-    }
-    return Currency.NoValue();
   }
 
   private String formatSnipeAndBid(AuctionEntry aEntry) {
@@ -358,6 +304,18 @@ public class auctionTableModel extends BaseTransformation
   }
 
   static Map<String, ImageIcon> iconCache = new HashMap<String, ImageIcon>();
+
+  private static Map<String, Seller> sellers = new HashMap<String, Seller>();
+  private Seller getSeller(String sellerId) {
+    Seller seller;
+    if(sellers.containsKey(sellerId)) {
+      seller = sellers.get(sellerId);
+    } else {
+      seller = Seller.findFirstBy("id", sellerId);
+      sellers.put(sellerId, seller);
+    }
+    return seller;
+  }
 
   public Object getValueAt(int rowIndex, int columnIndex) {
     try {
@@ -499,28 +457,6 @@ public class auctionTableModel extends BaseTransformation
 
   public auctionTableModel(AuctionList inList) {
     dispList = inList;
-  }
-
-  public int compare(int row1, int row2, ColumnStateList columnStateList) {
-    int result = 0;
-
-    for(ListIterator<ColumnState> li = columnStateList.listIterator(); li.hasNext();) {
-      ColumnState cs = li.next();
-
-      Class type = getSortByColumnClass(cs.getColumn());
-
-      Object o1 = getSortByValueAt(row1, cs.getColumn());
-      Object o2 = getSortByValueAt(row2, cs.getColumn());
-
-      result = compareByClass(o1, o2, type) * cs.getSort();
-
-      // The nth column is different
-      if(result != 0) {
-        break;
-      }
-    }
-
-    return result;
   }
 
   public boolean isCellEditable(int row, int column) {

@@ -11,11 +11,12 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.ui.table.SearchTableModel;
-import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.ui.util.JBidFrame;
 
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 
 public class SearchFrame implements ActionListener {
@@ -23,7 +24,6 @@ public class SearchFrame implements ActionListener {
   JComboBox newType;
   JTextField searchString;
   SearchTableModel _stm;
-  TableSorter _ts;
 
   public SearchFrame() {
     mainFrame = createSearchFrame();
@@ -133,10 +133,12 @@ public class SearchFrame implements ActionListener {
     return w;
   }
 
+  private JTable searchTable;
+
   private JScrollPane buildSearchTable(JSearchContext jsc) {
     _stm = new SearchTableModel();
-    _ts = new TableSorter("search", "Name", _stm);
-    JTable searchTable = new JTable(_ts);
+    searchTable = new JTable(_stm);
+    searchTable.setRowSorter(new TableRowSorter<TableModel>(_stm));
     searchTable.addMouseListener(jsc);
     searchTable.setShowGrid(false);
     searchTable.setIntercellSpacing(new Dimension(0, 0));
@@ -144,7 +146,6 @@ public class SearchFrame implements ActionListener {
     searchTable.setShowHorizontalLines(true);
     searchTable.setToolTipText("Double-click on a search to execute it!");
     searchTable.getTableHeader().setReorderingAllowed(false);
-    _ts.addMouseListenerToHeaderInTable(searchTable);
     JScrollPane jsp = new JScrollPane(searchTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     jsp.getViewport().setBackground(UIManager.getColor("window"));
 
@@ -171,7 +172,7 @@ public class SearchFrame implements ActionListener {
     Searcher s;
 
     s = sm.buildSearch(System.currentTimeMillis(), type, curName, search, server, null, -1);
-    _ts.insert(s);
+    _stm.insert(s);
 
     return s;
   }

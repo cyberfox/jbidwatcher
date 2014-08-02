@@ -14,7 +14,6 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
-import com.jbidwatcher.ui.table.TableSorter;
 import com.jbidwatcher.ui.table.AuctionTable;
 import com.jbidwatcher.util.queue.PlainMessageQueue;
 
@@ -23,8 +22,9 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.dnd.DropTarget;
@@ -44,7 +44,8 @@ public class AuctionsUIModel {
   private JPanel mPanel;
 
   private static final myTableCellRenderer _myRenderer = new myTableCellRenderer();
-  private TableSorter _tSort;
+  private TableModel model;
+  private final TableRowSorter<TableModel> sorter;
 
   /**
    * @brief Construct a new UI model for a provided auction list.
@@ -53,16 +54,15 @@ public class AuctionsUIModel {
    * @param tableContextMenu - The context menu to present for this table.
    * @param frameContextMenu - The context menu to present for whitespace outside the table.
    * @param cornerButtonListener - The button to sit above the scrollbar.
-   * @param monitor
    */
   public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, final JContext frameContextMenu, ActionListener cornerButtonListener) {
     _dataModel = newAuctionList;
 
     _targets = new DropTarget[2];
 
-    _tSort = new TableSorter(_dataModel.getName(), "Time left", new auctionTableModel(_dataModel.getList()));
+    model = new auctionTableModel(_dataModel.getList());
 
-    _table = new AuctionTable(_dataModel.getName(), _tSort);
+    _table = new AuctionTable(_dataModel.getName(), model);
     if(newAuctionList.isCompleted()) {
       if(_table.convertColumnIndexToView(TableColumnController.END_DATE) == -1) {
         _table.addColumn(new TableColumn(TableColumnController.END_DATE, Constants.DEFAULT_COLUMN_WIDTH, _myRenderer, null));
@@ -78,8 +78,9 @@ public class AuctionsUIModel {
     // provide sufficient vertical height in the rows for micro-thumbnails list view
     adjustRowHeight();
 
+    sorter = new TableRowSorter<TableModel>(_table.getModel());
+    _table.setRowSorter(sorter);
     _table.addMouseListener(tableContextMenu);
-    _tSort.addMouseListenerToHeaderInTable(_table);
     if(Platform.isMac() || JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
       _scroller = new JScrollPane(_table, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     } else {
@@ -157,7 +158,7 @@ public class AuctionsUIModel {
     mPanel = new JPanel();
     mPanel.setLayout(new BorderLayout());
     mPanel.add(_scroller, BorderLayout.CENTER);
-    addSumMonitor(_table, _tSort);
+    addSumMonitor(_table);
     JPanel statusPanel = new TabStatusPanel(_dataModel.getName());
     mPanel.add(statusPanel, BorderLayout.NORTH);
   }
@@ -166,15 +167,9 @@ public class AuctionsUIModel {
     return mPanel;
   }
 
-  private void addSumMonitor(JTable table, TableSorter sort) {
+  private void addSumMonitor(JTable table) {
     table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent event) {
-        updateSum();
-      }
-    });
-
-    sort.addTableModelListener(new TableModelListener() {
-      public void tableChanged(TableModelEvent tableModelEvent) {
         updateSum();
       }
     });
@@ -209,8 +204,8 @@ public class AuctionsUIModel {
     return checkEntry.bestValue();
   }
 
-  //  A single accessor...
-  public TableSorter getTableSorter() { return _tSort; }
+  public TableRowSorter<TableModel> getTableSorter() { return sorter; }
+  public JTable getTable() { return _table; }
 
   private static Currency addUSD(Currency inCurr, AuctionEntry ae) {
     boolean newCurrency = (inCurr == null || inCurr.isNull());
@@ -380,7 +375,7 @@ public class AuctionsUIModel {
    * @param inEntry - The auction entry to delete.
    */
   public void delEntry(EntryInterface inEntry) {
-    _tSort.delete(inEntry);
+    ((auctionTableModel)model).delete(inEntry);
   }
 
   /**
@@ -391,10 +386,8 @@ public class AuctionsUIModel {
    * @param aeNew - The new auction entry to add to the tables.
    */
   public void addEntry(EntryInterface aeNew) {
-    if (aeNew != null) {
-      if (_tSort.insert(aeNew) == -1) {
-        JConfig.log().logMessage("JBidWatch: Bad auction entry, cannot add!");
-      }
+    if (aeNew != null && ((auctionTableModel)model).insert(aeNew) == -1) {
+      JConfig.log().logMessage("JBidWatch: Bad auction entry, cannot add!");
     }
   }
 
@@ -408,7 +401,6 @@ public class AuctionsUIModel {
       rval = true;
     } else {
       _table.removeColumn(_table.getColumn(field));
-      _tSort.removeColumn(field, _table);
       rval = false;
     }
 
@@ -488,10 +480,10 @@ public class AuctionsUIModel {
   }
 
   public void sort() {
-    _tSort.sort();
+    sorter.sort();
   }
 
   public void redrawAll() {
-    _tSort.tableChanged(new TableModelEvent(_tSort));
+    _table.tableChanged(new TableModelEvent(model));
   }
 }
