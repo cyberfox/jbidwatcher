@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;
+package com.jbidwatcher.ui.table;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
@@ -11,7 +11,6 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.IconFactory;
-import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.util.xml.XMLElement;
 
 import javax.swing.*;

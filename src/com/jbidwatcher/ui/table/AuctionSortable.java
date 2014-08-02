@@ -1,4 +1,4 @@
-package com.jbidwatcher.ui;
+package com.jbidwatcher.ui.table;
 
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.Seller;

@@ -7,6 +7,7 @@ package com.jbidwatcher.ui;
 
 import com.cyberfox.util.platform.Platform;
 import com.jbidwatcher.auction.*;
+import com.jbidwatcher.ui.table.auctionTableModel;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Constants;

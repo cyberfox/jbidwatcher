@@ -1,7 +1,6 @@
 package com.jbidwatcher.ui.table;
 
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.ui.auctionTableModel;
 import com.jbidwatcher.util.Comparison;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Constants;

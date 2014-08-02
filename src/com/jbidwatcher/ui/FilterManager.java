@@ -5,6 +5,7 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.ui.table.auctionTableModel;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
