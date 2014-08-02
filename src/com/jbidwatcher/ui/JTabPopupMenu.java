@@ -82,10 +82,7 @@ public class JTabPopupMenu extends JContext implements MessageQueue.Listener {
   }
 
   /**
-   * @brief Use reflection to determine if we have an indexAtLocation
-   * function, and always allow them to TRY to delete, if we don't.
-   * If we do, figure if it's the bottom three tabs (current,
-   * completed, selling) we don't want to allow delete.
+   * @brief If it's the bottom three tabs (current, completed, selling) we don't want to allow delete.
    *
    * @param inPopup - The pop-up menu that is going to be displayed.
    * @param e - The event that occurred (a context-operation).

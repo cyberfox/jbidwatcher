@@ -23,7 +23,6 @@ import java.awt.Frame;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -226,26 +225,20 @@ public final class UIBackbone implements MessageQueue.Listener {
   }
 
   private boolean duplicateDialog(String alertMsg) {
-    try {
-      Class jdialogClass = Class.forName("javax.swing.JDialog");
-      Method getwindows = jdialogClass.getMethod("getWindows");  //  It's a 1.6ism.
-      Window[] rval = (Window[])getwindows.invoke(null);
+    Window[] rval = JDialog.getWindows();
 
-      for (Window w : rval) {
-        if (w instanceof JDialog) {
-          JDialog jd = (JDialog)w;
-          if(jd.isVisible()) {
-            Component[] components = jd.getContentPane().getComponents();
-            for(Component c : components) {
-              if(c instanceof JOptionPane) {
-                if(((JOptionPane)c).getMessage().equals(alertMsg)) return true;
-              }
+    for (Window w : rval) {
+      if (w instanceof JDialog) {
+        JDialog jd = (JDialog)w;
+        if(jd.isVisible()) {
+          Component[] components = jd.getContentPane().getComponents();
+          for(Component c : components) {
+            if(c instanceof JOptionPane) {
+              if(((JOptionPane)c).getMessage().equals(alertMsg)) return true;
             }
           }
         }
       }
-    } catch (Exception e) {
-      //  Ignored, as it'll fall through and return false.
     }
     return false;
   }

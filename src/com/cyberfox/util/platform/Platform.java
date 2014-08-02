@@ -8,8 +8,8 @@ package com.cyberfox.util.platform;
 import com.cyberfox.util.config.JConfig;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.*;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
@@ -194,18 +194,13 @@ public class Platform {
     if(isLinux() && !JConfig.queryConfiguration("tray.override", "false").equals("true")) return false;
     if(isMac()) return false;
 
-    try {
-      Class java6TrayClass = Class.forName("java.awt.SystemTray");
-      Method isSupported = java6TrayClass.getMethod("isSupported");
-      Object rval = isSupported.invoke(null);
-      boolean supported = rval instanceof Boolean && (Boolean) rval;
-      if(supported) {
-        JConfig.setConfiguration("temp.tray.java6", "true");
-      }
-      return supported;
-    } catch (Exception e) {
-      return false;
+    boolean supported = SystemTray.isSupported();
+
+    if(supported) {
+      JConfig.setConfiguration("temp.tray.java6", "true");
     }
+
+    return supported;
   }
 
   public static boolean isRawMac() {

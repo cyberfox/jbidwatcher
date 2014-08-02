@@ -4,7 +4,6 @@ import com.jbidwatcher.util.HashBacked;
 import com.jbidwatcher.util.Record;
 
 import java.util.*;
-import java.lang.reflect.Field;
 
 /**
  * Provides utility methods for database-backed objects.
@@ -65,33 +64,6 @@ public abstract class ActiveRecord extends HashBacked {
 
   public void commit() {
     if(!sDBDisabled) getDatabase().commit();
-  }
-
-  /**
-   * Look for columns with the name: {foo}_id.  For each of those,
-   * introspect for 'm{Foo}'.  For each non-null of those, call 'saveDB'
-   * on it. Store the result of that call in the '{foo}_id' column.
-   */
-  private void saveAssociations() {
-    Set<String> colNames=getDatabase().getColumns();
-    for(String name : colNames) {
-      if(name.endsWith("_id")) {
-        String className = name.substring(0, name.length()-3);
-        String member = "m" + classify(className);
-
-        try {
-          Field classMember = getClass().getField(member);
-          Object memberVariable = classMember.get(this);
-          if(memberVariable instanceof ActiveRecord) {
-            set(name, ((ActiveRecord)memberVariable).saveDB());
-          }
-        } catch (NoSuchFieldException e) {
-          System.err.println("No such field: " + member);
-        } catch (IllegalAccessException e) {
-          System.err.println("Can't access field: " + member);
-        }
-      }
-    }
   }
 
   /**
