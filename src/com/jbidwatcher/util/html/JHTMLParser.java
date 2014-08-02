@@ -15,8 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Administrator
+ * User: Morgan Schweers
  * Date: Jun 26, 2004
  * Time: 2:34:56 PM
  *

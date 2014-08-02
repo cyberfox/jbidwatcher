@@ -6,7 +6,7 @@ package com.jbidwatcher.util.html;
  */
 
 /**
- * User: Administrator
+ * User: Morgan Schweers
  * Date: Jun 26, 2004
  * Time: 3:05:47 PM
  *

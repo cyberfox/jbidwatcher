@@ -6,8 +6,7 @@ package com.jbidwatcher.util.html;
  */
 
 /**
- * Created by IntelliJ IDEA.
- * User: Administrator
+ * User: Morgan Schweers
  * Date: Jun 27, 2004
  * Time: 10:51:49 PM
  *
