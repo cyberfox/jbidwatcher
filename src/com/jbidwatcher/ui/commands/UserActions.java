@@ -47,7 +47,6 @@ public class UserActions implements MessageQueue.Listener {
   private static JConfigFrame jcf = null;
   private static SearchFrame _searchFrame = null;
   private OptionUI _oui = new OptionUI();
-  private RSSDialog _rssDialog = null;
   private static StringBuffer _colorHelp = null;
   private static StringBuffer _aboutText = null;
   private static StringBuffer _licenseText = null;
@@ -1420,16 +1419,6 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  private void DoRSS() {
-    if(_rssDialog == null) {
-      _rssDialog = new RSSDialog();
-    }
-
-    _rssDialog.prepare();
-    _rssDialog.pack();
-    _rssDialog.setVisible(true);
-  }
-
   protected void DoCheckUpdates() {
     // Force the 'last known version' to be the current, so that users can check
     // later, and have it still find the new version.
@@ -1496,7 +1485,6 @@ public class UserActions implements MessageQueue.Listener {
     else if(actionString.equals("Check For Updates")) DoCheckUpdates();
     else if(actionString.equals("Exit")) DoCloseDown();
     else if(actionString.equals("Explain Colors And Icons")) DoHelpColors();
-    else if(actionString.equals("RSS")) DoRSS();
     else if(actionString.equals("SQL")) DoSQL(c_src);
     else if(actionString.equals("Serialize")) DoSerialize();
     else if(actionString.equals("Upload")) DoUploadAuctions();

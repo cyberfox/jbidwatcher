@@ -34,7 +34,6 @@ public class JBidProxy extends AbstractMiniServer {
   private static final String activateSnipe = "activateSnipe?";
   private static final String findIDString = "id";
   private static final String findAmountString = "snipeamount";
-  private static final String syndicate = "syndicate/";
   private static final String event = "event";
   private static final String messageFinisher = "<br>Return to <a href=\"" + Constants.PROGRAM_NAME + "\">auction list</a>.";
   private static StringBuffer sIcon = null;
@@ -55,7 +54,7 @@ public class JBidProxy extends AbstractMiniServer {
         reqFile = reqFile.substring(1);
       }
 
-      if(reqFile.startsWith(syndicate) || reqFile.endsWith(".jpg") || reqFile.startsWith("register")) return false;
+      if(reqFile.endsWith(".jpg") || reqFile.startsWith("register")) return false;
     }
     return true;
   }
@@ -103,7 +102,7 @@ public class JBidProxy extends AbstractMiniServer {
       return outBuf;
     }
 
-    if(relativeDocument.equals("synchronize") || relativeDocument.startsWith(syndicate) || relativeDocument.endsWith(".xml")) {
+    if(relativeDocument.equals("synchronize") || relativeDocument.endsWith(".xml")) {
       outBuf.append("Content-Type: text/xml\n");
     } else {
       outBuf.append("Content-Type: text/html; charset=").append(Charset.defaultCharset()).append('\n');
@@ -133,7 +132,6 @@ public class JBidProxy extends AbstractMiniServer {
 
   private static Object[][] sRoutes = {
       {"returnNull", "(.*)\\.jpg$"},
-      {"syndicate", "syndicate/(.*)\\.xml"},
       {"show", "^(cached_)?([0-9]+)$"},
       {"favicon", "^favico.ico$"},
       {"snipePage", "^snipe\\?id=([0-9]+)$"},
@@ -277,20 +275,6 @@ public class JBidProxy extends AbstractMiniServer {
     return new JHTMLOutput("Event posted", "Event has been submitted." + messageFinisher).getStringBuffer();
   }
 
-  public StringBuffer syndicate(String s) {
-    return new StringBuffer(15000).
-        append("<?xml version=\"1.0\" ?>\n").
-        append("<rss version=\"0.91\">\n").
-        append("  <channel>\n").
-        append("    <title>JBidwatcher Auctions</title>\n").
-        append("    <link>/syndicate/").append(s).append(".xml</link>\n").
-        append("    <description>").append(labelToDescription.get(s)).append("</description>").
-        append("    <language>en-us</language>").
-        append(genItems(s)).
-        append("  </channel>\n").
-        append("</rss>\n");
-  }
-
   private StringBuffer setupSnipePage(String auctionId) {
     AuctionEntry ae = AuctionEntry.findByIdentifier(auctionId);
 
@@ -369,53 +353,5 @@ public class JBidProxy extends AbstractMiniServer {
       sbOut.append("<b><i>Item no longer appears on the server.</i></b><br>\n");
     }
     return sbOut;
-  }
-
-  private DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
-
-  private StringBuffer genItems(String s) {
-    StringBuffer sb = new StringBuffer(1500);
-    List<AuctionEntry> allEnded = null;
-
-    if(s.equals("ended")) {
-      allEnded = AuctionEntry.findRecentlyEnded(Constants.SYNDICATION_ITEM_COUNT);
-    } else if(s.equals("ending")) {
-      allEnded = AuctionEntry.findEndingSoon(Constants.SYNDICATION_ITEM_COUNT);
-    } else if(s.equals("bid")) {
-      allEnded = AuctionEntry.findBidOrSniped(Constants.SYNDICATION_ITEM_COUNT);
-    }
-
-    //  If no valid RSS feed type was given, return an empty feed.
-    if(allEnded == null) allEnded = new ArrayList<AuctionEntry>();
-
-    for(AuctionEntry ae : allEnded) {
-      sb.append("<item>\n");
-      sb.append("<title><![CDATA[");
-      sb.append(StringTools.stripHigh(ae.getTitle()));
-      sb.append("]]></title>\n");
-
-      sb.append("<link><![CDATA[");
-      sb.append(ae.getBrowseableURL());
-      sb.append("]]></link>\n");
-
-      sb.append("<pubDate>");
-      sb.append(df.format(ae.getEndDate()));
-      sb.append("</pubDate>");
-
-      sb.append("<description><![CDATA[");
-      sb.append(ae.getPresenter().buildInfo(true));
-      sb.append("]]></description>\n</item>\n");
-    }
-
-    return sb;
-  }
-
-  Map<String, String> labelToDescription;
-
-  {
-    labelToDescription = new HashMap<String, String>();
-    labelToDescription.put("ended", "List of items ended recently.");
-    labelToDescription.put("ending", "List of items ending soon.");
-    labelToDescription.put("bid", "List of items being bid/sniped on.");
   }
 }
