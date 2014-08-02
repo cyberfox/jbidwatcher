@@ -139,16 +139,6 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  private AuctionEntry addAuction(String auctionSource) {
-    AuctionEntry aeNew = EntryFactory.getInstance().constructEntry(auctionSource);
-    if (aeNew != null) {
-      aeNew.setCategory(mTabs.getCurrentTableTitle());
-      AuctionsManager.getInstance().addEntry(aeNew);
-      MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
-    }
-    return aeNew;
-  }
-
   private void cmdAddAuction(String auctionSource) {
     if(auctionSource.regionMatches(true, 0, "<html>", 0, 6)) {
       auctionSource = JHTML.getFirstContent(auctionSource);

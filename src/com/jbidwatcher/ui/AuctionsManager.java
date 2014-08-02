@@ -31,7 +31,7 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 
 /** @noinspection Singleton*/
-public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager, JConfig.ConfigListener {
+public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager, JConfig.ConfigListener, MessageQueue.Listener {
   private static AuctionsManager mInstance = null;
   private FilterManager mFilter;
 
@@ -53,10 +53,19 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     mLastCheckpointed = System.currentTimeMillis();
 
     mFilter = new FilterManager();
+
+    MQFactory.getConcrete("manager").registerListener(this);
   }
 
   static {
     mInstance = new AuctionsManager();
+  }
+
+  public void messageAction(Object deQ) {
+    String identifier = (String)deQ;
+
+    AuctionEntry ae = EntryCorral.getInstance().takeForRead(identifier);
+    addEntry(ae);
   }
 
   /**
