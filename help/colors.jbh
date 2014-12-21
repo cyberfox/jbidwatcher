@@ -119,14 +119,6 @@ the item has been deleted from eBay.
 <li>Deleted Item <img src="<%res:/icons/deleted.png%>"><br>
 This indicates that JBidwatcher has determined the item has been removed
 from eBay.
-</li>
-<li>Feed Icon <img src="<%res:/icons/feed.gif%>"><br>
-This links to a dialog that lets you copy the URLs to the JBidwatcher
-RSS feeds.  It also allows you to launch the feed:// urls, if you have
-an application which understands the feed:// protocol.  (Mac OS X, and
-some Windows aggregators do.)  This allows you to monitor the results
-of your JBidwatcher auctions using an aggregator, so you can see what
-has ended recently, what the status of the things you've bid on are, etc.,
-remotely.</li></ul>
+</li></ul>
 </body>
 </html>

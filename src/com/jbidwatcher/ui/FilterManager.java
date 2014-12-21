@@ -5,6 +5,7 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.ui.table.auctionTableModel;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -14,6 +15,7 @@ import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.Category;
 import com.jbidwatcher.auction.EntryCorral;
 
+import javax.swing.event.TableModelEvent;
 import java.util.*;
 import java.awt.Color;
 
@@ -93,7 +95,10 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
           if (old != null) old.getUI().redrawAll();
           newAuction.getUI().redrawAll();
         } else {
-          JTabManager.getInstance().getCurrentTable().update(ae);
+          auctionTableModel model = (auctionTableModel)JTabManager.getInstance().getCurrentTable().getModel();
+          int row = model.findRow(ae);
+          row = JTabManager.getInstance().getCurrentTable().convertRowIndexToView(row);
+          JTabManager.getInstance().getCurrentTable().tableChanged(new TableModelEvent(model, row));
         }
         return;
       }

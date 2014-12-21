@@ -102,6 +102,7 @@ public class JBTool implements ToolInterface {
 
   public void execute() {
     setupAuctionResolver();
+    if(mLogin) forceLogin();
 
     if(mRunServer) {
       spawnServer();

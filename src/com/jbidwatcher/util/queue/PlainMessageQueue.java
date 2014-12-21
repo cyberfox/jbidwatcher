@@ -79,6 +79,9 @@ public final class PlainMessageQueue extends MessageQueue {
   }
 
   public boolean enqueue(String entry) {
+    if(JConfig.queryConfiguration("debug.queues", "false").equals("true")) {
+      JConfig.log().logMessage(entry);
+    }
     return enqueueObject(entry);
   }
 

@@ -47,7 +47,6 @@ public class UserActions implements MessageQueue.Listener {
   private static JConfigFrame jcf = null;
   private static SearchFrame _searchFrame = null;
   private OptionUI _oui = new OptionUI();
-  private RSSDialog _rssDialog = null;
   private static StringBuffer _colorHelp = null;
   private static StringBuffer _aboutText = null;
   private static StringBuffer _licenseText = null;
@@ -107,16 +106,6 @@ public class UserActions implements MessageQueue.Listener {
     } else {
       JConfig.log().logDebug("Received unrecognized 'user' message: " + commandStr);
     }
-  }
-
-  private AuctionEntry addAuction(String auctionSource) {
-    AuctionEntry aeNew = EntryFactory.getInstance().constructEntry(auctionSource);
-    if (aeNew != null) {
-      aeNew.setCategory(mTabs.getCurrentTableTitle());
-      AuctionsManager.getInstance().addEntry(aeNew);
-      MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
-    }
-    return aeNew;
   }
 
   private void cmdAddAuction(String auctionSource) {
@@ -1418,16 +1407,6 @@ public class UserActions implements MessageQueue.Listener {
     } else {
       helpFrame.setVisible(true);
     }
-  }
-
-  public void DoRSS() {
-    if(_rssDialog == null) {
-      _rssDialog = new RSSDialog();
-    }
-
-    _rssDialog.prepare();
-    _rssDialog.pack();
-    _rssDialog.setVisible(true);
   }
 
   @MenuCommand(action = "Check For Updates")

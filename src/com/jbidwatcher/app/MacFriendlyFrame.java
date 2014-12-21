@@ -94,10 +94,6 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     statusPane.setBorder(myBorder);
     statusPane.setLayout(new BoxLayout(statusPane, BoxLayout.X_AXIS));
 
-    JButton rssButton = ButtonMaker.makeButton("icons/xml.png", "Show RSS feed information", "RSS", tabManager, true);
-    rssButton.setMinimumSize(new Dimension(rssButton.getIcon().getIconWidth()+2, rssButton.getIcon().getIconHeight()));
-    statusPane.add(rssButton);
-
     JSeparator vert1 = new JSeparator(SwingConstants.VERTICAL);
     vert1.setForeground(Color.DARK_GRAY);
     vert1.setMinimumSize(new Dimension(10, 5));
@@ -127,7 +123,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
 
     statusPane.add(Box.createHorizontalStrut(10));
 
-    final int baseSize = 14 + rssButton.getIcon().getIconWidth() + 2 + 10 + 10 + 300 + 10;
+    final int baseSize = 14 + 2 + 10 + 10 + 300 + 10;
     addComponentListener(new ComponentAdapter() {
       public void componentResized(ComponentEvent e) {
         int textWidthAllowed = statusPane.getWidth() - baseSize;

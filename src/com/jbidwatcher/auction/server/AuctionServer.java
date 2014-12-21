@@ -225,6 +225,12 @@ public abstract class AuctionServer implements AuctionServerInterface {
     while(sb == null && runCount < 2) {
       sb = retrieveAuction(item_id, ae);
 
+      // If there was a failure retrieving the HTML itself, we probably got a 404.
+      if(sb == null && (ae == null || ae.isDeleted())) {
+        if(ae != null) ae.saveDB();
+        return null;
+      }
+
       try {
         curAuction = doParse(sb, ae, item_id);
       } catch (ReloadItemException e) {

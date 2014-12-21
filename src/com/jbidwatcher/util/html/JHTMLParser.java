@@ -15,8 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Administrator
+ * User: Morgan Schweers
  * Date: Jun 26, 2004
  * Time: 2:34:56 PM
  *
@@ -82,11 +81,8 @@ public class JHTMLParser {
               JConfig.log().logDebug("Potential quote error!");
               spitNextTag = true;
             }
-            //  This prevents opening a quote at the end of a tag.
-            if(!inQuote && prev != '=' && next == '>') {
-              if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
-                JConfig.log().logDebug("Quote error!");
-              }
+
+            if(isEndTag(inQuote, prev, next)) {
               spitNextTag = true;
             } else {
               inQuote = !inQuote;
@@ -191,7 +187,8 @@ public class JHTMLParser {
   }
 
   private StringBuffer stripNoBR(StringBuffer trueBuffer) {
-    StringBuffer sb;Matcher m;
+    StringBuffer sb;
+    Matcher m;
     sb = new StringBuffer(trueBuffer.length());
     m = Pattern.compile("(<nobr>|</nobr>)").matcher(trueBuffer);
     while(m.find()) {

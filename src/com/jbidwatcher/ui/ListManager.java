@@ -5,6 +5,9 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.Task;
 import com.jbidwatcher.auction.AuctionEntry;
 
+import javax.swing.*;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import java.util.*;
 import java.awt.Color;
 import java.awt.Component;
@@ -100,7 +103,14 @@ public class ListManager {
 
     for (AuctionListHolder step : categories) {
       // getSortProperties must be called first in order to restore original column names
-      step.getUI().getTableSorter().getSortProperties(step.getList().getName(), outProps);
+      JTable table = step.getUI().getTable();
+      TableRowSorter<TableModel> sorter = step.getUI().getTableSorter();
+      TableModel model = sorter.getModel();
+      for(int j=0; j<model.getColumnCount(); j++) {
+        int viewIndex = table.convertColumnIndexToView(j);
+        // TODO(cyberfox) - Add sort properties from sorter to outProps.
+      }
+//      step.getUI().getTableSorter().getSortProperties(step.getList().getName(), outProps);
       step.getUI().getColumnWidthsToProperties(outProps);
 
       String tab = step.getList().getName();

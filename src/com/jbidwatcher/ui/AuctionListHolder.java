@@ -34,7 +34,7 @@ class AuctionListHolder {
     if(_completed) mAuctionList.setComplete();
     mAuctionUI = new AuctionsUIModel(mAuctionList, sTableContext, sFrameContext, sCornerButtonListener);
     mDeletable = deletable;
-    JTabManager.getInstance().add(name, mAuctionUI.getPanel(), mAuctionUI.getTableSorter());
+    JTabManager.getInstance().add(name, mAuctionUI.getPanel(), mAuctionUI.getTable());
   }
 
   public Auctions getList() { return mAuctionList; }

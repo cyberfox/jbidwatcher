@@ -26,6 +26,7 @@ import com.jbidwatcher.ui.util.JBidFrame;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.RuntimeInfo;
 import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.JRubyPreloader;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Database;
@@ -46,8 +47,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.*;
 import java.util.*;
 
@@ -637,13 +636,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     ThumbnailLoader.start();
 
     inSplash.message("Initializing Scripting");
-    Thread scriptLoading = new Thread(new Runnable() {
-      public void run() {
-        synchronized(mScriptCompletion) {
-          enableScripting();
-        }
-      }
-    });
+    Thread scriptLoading = new Thread(new JRubyPreloader(mScriptCompletion));
     scriptLoading.start();
 
     inSplash.message("Initializing Database");

@@ -32,6 +32,9 @@ public class SwingMessageQueue extends MessageQueue
   }
 
   public boolean enqueue(String obj) {
+    if (JConfig.queryConfiguration("debug.queues", "false").equals("true")) {
+      JConfig.log().logMessage(obj);
+    }
     synchronized(_queue) {
       if (_queue.isEmpty() || _queue.getLast() != obj) {
         _queue.addLast(obj);

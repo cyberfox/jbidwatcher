@@ -18,8 +18,10 @@ import com.jbidwatcher.UpdaterEntry;
 import com.jbidwatcher.UpdateManager;
 
 import javax.swing.*;
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.*;
 
@@ -175,7 +177,9 @@ public final class UIBackbone implements MessageQueue.Listener {
     } else if (msg.startsWith(ALERT_MSG)) {
       String alertMsg = msg.substring(ALERT_MSG.length());
       logActivity("Alert: " + alertMsg);
-      JOptionPane.showMessageDialog(null, alertMsg, "Alert", JOptionPane.PLAIN_MESSAGE);
+      if(!duplicateDialog(alertMsg)) {
+        JOptionPane.showMessageDialog(null, alertMsg, "Alert", JOptionPane.PLAIN_MESSAGE);
+      }
     } else if (msg.startsWith(NOACCOUNT_MSG)) {
       String noAcctMsg = msg.substring(NOACCOUNT_MSG.length());
       logActivity("Alert: " + noAcctMsg);
@@ -220,20 +224,44 @@ public final class UIBackbone implements MessageQueue.Listener {
     }
   }
 
+  private boolean duplicateDialog(String alertMsg) {
+    Window[] rval = JDialog.getWindows();
+
+    for (Window w : rval) {
+      if (w instanceof JDialog) {
+        JDialog jd = (JDialog)w;
+        if(jd.isVisible()) {
+          Component[] components = jd.getContentPane().getComponents();
+          for(Component c : components) {
+            if(c instanceof JOptionPane) {
+              if(((JOptionPane)c).getMessage().equals(alertMsg)) return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   private void handleLoginStatus(String msg) {
     String status = msg.substring("LOGINSTATUS ".length());
     if(status.startsWith("FAILED")) {
       JBidToolBar.getInstance().setToolTipText("Login failed.");
       JBidToolBar.getInstance().setTextIcon(redStatus, redStatus16);
+      JConfig.getMetrics().trackEvent("login", "fail");
+      notifyAlert(status.substring("FAILED ".length()));
     } else if(status.startsWith("CAPTCHA")) {
       JBidToolBar.getInstance().setToolTipText("Login failed due to CAPTCHA.");
       JBidToolBar.getInstance().setTextIcon(redStatus, redStatus16);
+      JConfig.getMetrics().trackEvent("login", "captcha");
     } else if(status.startsWith("SUCCESSFUL")) {
       JBidToolBar.getInstance().setToolTipText("Last login was successful.");
       JBidToolBar.getInstance().setTextIcon(greenStatus, greenStatus16);
+      JConfig.getMetrics().trackEvent("login", "success");
     } else {   //  Status == NEUTRAL
       JBidToolBar.getInstance().setToolTipText("Last login did not clearly fail, but no valid cookies were received.");
       JBidToolBar.getInstance().setTextIcon(yellowStatus, yellowStatus16);
+      JConfig.getMetrics().trackEvent("login", "neutral");
     }
   }
 
@@ -252,17 +280,20 @@ public final class UIBackbone implements MessageQueue.Listener {
     SearchManager.start();
 
     if (!_userValid) {
-      String msgType = ALERT_MSG;
-      String destination = "Swing";
-      if (Platform.isTrayEnabled()) {
-        msgType = NOTIFY_MSG;
-        destination = "tray";
-      }
-      MQFactory.getConcrete(destination).enqueue(msgType +
-          "Not yet logged in.  Snipes will not fire until logging in\n" +
+      notifyAlert("Not yet logged in.  Snipes will not fire until logging in\n" +
           "is successful.  Item updating has been enabled, but any\n" +
           "features that rely on being logged in will not work.");
     }
+  }
+
+  private void notifyAlert(String alertMessage) {
+    String msgType = ALERT_MSG;
+    String destination = "Swing";
+    if (Platform.isTrayEnabled()) {
+      msgType = NOTIFY_MSG;
+      destination = "tray";
+    }
+    MQFactory.getConcrete(destination).enqueue(msgType + alertMessage);
   }
 
   private void handleInvalidLogin(String rest) {
