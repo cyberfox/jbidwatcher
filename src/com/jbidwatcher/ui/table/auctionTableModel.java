@@ -22,6 +22,7 @@ import java.util.*;
 public class auctionTableModel extends AbstractTableModel
 {
   private static final String neverBid = "--";
+  private final MultiSnipeManager multiManager;
   private AuctionList dispList;
   private Date futureForever = new Date(Long.MAX_VALUE);
 
@@ -253,7 +254,7 @@ public class auctionTableModel extends AbstractTableModel
   private String formatSnipe(AuctionEntry aEntry, String errorNote) {
     String snipeCount = "";
 
-    MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(aEntry.getIdentifier());
+    MultiSnipe ms = multiManager.getForAuctionIdentifier(aEntry.getIdentifier());
     if(ms != null) {
       if(aEntry.isSnipeValid()) {
         return errorNote + "Multi: " + aEntry.getSnipeAmount() + snipeCount;
@@ -286,7 +287,7 @@ public class auctionTableModel extends AbstractTableModel
       return "--";
     }
 
-    MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(aEntry.getIdentifier());
+    MultiSnipe ms = multiManager.getForAuctionIdentifier(aEntry.getIdentifier());
     if (ms != null) {
       if (aEntry.isSnipeValid()) {
         return errorNote + "Multi: " + totalSnipe;
@@ -493,7 +494,8 @@ public class auctionTableModel extends AbstractTableModel
     return new ImageIcon(base.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH));
   }
 
-  public auctionTableModel(AuctionList inList) {
+  public auctionTableModel(MultiSnipeManager multiManager, AuctionList inList) {
+    this.multiManager = multiManager;
     dispList = inList;
   }
 

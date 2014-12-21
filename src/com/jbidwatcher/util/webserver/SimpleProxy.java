@@ -5,6 +5,8 @@ package com.jbidwatcher.util.webserver;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.google.inject.Provider;
+import com.jbidwatcher.app.MiniServerFactory;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.ToolInterface;
 
@@ -15,15 +17,15 @@ import java.lang.reflect.Constructor;
 @SuppressWarnings({"ClassExplicitlyExtendsThread"})
 public class SimpleProxy extends Thread {
   private int mSocketNumber;
-  private Class mSubProxy = ProxyClient.class;
+  private MiniServerFactory mSubProxy;
   private ServerSocket mServerSock = null;
   private boolean mHalted = false;
   private boolean mRunning = false;
   private Object mObjectToPass = null;
 
-  private void makeProxyServer(int sockNum, Class minorProxyClass) {
+  private void makeProxyServer(int sockNum, MiniServerFactory minorProxyFactory) {
     mSocketNumber = sockNum;
-    mSubProxy = minorProxyClass;
+    mSubProxy = minorProxyFactory;
   }
 
   public void halt() {
@@ -57,17 +59,13 @@ public class SimpleProxy extends Thread {
     }
   }
 
-  public SimpleProxy(int sockNum) {
-    makeProxyServer(sockNum, ProxyClient.class);
+  public SimpleProxy(int sockNum, MiniServerFactory minorProxyFactory) {
+    makeProxyServer(sockNum, minorProxyFactory);
   }
 
-  public SimpleProxy(int sockNum, Class minorProxyClass) {
-    makeProxyServer(sockNum, minorProxyClass);
-  }
-
-  public SimpleProxy(int sockNum, Class minorProxyClass, Object paramObj) {
+  public SimpleProxy(int sockNum, MiniServerFactory minorProxyFactory, Object paramObj) {
     setName("SimpleProxy");
-    makeProxyServer(sockNum, minorProxyClass);
+    makeProxyServer(sockNum, minorProxyFactory);
     mObjectToPass = paramObj;
   }
 
@@ -100,30 +98,18 @@ public class SimpleProxy extends Thread {
       }
 
       if(acceptedSock != null) {
-        Class[] subProxyParamClasses;
-        Object[] subProxyParamObjects;
-
+        ProxyClient pc;
         if(mObjectToPass == null) {
-          Class[] paramClasses = { acceptedSock.getClass() };
-          Object[] paramObjects = { acceptedSock };
-
-          subProxyParamClasses = paramClasses;
-          subProxyParamObjects = paramObjects;
+          pc = mSubProxy.create(acceptedSock);
         } else {
-          Class[] paramClasses = { acceptedSock.getClass(), (mObjectToPass instanceof ToolInterface) ? ToolInterface.class : mObjectToPass.getClass() };
-          Object[] paramObjects = { acceptedSock, mObjectToPass};
-
-          subProxyParamClasses = paramClasses;
-          subProxyParamObjects = paramObjects;
+          if(mObjectToPass instanceof ToolInterface) {
+            pc = mSubProxy.create(acceptedSock, (ToolInterface) mObjectToPass);
+          } else {
+            pc = mSubProxy.create(acceptedSock, mObjectToPass);
+          }
         }
 
-        try {
-          Constructor maker = mSubProxy.getConstructor(subProxyParamClasses);
-          ProxyClient pc = (ProxyClient) maker.newInstance(subProxyParamObjects);
-          pc.start();
-        } catch(Exception e) {
-          JConfig.log().handleException("Serious failure trying to create a ProxyClient object.", e);
-        }
+        pc.start();
       }
     }
   }

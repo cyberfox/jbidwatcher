@@ -10,13 +10,17 @@ import com.cyberfox.util.config.ErrorManagement;
 import com.cyberfox.util.platform.Path;
 import com.cyberfox.util.platform.Platform;
 import com.cyberfox.util.platform.osx.NoNap;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.jbidwatcher.auction.*;
+import com.jbidwatcher.auction.server.AuctionServerFactory;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.platform.*;
 import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.ui.commands.UserActions;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.search.SearchManager;
@@ -76,6 +80,26 @@ public final class JBidWatch implements JConfig.ConfigListener {
    * file.  See JConfig.java for more details.
    */
   private static ClassLoader urlCL = (ClassLoader)JBidWatch.class.getClassLoader();
+  private final MyJBidwatcher myJBidwatcher;
+  private final JBWDropHandler dropHandler;
+  @Inject
+  private MiniServerFactory miniServerFactory;
+  @Inject
+  private AuctionServerFactory serverFactory;
+  @Inject
+  private PopupMenuFactory menuFactory;
+
+  private final FilterManager filters;
+  private final ListManager listManager;
+  private final AuctionsManager auctionsManager;
+  private final UIBackbone backbone;
+  private SearchManager searchManager;
+  private EntryFactory entryFactory;
+  private EntryCorral corral;
+  private AuctionServerManager serverManager;
+  private ErrorMonitor errorMonitor;
+  private Injector injector;
+
   /** SimpleProxy is the internal web server proxy class.  This lets
    * us turn on or off the proxy, based on configuration changes.
    */
@@ -92,8 +116,10 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private static final int MINUTES_IN_HOUR = 60;
   private static boolean sUSB = false;
   private static boolean sCreatedDB = false;
+  private boolean ebayLoaded = false;
 
   private final Object mScriptCompletion = new Object();
+  private UserActions userActions;
 
   /**
    * @brief Try to guarantee a directory for saving 'cached copies'
@@ -117,9 +143,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
     return Path.makeStandardDirectory(inPath, "platform", "jbidwatcher");
   }
 
-  private static void getUserSetup() {
+  private void getUserSetup() {
     JConfig.setConfiguration("config.firstrun", "true");
-    JConfigFrame jcf = new JConfigFrame();
+    JConfigFrame jcf = new JConfigFrame(myJBidwatcher, serverManager.getServer().getFriendlyName());
     jcf.spinWait();
   }
 
@@ -358,7 +384,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
    */
   public static void main(String[] args) {
     JConfig.setLogger(new ErrorManagement());
-    if(checkArguments(args)) {
+    if (checkArguments(args)) {
       System.exit(0);
     }
 
@@ -369,22 +395,48 @@ public final class JBidWatch implements JConfig.ConfigListener {
     System.setProperty("sun.net.client.defaultConnectTimeout", "5000");
     System.setProperty("sun.net.client.defaultReadTimeout", "15000");
 
+    JBidWatch program = getApplication();
+
+    program.configure(args);
+    program.startDatabase();
+    program.setupSearches();
+    program.loadProxySettings();
+
+    JSplashScreen splashScreen = prepSplashScreen();
+
+    try {
+      program.run(splashScreen);
+      Thread.currentThread().join();
+
+      program.repaint();
+    } catch (Exception e) {
+      JConfig.log().handleException("JBidwatcher: " + e, e);
+    }
+  }
+
+  private static JBidWatch getApplication() {
+    AbstractModule guiceModule = new JBidwatcherModule();
+
+    Injector inject = Guice.createInjector(guiceModule);
+    return inject.getInstance(JBidWatch.class);
+  }
+
+  private void configure(String[] args) {
     //  Pass a parameter (other than --help or -h) to launch that as a
     //  configuration file.
     String cfgLoad = "JBidWatch.cfg";
     if (args.length != 0) {
-      if(args[0].charAt(0) != '-') {
+      if (args[0].charAt(0) != '-') {
         cfgLoad = args[0];
       }
     }
 
-    ErrorMonitor.getInstance();
     cfgLoad = Path.getCanonicalFile(cfgLoad, "jbidwatcher", false);
     cfgLoad = lookForNewerMacConfig(cfgLoad);
-    boolean ebayLoaded = false;
     InputStream configStream = checkConfig(cfgLoad);
-    boolean needUserSetup = (configStream == null);
+
     boolean firstRun;
+    boolean needUserSetup = (configStream == null);
     if (needUserSetup) {
       setUI(null, null, UIManager.getInstalledLookAndFeels());
       //  Preload the eBay server, must be done before Configuration setup
@@ -402,10 +454,10 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
     JConfig.setConfiguration("temp.cfg.load", cfgLoad);
     loadConfig(configStream);
-    JConfig.setConfiguration("first.run", firstRun?"true":"false");
-    if(args.length > 0 && args[0] != null && args[0].equals("-transform")) {
+    JConfig.setConfiguration("first.run", firstRun ? "true" : "false");
+    if (args.length > 0 && args[0] != null && args[0].equals("-transform")) {
       String outName;
-      if(args.length == 1 || args[1] == null) {
+      if (args.length == 1 || args[1] == null) {
         outName = Path.getCanonicalFile("auctions.html", "jbidwatcher", false);
       } else {
         outName = args[1];
@@ -417,19 +469,25 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     JConfig.log().logMessage(Constants.PROGRAM_NAME + " " + Constants.PROGRAM_VERS + "-" + Constants.REVISION());
     JConfig.log().logMessage(System.getProperty("java.vendor") + " Java, version " + System.getProperty("java.version") + " on " + System.getProperty("os.name"));
-    if(JConfig.queryConfiguration("mac", "false").equals("true")) {
+    if (JConfig.queryConfiguration("mac", "false").equals("true")) {
       JConfig.setConfiguration("temp.cfg.load", Path.getCanonicalFile("JBidWatch.cfg", "jbidwatcher", false));
     }
     String logFileName = JConfig.log().getLog();
-    if(logFileName != null) JConfig.log().logMessage("Logging to " + logFileName);
+    if (logFileName != null) JConfig.log().logMessage("Logging to " + logFileName);
 
+    if (JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
+      XMLElement.rejectBadHTML(true);
+    }
+  }
+
+  private void startDatabase() {
     try {
       boolean creatingDB = JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("false");
       Upgrader.upgrade();
-      if(creatingDB && JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("true")) {
+      if (creatingDB && JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("true")) {
         sCreatedDB = true;
       }
-    } catch(Exception e) {
+    } catch (Exception e) {
       if (e.getMessage().matches("^Failed to start database.*")) {
         JConfig.log().handleException("JBidwatcher can't access it's database.", e);
         JOptionPane.showMessageDialog(null, "JBidwatcher can't access its database.\nPlease check to see if you are running another instance.", "Can't access auction database", JOptionPane.PLAIN_MESSAGE);
@@ -438,26 +496,44 @@ public final class JBidWatch implements JConfig.ConfigListener {
       }
       JConfig.log().handleException("Upgrading error", e);
     }
+  }
 
-    //  We need to load searches before adding the eBay server, so
+  @Inject
+  public JBidWatch(ErrorMonitor monitor, SearchManager searcher, EntryFactory entryMaker, EntryCorral holdingCell,
+                   AuctionServerManager serverManager, MyJBidwatcher myInstance, JBWDropHandler dropHandler,
+                   FilterManager filterManager, JTabManager tabManager, ListManager listManager, AuctionsManager auctionsManager,
+                   UIBackbone uiBackbone, UserActions userActions, Injector inject) {
+    this.searchManager = searcher;
+    this.corral = holdingCell;
+    this.entryFactory = entryMaker;
+    this.serverManager = serverManager;
+    this.errorMonitor = monitor;
+    this.myJBidwatcher = myInstance;
+    this.dropHandler = dropHandler;
+    this.filters = filterManager;
+    this.jtmAuctions = tabManager;
+    this.listManager = listManager;
+    this.auctionsManager = auctionsManager;
+    this.backbone = uiBackbone;
+    this.userActions = userActions;
+    this.injector = inject;
+
+    AuctionEntry.addObserver(entryFactory);
+    MultiSnipe.setCorral(corral);
+  }
+
+  private void setupSearches() {//  We need to load searches before adding the eBay server, so
     //  that it knows that a My eBay search already exists and doesn't
     //  try to recreate it.
-    SearchManager.getInstance().loadSearches();
+    searchManager.loadSearches();
 
     if(!ebayLoaded) {
       eBayServerSetup();
     }
-    SearchManager.getInstance().setDestinationQueue(AuctionServerManager.getInstance().getServer().getFriendlyName());
-    EntryFactory.setResolver(AuctionServerManager.getInstance());
-    AuctionEntry.addObserver(EntryFactory.getInstance());
-    MultiSnipe.setCorral(EntryCorral.getInstance());
-    loadProxySettings();
+    searchManager.setDestinationQueue(this.serverManager.getServer().getFriendlyName());
+  }
 
-    if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
-      XMLElement.rejectBadHTML(true);
-    }
-
-    //  Show splash screen and progress bar.
+  private static JSplashScreen prepSplashScreen() {//  Show splash screen and progress bar.
     Calendar rightNow = Calendar.getInstance();
     int _mon = rightNow.get(Calendar.MONTH);
     int _day = rightNow.get(Calendar.DAY_OF_MONTH);
@@ -470,16 +546,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     } else {
       imageURL = JConfig.getResource(JConfig.queryConfiguration("splash", "jbidwatch.jpg"));
     }
-    JSplashScreen Splash = new JSplashScreen(new ImageIcon(imageURL));
-
-    try {
-      JBidWatch program = new JBidWatch(Splash);
-      Thread.currentThread().join();
-
-      program.repaint();
-    } catch(Exception e) {
-      JConfig.log().handleException("JBidwatcher: " + e, e);
-    }
+    return new JSplashScreen(new ImageIcon(imageURL));
   }
 
   private static String lookForNewerMacConfig(String cfgLoad) {
@@ -494,18 +561,18 @@ public final class JBidWatch implements JConfig.ConfigListener {
     return cfgLoad;
   }
 
-  private static void eBayServerSetup() {
+  private void eBayServerSetup() {
     boolean nonUS = JConfig.queryConfiguration("ebay.non_us", Boolean.toString(!Platform.isUSBased())).equals("true");
     String homeSite = nonUS ? JConfig.queryConfiguration("ebay.alternate", "ebay.co.uk") : "ebay.com";
-    AuctionServer ebay = new ebayServer(homeSite);
-    AuctionServerManager.getInstance().setServer(ebay);
+    AuctionServer ebay = serverFactory.create(homeSite, null, null);
+    serverManager.setServer(ebay);
   }
 
   private void repaint() {
     mainFrame.repaint();
   }
 
-  private static void loadProxySettings() {
+  private void loadProxySettings() {
     Properties sysProps = System.getProperties();
 
     boolean proxied = EstablishProxy(sysProps);
@@ -531,13 +598,13 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     String savedBGColor = JConfig.queryConfiguration("background", "false");
     if(!savedBGColor.equals("false")) {
-      ListManager.getInstance().setBackground(Color.decode('#' + savedBGColor));
+      listManager.setBackground(Color.decode('#' + savedBGColor));
     }
 
     //  Enable the internal server, if it's set.
     if(JConfig.queryConfiguration("server.enabled", "false").equals("true")) {
       if(sp == null) {
-        sp = new SimpleProxy(localServer_port, com.jbidwatcher.app.JBidProxy.class, null);
+        sp = new SimpleProxy(localServer_port, miniServerFactory, null);
       }
 
       sp.go();
@@ -566,9 +633,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
   private MacFriendlyFrame buildFrame() {
     URL iconURL = JConfig.getResource(JConfig.queryConfiguration("icon", "jbidwatch64.jpg"));
-    JMouseAdapter myFrameAdapter = new JBidFrameMouse();
-
-    return new MacFriendlyFrame("JBidwatcher", myFrameAdapter, iconURL, jtmAuctions);
+    JMouseAdapter myFrameAdapter = injector.getInstance(JBidFrameMouse.class);
+    return new MacFriendlyFrame(injector.getInstance(JBidToolBar.class), "JBidwatcher", myFrameAdapter, iconURL, jtmAuctions);
   }
 
   private static void preloadLibrary() {
@@ -624,10 +690,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
    *
    * @noinspection CallToThreadStartDuringObjectConstruction
    */
-  private JBidWatch(JSplashScreen inSplash) {
+  private void run(JSplashScreen inSplash) {
     inSplash.message("Initializing Monitors");
     ActivityMonitor.start();
-    UIBackbone backbone = new UIBackbone();
     MQFactory.getConcrete("login").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
         MQFactory.getConcrete("Swing").enqueue("LOGINSTATUS " + deQ.toString());
@@ -640,18 +705,16 @@ public final class JBidWatch implements JConfig.ConfigListener {
     scriptLoading.start();
 
     inSplash.message("Initializing Database");
-    MyJBidwatcher.getInstance();
-    FilterManager filters = AuctionsManager.getInstance().getFilters();
-    Initializer.setup(filters);
+    Initializer.setup(jtmAuctions, listManager, menuFactory);
     filters.loadFilters();
     inSplash.message("Loading Auctions");
     if (sCreatedDB) {
-      AuctionsManager.getInstance().loadAuctions();
+      auctionsManager.loadAuctions();
     } else {
-      AuctionsManager.getInstance().loadAuctionsFromDatabase();
+      auctionsManager.loadAuctionsFromDatabase();
     }
 
-    AuctionServerManager.getInstance().getDefaultServerTime();
+    serverManager.getDefaultServerTime();
 
     JConfig.registerListener(this);
 
@@ -659,14 +722,12 @@ public final class JBidWatch implements JConfig.ConfigListener {
 //    MQFactory.getConcrete(defaultServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$
 
     //  Register the handler for all 'drop' events.
-    JBWDropHandler.start();
     Browser.start();
-    MQFactory.getConcrete("user").registerListener(new UserActions());
+    MQFactory.getConcrete("user").registerListener(userActions);
     //    class.getClass().getClassLoader().find('com.jbidwatcher.ui.commands.*').loadAll();
 
     inSplash.message("Building Interface");
-    jtmAuctions = JTabManager.getInstance();
-    JBidFrame.setDefaultMenuBar(JBidMenuBar.getInstance(jtmAuctions, "Search Editor"));
+    JBidFrame.setDefaultMenuBar(JBidMenuBar.getInstance(menuFactory, jtmAuctions.getTabs(), jtmAuctions, "Search Editor"));
 
     mainFrame = buildFrame();
     mainFrame.setLocation(JConfig.screenx, JConfig.screeny);
@@ -757,7 +818,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     //  TODO mrs - This is where things start to suck. Can this become a single VERB+NOUN operation?
     q.preQueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null),
-               AuctionServerManager.getInstance().getServer().getFriendlyName(),
+               serverManager.getServer().getFriendlyName(),
                now + Constants.ONE_SECOND * 3,
                481 * Constants.ONE_MINUTE + Constants.ONE_SECOND * 17);
 
@@ -813,10 +874,10 @@ public final class JBidWatch implements JConfig.ConfigListener {
    * etc., in order to save them off so the UI can remain
    * approximately the same between executions.
    */
-  public static Properties getColumnProperties() {
+  public Properties getColumnProperties() {
     Properties colProps = new Properties();
 
-    colProps = ListManager.getInstance().extractProperties(colProps);
+    colProps = listManager.extractProperties(colProps);
 
     return (colProps);
   }
@@ -831,7 +892,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       }
 
       Properties colProps = getColumnProperties();
-      SearchManager.getInstance().saveSearchDisplay();
+      searchManager.saveSearchDisplay();
       Properties displayProps = UISnapshot.snapshotLocation(mainFrame);
       String dispFile = Path.getCanonicalFile("display.cfg", "jbidwatcher", false);
       JConfig.saveDisplayConfig(dispFile, displayProps, colProps);
@@ -842,12 +903,12 @@ public final class JBidWatch implements JConfig.ConfigListener {
       String cfgFilename = cfgLoad.equals("JBidWatch.cfg") ? Path.getCanonicalFile(cfgLoad, "jbidwatcher", false) : cfgLoad;
 
       //  TODO -- Need to save searches in the database too...  Right now they're still hanging around in XML form.
-      SearchManager.getInstance().saveSearches();
-      AuctionStats as = AuctionServerManager.getInstance().getStats();
+      searchManager.saveSearches();
+      AuctionStats as = serverManager.getStats();
       JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
       if (Database.saveDBConfig()) {
         // If we're changing databases, we'll need the auction information saved so we can load it into the new database.
-        AuctionsManager.getInstance().saveAuctions();
+        auctionsManager.saveAuctions();
       }
       JConfig.saveConfiguration(cfgFilename);
       ActiveRecord.shutdown();

@@ -44,7 +44,7 @@ public class AuctionsUIModel {
   private CSVExporter _export;
   private JPanel mPanel;
 
-  private static final myTableCellRenderer _myRenderer = new myTableCellRenderer();
+  private final myTableCellRenderer _myRenderer;
   private TableModel model;
   private final TableRowSorter<TableModel> sorter;
 
@@ -56,12 +56,13 @@ public class AuctionsUIModel {
    * @param frameContextMenu - The context menu to present for whitespace outside the table.
    * @param cornerButtonListener - The button to sit above the scrollbar.
    */
-  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, final JContext frameContextMenu, ActionListener cornerButtonListener) {
+  public AuctionsUIModel(Auctions newAuctionList, myTableCellRenderer cellRenderer, MultiSnipeManager multiManager, JContext tableContextMenu, final JContext frameContextMenu, ActionListener cornerButtonListener) {
+    _myRenderer = cellRenderer;
     _dataModel = newAuctionList;
 
     _targets = new DropTarget[2];
 
-    model = new auctionTableModel(_dataModel.getList());
+    model = new auctionTableModel(multiManager, _dataModel.getList());
 
     _table = new AuctionTable(_dataModel.getName(), model);
     if(newAuctionList.isCompleted()) {
@@ -325,7 +326,7 @@ public class AuctionsUIModel {
     //  If we managed to do the i18n thing through it all, and we have
     //  some real values, return it.
     if(i18n && realAccum != null) {
-      StringBuffer result = new StringBuffer(realAccum.toString());
+      StringBuilder result = new StringBuilder(realAccum.toString());
       if(withRealShipping != null && !realAccum.equals(withRealShipping)) {
         result.append(" (").append(withRealShipping).append(" with ").append(sAndH).append(')');
       }
@@ -412,7 +413,7 @@ public class AuctionsUIModel {
 
   // hack and a half - but adding a row height attribute for columns seems like overkill
   public void adjustRowHeight() {
-    Font def = myTableCellRenderer.getDefaultFont();
+    Font def = _myRenderer.getDefaultFont();
     Graphics g = _table.getGraphics();
     int defaultHeight;
 

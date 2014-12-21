@@ -27,18 +27,19 @@ public class AuctionEntryTest extends TestCase {
 
   public void setUp() throws Exception {
     super.setUp();
-    JConfig.setLogger(new ErrorManagement());
-    JConfig.setConfiguration("db.user", "test1");
-    Upgrader.upgrade();
+//    JConfig.setLogger(new ErrorManagement());
+//    JConfig.setConfiguration("db.user", "test1");
+//    Upgrader.upgrade();
     mai = new MockAuctionInfo();
-    EntryFactory.setResolver(new Resolver() {
+    EntryFactory ef = new EntryFactory(null, null);
+    ef.setResolver(new Resolver() {
       public AuctionServerInterface getServer() {
         return new MockAuctionServerInterface(mai);
       }
     });
-    mAE = AuctionEntry.findByIdentifier(mai.getIdentifier());
-    if(mAE != null) mAE.delete();
-    mAE = EntryFactory.getInstance().constructEntry(mai.getIdentifier());
+//    mAE = AuctionEntry.findByIdentifier(mai.getIdentifier());
+//    if(mAE != null) mAE.delete();
+    mAE = ef.constructEntry(mai.getIdentifier());
   }
 
   public void tearDown() throws Exception {

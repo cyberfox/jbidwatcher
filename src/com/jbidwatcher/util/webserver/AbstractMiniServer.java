@@ -26,7 +26,7 @@ public abstract class AbstractMiniServer extends HTTPProxyClient {
   protected abstract Object[][] getRoutes();
 
   protected StringBuffer buildHTML(String whatDocument) throws FileNotFoundException {
-    if(whatDocument.indexOf("/") != -1) {
+    if(whatDocument.contains("/")) {
       whatDocument = whatDocument.substring(whatDocument.indexOf("/") +1);
     }
 

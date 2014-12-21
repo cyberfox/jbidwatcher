@@ -1180,6 +1180,21 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     return (x < 10) ? " " : "";
   }
 
+  /**
+   * For display during updates, we want the title and potentially the
+   * comment, to display all that in the status bar while we're
+   * updating.
+   *
+   * @return - A string containing the title alone, if no comment, or
+   * in the format: "title (comment)" otherwise.
+   */
+  public String getTitleAndComment() {
+    String curComment = getComment();
+    if (curComment == null) return getTitle();
+
+    return getTitle() + " (" + curComment + ')';
+  }
+
   @Override
   public int hashCode() {
     return getIdentifier().hashCode() ^ getEndDate().hashCode();

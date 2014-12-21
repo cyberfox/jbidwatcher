@@ -10,13 +10,15 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 
 public class SubmitLogDialog extends JDialog {
+  private final MyJBidwatcher myJBidwatcher;
   private JPanel contentPane;
   private JButton buttonOK;
   private JButton buttonCancel;
   private JTextField mEmailAddressTextField;
   private JTextArea mProblemTextArea;
 
-  public SubmitLogDialog() {
+  public SubmitLogDialog(MyJBidwatcher myJBidwatcher) {
+    this.myJBidwatcher = myJBidwatcher;
     setContentPane(contentPane);
     if (JBidFrame.getDefaultMenuBar() != null) setJMenuBar(JBidFrame.getDefaultMenuBar());
     setModal(true);
@@ -61,7 +63,7 @@ public class SubmitLogDialog extends JDialog {
     if (email == null || email.length() == 0) {
       JOptionPane.showMessageDialog(null, "Email Address Required", "An email address is necessary so I can contact you if I need more information.", JOptionPane.ERROR_MESSAGE);
     } else {
-      MyJBidwatcher.getInstance().sendLogFile(email, mProblemTextArea.getText());
+      myJBidwatcher.sendLogFile(email, mProblemTextArea.getText());
       dispose();
     }
   }
@@ -69,13 +71,6 @@ public class SubmitLogDialog extends JDialog {
   private void onCancel() {
     // add your code here if necessary
     dispose();
-  }
-
-  public static void main(String[] args) {
-    SubmitLogDialog dialog = new SubmitLogDialog();
-    dialog.pack();
-    dialog.setVisible(true);
-    System.exit(0);
   }
 
   {

@@ -35,6 +35,8 @@ import java.io.UnsupportedEncodingException;
  */
 public class ebaySearches {
   private static final int ITEMS_PER_PAGE = 100;
+  private final EntryCorral mCorral;
+  private final AuctionServerManager mServerManager;
   private CleanupHandler mCleaner;
   private com.jbidwatcher.auction.LoginManager mLogin;
 
@@ -42,9 +44,11 @@ public class ebaySearches {
     public ItemResults(List<String> s, Map<String,String> c) { super(s, c); }
   }
 
-  public ebaySearches(CleanupHandler cleaner, LoginManager login) {
+  public ebaySearches(EntryCorral corral, AuctionServerManager serverManager, CleanupHandler cleaner, LoginManager login) {
     mCleaner = cleaner;
     mLogin = login;
+    mCorral = corral;
+    mServerManager = serverManager;
   }
 
   private ItemResults getAllItemsOnPage(JHTML htmlDocument) {
@@ -53,14 +57,14 @@ public class ebaySearches {
     if(allURLsOnPageUnprocessed != null) for(String process : allURLsOnPageUnprocessed) { allURLsOnPage.add(process.replaceAll("\n|\r", "")); }
     Map<String,String> allItemsOnPage = new LinkedHashMap<String,String>();
     List<String> newItems = new ArrayList<String>();
-    AuctionServerInterface aucServ = AuctionServerManager.getInstance().getServer();
+    AuctionServerInterface aucServ = mServerManager.getServer();
     for(String url : allURLsOnPage) {
       // Does this look like an auction server item URL?
       String hasId = aucServ.extractIdentifierFromURLString(url);
 
       if(hasId != null && StringTools.isNumberOnly(hasId)) {
         if(!allItemsOnPage.containsKey(hasId)) {
-          if (EntryCorral.getInstance().takeForRead(hasId) == null) {
+          if (mCorral.takeForRead(hasId) == null) {
             allItemsOnPage.put(hasId, url);
             newItems.add(url);
           }

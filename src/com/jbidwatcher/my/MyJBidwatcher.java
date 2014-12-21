@@ -1,6 +1,8 @@
 package com.jbidwatcher.my;
 
 import com.cyberfox.util.config.Base64;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.jbidwatcher.util.config.JConfig;
 import com.cyberfox.util.config.ErrorHandler;
 import com.jbidwatcher.util.Parameters;
@@ -35,13 +37,14 @@ import java.util.Date;
  *
  * A set of methods to communicate with the 'my.jbidwatcher.com' site.
  */
+@Singleton
 public class MyJBidwatcher {
-  private static MyJBidwatcher sInstance = null;
+  private final EntryCorral entryCorral;
   private HttpInterface mNet = null;
-  private static String LOG_UPLOAD_URL =  "my.jbidwatcher.com/upload/log";
-  private static String ITEM_UPLOAD_URL = "my.jbidwatcher.com/upload/listing";
-  private static String SYNC_UPLOAD_URL = "my.jbidwatcher.com/upload/sync";
-  private static String THUMBNAIL_UPLOAD_URL = "my.jbidwatcher.com/upload/thumbnail";
+  private static final String LOG_UPLOAD_URL =  "my.jbidwatcher.com/upload/log";
+  private static final String ITEM_UPLOAD_URL = "my.jbidwatcher.com/upload/listing";
+  private static final String SYNC_UPLOAD_URL = "my.jbidwatcher.com/upload/sync";
+  private static final String THUMBNAIL_UPLOAD_URL = "my.jbidwatcher.com/upload/thumbnail";
   private String mSyncQueueURL = null;
   private String mReportQueueURL = null;
   private String mGixenQueueURL = null;
@@ -146,11 +149,6 @@ public class MyJBidwatcher {
     return http().postTo(url, p);
   }
 
-  public static MyJBidwatcher getInstance() {
-    if(sInstance == null) sInstance = new MyJBidwatcher();
-    return sInstance;
-  }
-
   public void postXML(String queue, XMLSerialize ae) {
     XMLElement xmlWrapper = new XMLElement("message");
     XMLElement user = new XMLElement("user");
@@ -172,13 +170,16 @@ public class MyJBidwatcher {
     My status = My.findByIdentifier(identifier);
 
     if (status == null || status.getDate("last_synced_at") == null || changed) {
-      EntryCorral.getInstance().takeForWrite(identifier);
-      EntryCorral.getInstance().erase(identifier);
+      entryCorral.takeForWrite(identifier);
+      entryCorral.erase(identifier);
       MQFactory.getConcrete("upload").enqueue(identifier);
     }
   }
 
-  private MyJBidwatcher() {
+  @Inject
+  private MyJBidwatcher(EntryCorral corral) {
+    this.entryCorral = corral;
+
     MQFactory.getConcrete("my_account").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
         String cmd = (String) deQ;
@@ -207,7 +208,7 @@ public class MyJBidwatcher {
     MQFactory.getConcrete("upload").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
         if(JConfig.queryConfiguration("my.jbidwatcher.id") != null && mSyncQueueURL != null && canSync()) {
-          AuctionEntry ae = EntryCorral.getInstance().takeForRead((String) deQ);
+          AuctionEntry ae = entryCorral.takeForRead((String) deQ);
           uploadSync(ae);
           uploadThumbnail(ae);
           uploadAuctionHTML(ae, "uploadhtml");
@@ -218,7 +219,7 @@ public class MyJBidwatcher {
     if(JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
       MQFactory.getConcrete("report").registerListener(new MessageQueue.Listener() {
         public void messageAction(Object deQ) {
-          AuctionEntry ae = EntryCorral.getInstance().takeForRead((String)deQ);
+          AuctionEntry ae = entryCorral.takeForRead((String)deQ);
           uploadAuctionHTML(ae, "report");
         }
       });
@@ -313,7 +314,7 @@ public class MyJBidwatcher {
 
   private void doGixen(String identifier, boolean cancel) {
     if(canSendSnipeToGixen() && mGixenQueueURL != null) {
-      AuctionEntry ae = EntryCorral.getInstance().takeForRead(identifier);
+      AuctionEntry ae = entryCorral.takeForRead(identifier);
 
       //  If we're being asked to set a snipe, and one isn't assigned to the entry, punt.
       if(!cancel && !ae.isSniped()) {

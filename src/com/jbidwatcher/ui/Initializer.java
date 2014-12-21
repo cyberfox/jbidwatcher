@@ -16,9 +16,9 @@ import java.awt.Component;
 public class Initializer {
   private static JTabPopupMenu sMenu;
 
-  public static void setup(FilterManager filters) {
-    JTabbedPane tabs = JTabManager.getInstance().getTabs();
-    sMenu = new JTabPopupMenu(tabs, filters);
+  public static void setup(JTabManager tabManager, ListManager listManager, PopupMenuFactory menuFactory) {
+    JTabbedPane tabs = tabManager.getTabs();
+    sMenu = menuFactory.create(tabs, null);
     ActionListener cornerButtonListener = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         JMenu bangMenu = sMenu.getCustomizeMenu();
@@ -27,8 +27,8 @@ public class Initializer {
     };
     AuctionListHolder.setCornerButtonListener(cornerButtonListener);
 
-    JBidContext tableContextMenu = new JBidTableContext();
-    JBidContext frameContextMenu = new JBidFrameMouse();
+    JBidContext tableContextMenu = new JBidTableContext(tabManager, listManager);
+    JBidContext frameContextMenu = new JBidFrameMouse(tabManager, listManager);
 
     AuctionListHolder.setFrameContext(frameContextMenu);
     AuctionListHolder.setTableContext(tableContextMenu);

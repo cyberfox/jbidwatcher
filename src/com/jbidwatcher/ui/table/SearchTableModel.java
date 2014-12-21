@@ -17,11 +17,12 @@ import java.text.SimpleDateFormat;
 
 public class SearchTableModel extends AbstractTableModel
 {
+  private final SearchManager searchManager;
   String[] column_names = {
     "Name", "Type", "Search Value", "Site", "Repeat Time", "Next Run"
   };
 
-  public int getRowCount() { return SearchManager.getInstance().getSearchCount(); }
+  public int getRowCount() { return searchManager.getSearchCount(); }
   public int getColumnCount() { return column_names.length; }
   public String getColumnName(int index) { return column_names[index]; }
 
@@ -43,7 +44,7 @@ public class SearchTableModel extends AbstractTableModel
   }
 
   public Object getSortByValueAt(int i, int j) {
-    Searcher s = SearchManager.getInstance().getSearchByIndex(i);
+    Searcher s = searchManager.getSearchByIndex(i);
 
     switch(j) {
       case -1: return s;
@@ -60,7 +61,7 @@ public class SearchTableModel extends AbstractTableModel
   }
 
   public Object getValueAt(int i, int j) {
-    Searcher s = SearchManager.getInstance().getSearchByIndex(i);
+    Searcher s = searchManager.getSearchByIndex(i);
 
     switch(j) {
       case -1:
@@ -104,8 +105,9 @@ public class SearchTableModel extends AbstractTableModel
     return sdf.format(new Date(base));
   }
 
-  public SearchTableModel() {
+  public SearchTableModel(SearchManager searchManager) {
     super();
+    this.searchManager = searchManager;
   }
 
   public boolean isCellEditable(int row, int column) {
@@ -113,11 +115,11 @@ public class SearchTableModel extends AbstractTableModel
   }
 
   public void delete(int row) {
-    SearchManager.getInstance().deleteSearch(SearchManager.getInstance().getSearchByIndex(row));
+    searchManager.deleteSearch(searchManager.getSearchByIndex(row));
   }
 
   public int insert(Object newObj) {
-    SearchManager.getInstance().addSearch((Searcher)newObj);
+    searchManager.addSearch((Searcher)newObj);
     return getRowCount()-1;
   }
 }

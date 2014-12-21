@@ -1,5 +1,7 @@
 package com.jbidwatcher.auction;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.util.Observer;
 import com.jbidwatcher.util.StringTools;
@@ -13,17 +15,20 @@ import com.jbidwatcher.util.queue.MQFactory;
  * Time: 1:14 AM
  * To change this template use File | Settings | File Templates.
  */
+@Singleton
 public class EntryFactory extends Observer<AuctionEntry> {
-  private static Resolver sResolver = null;
-  private static EntryFactory instance;
+  private final EntryCorral entryCorral;
+  private Resolver resolver = null;
+  private EntryManager auctionsManager;
 
-  public static EntryFactory getInstance() {
-    if(instance == null) instance = new EntryFactory();
-    return instance;
+  @Inject
+  public EntryFactory(EntryCorral corral, EntryManager entryManager) {
+    entryCorral = corral;
+    auctionsManager = entryManager;
   }
 
   public AuctionEntry constructEntry() {
-    AuctionServerInterface server = sResolver.getServer();
+    AuctionServerInterface server = resolver.getServer();
     AuctionEntry ae = AuctionEntry.construct(server);
     ae.setPresenter(new AuctionEntryHTMLPresenter(ae));
 
@@ -38,7 +43,7 @@ public class EntryFactory extends Observer<AuctionEntry> {
    * @return The newly (successfully!) loaded auction, or null if the id had previously been deleted, or is already in the database.
    */
   public AuctionEntry constructEntry(String auctionId) {
-    AuctionServerInterface server = sResolver.getServer();
+    AuctionServerInterface server = resolver.getServer();
     String strippedId = server.stripId(auctionId);
 
     AuctionEntry ae = AuctionEntry.construct(strippedId, server);
@@ -59,10 +64,10 @@ public class EntryFactory extends Observer<AuctionEntry> {
    */
   public AuctionEntry conditionallyAddEntry(boolean interactive, String aucId, String label) {
     if (interactive) DeletedEntry.remove(aucId);
-    AuctionEntry aeNew = EntryFactory.getInstance().constructEntry(aucId);
+    AuctionEntry aeNew = constructEntry(aucId);
     if (aeNew != null) {
       if (label != null) aeNew.setCategory(label);
-      EntryCorral.getInstance().put(aeNew);
+      entryCorral.put(aeNew);
       MQFactory.getConcrete("manager").enqueue(aeNew.getUnique());
       MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getIdentifier() + ", " + aeNew.getTitle() + " ]");
     } else {
@@ -86,13 +91,13 @@ public class EntryFactory extends Observer<AuctionEntry> {
     return invalid;
   }
 
-  public static void setResolver(Resolver resolver) {
-    sResolver = resolver;
+  public void setResolver(Resolver resolver) {
+    this.resolver = resolver;
   }
 
   public void afterCreate(AuctionEntry auctionEntry) {
     if(auctionEntry.getServer() == null) {
-      auctionEntry.setServer(sResolver.getServer());
+      auctionEntry.setServer(resolver.getServer());
     }
     if(auctionEntry.getPresenter() == null) {
       auctionEntry.setPresenter(new AuctionEntryHTMLPresenter(auctionEntry));

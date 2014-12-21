@@ -5,6 +5,8 @@ package com.jbidwatcher.app;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.util.config.*;
 import com.cyberfox.util.config.Base64;
@@ -37,9 +39,16 @@ public class JBidProxy extends AbstractMiniServer {
   private static final String event = "event";
   private static final String messageFinisher = "<br>Return to <a href=\"" + Constants.PROGRAM_NAME + "\">auction list</a>.";
   private static StringBuffer sIcon = null;
+  private final AuctionServerManager serverManager;
+  private final EntryFactory entryFactory;
+  private final AuctionsManager auctionsManager;
 
-  public JBidProxy(Socket talkSock) {
+  @Inject
+  public JBidProxy(AuctionServerManager asm, EntryFactory entryFactory, AuctionsManager auctionsManager, @Assisted Socket talkSock) {
     super(talkSock);
+    this.serverManager = asm;
+    this.entryFactory = entryFactory;
+    this.auctionsManager = auctionsManager;
     commonSetup();
     setName("JBidProxy");
   }
@@ -71,7 +80,7 @@ public class JBidProxy extends AbstractMiniServer {
 
     //  TODO -- Actually, validate against ASM, and it can *find* the correct
     //  TODO -- server/user combination and restrict the display/interaction to that server.
-    AuctionServer aucServ = AuctionServerManager.getInstance().getServer();
+    AuctionServer aucServ = serverManager.getServer();
     return aucServ.validate(user, pass);
   }
 
@@ -251,7 +260,7 @@ public class JBidProxy extends AbstractMiniServer {
   }
 
   public StringBuffer index() {
-    AuctionsManager.getInstance().saveAuctions();
+    auctionsManager.saveAuctions();
     return checkError(AuctionTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml")));
   }
 
@@ -260,7 +269,7 @@ public class JBidProxy extends AbstractMiniServer {
 
     wholeData.append("<?xml version=\"1.0\"?>\n\n");
     wholeData.append(Constants.XML_SAVE_DOCTYPE);
-    AuctionServerManager.getInstance().toXML().toStringBuffer(wholeData);
+    serverManager.toXML().toStringBuffer(wholeData);
 
     return wholeData;
   }
@@ -305,10 +314,10 @@ public class JBidProxy extends AbstractMiniServer {
    */
   public StringBuffer addAuction(String identifier) {
     //Add new Auction to Auction Manager
-    AuctionEntry auctionEntry = EntryFactory.getInstance().conditionallyAddEntry(false, identifier, null);
+    AuctionEntry auctionEntry = entryFactory.conditionallyAddEntry(false, identifier, null);
 
     //show Overview
-    AuctionsManager.getInstance().saveAuctions();
+    auctionsManager.saveAuctions();
     return checkError(AuctionTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml")));
   }
 

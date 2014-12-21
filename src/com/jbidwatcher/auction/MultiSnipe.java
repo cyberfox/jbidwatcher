@@ -23,7 +23,7 @@ public class MultiSnipe extends ActiveRecord {
   private Color mBackground;
 
   public synchronized int activeEntries() {
-    return getAuctionEntriesInThisGroup().size();
+    return getAuctionEntriesInThisGroup(corral).size();
   }
 
   public static void setCorral(EntryCorralTemplate corral) {
@@ -136,7 +136,7 @@ public class MultiSnipe extends ActiveRecord {
    * param ae - The auction that was won.
    */
   public synchronized void setWonAuction(/*Snipeable ae*/) {
-    List<? extends Snipeable> oldEntries = getAuctionEntriesInThisGroup();
+    List<? extends Snipeable> oldEntries = getAuctionEntriesInThisGroup(corral);
 
     for (Snipeable aeFromList : oldEntries) {
       aeFromList.cancelSnipe(false);
@@ -146,7 +146,7 @@ public class MultiSnipe extends ActiveRecord {
   public synchronized boolean anyEarlier(Snipeable inEntry) {
     String inIdentifier = inEntry.getIdentifier();
 
-    for (Snipeable ae : getAuctionEntriesInThisGroup()) {
+    for (Snipeable ae : getAuctionEntriesInThisGroup(corral)) {
       //  If any auction entry in the list ends BEFORE the one we're
       //  checking, then we really don't want to do anything until
       //  it's no longer in the list.
@@ -184,7 +184,7 @@ public class MultiSnipe extends ActiveRecord {
   }
 
   public synchronized boolean isSafeToAdd(Snipeable ae) {
-    for (Snipeable fromList : getAuctionEntriesInThisGroup()) {
+    for (Snipeable fromList : getAuctionEntriesInThisGroup(corral)) {
       //  It's always safe to 'add' an entry that already exists,
       //  it'll just be reloaded.
       if (!fromList.getIdentifier().equals(ae.getIdentifier())) {
@@ -195,8 +195,8 @@ public class MultiSnipe extends ActiveRecord {
     return true;
   }
 
-  private List<? extends Snipeable> getAuctionEntriesInThisGroup() {
-    return EntryCorral.getInstance().getMultisnipedByGroup(getString("id"));
+  private List<? extends Snipeable> getAuctionEntriesInThisGroup(EntryCorralTemplate corral) {
+    return ((EntryCorral)corral).getMultisnipedByGroup(getString("id"));
   }
 
   public boolean subtractShipping() {

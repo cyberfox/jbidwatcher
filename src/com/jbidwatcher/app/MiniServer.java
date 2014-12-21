@@ -1,5 +1,7 @@
 package com.jbidwatcher.app;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.jbidwatcher.util.webserver.AbstractMiniServer;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.ToolInterface;
@@ -21,13 +23,19 @@ import java.util.regex.Pattern;
  */
 public class MiniServer extends AbstractMiniServer {
   private ToolInterface mTool;
+  private final EntryFactory entryFactory;
+  private final EntryCorral entryCorral;
 
-  public MiniServer(Socket talkSock) {
+  @Inject
+  public MiniServer(EntryFactory entryFactory, EntryCorral corral, @Assisted Socket talkSock) {
     super(talkSock);
+    this.entryFactory = entryFactory;
+    this.entryCorral = corral;
   }
 
-  public MiniServer(Socket talkSock, ToolInterface tool) {
-    super(talkSock);
+  @Inject
+  public MiniServer(EntryFactory entryFactory, EntryCorral corral, @Assisted Socket talkSock, @Assisted ToolInterface tool) {
+    this(entryFactory, corral, talkSock);
     mTool = tool;
   }
 
@@ -67,7 +75,7 @@ public class MiniServer extends AbstractMiniServer {
 
   public StringBuffer showItem(String identifier) {
     JConfig.log().logDebug("Retrieving auction: " + identifier);
-    XMLSerialize xmlable = EntryFactory.getInstance().constructEntry(identifier);
+    XMLSerialize xmlable = entryFactory.constructEntry(identifier);
     if(xmlable != null) {
       XMLInterface xe = xmlable.toXML();
       return xe.toStringBuffer();
@@ -78,8 +86,8 @@ public class MiniServer extends AbstractMiniServer {
   public StringBuffer buy(String identifier, String howMany) {
     int quantity = getQuantity(howMany);
 
-    AuctionEntry ae = EntryFactory.getInstance().constructEntry(identifier);
-    EntryCorral.getInstance().put(ae);
+    AuctionEntry ae = entryFactory.constructEntry(identifier);
+    entryCorral.put(ae);
     AuctionBuy ab = new AuctionBuy(ae, null, quantity);
     return fireAction(ae, ab);
   }
@@ -94,13 +102,20 @@ public class MiniServer extends AbstractMiniServer {
 
   public StringBuffer bid(String identifier, String howMuch, String howMany) {
     int quantity = getQuantity(howMany);
-    AuctionEntry ae = EntryFactory.getInstance().constructEntry(identifier);
-    AuctionBid ab = new AuctionBid(ae, Currency.getCurrency(ae.getCurBid().getCurrencySymbol(), howMuch), quantity);
-    return fireAction(ae, ab);
+    AuctionEntry ae = entryFactory.constructEntry(identifier);
+
+    Currency amount = Currency.getCurrency(ae.getCurBid().getCurrencySymbol(), howMuch);
+    return fireAction(ae, new AuctionActionImpl(ae.getIdentifier(), amount, quantity) {
+      @Override
+      protected int execute(AuctionEntry ae, Currency curr, int quant) {
+        entryCorral.put(ae);
+        return ae.bid(curr, quant);
+      }
+    });
   }
 
   private StringBuffer fireAction(AuctionEntry entry, AuctionAction action) {
-    String result = action.activate();
+    String result = action.activate(entryCorral);
     if(result != null) {
       StringBuffer sb = new StringBuffer("<result>\n");
       int numericResult = action.getResult();

@@ -5,6 +5,9 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 import com.jbidwatcher.ui.table.auctionTableModel;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MessageQueue;
@@ -19,33 +22,42 @@ import javax.swing.event.TableModelEvent;
 import java.util.*;
 import java.awt.Color;
 
+@Singleton
 public class FilterManager implements MessageQueue.Listener, FilterInterface {
-  private static final ListManager mList = ListManager.getInstance();
+  private final ListManager mList;
+  private final JTabManager tabs;
+  private final EntryCorral corral;
+  @Inject
+  private AuctionListHolderFactory alhFactory;
   private Map<String, AuctionListHolder> mIdentifierToList;
   private AuctionListHolder mMainTab = null;
   private AuctionListHolder mDefaultCompleteTab = null;
   private AuctionListHolder mDefaultSellingTab = null;
 
-  protected FilterManager() {
+  @Inject
+  protected FilterManager(ListManager listManager, JTabManager tabManager, final EntryCorral entryCorral) {
+    mList = listManager;
+    tabs = tabManager;
+    corral = entryCorral;
     mIdentifierToList = new HashMap<String, AuctionListHolder>();
 
     MQFactory.getConcrete("redraw").registerListener(this);
 
     MQFactory.getConcrete("delete").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
-        AuctionEntry ae = EntryCorral.getInstance().takeForRead(deQ.toString());  //  Lock the item
+        AuctionEntry ae = corral.takeForRead(deQ.toString());  //  Lock the item
         deleteAuction(ae);
-        ae = (AuctionEntry) EntryCorral.getInstance().takeForWrite(deQ.toString());  //  Lock the item
-        EntryCorral.getInstance().erase(ae.getIdentifier());  //  Remove and unlock it
+        ae = (AuctionEntry) corral.takeForWrite(deQ.toString());  //  Lock the item
+        corral.erase(ae.getIdentifier());  //  Remove and unlock it
       }
     });
-    JTabManager.getInstance().setFilterManager(this);
+    tabs.setFilterManager(this);
   }
 
   public void loadFilters() {
-    mMainTab = mList.add(new AuctionListHolder("current", false, false));
-    mDefaultCompleteTab = mList.add(new AuctionListHolder("complete", true, false));
-    mDefaultSellingTab = mList.add(new AuctionListHolder("selling", false, false));
+    mMainTab = mList.add(alhFactory.create("current", false, false));
+    mDefaultCompleteTab = mList.add(alhFactory.create("complete", true, false));
+    mDefaultSellingTab = mList.add(alhFactory.create("selling", false, false));
 
     String tabName;
     int i = 0;
@@ -53,7 +65,7 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
     do {
       tabName = JConfig.queryDisplayProperty("tabs.name." + i++);
       if (tabName != null && mList.findCategory(tabName) == null) {
-        mList.add(new AuctionListHolder(tabName, false, true));
+        mList.add(alhFactory.create(tabName, false, true));
       }
     } while (i < 3 || tabName != null);  //  Do at least the first three, and then keep going until we miss an index.
   }
@@ -75,7 +87,7 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
       mMainTab.getUI().getColumnWidthsToProperties(dispProps, newTab);
       JConfig.addAllToDisplay(dispProps);
     }
-    AuctionListHolder newList = new AuctionListHolder(newTab, false, true);
+    AuctionListHolder newList = alhFactory.create(newTab, false, true);
     newList.setBackground(mainBackground);
     mList.add(newList);
     Category.findOrCreateByName(newTab);
@@ -85,20 +97,20 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
   public void messageAction(Object deQ) {
     String cmd = deQ.toString();
     if(StringTools.isNumberOnly(cmd)) {
-      AuctionEntry ae = EntryCorral.getInstance().takeForRead(cmd);
+      AuctionEntry ae = corral.takeForRead(cmd);
       if(ae != null) {
 //        ae.reload();
         AuctionListHolder old = mIdentifierToList.get(ae.getIdentifier());
         AuctionListHolder newAuction = refilterAuction(ae);
         if (newAuction != null) {
-          MQFactory.getConcrete("Swing").enqueue("Moved to " + newAuction.getList().getName() + " " + Auctions.getTitleAndComment(ae));
+          MQFactory.getConcrete("Swing").enqueue("Moved to " + newAuction.getList().getName() + " " + ae.getTitleAndComment());
           if (old != null) old.getUI().redrawAll();
           newAuction.getUI().redrawAll();
         } else {
-          auctionTableModel model = (auctionTableModel)JTabManager.getInstance().getCurrentTable().getModel();
+          auctionTableModel model = (auctionTableModel)tabs.getCurrentTable().getModel();
           int row = model.findRow(ae);
-          row = JTabManager.getInstance().getCurrentTable().convertRowIndexToView(row);
-          JTabManager.getInstance().getCurrentTable().tableChanged(new TableModelEvent(model, row));
+          row = tabs.getCurrentTable().convertRowIndexToView(row);
+          tabs.getCurrentTable().tableChanged(new TableModelEvent(model, row));
         }
         return;
       }
@@ -122,7 +134,7 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
    * @param ae - The auction to delete.
    */
   public void deleteAuction(AuctionEntry ae) {
-    AuctionEntry deleteEntry = EntryCorral.getInstance().takeForRead(ae.getIdentifier());
+    AuctionEntry deleteEntry = corral.takeForRead(ae.getIdentifier());
     AuctionListHolder which = mIdentifierToList.get(deleteEntry.getIdentifier());
     if(which != null) which.getUI().delEntry(ae);
 
@@ -136,7 +148,7 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
   * @param ae - The auction to add.
   */
   public void addAuction(AuctionEntry ae) {
-    AuctionEntry newEntry = EntryCorral.getInstance().takeForRead(ae.getIdentifier());
+    AuctionEntry newEntry = corral.takeForRead(ae.getIdentifier());
     AuctionListHolder which = mIdentifierToList.get(newEntry.getIdentifier());
 
     if(which != null) {

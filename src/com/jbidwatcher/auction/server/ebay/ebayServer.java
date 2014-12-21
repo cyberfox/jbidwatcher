@@ -11,6 +11,9 @@ package com.jbidwatcher.auction.server.ebay;
 //  logic outside this class.  A pipe-dream, perhaps, but it seems
 //  mostly doable.
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Externalized;
 import com.jbidwatcher.auction.server.ServerMenu;
@@ -60,6 +63,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private GregorianCalendar mCal;
   private ebayCleaner mCleaner;
   private Bidder mBidder;
+  private MultiSnipeManager multiSnipeManager;
 
   public Currency getMinimumBidIncrement(Currency currentBid, int bidCount) {
     return sCurrencies.getMinimumBidIncrement(currentBid, bidCount);
@@ -71,11 +75,11 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     if(!mLogin.isDefault()) {
       if (isUpdated) forceLogin();
 
-      Searcher s = SearchManager.getInstance().getSearchByName("My Selling Items");
+      Searcher s = searcher.getSearchByName("My Selling Items");
       if(s == null) {
-        mSellerSearch = SearchManager.getInstance().buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", mLogin.getUserId(), getName(), null, 1);
+        mSellerSearch = searcher.buildSearch(System.currentTimeMillis(), "Seller", "My Selling Items", mLogin.getUserId(), getName(), null, 1);
         mSellerSearch.setCategory("selling");
-        SearchManager.getInstance().addSearch(mSellerSearch);
+        searcher.addSearch(mSellerSearch);
       } else {
         s.setSearch(mLogin.getUserId());
       }
@@ -129,7 +133,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         if (t.rowCellMatches(0, "^(Bidder|User ID).*")) {
           int bidCount = t.getRowCount() - 1; // 1 for the header
 
-          AuctionEntry ae = (AuctionEntry) EntryCorral.getInstance().takeForWrite(auctionId);
+          AuctionEntry ae = (AuctionEntry) entryCorral.takeForWrite(auctionId);
 
           try {
             // -1 for the starting price
@@ -182,7 +186,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
               return;
             }
           } finally {
-            EntryCorral.getInstance().release(auctionId);
+            entryCorral.release(auctionId);
           }
         }
       }
@@ -198,16 +202,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
     switch(ac.getCommand()) {
       case AuctionQObject.LOAD_URL:
-        mSearcher.loadAllFromURLString(SearchManager.getSearchById((Long) ac.getData()), ac.getLabel());
+        mSearcher.loadAllFromURLString(searcher.getSearchById((Long) ac.getData()), ac.getLabel());
         return;
       case AuctionQObject.LOAD_SEARCH:
-        mSearcher.loadSearchString(SearchManager.getSearchById((Long) ac.getData()), ac.getLabel(), false);
+        mSearcher.loadSearchString(searcher.getSearchById((Long) ac.getData()), ac.getLabel(), false);
         return;
       case AuctionQObject.LOAD_TITLE:
-        mSearcher.loadSearchString(SearchManager.getSearchById((Long)ac.getData()), ac.getLabel(), true);
+        mSearcher.loadSearchString(searcher.getSearchById((Long)ac.getData()), ac.getLabel(), true);
         return;
       case AuctionQObject.LOAD_SELLER:
-        doGetSelling(SearchManager.getSearchById((Long) ac.getData()), ac.getLabel());
+        doGetSelling(searcher.getSearchById((Long) ac.getData()), ac.getLabel());
         return;
       case AuctionQObject.LOAD_MYITEMS:
         if(mLogin.isDefault()) {
@@ -229,7 +233,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         if(mLogin.isDefault()) {
           failString = Externalized.getString("ebayServer.cantLoadWithoutUsername1") + " " + getName() + Externalized.getString("ebayServer.cantLoadWithoutUsername2");
         } else {
-          SearchManager.getInstance().getSearchByName("My eBay").execute();
+          searcher.getSearchByName("My eBay").execute();
           return;
         }
       }
@@ -290,7 +294,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
   private void bidMsg(AuctionQObject ac) {
     AuctionAction ab = (AuctionAction)ac.getData();
-    String bidResultString = ab.activate();
+    String bidResultString = ab.activate(entryCorral);
     String configBidMsg;
 
     if(ab.isSuccessful()) {
@@ -307,7 +311,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   private static final long FIVE_MINUTES = Constants.ONE_MINUTE * 5;
 
   public void setSnipe(String auctionId) {
-    AuctionEntry ae = (AuctionEntry) EntryCorral.getInstance().takeForWrite(auctionId);
+    AuctionEntry ae = (AuctionEntry) entryCorral.takeForWrite(auctionId);
     try {
       Date endDate = ae.getEndDate();
       long snipeDelta = ae.getSnipeTime();
@@ -331,7 +335,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
 
       MQFactory.getConcrete("my").enqueue("SNIPE " + auctionId);
     } finally {
-      EntryCorral.getInstance().release(auctionId);
+      entryCorral.release(auctionId);
     }
   }
 
@@ -345,35 +349,28 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     MQFactory.getConcrete("my").enqueue("CANCEL " + identifier);
   }
 
-  public ebayServer(String site, String username, String password) {
-    if(site == null) site = JConfig.queryConfiguration(getName() + ".browse.site");
-    if(site == null) site = "0";
-    constructServer(site, username, password);
-  }
-
   /**
    * @brief Constructor for the eBay server object.
+   * @param site - The country site to create an ebay server for.
    */
-  public ebayServer() {
-    String username = JConfig.queryConfiguration(getName() + ".user", "default");
-    String siteNumber = JConfig.queryConfiguration(getName() + ".browse.site");
-    String password = JConfig.queryConfiguration(getName() + ".password", "default");
+  @Inject
+  private ebayServer(EntryCorral corral, SearchManager searchManager, AuctionServerManager asm, MultiSnipeManager multiSnipeManager,
+                     @Assisted("site") String site, @Assisted("username") String username, @Assisted("password") String password) {
+    if (site == null) site = JConfig.queryConfiguration(getName() + ".browse.site");
+    if (site == null) site = "0";
 
-    constructServer(siteNumber, username, password);
+    if (username == null) username = JConfig.queryConfiguration(getName() + ".user", "default");
+    if (password == null) password = JConfig.queryConfiguration(getName() + ".password", "default");
+
+    constructServer(corral, searchManager, asm, multiSnipeManager, site, username, password);
   }
 
-  /**
-   * @brief Constructor for the eBay server object.
-   * @param country - The country site to create an ebay server for.
-   */
-  public ebayServer(String country) {
-    String username = JConfig.queryConfiguration(getName() + ".user", "default");
-    String password = JConfig.queryConfiguration(getName() + ".password", "default");
+  // TODO(mschweers) - Make this method properly handle null in site/username/password, and eliminate all the extra constructors.
+  private void constructServer(EntryCorral corral, SearchManager searchManager, AuctionServerManager asm, MultiSnipeManager multiSnipeManager, String site, String username, String password) {
+    this.entryCorral = corral;
+    this.searcher = searchManager;
+    this.multiSnipeManager = multiSnipeManager;
 
-    constructServer(country, username, password);
-  }
-
-  private void constructServer(String site, String username, String password) {
     if(site == null) {
       T = new TT("ebay.com");
     } else if(StringTools.isNumberOnly(site)) {
@@ -385,7 +382,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     }
     mCleaner = new ebayCleaner();
     mLogin = new ebayLoginManager(T, Constants.EBAY_SERVER_NAME, password, username);
-    mSearcher = new ebaySearches(mCleaner, mLogin);
+    mSearcher = new ebaySearches(entryCorral, asm, mCleaner, mLogin);
     if(JConfig.queryConfiguration("ebay.mock_bidding", "false").equals("true")) {
       mBidder = new Bidder() {
         public int buy(AuctionEntry ae, int quantity) {
@@ -528,7 +525,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
   }
 
   public int bid(String auctionId, Currency inBid, int inQuantity) {
-    AuctionEntry inEntry = (AuctionEntry) EntryCorral.getInstance().takeForWrite(auctionId);
+    AuctionEntry inEntry = (AuctionEntry) entryCorral.takeForWrite(auctionId);
     try {
       if(inEntry == null) {
         JConfig.log().logMessage("Auction " + auctionId + " disappeared before the bid.");
@@ -537,16 +534,16 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
         return mBidder.bid(inEntry, inBid, inQuantity);
       }
     } finally {
-      EntryCorral.getInstance().release(auctionId);
+      entryCorral.release(auctionId);
     }
   }
 
   public int buy(String auctionId, int quantity) {
-    AuctionEntry ae = (AuctionEntry) EntryCorral.getInstance().takeForWrite(auctionId);
+    AuctionEntry ae = (AuctionEntry) entryCorral.takeForWrite(auctionId);
     try {
       return mBidder.buy(ae, quantity);
     } finally {
-      EntryCorral.getInstance().release(auctionId);
+      entryCorral.release(auctionId);
     }
   }
 
@@ -630,14 +627,14 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
      * or is not sniped.
      */
     private Snipe getSnipe(String identifier) {
-      AuctionEntry ae = EntryCorral.getInstance().takeForRead(identifier);
+      AuctionEntry ae = entryCorral.takeForRead(identifier);
       if (ae == null || !ae.isSniped()) return null;
 
       Snipe snipe;
       if (mSnipeMap.containsKey(identifier)) {
         snipe = mSnipeMap.get(identifier);
       } else {
-        snipe = new Snipe(mLogin, mBidder, ae);
+        snipe = new Snipe(multiSnipeManager, mLogin, mBidder, ae);
         mSnipeMap.put(identifier, snipe);
       }
       return snipe;

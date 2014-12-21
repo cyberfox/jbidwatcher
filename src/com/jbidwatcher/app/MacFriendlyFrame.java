@@ -41,7 +41,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
    * @param iconURL - The URL of the icon to associate with the frame.
    * @param tabManager - The Tab Manager to display within the frame.
    */
-  public MacFriendlyFrame(String title, JMouseAdapter myFrameAdapter, URL iconURL, JTabManager tabManager) {
+  public MacFriendlyFrame(JBidToolBar toolBar, String title, JMouseAdapter myFrameAdapter, URL iconURL, JTabManager tabManager) {
     super(title);
 
     setMinimumSize(new Dimension(1000, 320));
@@ -56,7 +56,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
 
     if (JConfig.queryConfiguration("mac.useMetal", "true").equals("true")) getRootPane().putClientProperty("apple.awt.brushMetalLook", "true");
 
-    JPanel headerBar = JBidToolBar.getInstance().buildHeaderBar(this, tabManager);
+    JPanel headerBar = toolBar.buildHeaderBar(this, tabManager);
 
     JPanel statusPane = buildStatusLine(tabManager);
 

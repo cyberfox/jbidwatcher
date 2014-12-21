@@ -24,6 +24,7 @@ import java.util.List;
  *
  */
 public class JTabProperties extends JConfigTab implements ActionListener {
+  private final ListManager listManager;
   private String _tab;
   private JFrame _frame = null;
 
@@ -37,8 +38,9 @@ public class JTabProperties extends JConfigTab implements ActionListener {
 
   private Map<String, JCheckBox> columns2Boxes = null;
 
-  public JTabProperties(String tabName) {
+  public JTabProperties(ListManager listManager, String tabName) {
     super.setLayout(new BorderLayout());
+    this.listManager = listManager;
     _tab = tabName;
     WON_TARGET = _tab + ".won_target";
     LOST_TARGET= _tab + ".lost_target";
@@ -57,7 +59,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
       apply();
       _frame.setVisible(false);
     } else {
-      ListManager.getInstance().toggleField(_tab, cmd);
+      listManager.toggleField(_tab, cmd);
     }
   }
 
@@ -95,9 +97,9 @@ public class JTabProperties extends JConfigTab implements ActionListener {
     return dropDowns;
   }
 
-  private static void prepareComboBox(JComboBox target) {
+  private void prepareComboBox(JComboBox target) {
     target.removeAllItems();
-    List<String> tabs = ListManager.getInstance().allCategories();
+    List<String> tabs = listManager.allCategories();
 
     target.setEditable(true);
     if(tabs != null) {
@@ -117,7 +119,7 @@ public class JTabProperties extends JConfigTab implements ActionListener {
     JPanel internal = new JPanel();
     internal.setLayout(new GridLayout(0, 4, 2*10, 0));
 
-    List<String> columns = ListManager.getInstance().getColumns(_tab);
+    List<String> columns = listManager.getColumns(_tab);
     Object[] names = TableColumnController.getInstance().getColumnNames().toArray();
     Arrays.sort(names);
     for (Object name1 : names) {

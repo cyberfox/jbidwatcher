@@ -1,6 +1,8 @@
 package com.jbidwatcher.app;
 
 import com.cyberfox.util.platform.Platform;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.jbidwatcher.util.PauseManager;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.Constants;
@@ -33,12 +35,21 @@ import java.util.*;
  *
  * The class that handles most of the queued UI messages.
  */
+@Singleton
 public final class UIBackbone implements MessageQueue.Listener {
   private boolean _userValid;
   private Date mNow = new Date();
   private Calendar mCal = new GregorianCalendar();
   private MacFriendlyFrame mFrame;
   private boolean mSmall;
+
+  private final AuctionServerManager serverManager;
+  private final AuctionsManager auctionsManager;
+  private final SearchManager searcher;
+  private final JTabManager tabs;
+  private final EntryCorral entryCorral;
+  private final PauseManager pauseManager;
+  private final JBidToolBar toolBar;
 
   private static final ImageIcon redStatus = new ImageIcon(JConfig.getResource("/icons/status_red.png"));
   private static final ImageIcon redStatus16 = new ImageIcon(JConfig.getResource("/icons/status_red_16.png"));
@@ -47,7 +58,17 @@ public final class UIBackbone implements MessageQueue.Listener {
   private static final ImageIcon yellowStatus = new ImageIcon(JConfig.getResource("/icons/status_yellow.png"));
   private static final ImageIcon yellowStatus16 = new ImageIcon(JConfig.getResource("/icons/status_yellow_16.png"));
 
-  public UIBackbone() {
+  @Inject
+  public UIBackbone(AuctionServerManager serverManager, AuctionsManager auctionsManager, SearchManager searcher, JTabManager tabs,
+                    EntryCorral entryCorral, PauseManager pauseManager, JBidToolBar toolBar) {
+    this.serverManager = serverManager;
+    this.auctionsManager = auctionsManager;
+    this.searcher = searcher;
+    this.tabs = tabs;
+    this.entryCorral = entryCorral;
+    this.pauseManager = pauseManager;
+    this.toolBar = toolBar;
+
     TimerHandler clockTimer = new TimerHandler(new TimerHandler.WakeupProcess() {
       public boolean check() {
         checkClock();
@@ -90,10 +111,10 @@ public final class UIBackbone implements MessageQueue.Listener {
    */
   private void setStatus(String newStatus) {
     mNow.setTime(System.currentTimeMillis());
-    String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
+    String defaultServerTime = serverManager.getDefaultServerTime();
     String bracketed = " [" + defaultServerTime + ']';
     if (JConfig.queryConfiguration("timesync.enabled", "true").equals("false")) {
-      TimeZone tz = AuctionServerManager.getInstance().getServer().getOfficialServerTimeZone();
+      TimeZone tz = serverManager.getServer().getOfficialServerTimeZone();
       if (tz != null && tz.hasSameRules(mCal.getTimeZone())) {
         bracketed = " [" + Constants.localClockFormat.format(mNow) + ']';
       }
@@ -213,7 +234,7 @@ public final class UIBackbone implements MessageQueue.Listener {
       JOptionPane.showMessageDialog(null, "Failed to check for a new version\nProbably a temporary network issue; try again in a little while.",
           "Version check failed", JOptionPane.PLAIN_MESSAGE);
     } else if (msg.equals("TOOLBAR")) {
-      JBidToolBar.getInstance().togglePanel();
+      toolBar.togglePanel();
     } else if (msg.startsWith(PRICE)) {
       if(mFrame != null) {
         mFrame.setPrice(msg.substring(PRICE.length()));
@@ -246,38 +267,38 @@ public final class UIBackbone implements MessageQueue.Listener {
   private void handleLoginStatus(String msg) {
     String status = msg.substring("LOGINSTATUS ".length());
     if(status.startsWith("FAILED")) {
-      JBidToolBar.getInstance().setToolTipText("Login failed.");
-      JBidToolBar.getInstance().setTextIcon(redStatus, redStatus16);
+      toolBar.setToolTipText("Login failed.");
+      toolBar.setTextIcon(redStatus, redStatus16);
       JConfig.getMetrics().trackEvent("login", "fail");
       notifyAlert(status.substring("FAILED ".length()));
     } else if(status.startsWith("CAPTCHA")) {
-      JBidToolBar.getInstance().setToolTipText("Login failed due to CAPTCHA.");
-      JBidToolBar.getInstance().setTextIcon(redStatus, redStatus16);
+      toolBar.setToolTipText("Login failed due to CAPTCHA.");
+      toolBar.setTextIcon(redStatus, redStatus16);
       JConfig.getMetrics().trackEvent("login", "captcha");
     } else if(status.startsWith("SUCCESSFUL")) {
-      JBidToolBar.getInstance().setToolTipText("Last login was successful.");
-      JBidToolBar.getInstance().setTextIcon(greenStatus, greenStatus16);
+      toolBar.setToolTipText("Last login was successful.");
+      toolBar.setTextIcon(greenStatus, greenStatus16);
       JConfig.getMetrics().trackEvent("login", "success");
     } else {   //  Status == NEUTRAL
-      JBidToolBar.getInstance().setToolTipText("Last login did not clearly fail, but no valid cookies were received.");
-      JBidToolBar.getInstance().setTextIcon(yellowStatus, yellowStatus16);
+      toolBar.setToolTipText("Last login did not clearly fail, but no valid cookies were received.");
+      toolBar.setTextIcon(yellowStatus, yellowStatus16);
       JConfig.getMetrics().trackEvent("login", "neutral");
     }
   }
 
   private void handleValidLogin() {
     MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");
-    AuctionsManager.start();
-    SearchManager.start();
-    JBidToolBar.getInstance().setToolTipExtra(null);
+    auctionsManager.start();
+    searcher.start();
+    toolBar.setToolTipExtra(null);
 
     _userValid = true;
   }
 
   private void startUpdating() {
     MQFactory.getConcrete("Swing").enqueue("SNIPECHANGED");
-    AuctionsManager.start();
-    SearchManager.start();
+    auctionsManager.start();
+    searcher.start();
 
     if (!_userValid) {
       notifyAlert("Not yet logged in.  Snipes will not fire until logging in\n" +
@@ -301,7 +322,7 @@ public final class UIBackbone implements MessageQueue.Listener {
     if (rest.length() != 0) {
       //  Eliminate a space that's there for readibility.
       rest = rest.substring(1);
-      JBidToolBar.getInstance().setToolTipExtra(rest);
+      toolBar.setToolTipExtra(rest);
       logActivity(rest);
     } else {
       logActivity("Invalid login.");
@@ -326,9 +347,9 @@ public final class UIBackbone implements MessageQueue.Listener {
 
   private void alterSnipeStatus() {
     if (Platform.isTrayEnabled()) {
-      AuctionStats as = AuctionServerManager.getInstance().getStats();
+      AuctionStats as = serverManager.getStats();
       if (as != null) {
-        StringBuffer snipeText = new StringBuffer("TOOLTIP ");
+        StringBuilder snipeText = new StringBuilder("TOOLTIP ");
         if (as.getSnipes() != 0) {
           snipeText.append("Next Snipe at: ").append(Constants.remoteClockFormat.format(as.getNextSnipe().getSnipeDate())).append('\n');
           snipeText.append(as.getSnipes()).append(" snipes outstanding\n");
@@ -371,19 +392,19 @@ public final class UIBackbone implements MessageQueue.Listener {
     setLinkUp(linkStat.startsWith("UP"));
     String rest = linkStat.substring(linkStat.startsWith("UP") ? 2 : 4);
     if (rest.length() == 0) {
-      if (_userValid) JBidToolBar.getInstance().setToolTipExtra(null);
+      if (_userValid) toolBar.setToolTipExtra(null);
     } else {
       //  Skip a 'space' at the start.
       rest = rest.substring(1);
       logActivity("Link issues:");
       logActivity(rest);
-      if (_userValid) JBidToolBar.getInstance().setToolTipExtra(rest);
+      if (_userValid) toolBar.setToolTipExtra(rest);
     }
   }
 
   private void handleHeader(String headerMsg) {
-    JBidToolBar.getInstance().setText(headerMsg);
-    JTabManager.getInstance().updateTime();
+    toolBar.setText(headerMsg);
+    tabs.updateTime();
   }
 
   private static final int ONEK = 1024;
@@ -403,10 +424,10 @@ public final class UIBackbone implements MessageQueue.Listener {
     final UpdaterEntry ue = UpdateManager.getInstance().getUpdateInfo();
     StringBuffer fullMsg = new StringBuffer(4 * ONEK);
     String icon = JConfig.getResource("/jbidwatch64.jpg").toString();
-    fullMsg.append("<html><body><table><tr><td><img src=\"" + icon + "\"></td>");
+    fullMsg.append("<html><body><table><tr><td><img src=\"").append(icon).append("\"></td>");
     fullMsg.append("<td valign=\"top\"><span class=\"banner\"><b>A new version of " + Constants.PROGRAM_NAME + " is available!</b></span><br>");
     fullMsg.append("<span class=\"smaller\">" + Constants.PROGRAM_NAME + " <b>").append(ue.getVersion());
-    fullMsg.append("</b> is now available. Would you like to <a href=\"" + ue.getURL() + "\">download it now?</a><br><br>");
+    fullMsg.append("</b> is now available. Would you like to <a href=\"").append(ue.getURL()).append("\">download it now?</a><br><br>");
     fullMsg.append("Upgrading is <em>").append(ue.getSeverity()).append("</em></span></td></tr></table>");
     fullMsg.append("<p><b>Release Notes:</b></p><div class=\"changelog\">");
     String changelog = ue.getChangelog();
@@ -451,7 +472,7 @@ public final class UIBackbone implements MessageQueue.Listener {
       }
     }
     lastTime = now;
-    String defaultServerTime = AuctionServerManager.getInstance().getDefaultServerTime();
+    String defaultServerTime = serverManager.getDefaultServerTime();
     if (JConfig.queryConfiguration("display.toolbar", "true").equals("true")) {
       defaultServerTime = "<b>" + defaultServerTime.replace("@", "</b><br>");
     }
@@ -469,7 +490,7 @@ public final class UIBackbone implements MessageQueue.Listener {
     String status = "We appear to be waking from sleep; networking may not be up yet.";
     JConfig.log().logDebug(status);
     JConfig.getMetrics().trackEventTimed("sleep", "sleep", (int)delta, true);
-    List<AuctionEntry> sniped = EntryCorral.getInstance().findAllSniped();
+    List<AuctionEntry> sniped = entryCorral.findAllSniped();
     if (sniped != null && !sniped.isEmpty()) {
       boolean foundSnipe = false;
       for (AuctionEntry entry : sniped) {
@@ -486,10 +507,10 @@ public final class UIBackbone implements MessageQueue.Listener {
       MQFactory.getConcrete("Swing").enqueue(NOTIFY_MSG + status);
     }
     //  Pause updates for 20 seconds
-    PauseManager.getInstance().pause(20);
+    pauseManager.pause(20);
 
     //  In 25 seconds, log back in.  This is because networking usually takes 15-20 seconds to restart after a sleep event.
-    AuctionServer mainServer = AuctionServerManager.getInstance().getServer();
+    AuctionServer mainServer = serverManager.getServer();
     long wakeUp = System.currentTimeMillis() + (25 * Constants.ONE_SECOND);
     AuctionQObject updateEvent = new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null);
 

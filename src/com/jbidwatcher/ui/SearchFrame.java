@@ -20,13 +20,16 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 
 public class SearchFrame implements ActionListener {
-  JFrame mainFrame;
-  JComboBox newType;
-  JTextField searchString;
-  SearchTableModel _stm;
+  private JFrame mainFrame;
+  private JComboBox newType;
+  private JTextField searchString;
+  private SearchTableModel _stm;
+  private final SearchManager searchManager;
 
-  public SearchFrame() {
-    mainFrame = createSearchFrame();
+  public SearchFrame(SearchManager searchManager, JTabManager tabManager, ListManager listManager) {
+    this.searchManager = searchManager;
+    mainFrame = createSearchFrame(searchManager, tabManager, listManager);
+
     Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
     int height = Math.min(305, screensize.height / 2);
     int width = Math.min(566, screensize.width / 2);
@@ -56,12 +59,12 @@ public class SearchFrame implements ActionListener {
     JConfig.setAuxConfiguration("searches.height", Integer.toString(mainFrame.getHeight()));
   }
 
-  public JFrame createSearchFrame() {
+  private JFrame createSearchFrame(final SearchManager searchManager, JTabManager tabManager, ListManager listManager) {
     JPanel wholePanel = new JPanel(new BorderLayout(), true);
     JPanel subPanel = new JPanel(new BorderLayout(), true);
     JPanel buttonPanel = new JPanel(new BorderLayout(), true);
     Box buttonBox = Box.createHorizontalBox();
-    JSearchContext jsc = new JSearchContext();
+    JSearchContext jsc = new JSearchContext(searchManager, tabManager, listManager);
 
     final JFrame w = new JBidFrame("Search Manager");
 
@@ -96,7 +99,7 @@ public class SearchFrame implements ActionListener {
     w.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent we) {
         savePosition();
-        SearchManager.getInstance().saveSearches();
+        searchManager.saveSearches();
       }
 
       public void windowIconified(WindowEvent we) {
@@ -136,7 +139,7 @@ public class SearchFrame implements ActionListener {
   private JTable searchTable;
 
   private JScrollPane buildSearchTable(JSearchContext jsc) {
-    _stm = new SearchTableModel();
+    _stm = new SearchTableModel(searchManager);
     searchTable = new JTable(_stm);
     searchTable.setRowSorter(new TableRowSorter<TableModel>(_stm));
     searchTable.addMouseListener(jsc);
@@ -168,10 +171,7 @@ public class SearchFrame implements ActionListener {
   private Searcher add(String type, String name, String search, String server) {
     int inc=0;
     String curName = name + Integer.toString(inc);
-    SearchManager sm = SearchManager.getInstance();
-    Searcher s;
-
-    s = sm.buildSearch(System.currentTimeMillis(), type, curName, search, server, null, -1);
+    Searcher s = searchManager.buildSearch(System.currentTimeMillis(), type, curName, search, server, null, -1);
     _stm.insert(s);
 
     return s;

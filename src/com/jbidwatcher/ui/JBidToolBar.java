@@ -1,6 +1,8 @@
 package com.jbidwatcher.ui;
 
 import com.cyberfox.util.platform.Platform;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.SearchField;
@@ -25,13 +27,17 @@ import java.awt.event.MouseEvent;
  *
  * Move the toolbar construction code out to its own class, so it's not cluttering up the JBidWatch class.
  */
+@Singleton
 public class JBidToolBar {
   private static final int SELECT_BOX_SIZE=20;
+  private final AuctionServerManager serverManager;
+  private final JTabManager tabManager;
+  @Inject
+  private PopupMenuFactory menuFactory;
   private JLabel mHeaderStatus;
   private JPanel mBidBarPanel;
   private JBidMenuBar mBidMenu;
   private JTextField mSelectBox;
-  private static JBidToolBar mInstance = null;
   private Icon mCurrentStatus;
   private Icon mCurrentStatus16;
 
@@ -182,13 +188,14 @@ public class JBidToolBar {
   }
 
   private void establishMenu(JFrame inFrame, JTabManager inAction) {
-    mBidMenu = JBidMenuBar.getInstance(inAction, "JBidwatcher");
+    mBidMenu = JBidMenuBar.getInstance(menuFactory, tabManager.getTabs(), inAction, "JBidwatcher");
 
-    JMenu menu = AuctionServerManager.getInstance().addAuctionServerMenus().getMenu();
+    JMenu menu = serverManager.addAuctionServerMenus().getMenu();
 
-    if (JBidMenuBar.getInstance(null) != mBidMenu) {
-      JBidMenuBar.getInstance(null).add(menu);
-      JBidMenuBar.getInstance(null).add(Box.createHorizontalGlue());
+    JBidMenuBar menuCheck = JBidMenuBar.getInstance(menuFactory, tabManager.getTabs(), null);
+    if (menuCheck != mBidMenu) {
+      menuCheck.add(menu);
+      menuCheck.add(Box.createHorizontalGlue());
     }
 
     mBidMenu.add(menu);
@@ -197,16 +204,14 @@ public class JBidToolBar {
     inFrame.setJMenuBar(mBidMenu);
   }
 
-  private JBidToolBar() {
+  @Inject
+  private JBidToolBar(AuctionServerManager serverManager, JTabManager tabManager) {
+    this.tabManager = tabManager;
+    this.serverManager = serverManager;
     mSelectBox = new SearchField("Select", SELECT_BOX_SIZE);
     if(Platform.isMac()) {
       mSelectBox.putClientProperty("Quaqua.TextField.style", "search");
     }
-  }
-
-  public static JBidToolBar getInstance() {
-    if(mInstance == null) mInstance = new JBidToolBar();
-    return mInstance;
   }
 
   public void setText(String msg) {

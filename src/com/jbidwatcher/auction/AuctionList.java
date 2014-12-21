@@ -15,18 +15,23 @@ import java.util.*;
 public class AuctionList {
   private final List<String> mIdentifierList = Collections.synchronizedList(new ArrayList<String>());
   private final Set<String> mIdentifierSet = Collections.synchronizedSet(new HashSet<String>());
+  private final EntryCorral entryCorral;
+
+  public AuctionList(EntryCorral corral) {
+    entryCorral = corral;
+  }
 
   public int size() { synchronized(mIdentifierList) { return mIdentifierList.size(); } }
   public AuctionEntry get(int i) {
     synchronized (mIdentifierList) {
       String identifier = mIdentifierList.get(i);
-      return EntryCorral.getInstance().takeForRead(identifier);
+      return entryCorral.takeForRead(identifier);
     }
   }
   public void remove(int i) {
     synchronized (mIdentifierList) {
       String identifier = mIdentifierList.get(i);
-      EntryCorral.getInstance().takeForRead(identifier);
+      entryCorral.takeForRead(identifier);
       mIdentifierList.remove(i);
       mIdentifierSet.remove(identifier);
     }
@@ -37,7 +42,7 @@ public class AuctionList {
       return;
     }
     synchronized (mIdentifierList) {
-      EntryCorral.getInstance().put(ae);
+      entryCorral.put(ae);
       mIdentifierList.add(ae.getIdentifier());
       mIdentifierSet.add(ae.getIdentifier());
     }
@@ -46,7 +51,7 @@ public class AuctionList {
   public AuctionEntry find(Comparison c) {
     synchronized (mIdentifierList) {
       for (String identifier : mIdentifierList) {
-        AuctionEntry result = EntryCorral.getInstance().takeForRead(identifier);
+        AuctionEntry result = entryCorral.takeForRead(identifier);
         if (c.match(result)) return result;
       }
     }
@@ -56,8 +61,8 @@ public class AuctionList {
   public void each(Task task) {
     synchronized(mIdentifierList) {
       for (String identifier : mIdentifierList) {
-        AuctionEntry result = (AuctionEntry) EntryCorral.getInstance().takeForWrite(identifier);
-        try { task.execute(result); } finally { EntryCorral.getInstance().release(identifier); }
+        AuctionEntry result = (AuctionEntry) entryCorral.takeForWrite(identifier);
+        try { task.execute(result); } finally { entryCorral.release(identifier); }
       }
     }
   }
