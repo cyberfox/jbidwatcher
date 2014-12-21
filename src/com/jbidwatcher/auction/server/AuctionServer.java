@@ -16,6 +16,7 @@ package com.jbidwatcher.auction.server;
  * the factory can identify which site (ebay, yahoo, amazon, etc.) it
  * is, and do the appropriate parsing for that site.
  */
+import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -34,6 +35,8 @@ import java.io.*;
 
 public abstract class AuctionServer implements AuctionServerInterface {
   private static long sLastUpdated = 0;
+  protected EntryCorral entryCorral;
+  protected SearchManager searcher;
 
   public String stripId(String source) {
     String strippedId = source;
@@ -187,7 +190,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
    * auction entry, or null if the update failed.
    */
   public void reload(String auctionId) {
-    AuctionEntry ae = (AuctionEntry) EntryCorral.getInstance().takeForWrite(auctionId);
+    AuctionEntry ae = (AuctionEntry) entryCorral.takeForWrite(auctionId);
     SpecificAuction curAuction;
     try {
       curAuction = (SpecificAuction) loadAuction(auctionId, ae);
@@ -204,7 +207,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
         }
       }
     } finally {
-      EntryCorral.getInstance().release(auctionId);
+      entryCorral.release(auctionId);
     }
   }
 

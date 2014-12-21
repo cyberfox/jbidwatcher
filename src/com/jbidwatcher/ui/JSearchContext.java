@@ -21,6 +21,8 @@ import java.util.ArrayList;
 
 public class JSearchContext extends JBidTableContext {
   private static SearchInfoDialog _searchDetail = null;
+  private final SearchManager searchManager;
+  private final ListManager listManager;
 
   private void addMenu(JPopupMenu p, String name, String cmd) {
     p.add(makeMenuItem(name, cmd)).addActionListener(this);
@@ -94,7 +96,7 @@ public class JSearchContext extends JBidTableContext {
 
   private void showEdit(Searcher s) {
     if(_searchDetail == null) {
-      _searchDetail = new SearchInfoDialog();
+      _searchDetail = new SearchInfoDialog(searchManager, listManager);
     }
     _searchDetail.prepare(s);
     _searchDetail.pack();
@@ -181,7 +183,7 @@ public class JSearchContext extends JBidTableContext {
       prompt = "<HTML><BODY>Are you sure you want to remove this search?<br><b>" + s.getName() + "</b></body></html>";
       //  Use the right parent!  FIXME -- mrs: 17-February-2003 23:53
       if(confirmDeletion(null, prompt)) {
-        SearchManager.getInstance().deleteSearch(s);
+        searchManager.deleteSearch(s);
       }
     } else {
       if(rows.length == 0) {
@@ -196,7 +198,7 @@ public class JSearchContext extends JBidTableContext {
             delList.add(s);
           }
           for (Searcher del : delList) {
-            SearchManager.getInstance().deleteSearch(del);
+            searchManager.deleteSearch(del);
           }
         }
       }
@@ -213,12 +215,15 @@ public class JSearchContext extends JBidTableContext {
     else if(cmd.equals("Delete")) DoDelete(search);
     else if(cmd.equals("Enable")) DoEnable(search);
     else if(cmd.equals("Disable")) DoDisable(search);
-    else if(cmd.equals("Save All")) handleSave(SearchManager.getInstance().saveSearches());
-    else if(cmd.equals("Load Searches")) { SearchManager.getInstance().loadSearches(); changeTable(); }
+    else if(cmd.equals("Save All")) handleSave(searchManager.saveSearches());
+    else if(cmd.equals("Load Searches")) { searchManager.loadSearches(); changeTable(); }
     else System.out.println("Cannot figure out what '" + cmd + "'.");
   }
 
-  public JSearchContext() {
+  public JSearchContext(SearchManager searchManager, JTabManager tabManager, ListManager listManager) {
+    super(tabManager, listManager);
+    this.searchManager = searchManager;
+    this.listManager = listManager;
     localPopup = constructTablePopup();
   }
 

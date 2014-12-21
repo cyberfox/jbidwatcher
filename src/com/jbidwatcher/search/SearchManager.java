@@ -6,6 +6,7 @@ package com.jbidwatcher.search;
  */
 
 import com.cyberfox.util.platform.Path;
+import com.google.inject.Singleton;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -19,18 +20,11 @@ import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 
+@Singleton
 public class SearchManager extends XMLSerializeSimple implements SearchManagerInterface, TimerHandler.WakeupProcess {
   private List<Searcher> _searches = new ArrayList<Searcher>();
-  private static SearchManager _instance = null;
   private static TimerHandler sTimer;
   private String destinationQueue;
-
-  private SearchManager() { }
-  public static SearchManager getInstance() {
-    if (_instance == null) _instance = new SearchManager();
-
-    return _instance;
-  }
 
   public void addSearch(Searcher newSearch) {
     _searches.add(newSearch);
@@ -86,10 +80,6 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
   public Searcher getSearchByIndex(int i) { if(i < _searches.size()) return _searches.get(i); else return null; }
 
   public int findSearch(Searcher s) { return _searches.indexOf(s); }
-
-  public static Searcher getSearchById(Long id) {
-    return getInstance().getSearchById(id.longValue());
-  }
 
   public Searcher getSearchById(long id) {
     for (Searcher s : _searches) {
@@ -286,9 +276,9 @@ public class SearchManager extends XMLSerializeSimple implements SearchManagerIn
   //  This thread / timer handles the periodic searching that the
   //  search feature allows to be set up.  Check only once a minute,
   //  because searching isn't a very time-critical feature.
-  public static void start() {
+  public void start() {
     if (sTimer == null) {
-      sTimer = new TimerHandler(getInstance(), Constants.ONE_MINUTE);
+      sTimer = new TimerHandler(this, Constants.ONE_MINUTE);
       sTimer.setName("Searches");
       sTimer.start();
     }

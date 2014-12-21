@@ -259,13 +259,13 @@ public class JBidMenuBar extends JMenuBar {
    *
    * @return - A menu bar usable with said frame.
    */
-  protected static JBidMenuBar getFrameInstance(ActionListener inAction, String frameName) {
+  protected static JBidMenuBar getFrameInstance(PopupMenuFactory menuFactory, JTabbedPane inTabs, ActionListener inAction, String frameName) {
     JBidMenuBar retInstance = _frameMenus.get(frameName);
     if(retInstance == null) {
       if(inAction == null) {
         throw new RuntimeException("JBidMenuBar.getInstance(null) called when no matching instance \"" + frameName + "\" yet created!");
       }
-      retInstance = new JBidMenuBar(inAction);
+      retInstance = new JBidMenuBar(menuFactory, inTabs, inAction);
       _frameMenus.put(frameName, retInstance);
     }
 
@@ -281,8 +281,8 @@ public class JBidMenuBar extends JMenuBar {
    *
    * @return - The global instance of the menu bar.
    */
-  public static JBidMenuBar getInstance(ActionListener inAction) {
-    return getInstance(inAction, null);
+  public static JBidMenuBar getInstance(PopupMenuFactory menuFactory, JTabbedPane inTabs, ActionListener inAction) {
+    return getInstance(menuFactory, inTabs, inAction, null);
   }
 
   /**
@@ -293,23 +293,23 @@ public class JBidMenuBar extends JMenuBar {
    *
    * @return - A menu bar, either the 'global instance', or a specific one for the frame.
    */
-  public static JBidMenuBar getInstance(ActionListener inAction, String frameName) {
+  public static JBidMenuBar getInstance(PopupMenuFactory menuFactory, JTabbedPane inTabs, ActionListener inAction, String frameName) {
     if(inAction == null && _instance == null && _frameMenus == null) {
       throw new RuntimeException("JBidMenuBar.getInstance(null, null) called when no instance yet created!");
     }
 
     if(frameName != null) {
-      return getFrameInstance(inAction, frameName);
+      return getFrameInstance(menuFactory, inTabs, inAction, frameName);
     }
 
     //  Return the 'global instance'.
     if(_instance == null) {
-      _instance = new JBidMenuBar(inAction);
+      _instance = new JBidMenuBar(menuFactory, inTabs, inAction);
     }
     return _instance;
   }
 
-  private JBidMenuBar(ActionListener inAction) {
+  private JBidMenuBar(PopupMenuFactory menuFactory, JTabbedPane inTabs, ActionListener inAction) {
     _actionDirector = inAction;
     _fileMenu = new JMenu("File");
     _fileMenu.setMnemonic('F');
@@ -335,7 +335,7 @@ public class JBidMenuBar extends JMenuBar {
     establishEditMenu(_editMenu);
     establishServerMenu(_serverMenu);
     establishAuctionMenu(_auctionMenu);
-    establishTabMenu(mTabMenu);
+    establishTabMenu(menuFactory, inTabs, mTabMenu);
     establishWindowMenu(mWindowMenu);
     establishHelpMenu(_helpMenu);
 
@@ -351,13 +351,13 @@ public class JBidMenuBar extends JMenuBar {
     add(_helpMenu);
   }
 
-  private void establishTabMenu(JMenu tabMenu) {
-    final JTabPopupMenu pop = new JTabPopupMenu(JTabManager.getInstance().getTabs(), tabMenu.getPopupMenu(), AuctionsManager.getInstance().getFilters());
+  private void establishTabMenu(PopupMenuFactory menuFactory, final JTabbedPane inTabs, JMenu tabMenu) {
+    final JTabPopupMenu pop = menuFactory.create(inTabs, tabMenu.getPopupMenu());
     MQFactory.getConcrete("tab_menu").registerListener(pop);
 
     tabMenu.getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
       public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-        pop.preparePopup(JTabManager.getInstance().getTabs().getSelectedIndex());
+        pop.preparePopup(inTabs.getSelectedIndex());
       }
 
       public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }

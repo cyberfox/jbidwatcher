@@ -25,6 +25,10 @@ public abstract class AuctionActionImpl implements AuctionAction {
   protected int mQuantity;
   int mResult = -1;
 
+  protected AuctionActionImpl(String id, Currency amount, int quantity) {
+    this(id, amount.fullCurrency(), quantity);
+  }
+
   protected AuctionActionImpl(String id, String amount, int quantity) {
     mIdentifier = id;
     mAmount = amount;
@@ -33,9 +37,9 @@ public abstract class AuctionActionImpl implements AuctionAction {
 
   public AuctionActionImpl() { }
 
-  public String activate() {
+  public String activate(EntryCorral corral) {
     Currency amount = Currency.getCurrency(mAmount);
-    AuctionEntry entry = (AuctionEntry) EntryCorral.getInstance().takeForWrite(mIdentifier);
+    AuctionEntry entry = (AuctionEntry) corral.takeForWrite(mIdentifier);
     try {
       if (entry == null) {
         mResult = AuctionServer.BID_ERROR_AUCTION_GONE;
@@ -55,7 +59,7 @@ public abstract class AuctionActionImpl implements AuctionAction {
       entry.update();
       return bidResultString;
     } finally {
-      EntryCorral.getInstance().release(mIdentifier);
+      corral.release(mIdentifier);
     }
   }
 

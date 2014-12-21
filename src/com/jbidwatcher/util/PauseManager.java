@@ -1,10 +1,10 @@
 package com.jbidwatcher.util;
 
+import com.google.inject.Singleton;
+
+@Singleton
 public class PauseManager {
   private long mPausedUntil = 0;
-  private static PauseManager sInstance = new PauseManager();
-
-  private PauseManager() { }
 
   public void pause(int seconds) {
     mPausedUntil = System.currentTimeMillis() + Constants.ONE_SECOND * seconds;
@@ -21,9 +21,5 @@ public class PauseManager {
     }
     mPausedUntil = 0;
     return false;
-  }
-
-  public static PauseManager getInstance() {
-    return sInstance;
   }
 }

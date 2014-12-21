@@ -27,9 +27,9 @@ public class Auctions {
   private AuctionList mList;
   private String _name;
 
-  public Auctions(String inName) {
+  public Auctions(EntryCorral entryCorral, String inName) {
     _name = inName;
-    mList = new AuctionList();
+    mList = new AuctionList(entryCorral);
   }
 
   public AuctionList getList() { return mList; }
@@ -52,60 +52,6 @@ public class Auctions {
    */
   public boolean allowAddEntry(EntryInterface aeNew) {
     return aeNew != null && !DeletedEntry.exists(aeNew.getIdentifier());
-  }
-
-  /** 
-   * For display during updates, we want the title and potentially the
-   * comment, to display all that in the status bar while we're
-   * updating.
-   * 
-   * @param ae - The auction to retrieve that display information from.
-   * 
-   * @return - A string containing the title alone, if no comment, or
-   * in the format: "title (comment)" otherwise.
-   */
-  public static String getTitleAndComment(AuctionEntry ae) {
-    String curComment = ae.getComment();
-    if(curComment == null) return ae.getTitle();
-
-    StringBuffer titleString = new StringBuffer(" (");
-    titleString.append(ae.getTitle()).append(')');
-
-    return titleString.toString();
-  }
-
-  /** 
-   * It's time to update, so show that we're updating this auction,
-   * update it, filter it to see if it needs to move (i.e. is
-   * completed), and then let the user know we finished.
-   * 
-   * @param ae - The auction to update.
-   */
-  public static void doUpdate(AuctionEntry ae) {
-    String titleWithComment = getTitleAndComment(ae);
-
-    if(!ae.isComplete() || ae.isUpdateRequired()) {
-      MQFactory.getConcrete("Swing").enqueue("Updating " + titleWithComment);
-      MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
-      Thread.yield();
-      XMLInterface before = ae.toXML(false);
-      ae.update();
-      XMLInterface after = ae.toXML(false);
-
-      boolean changed = !(after.toString().equals(before.toString()));
-
-      MQFactory.getConcrete("my").enqueue("UPDATE " + ae.getIdentifier() + "," + Boolean.toString(changed));
-      if(changed) {
-        //  Forget any cached info we have; the on-disk version has changed.
-        String category = ae.getCategory();
-        MQFactory.getConcrete("redraw").enqueue(category);
-      }
-
-      ae = (AuctionEntry) EntryCorral.getInstance().takeForWrite(ae.getIdentifier());  //  Lock the item
-      EntryCorral.getInstance().erase(ae.getIdentifier());
-      MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
-      MQFactory.getConcrete("Swing").enqueue("Done updating " + Auctions.getTitleAndComment(ae));
-    }
   }
 
   public void each(Task task) {

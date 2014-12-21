@@ -14,11 +14,12 @@ import java.text.SimpleDateFormat;
 
 public class SearchTableModel extends BaseTransformation
 {
+  private final SearchManager searchManager;
   String[] column_names = {
     "Name", "Type", "Search Value", "Site", "Repeat Time", "Next Run"
   };
 
-  public int getRowCount() { return SearchManager.getInstance().getSearchCount(); }
+  public int getRowCount() { return searchManager.getSearchCount(); }
   public int getColumnCount() { return column_names.length; }
   public String getColumnName(int index) { return column_names[index]; }
 
@@ -40,7 +41,7 @@ public class SearchTableModel extends BaseTransformation
   }
 
   public Object getSortByValueAt(int i, int j) {
-    Searcher s = SearchManager.getInstance().getSearchByIndex(i);
+    Searcher s = searchManager.getSearchByIndex(i);
 
     switch(j) {
       case -1: return s;
@@ -57,7 +58,7 @@ public class SearchTableModel extends BaseTransformation
   }
 
   public Object getValueAt(int i, int j) {
-    Searcher s = SearchManager.getInstance().getSearchByIndex(i);
+    Searcher s = searchManager.getSearchByIndex(i);
 
     switch(j) {
       case -1:
@@ -101,8 +102,9 @@ public class SearchTableModel extends BaseTransformation
     return sdf.format(new Date(base));
   }
 
-  public SearchTableModel() {
+  public SearchTableModel(SearchManager searchManager) {
     super();
+    this.searchManager = searchManager;
   }
 
   public int compare(int row1, int row2, ColumnStateList columnStateList) {
@@ -132,11 +134,11 @@ public class SearchTableModel extends BaseTransformation
   }
 
   public void delete(int row) {
-    SearchManager.getInstance().deleteSearch(SearchManager.getInstance().getSearchByIndex(row));
+    searchManager.deleteSearch(searchManager.getSearchByIndex(row));
   }
 
   public int insert(Object newObj) {
-    SearchManager.getInstance().addSearch((Searcher)newObj);
+    searchManager.addSearch((Searcher)newObj);
     return getRowCount()-1;
   }
 }

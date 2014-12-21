@@ -17,7 +17,7 @@ import com.jbidwatcher.util.Currency;
  * Abstraction of the actions that you can take on an auction (bidding and buying) so they can be acted on independantly.
  */
 public interface AuctionAction {
-  public String activate();
+  public String activate(EntryCorral corral);
   public int getResult();
   public String getAmount();
   public int getQuantity();

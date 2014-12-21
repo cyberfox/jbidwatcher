@@ -5,22 +5,16 @@ import com.jbidwatcher.ui.commands.UserActions;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
-import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.JBEditorPane;
-import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.util.queue.SuperQueue;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
 
 /**
  * User: Morgan
@@ -38,6 +32,7 @@ public class JConfigEbayTab extends JConfigTab
   private String mDisplayName;
   //  mSitename is only used to look up configuration values.
   private String mSitename = Constants.EBAY_SERVER_NAME;
+  private String friendlyName;
 
   public String getTabName() { return mDisplayName; }
   public void cancel() { }
@@ -58,7 +53,7 @@ public class JConfigEbayTab extends JConfigTab
 
     if(old_pass == null || !new_pass.equals(old_pass) ||
        old_user == null || !new_user.equals(old_user)) {
-      MQFactory.getConcrete(AuctionServerManager.getInstance().getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
+      MQFactory.getConcrete(friendlyName).enqueueBean(new AuctionQObject(AuctionQObject.MENU_CMD, "Update login cookie", null));
     }
 
     if(homeSite != null) {
@@ -177,7 +172,8 @@ public class JConfigEbayTab extends JConfigTab
     return tp;
   }
 
-  public JConfigEbayTab(boolean isQuickConfig) {
+  public JConfigEbayTab(boolean isQuickConfig, String friendlyName) {
+    this.friendlyName = friendlyName;
     quickConfig = isQuickConfig;
     mDisplayName = Constants.EBAY_DISPLAY_NAME;
     setLayout(new BorderLayout());

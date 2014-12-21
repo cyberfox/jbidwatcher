@@ -15,10 +15,13 @@ package com.jbidwatcher.ui;
  */
 
 import com.cyberfox.util.platform.Path;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.jbidwatcher.util.PauseManager;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.xml.XMLElement;
+import com.jbidwatcher.util.xml.XMLInterface;
 import com.jbidwatcher.util.xml.XMLParseException;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.server.AuctionServerManager;
@@ -30,10 +33,12 @@ import java.io.*;
 import java.util.*;
 import java.text.SimpleDateFormat;
 
-/** @noinspection Singleton*/
+@Singleton
 public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager, JConfig.ConfigListener {
-  private static AuctionsManager mInstance = null;
   private FilterManager mFilter;
+  private final PauseManager mPauseManager;
+  private final EntryCorral entryCorral;
+  private final AuctionServerManager serverManager;
 
   //  Checkpoint (save) every N minutes where N is configurable.
   private long mCheckpointFrequency;
@@ -41,32 +46,21 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   private static final int AUCTIONCOUNT = 100;
   private static final int MAX_PERCENT = AUCTIONCOUNT;
   private static TimerHandler sTimer = null;
-  private final PauseManager mPauseManager = PauseManager.getInstance();
 
   /**
    * @brief AuctionsManager is a singleton, there should only be one
    * in the system.
    */
-  private AuctionsManager() {
+  @Inject
+  private AuctionsManager(FilterManager filterManager, PauseManager pauseManager, EntryCorral corral, AuctionServerManager asm) {
     //  This should be loaded from the configuration settings.
     mCheckpointFrequency = 10 * Constants.ONE_MINUTE;
     mLastCheckpointed = System.currentTimeMillis();
 
-    mFilter = new FilterManager();
-  }
-
-  static {
-    mInstance = new AuctionsManager();
-  }
-
-  /**
-   * @brief The means of getting access to the functions of
-   * AuctionsManager, as a Singleton.
-   * 
-   * @return The one reference to this object.
-   */
-  public static AuctionsManager getInstance() {
-    return mInstance;
+    mPauseManager = pauseManager;
+    mFilter = filterManager;
+    entryCorral = corral;
+    serverManager = asm;
   }
 
   public FilterManager getFilters() {
@@ -90,7 +84,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   private List<AuctionEntry> normalizeEntries(List<AuctionEntry> entries) {
     List<AuctionEntry> output = new ArrayList<AuctionEntry>();
     for(AuctionEntry ae : entries) {
-      output.add(EntryCorral.getInstance().takeForRead(ae.getIdentifier()));
+      output.add(entryCorral.takeForRead(ae.getIdentifier()));
     }
     return output;
   }
@@ -125,6 +119,40 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     return neededUpdate;
   }
 
+  /**
+   * It's time to update, so show that we're updating this auction,
+   * update it, filter it to see if it needs to move (i.e. is
+   * completed), and then let the user know we finished.
+   *
+   * @param ae - The auction to update.
+   */
+  public void doUpdate(AuctionEntry ae) {
+    String titleWithComment = ae.getTitleAndComment();
+
+    if (!ae.isComplete() || ae.isUpdateRequired()) {
+      MQFactory.getConcrete("Swing").enqueue("Updating " + titleWithComment);
+      MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
+      Thread.yield();
+      XMLInterface before = ae.toXML(false);
+      ae.update();
+      XMLInterface after = ae.toXML(false);
+
+      boolean changed = !(after.toString().equals(before.toString()));
+
+      MQFactory.getConcrete("my").enqueue("UPDATE " + ae.getIdentifier() + "," + Boolean.toString(changed));
+      if (changed) {
+        //  Forget any cached info we have; the on-disk version has changed.
+        String category = ae.getCategory();
+        MQFactory.getConcrete("redraw").enqueue(category);
+      }
+
+      ae = (AuctionEntry) entryCorral.takeForWrite(ae.getIdentifier());  //  Lock the item
+      entryCorral.erase(ae.getIdentifier());
+      MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
+      MQFactory.getConcrete("Swing").enqueue("Done updating " + ae.getTitleAndComment());
+    }
+  }
+
   private void updateList(List<AuctionEntry> needUpdate) throws InterruptedException {
     for(AuctionEntry ae : needUpdate) {
       if (Thread.interrupted()) throw new InterruptedException();
@@ -136,8 +164,8 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
 
         MQFactory.getConcrete("update " + ae.getCategory()).enqueue("start " + ae.getIdentifier());
 
-        Auctions.doUpdate(ae);
-        EntryCorral.getInstance().putWeakly(ae);
+        doUpdate(ae);
+        entryCorral.putWeakly(ae);
 
         MQFactory.getConcrete("update " + ae.getCategory()).enqueue("stop " + ae.getIdentifier());
 
@@ -220,15 +248,14 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     MQFactory.getConcrete("splash").enqueue("WIDTH " + activeCount);
     MQFactory.getConcrete("splash").enqueue("SET 0");
 
-    AuctionServer newServer = AuctionServerManager.getInstance().getServer();
-    AuctionServerManager.setEntryManager(this);
+    AuctionServer newServer = serverManager.getServer();
     if (totalCount == 0) {
       if(JConfig.queryConfiguration("stats.auctions") == null) JConfig.setConfiguration("stats.auctions", "0");
       return 0;
     }
 
-    AuctionServerManager.getInstance().loadAuctionsFromDB(newServer);
-    AuctionStats as = AuctionServerManager.getInstance().getStats();
+    serverManager.loadAuctionsFromDB(newServer);
+    AuctionStats as = serverManager.getStats();
 
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if (as != null) {
@@ -265,10 +292,9 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       MQFactory.getConcrete("splash").enqueue("WIDTH " + auctionTotal);
     }
 
-    AuctionServerManager.setEntryManager(this);
-    AuctionServerManager.getInstance().fromXML(auctionsXML);
+    serverManager.fromXML(auctionsXML);
 
-    AuctionStats as = AuctionServerManager.getInstance().getStats();
+    AuctionStats as = serverManager.getStats();
 
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if(as != null) {
@@ -292,7 +318,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * @return - the filename if it successfully saved, null if an error occurred.
    */
   public String saveAuctions() {
-    XMLElement auctionsData = AuctionServerManager.getInstance().toXML();
+    XMLElement auctionsData = serverManager.toXML();
     String oldSave = JConfig.queryConfiguration("savefile", "auctions.xml");
     String saveFilename = Path.getCanonicalFile(JConfig.queryConfiguration("savefile", "auctions.xml"), "jbidwatcher", false);
     String newSave=saveFilename;
@@ -443,13 +469,13 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     return filename.substring(0, firstDot) + '-' + toInsert + filename.substring(firstDot);
   }
 
-  public static void start() {
+  public void start() {
     if(sTimer == null) {
-      sTimer = new TimerHandler(getInstance());
+      sTimer = new TimerHandler(this);
       sTimer.setName("Updates");
       sTimer.start();
     }
-    JConfig.registerListener(getInstance());
+    JConfig.registerListener(this);
   }
 
   public void updateConfiguration() {

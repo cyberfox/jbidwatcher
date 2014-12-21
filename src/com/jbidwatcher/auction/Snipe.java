@@ -22,6 +22,7 @@ public class Snipe {
   public final static int RESNIPE=1;
   public final static int FAIL=2;
   public static final int DONE = 3;
+  private final MultiSnipeManager mMultiManager;
 
   private CookieJar mCJ = null;
   private AuctionEntry mEntry;
@@ -29,10 +30,11 @@ public class Snipe {
   private LoginManager mLogin;
   private Bidder mBidder;
 
-  public Snipe(LoginManager login, Bidder bidder, AuctionEntry ae) {
+  public Snipe(MultiSnipeManager multiManager, LoginManager login, Bidder bidder, AuctionEntry ae) {
     mLogin = login;
     mEntry = ae;
     mBidder = bidder;
+    mMultiManager = multiManager;
   }
 
   public int fire() {
@@ -53,7 +55,7 @@ public class Snipe {
     //  Just punt if we had failed to get the bidding form initially.
     if(mBidForm == null) return FAIL;
     UpdateBlocker.startBlocking();
-    MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(mEntry.getIdentifier());
+    MultiSnipe ms = mMultiManager.getForAuctionIdentifier(mEntry.getIdentifier());
     if(ms != null) {
       //  Make sure there aren't any update-unfinished items.
       if(ms.anyEarlier(mEntry)) {

@@ -1,5 +1,7 @@
 package com.jbidwatcher.util;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.jbidwatcher.util.config.JConfig;
 
 /**
@@ -10,20 +12,12 @@ import com.jbidwatcher.util.config.JConfig;
  *
  * A small utility class to monitor the error log, via a ScrollingBuffer.
  */
+@Singleton
 public class ErrorMonitor implements LogProvider {
   private final static int MAX_BUFFER_SIZE = 50000;
-  private static ErrorMonitor sInstance;
   private ScrollingBuffer mBuffer;
 
-  static {
-    if(sInstance == null) sInstance = new ErrorMonitor();
-  }
-
-  public static ErrorMonitor getInstance() {
-    if(sInstance == null) sInstance = new ErrorMonitor();
-    return sInstance;
-  }
-
+  @Inject
   private ErrorMonitor() {
     mBuffer = new ScrollingBuffer(MAX_BUFFER_SIZE);
     JConfig.log().addHandler(mBuffer);

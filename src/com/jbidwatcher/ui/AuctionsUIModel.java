@@ -43,7 +43,7 @@ public class AuctionsUIModel {
   private CSVExporter _export;
   private JPanel mPanel;
 
-  private static final myTableCellRenderer _myRenderer = new myTableCellRenderer();
+  private final myTableCellRenderer _myRenderer;
   private TableSorter _tSort;
 
   /**
@@ -53,14 +53,14 @@ public class AuctionsUIModel {
    * @param tableContextMenu - The context menu to present for this table.
    * @param frameContextMenu - The context menu to present for whitespace outside the table.
    * @param cornerButtonListener - The button to sit above the scrollbar.
-   * @param monitor
    */
-  public AuctionsUIModel(Auctions newAuctionList, JContext tableContextMenu, final JContext frameContextMenu, ActionListener cornerButtonListener) {
+  public AuctionsUIModel(Auctions newAuctionList, myTableCellRenderer cellRenderer, MultiSnipeManager multiManager, JContext tableContextMenu, final JContext frameContextMenu, ActionListener cornerButtonListener) {
+    _myRenderer = cellRenderer;
     _dataModel = newAuctionList;
 
     _targets = new DropTarget[2];
 
-    _tSort = new TableSorter(_dataModel.getName(), "Time left", new auctionTableModel(_dataModel.getList()));
+    _tSort = new TableSorter(_dataModel.getName(), "Time left", new auctionTableModel(multiManager, _dataModel.getList()));
 
     _table = new AuctionTable(_dataModel.getName(), _tSort);
     if(newAuctionList.isCompleted()) {
@@ -329,7 +329,7 @@ public class AuctionsUIModel {
     //  If we managed to do the i18n thing through it all, and we have
     //  some real values, return it.
     if(i18n && realAccum != null) {
-      StringBuffer result = new StringBuffer(realAccum.toString());
+      StringBuilder result = new StringBuilder(realAccum.toString());
       if(withRealShipping != null && !realAccum.equals(withRealShipping)) {
         result.append(" (").append(withRealShipping).append(" with ").append(sAndH).append(')');
       }
@@ -419,7 +419,7 @@ public class AuctionsUIModel {
 
   // hack and a half - but adding a row height attribute for columns seems like overkill
   public void adjustRowHeight() {
-    Font def = myTableCellRenderer.getDefaultFont();
+    Font def = _myRenderer.getDefaultFont();
     Graphics g = _table.getGraphics();
     int defaultHeight;
 

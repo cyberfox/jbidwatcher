@@ -9,6 +9,8 @@ package com.jbidwatcher.ui;//  -*- Java -*-
 //  History:
 //  mrs: 23-July-1999 09:29 - This exists to eliminate cell-based selection in the table cell renderer.  (It looks ugly.)
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.MultiSnipe;
 import com.jbidwatcher.auction.MultiSnipeManager;
@@ -22,9 +24,12 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
+@Singleton
 public class myTableCellRenderer extends DefaultTableCellRenderer {
   private static Font boldFont = null;
   private static Font fixedFont = null;
+  @Inject
+  private MultiSnipeManager multiManager;
 
   private static final Color darkGreen = new Color(0, 127, 0);
   private static final Color darkRed = new Color(127, 0, 0);
@@ -228,7 +233,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   }
 
   private static Font sDefaultFont = null;
-  public static Font getDefaultFont() {
+  public Font getDefaultFont() {
     if(sDefaultFont == null) {
       String cfgDefault = JConfig.queryConfiguration("default.font");
       if(cfgDefault != null) {
@@ -269,7 +274,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   }
 
   private Color snipeBidBackground(AuctionEntry ae) {
-    MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(ae.getIdentifier());
+    MultiSnipe ms = multiManager.getForAuctionIdentifier(ae.getIdentifier());
     if (ms != null) {
       return ms.getColor();
     }
@@ -301,7 +306,7 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
   private Color snipeBidColor(AuctionEntry ae) {
     if(ae != null) {
       if(ae.isSniped()) {
-        MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(ae.getIdentifier());
+        MultiSnipe ms = multiManager.getForAuctionIdentifier(ae.getIdentifier());
         if (ms == null) {
           return ae.isSnipeValid() ? darkGreen : darkRed;
         }

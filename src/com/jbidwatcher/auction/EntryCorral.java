@@ -1,5 +1,7 @@
 package com.jbidwatcher.auction;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.jbidwatcher.util.db.ActiveRecord;
 
 import java.lang.ref.Reference;
@@ -120,6 +122,7 @@ abstract class EntryCorralTemplate<T extends ActiveRecord> {
   }
 }
 
+@Singleton
 public class EntryCorral extends EntryCorralTemplate<AuctionEntry> {
   @Override
   public AuctionEntry getItem(String param) {
@@ -148,11 +151,6 @@ public class EntryCorral extends EntryCorralTemplate<AuctionEntry> {
     return rval;
   }
 
-  //  Singleton stuff
-  private static EntryCorral sInstance = null;
+  @Inject
   private EntryCorral() { super(); }
-  public static EntryCorral getInstance() {
-    if (sInstance == null) sInstance = new EntryCorral();
-    return sInstance;
-  }
 }

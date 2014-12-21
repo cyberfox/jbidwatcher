@@ -22,9 +22,13 @@ import java.util.ArrayList;
  * The menuing and such for the table-specific context menu.
  */
 public class JBidTableContext extends JBidContext {
+  private final ListManager listManager;
+  private final JTabManager tabManager;
   private JMenu tabMenu = null;
 
-  public JBidTableContext() {
+  public JBidTableContext(JTabManager tabManager, ListManager listManager) {
+    this.tabManager = tabManager;
+    this.listManager = listManager;
     buildMenu(localPopup);
   }
 
@@ -87,10 +91,10 @@ public class JBidTableContext extends JBidContext {
     if (tabMenu != null) {
       tabMenu.removeAll();
 
-      JTabbedPane tabbedPane = JTabManager.getInstance().getTabs();
+      JTabbedPane tabbedPane = tabManager.getTabs();
       String currentTitle = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
       // shows the list of tabs in the same order as the tabs
-      List<String> tabs = ListManager.getInstance().allCategories();
+      List<String> tabs = listManager.allCategories();
       if (tabs == null) {
         tabMenu.setEnabled(false);
       } else {

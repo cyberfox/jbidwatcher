@@ -5,6 +5,8 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.PlainMessageQueue;
@@ -19,25 +21,15 @@ import java.awt.event.ActionEvent;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * A JTabManager which handles all the tabs into which are
+ * rendered UI models.
+ */
+@Singleton
 public class JTabManager extends JMouseAdapter {
   private JTabbedPane mAuctionTypes;
   private Map<String, TableSorter> mNameTableMap = new TreeMap<String, TableSorter>();
-  private static JTabManager sInstance;
   private FilterInterface mFilter;
-
-  /**
-   * @brief Retrieve the tab manager which controls ALL the tabs that
-   * are displaying UI models.
-   *
-   * @return A JTabManager which handles all the tabs into which are
-   * rendered UI models.
-   */
-  public static JTabManager getInstance() {
-    if(sInstance == null) {
-      sInstance = new JTabManager();
-    }
-    return sInstance;
-  }
 
   /**
    * A little dependency injection; we use the filter manager to add in auction
@@ -50,6 +42,7 @@ public class JTabManager extends JMouseAdapter {
     mFilter = filter;
   }
 
+  @Inject
   private JTabManager() {
     mAuctionTypes = new PlusTabbedPane();
 

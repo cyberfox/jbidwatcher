@@ -16,25 +16,30 @@ import java.util.ArrayList;
 */
 public class AuctionList {
   private final List<String> mList = Collections.synchronizedList(new ArrayList<String>());
+  private final EntryCorral entryCorral;
+
+  public AuctionList(EntryCorral corral) {
+    entryCorral = corral;
+  }
 
   public int size() { synchronized(mList) { return mList.size(); } }
   public AuctionEntry get(int i) {
     synchronized (mList) {
       String identifier = mList.get(i);
-      return EntryCorral.getInstance().takeForRead(identifier);
+      return entryCorral.takeForRead(identifier);
     }
   }
   public void remove(int i) {
     synchronized (mList) {
       String identifier = mList.get(i);
-      EntryCorral.getInstance().takeForRead(identifier);
+      entryCorral.takeForRead(identifier);
       mList.remove(i);
     }
   }
 
   public void add(AuctionEntry ae) {
     synchronized (mList) {
-      EntryCorral.getInstance().put(ae);
+      entryCorral.put(ae);
       mList.add(ae.getIdentifier());
     }
   }
@@ -42,7 +47,7 @@ public class AuctionList {
   public AuctionEntry find(Comparison c) {
     synchronized (mList) {
       for (String identifier : mList) {
-        AuctionEntry result = EntryCorral.getInstance().takeForRead(identifier);
+        AuctionEntry result = entryCorral.takeForRead(identifier);
         if (c.match(result)) return result;
       }
     }
@@ -52,8 +57,8 @@ public class AuctionList {
   public void each(Task task) {
     synchronized(mList) {
       for (String identifier : mList) {
-        AuctionEntry result = (AuctionEntry) EntryCorral.getInstance().takeForWrite(identifier);
-        try { task.execute(result); } finally { EntryCorral.getInstance().release(identifier); }
+        AuctionEntry result = (AuctionEntry) entryCorral.takeForWrite(identifier);
+        try { task.execute(result); } finally { entryCorral.release(identifier); }
       }
     }
   }

@@ -1,14 +1,23 @@
 package com.jbidwatcher.app;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.jbidwatcher.auction.*;
+import com.jbidwatcher.auction.server.AuctionServer;
+import com.jbidwatcher.auction.server.AuctionServerFactory;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Observer;
 import com.jbidwatcher.util.config.JConfig;
 import com.cyberfox.util.config.Base64;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.script.Scripting;
+import com.jbidwatcher.util.webserver.AbstractMiniServer;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
@@ -35,6 +44,15 @@ import java.net.HttpURLConnection;
  */
 @SuppressWarnings({"UtilityClass", "UtilityClassWithoutPrivateConstructor"})
 public class JBTool implements ToolInterface {
+  @Inject
+  private AuctionServerFactory serverFactory;
+  @Inject
+  private MiniServerFactory miniServerFactory;
+
+  private final EntryFactory entryFactory;
+  private final SearchManager searchManager;
+  private final AuctionServerManager auctionServerManager;
+  private final MyJBidwatcher myJBidwatcher;
   private boolean mLogin = false;
   private String mUsername = null;
   private String mPassword = null;
@@ -83,7 +101,7 @@ public class JBTool implements ToolInterface {
   }
 
   private void testSearching() {
-    Searcher sm = SearchManager.getInstance().addSearch("Title", "zarf", "zarf", "ebay", -1, 12345678);
+    Searcher sm = searchManager.addSearch("Title", "zarf", "zarf", "ebay", -1, 12345678);
     sm.execute();
   }
 
@@ -124,20 +142,42 @@ public class JBTool implements ToolInterface {
     }
   }
 
-  public JBTool(String[] args) {
-    mParams = parseOptions(args);
+  public JBTool(EntryFactory eFactory, final EntryCorral corral, SearchManager searchManager, AuctionServerManager serverManager,
+                MyJBidwatcher myJBidwatcher) {
+    this.entryFactory = eFactory;
+    this.searchManager = searchManager;
+    this.auctionServerManager = serverManager;
+    this.myJBidwatcher = myJBidwatcher;
+
+    ActiveRecord.disableDatabase();
+    AuctionEntry.addObserver(entryFactory);
+    AuctionEntry.addObserver(new Observer<AuctionEntry>() {
+      public void afterCreate(AuctionEntry o) {
+        corral.putWeakly(o);
+      }
+    });
   }
 
   public static void main(String[] args) {
 //    JConfig.setLogger(new ErrorManagement());
-    ActiveRecord.disableDatabase();
-    AuctionEntry.addObserver(EntryFactory.getInstance());
-    AuctionEntry.addObserver(new Observer<AuctionEntry>() {
-      public void afterCreate(AuctionEntry o) {
-        EntryCorral.getInstance().putWeakly(o);
+
+    AbstractModule guiceModule = new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(EntryManager.class).to(AuctionsManager.class);
+        install(new FactoryModuleBuilder()
+            .implement(AuctionServer.class, ebayServer.class)
+            .build(AuctionServerFactory.class));
+        install(new FactoryModuleBuilder()
+            .implement(AbstractMiniServer.class, MiniServer.class)
+            .build(MiniServerFactory.class));
       }
-    });
-    JBTool tool = new JBTool(args);
+    };
+
+    Injector inject = Guice.createInjector(guiceModule);
+    JBTool tool = inject.getInstance(JBTool.class);
+
+    tool.mParams = tool.parseOptions(args);
 
     tool.execute();
     System.exit(0);
@@ -148,7 +188,7 @@ public class JBTool implements ToolInterface {
     try {
       long start = System.currentTimeMillis();
       AuctionInfo ai = mEbay.doParse(sb);
-      AuctionEntry ae = EntryFactory.getInstance().constructEntry();
+      AuctionEntry ae = entryFactory.constructEntry();
       ae.setAuctionInfo(ai);
       System.out.println("Took: " + (System.currentTimeMillis() - start));
       System.out.println(ae.toXML().toString());
@@ -192,19 +232,19 @@ public class JBTool implements ToolInterface {
   private void spawnServer() {
     int listenPort = 9099;
     if(mPortNumber != null) listenPort = Integer.parseInt(mPortNumber);
-    mServer = new SimpleProxy(listenPort, MiniServer.class, this);
+    mServer = new SimpleProxy(listenPort, miniServerFactory, this);
     mServer.go();
     try { mServer.join(); } catch(Exception ignored) { /* Time to die... */ }
   }
 
   private void setupAuctionResolver() {
-    mEbay = new ebayServer(mCountry, mUsername, mPassword);
+    mEbay = (ebayServer)serverFactory.create(mCountry, mUsername, mPassword);
 
     Resolver r = new Resolver() {
       public AuctionServerInterface getServer() { return mEbay; }
     };
-    AuctionServerManager.getInstance().setServer(mEbay);
-    EntryFactory.setResolver(r);
+    auctionServerManager.setServer(mEbay);
+    entryFactory.setResolver(r);
   }
 
   private List<String> parseOptions(String[] args) {
@@ -267,7 +307,7 @@ public class JBTool implements ToolInterface {
       if(option.startsWith("bulk")) { mCompare = true; mMultiFiles = true; }
       if(option.startsWith("bidfile=")) testBidHistory(option.substring(8));
       if(option.startsWith("adult")) JConfig.setConfiguration("ebay.mature", "true");
-      if(option.startsWith("upload=")) MyJBidwatcher.getInstance().sendFile(new File(option.substring(7)), "http://my.jbidwatcher.com/upload/log", "cyberfox@jbidwatcher.com", "This is a <test> of descriptions & stuff.");
+      if(option.startsWith("upload=")) myJBidwatcher.sendFile(new File(option.substring(7)), "http://my.jbidwatcher.com/upload/log", "cyberfox@jbidwatcher.com", "This is a <test> of descriptions & stuff.");
     }
 
     if(!mLogin) {

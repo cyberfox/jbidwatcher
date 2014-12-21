@@ -20,6 +20,7 @@ import java.util.HashMap;
 import javax.swing.*;
 
 public class JConfigMyJBidwatcherTab extends JConfigTab {
+  private final MyJBidwatcher myJBidwatcher;
   private JCheckBox mEnable;
   private JTextField mEmail;
   private JTextField mPassword;
@@ -42,7 +43,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     String email = mEmail.getText();
     String password = mPassword.getText();
 
-    if (MyJBidwatcher.getInstance().getAccountInfo(email, password)) {
+    if (myJBidwatcher.getAccountInfo(email, password)) {
       JConfig.setConfiguration("my.jbidwatcher.id", email);
       JConfig.setConfiguration("my.jbidwatcher.key", password);
     }
@@ -121,7 +122,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
         String action = event.getActionCommand();
         if(action == null) return;
 
-        if(MyJBidwatcher.getInstance().getAccountInfo(mEmail.getText(), mPassword.getText())) {
+        if(myJBidwatcher.getAccountInfo(mEmail.getText(), mPassword.getText())) {
           mStatusLabel.setIcon(successIcon);
           mStatusLabel.setText("success!");
           if(JConfig.queryConfiguration("my.jbidwatcher.sync") == null) JConfig.setConfiguration("my.jbidwatcher.sync", "true");
@@ -183,8 +184,9 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     return(jp);
   }
 
-  public JConfigMyJBidwatcherTab() {
+  public JConfigMyJBidwatcherTab(MyJBidwatcher myJBidwatcher) {
     super();
+    this.myJBidwatcher = myJBidwatcher;
     String prefix = "<html><body><div style=\"font-size: 0.96em;\"><center><i>";
     String suffix = "</i></center></div></body></html>";
     String link = "<a href=\"http://my.jbidwatcher.com\">My JBidwatcher</a>";

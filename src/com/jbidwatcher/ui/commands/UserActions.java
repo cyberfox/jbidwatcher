@@ -21,6 +21,10 @@ import java.util.regex.Matcher;
 import com.cyberfox.util.platform.Path;
 import com.cyberfox.util.platform.Platform;
 import com.github.rjeschke.txtmark.Processor;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.jbidwatcher.my.MyJBidwatcher;
+import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
@@ -42,10 +46,21 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionServerInterface;
 import com.l2fprod.common.swing.JFontChooser;
 
+@Singleton
 public class UserActions implements MessageQueue.Listener {
-  private static JTabManager mTabs = JTabManager.getInstance();
+  private final JTabManager mTabs;
+  private final EntryCorral entryCorral;
   private static JConfigFrame jcf = null;
   private static SearchFrame _searchFrame = null;
+  private final AuctionsManager auctionsManager;
+  private final EntryFactory entryFactory;
+  private final PauseManager pauseManager;
+  private final AuctionServerManager serverManager;
+  private final ErrorMonitor monitor;
+  private final MultiSnipeManager multisnipeManager;
+  private final SearchManager searchManager;
+  private final MyJBidwatcher myJBidwatcher;
+  private final myTableCellRenderer cellRenderer;
   private OptionUI _oui = new OptionUI();
   private RSSDialog _rssDialog = null;
   private static StringBuffer _colorHelp = null;
@@ -56,12 +71,32 @@ public class UserActions implements MessageQueue.Listener {
 
   private boolean _in_deleting = false;
   private ScriptManager mScriptFrame;
+  private final JBidToolBar toolBar;
+  private final ListManager listManager;
 
   public void DoFAQ() {
     new FAQCommand().execute();
   }
 
-  public UserActions() { }
+  @Inject
+  public UserActions(EntryCorral corral, JTabManager tabManager, EntryFactory factory, AuctionsManager auctionsManager,
+                     AuctionServerManager serverManager, PauseManager pauseManager, ErrorMonitor errorMonitor,
+                     MultiSnipeManager multiSnipeManager, SearchManager searchManager, MyJBidwatcher myJBidwatcher,
+                     JBidToolBar toolBar, ListManager listManager, myTableCellRenderer cellRenderer) {
+    this.entryCorral = corral;
+    this.mTabs = tabManager;
+    this.entryFactory = factory;
+    this.auctionsManager = auctionsManager;
+    this.serverManager = serverManager;
+    this.pauseManager = pauseManager;
+    this.monitor = errorMonitor;
+    this.multisnipeManager = multiSnipeManager;
+    this.searchManager = searchManager;
+    this.myJBidwatcher = myJBidwatcher;
+    this.toolBar = toolBar;
+    this.listManager = listManager;
+    this.cellRenderer = cellRenderer;
+  }
 
   //  Message Listener stuff
   public static final String ADD_AUCTION="ADD ";
@@ -110,10 +145,10 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   private AuctionEntry addAuction(String auctionSource) {
-    AuctionEntry aeNew = EntryFactory.getInstance().constructEntry(auctionSource);
+    AuctionEntry aeNew = entryFactory.constructEntry(auctionSource);
     if (aeNew != null) {
       aeNew.setCategory(mTabs.getCurrentTableTitle());
-      AuctionsManager.getInstance().addEntry(aeNew);
+      auctionsManager.addEntry(aeNew);
       MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
     }
     return aeNew;
@@ -126,7 +161,7 @@ public class UserActions implements MessageQueue.Listener {
 
     auctionSource = auctionSource.trim();
 
-    String id = AuctionServerManager.getInstance().getServer().stripId(auctionSource);
+    String id = serverManager.getServer().stripId(auctionSource);
     if(EntryFactory.isInvalid(true, id)) {
       AuctionEntry found = AuctionEntry.findByIdentifier(id);
       if (found != null) {
@@ -134,7 +169,7 @@ public class UserActions implements MessageQueue.Listener {
         mTabs.showEntry(found);
       }
     } else {
-      EntryFactory.getInstance().conditionallyAddEntry(true, id, mTabs.getCurrentTableTitle());
+      entryFactory.conditionallyAddEntry(true, id, mTabs.getCurrentTableTitle());
     }
   }
 
@@ -145,7 +180,7 @@ public class UserActions implements MessageQueue.Listener {
 
   public void DoSearch() {
     if(_searchFrame == null) {
-      _searchFrame = new SearchFrame();
+      _searchFrame = new SearchFrame(searchManager, mTabs, listManager);
     } else {
       _searchFrame.show();
     }
@@ -163,7 +198,7 @@ public class UserActions implements MessageQueue.Listener {
   @MenuCommand(action = "Font")
   public void DoChooseFont() {
     JFontChooser jfc = new JFontChooser();
-    jfc.setSelectedFont(myTableCellRenderer.getDefaultFont());
+    jfc.setSelectedFont(cellRenderer.getDefaultFont());
     Font chosen = jfc.showFontDialog(null, "Please choose the default font for the auction table");
     if(chosen != null) {
       myTableCellRenderer.setDefaultFont(chosen);
@@ -329,7 +364,7 @@ public class UserActions implements MessageQueue.Listener {
         JConfig.log().logDebug(logMsg);
         Thread.currentThread().setName(logMsg);
         for (AuctionEntry deleteId : entries) {
-          AuctionsManager.getInstance().delEntry(deleteId);
+          auctionsManager.delEntry(deleteId);
         }
       }
     });
@@ -338,7 +373,7 @@ public class UserActions implements MessageQueue.Listener {
 
   public void DoConfigure() {
     if(jcf == null) {
-      jcf = new JConfigFrame();
+      jcf = new JConfigFrame(myJBidwatcher, serverManager.getServer().getFriendlyName());
     } else {
       jcf.show();
     }
@@ -492,7 +527,7 @@ public class UserActions implements MessageQueue.Listener {
 
   @MenuCommand(params=2, action = "Show Time Info")
   public void DoShowTime(Component src, AuctionEntry ae) {
-    AuctionServerInterface as = AuctionServerManager.getInstance().getServer();
+    AuctionServerInterface as = serverManager.getServer();
     if(ae != null) as = ae.getServer();
 
     String prompt = "<html><body><table>";
@@ -690,7 +725,7 @@ public class UserActions implements MessageQueue.Listener {
         }
         seenCurrencyWarning = true;
       }
-      MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(tempAE.getIdentifier());
+      MultiSnipe ms = multisnipeManager.getForAuctionIdentifier(tempAE.getIdentifier());
       //  IF one of the auctions we're adding is already multi-sniped,
       //  then we're adding this auction into that one's list.
       if(ms != null) {
@@ -756,7 +791,7 @@ public class UserActions implements MessageQueue.Listener {
     JConfig.getMetrics().trackEventValue("snipe", "multi", Integer.toString(rowList.length));
     for(i=0; i<rowList.length; i++) {
       AuctionEntry stepAE = (AuctionEntry)mTabs.getIndexedEntry(rowList[i]);
-      MultiSnipeManager.getInstance().addAuctionToMultisnipe(stepAE.getIdentifier(), aeMS);
+      multisnipeManager.addAuctionToMultisnipe(stepAE.getIdentifier(), aeMS);
       MQFactory.getConcrete("redraw").enqueue(stepAE.getIdentifier());
     }
   }
@@ -940,7 +975,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   @MenuCommand(params = 2)
-  public void DoBid(Component src, AuctionEntry ae) {
+  public void DoBid(Component src, final AuctionEntry ae) {
     if(anyBiddingErrors(src, ae)) return;
 
     Currency minimumNextBid;
@@ -975,7 +1010,14 @@ public class UserActions implements MessageQueue.Listener {
                                     "Bad bid value", JOptionPane.PLAIN_MESSAGE);
       return;
     }
-    MQFactory.getConcrete(ae.getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, 1), "none"));
+
+    MQFactory.getConcrete(ae.getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionActionImpl(ae.getIdentifier(), bidAmount, 1) {
+      @Override
+      protected int execute(AuctionEntry ae, Currency curr, int quant) {
+        return ae.bid(curr, quant);
+      }
+    }, "none"));
+    entryCorral.put(ae);
   }
 
   @MenuCommand(params=2, action = "Browse")
@@ -1060,7 +1102,7 @@ public class UserActions implements MessageQueue.Listener {
 
   public void DoUpdateAll() {
     AuctionEntry.forceUpdateActive();
-    EntryCorral.getInstance().clear();
+    entryCorral.clear();
   }
 
   @MenuCommand(params = 1)
@@ -1069,12 +1111,12 @@ public class UserActions implements MessageQueue.Listener {
 
     if(endResult != JOptionPane.CANCEL_OPTION &&
        endResult != JOptionPane.CLOSED_OPTION) {
-      AuctionServerManager.getInstance().cancelSearches();
+      serverManager.cancelSearches();
 
       //  Clear all dropped or programmatically added auctions.
       MQFactory.getConcrete("drop").clear();
 
-      PauseManager.getInstance().pause();
+      pauseManager.pause();
     }
   }
 
@@ -1202,7 +1244,7 @@ public class UserActions implements MessageQueue.Listener {
     boolean alreadyClicked = JConfig.queryConfiguration("donation.clicked", "false").equals("true");
     if(donateFrame != null) donateFrame.setVisible(false);
     JConfig.setConfiguration("donation.clicked", "true");
-    JBidToolBar.getInstance().hideDonation();
+    toolBar.hideDonation();
     if(!alreadyClicked) JOptionPane.showMessageDialog(null, "The donation button has been removed; you can still access the donation screen from Help | Donate.", "Removed donation button", JOptionPane.INFORMATION_MESSAGE);
   }
 
@@ -1240,7 +1282,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   public void DoViewLog() {
-    showLog(ErrorMonitor.getInstance(), "Log");
+    showLog(monitor, "Log");
   }
 
   public void DoViewActivity() {
@@ -1248,12 +1290,12 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   public void DoSerialize() {
-    System.out.println(AuctionServerManager.getInstance().toXML());
+    System.out.println(serverManager.toXML());
   }
 
   @MenuCommand(action = "Upload")
   public void DoUploadAuctions() {
-    String fname = AuctionsManager.getInstance().saveAuctions();
+    String fname = auctionsManager.saveAuctions();
     MQFactory.getConcrete("my").enqueue("SYNC " + fname);
   }
 
@@ -1279,7 +1321,7 @@ public class UserActions implements MessageQueue.Listener {
 
       xmlFile.parseFromReader(isr);
 
-      AuctionServerManager.getInstance().fromXML(xmlFile);
+      serverManager.fromXML(xmlFile);
     } catch(IOException e) {
       JConfig.log().handleException("Error loading XML file with auctions: " + canonicalFName, e);
     }
@@ -1291,7 +1333,7 @@ public class UserActions implements MessageQueue.Listener {
 
   @MenuCommand(params = 1)
   public void DoSave(Component src) {
-    String didSave = AuctionsManager.getInstance().saveAuctions();
+    String didSave = auctionsManager.saveAuctions();
     System.gc();
 
     if(didSave != null) {
@@ -1462,7 +1504,7 @@ public class UserActions implements MessageQueue.Listener {
 
   @MenuCommand(params = 1)
   public void DoClearDeleted(Component src) {
-    int clearedCount = AuctionsManager.getInstance().clearDeleted();
+    int clearedCount = auctionsManager.clearDeleted();
 
     _oui.promptWithCheckbox(src, "Cleared " + clearedCount + " deleted entries.", "Clear Complete", "prompt.clear_complete", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
   }
@@ -1493,14 +1535,14 @@ public class UserActions implements MessageQueue.Listener {
   @MenuCommand(action = MY_EBAY)
   public void DoGetMyeBay() {
     AuctionQObject loadMyeBay = new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, "current");
-    MQFactory.getConcrete(AuctionServerManager.getInstance().getServer().getFriendlyName()).enqueueBean(loadMyeBay);
+    MQFactory.getConcrete(serverManager.getServer().getFriendlyName()).enqueueBean(loadMyeBay);
   }
 
   private SubmitLogDialog mLogSubmitDialog;
 
   public void DoSubmitLogFile() {
     if(mLogSubmitDialog == null) {
-      mLogSubmitDialog = new SubmitLogDialog();
+      mLogSubmitDialog = new SubmitLogDialog(myJBidwatcher);
     }
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
