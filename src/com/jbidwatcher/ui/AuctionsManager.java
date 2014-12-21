@@ -68,7 +68,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   public void messageAction(Object deQ) {
     String identifier = (String)deQ;
 
-    AuctionEntry ae = EntryCorral.getInstance().takeForRead(identifier);
+    AuctionEntry ae = entryCorral.takeForRead(identifier);
     addEntry(ae);
   }
 

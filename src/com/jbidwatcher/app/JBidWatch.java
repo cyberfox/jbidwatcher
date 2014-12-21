@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
 import java.util.*;
+import java.lang.reflect.*;
 
 /**
  * @file   JBidWatch.java

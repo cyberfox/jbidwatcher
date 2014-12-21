@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 public class JHTMLParser {
   private List<htmlToken> m_tokens;
   private JHTMLListener m_notify = null;
+  private final static boolean do_uber_debug = false;
 
   public JHTMLParser(StringBuffer sb, JHTMLListener notify) {
     m_notify = notify;
@@ -43,7 +44,8 @@ public class JHTMLParser {
     boolean inQuote=false, inTag=false, inComment=false;
     char ch, prev = '\0', next = '\0';
 
-    trueBuffer = setupBuffer(trueBuffer);
+    trueBuffer = fixupTitle(trueBuffer);
+    trueBuffer = stripNoBR(trueBuffer);
 
     int bufLen = trueBuffer.length();
     boolean spitNextTag = false;
@@ -61,9 +63,7 @@ public class JHTMLParser {
         if(!inComment) {
           if(inQuote && ch == '>') {
             suspicious = true;
-            if(JConfig.debugging) {
-              debugUnusualTags(trueBuffer, bufLen, charStep);
-            }
+            debugParsing(trueBuffer, bufLen, charStep);
             firstClose = charStep;
           }
           if(ch == '"') {
@@ -96,7 +96,15 @@ public class JHTMLParser {
             if(!inComment) {
               //  We've ended a tag, outside a quote.  It's all good.
               if(suspicious) suspicious = false;
-              spitNextTag = addValidTag(trueBuffer, spitNextTag, start, charStep);
+              logSubstringWeirdness(trueBuffer, start, charStep);
+              addToken(trueBuffer.substring(start, charStep), htmlToken.HTML_TAG);
+              if(spitNextTag) {
+                if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
+                  JConfig.log().logDebug("Added 'bad' tag: <" + trueBuffer.substring(start, charStep) + ">");
+                }
+              }
+              spitNextTag = false;
+              //              spitNextTag = addValidTag(trueBuffer, spitNextTag, start, charStep);
             } else {
               // Comment ends with "-->"
               inComment = (prev != '-') || (trueBuffer.charAt(charStep-2) != '-');
@@ -108,7 +116,7 @@ public class JHTMLParser {
       } else {
         // in Content
         if(ch == '<') {
-          addStartTag(trueBuffer, start, charStep);
+          addContentBlock(trueBuffer, start, charStep);
 
           inTag = true;
 
@@ -127,28 +135,63 @@ public class JHTMLParser {
     addToken("", htmlToken.HTML_EOF);
   }
 
-  private StringBuffer setupBuffer(StringBuffer trueBuffer) {
-    if(JConfig.queryConfiguration("ebay.titleFix", "true").equals("true")) {
-      StringBuffer trueBuffer1 = trueBuffer;
-      StringBuffer sb1;
-      Matcher m1;
-      sb1 = new StringBuffer(trueBuffer1.length());
-      m1 = Pattern.compile("<title>(.*)</title>").matcher(trueBuffer1);
-      String quotedTitle = null;
-      while(m1.find()) {
-        if(quotedTitle == null) quotedTitle = "<title>" + XMLElement.encodeString(m1.group(1)) + "</title>";
-        m1.appendReplacement(sb1, Matcher.quoteReplacement(quotedTitle));
+  private boolean isEndTag(boolean inQuote, char prev, char next) {
+    //  This prevents opening a quote at the end of a tag.
+    boolean endingTag = !inQuote && prev != '=' && next == '>';
+    if(endingTag) {
+      if (JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
+        JConfig.log().logDebug("Quote error!");
       }
-      m1.appendTail(sb1);
-      trueBuffer1 = sb1;
-      trueBuffer = trueBuffer1;
     }
+    return endingTag;
+  }
 
-    trueBuffer = stripNoBR(trueBuffer);
+  private void debugParsing(StringBuffer trueBuffer, int bufLen, int charStep) {
+    if(JConfig.debugging) {
+      int pre_nl=0, post_nl=0, i;
+      for(i=charStep-1; pre_nl == 0 && i>0 && i>(charStep-40); i--) if(trueBuffer.charAt(i) == '\n') pre_nl = i+1;
+      if(pre_nl == 0) pre_nl = i;
+      for(i=charStep+1; post_nl == 0 && i<bufLen && i<(charStep+20); i++) if(trueBuffer.charAt(i) == '\n') post_nl = i;
+      if(post_nl == 0) post_nl = i;
+      String oddText = trueBuffer.substring(pre_nl, post_nl);
+      if(oddText.indexOf("type=\"submit\"") == -1 &&
+         oddText.indexOf("name=\"Submit\"") == -1 &&
+         !oddText.startsWith("<META")) {
+        if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
+          JConfig.log().logMessage("Found an unusual tag @ " + charStep + "...  (" + oddText + ")");
+        }
+      }
+    }
+  }
+
+  private void logSubstringWeirdness(StringBuffer trueBuffer, int start, int charStep) {
+    if(charStep < start) {
+      if(do_uber_debug) {
+        JConfig.log().logDebug("substring(" + start + ", " + charStep + ") of " + trueBuffer.length());
+        JConfig.log().logDebug("FAILURE @\n-------------------\n" + trueBuffer.substring(charStep, start));
+      }
+    }
+  }
+
+  private StringBuffer fixupTitle(StringBuffer trueBuffer) {
+    StringBuffer sb;
+    Matcher m;
+    if(JConfig.queryConfiguration("ebay.titleFix", "true").equals("true")) {
+      sb = new StringBuffer(trueBuffer.length());
+      m = Pattern.compile("<title>(.*)</title>").matcher(trueBuffer);
+      String quotedTitle = null;
+      while(m.find()) {
+        if(quotedTitle == null) quotedTitle = "<title>" + XMLElement.encodeString(m.group(1)) + "</title>";
+        m.appendReplacement(sb, Matcher.quoteReplacement(quotedTitle));
+      }
+      m.appendTail(sb);
+      trueBuffer = sb;
+    }
     return trueBuffer;
   }
 
-  private void addStartTag(StringBuffer trueBuffer, int start, int charStep) {// end Content and start Tag
+  // end Content and start Tag
+  private void addContentBlock(StringBuffer trueBuffer, int start, int charStep) {
     if(start != charStep) {
       String whatToAdd = trueBuffer.substring(start, charStep);
       String trimmed = whatToAdd.trim();
@@ -187,10 +230,9 @@ public class JHTMLParser {
   }
 
   private StringBuffer stripNoBR(StringBuffer trueBuffer) {
-    StringBuffer sb;
-    Matcher m;
-    sb = new StringBuffer(trueBuffer.length());
-    m = Pattern.compile("(<nobr>|</nobr>)").matcher(trueBuffer);
+    StringBuffer sb = new StringBuffer(trueBuffer.length());;
+    Matcher m = Pattern.compile("(<nobr>|</nobr>)").matcher(trueBuffer);
+
     while(m.find()) {
       m.appendReplacement(sb, "");
     }

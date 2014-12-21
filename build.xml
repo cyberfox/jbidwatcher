@@ -59,10 +59,14 @@
     <pathelement path="${build.dir}" />
     <pathelement path="${src.dir}" />
     <pathelement path="${lib.dir}/annotations.jar" />
+    <pathelement path="${lib.dir}/aopalliance.jar" />
     <pathelement path="${lib.dir}/apple.jar" />
     <pathelement path="${platform.dir}/nonap.jar" />
     <pathelement path="${lib.dir}/derby.jar" />
+    <pathelement path="${lib.dir}/guice-3.0.jar" />
+    <pathelement path="${lib.dir}/guice-assistedinject-3.0.jar" />
     <pathelement path="${lib.dir}/mahalo.jar" />
+    <pathelement path="${lib.dir}/javax.inject.jar" />
     <pathelement path="${lib.dir}/jDeskMetrics.jar" />
     <pathelement path="${lib.dir}/txtmark.jar" />
     <pathelement path="${lib.dir}/jdesktop.jar" />
@@ -187,8 +191,12 @@
       <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
       <fileset dir="${build.path}" includes="main/main.jar" />
       <fileset dir="${main.dir}" includes="lib/apple.jar" />
+      <fileset dir="${main.dir}" includes="lib/aopalliance.jar" />
       <fileset dir="${main.dir}" includes="lib/derby.jar" />
+      <fileset dir="${main.dir}" includes="lib/guice-3.0.jar" />
+      <fileset dir="${main.dir}" includes="lib/guice-assistedinject-3.0.jar" />
       <fileset dir="${main.dir}" includes="lib/mahalo.jar" />
+      <fileset dir="${main.dir}" includes="lib/javax.inject.jar" />
       <fileset dir="${main.dir}" includes="lib/jDeskMetrics.jar" />
       <fileset dir="${main.dir}" includes="lib/txtmark.jar" />
       <fileset dir="${main.dir}" includes="lib/jdesktop.jar" />
@@ -337,8 +345,12 @@
     <!--- Put all the libraries in the resources directory -->
     <copy todir="${osx.app.path}/Contents/Resources/Java">
       <fileset dir="${lib.dir}" includes="apple.jar" />
+      <fileset dir="${lib.dir}" includes="aopalliance.jar" />
       <fileset dir="${lib.dir}" includes="derby.jar" />
+      <fileset dir="${lib.dir}" includes="guice-3.0.jar" />
+      <fileset dir="${lib.dir}" includes="guice-assistedinject-3.0.jar" />
       <fileset dir="${lib.dir}" includes="jdesktop.jar" />
+      <fileset dir="${lib.dir}" includes="javax.inject.jar" />
       <fileset dir="${lib.dir}" includes="jl1.0.1.jar" />
       <fileset dir="${lib.dir}" includes="jsoup-1.7.1.jar" />
       <fileset dir="${lib.dir}" includes="mahalo.jar" />
