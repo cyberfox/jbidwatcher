@@ -10,10 +10,7 @@ import com.cyberfox.util.config.ErrorManagement;
 import com.cyberfox.util.platform.Path;
 import com.cyberfox.util.platform.Platform;
 import com.cyberfox.util.platform.osx.NoNap;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import com.google.inject.*;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerFactory;
 import com.jbidwatcher.auction.server.AuctionStats;
@@ -83,6 +80,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private static ClassLoader urlCL = (ClassLoader)JBidWatch.class.getClassLoader();
   private final MyJBidwatcher myJBidwatcher;
   private final JBWDropHandler dropHandler;
+  private final Provider<UIBackbone> backboneProvider;
   @Inject
   private MiniServerFactory miniServerFactory;
   @Inject
@@ -93,7 +91,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private final FilterManager filters;
   private final ListManager listManager;
   private final AuctionsManager auctionsManager;
-  private final UIBackbone backbone;
   private SearchManager searchManager;
   private EntryFactory entryFactory;
   private EntryCorral corral;
@@ -509,7 +506,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
   public JBidWatch(ErrorMonitor monitor, SearchManager searcher, EntryFactory entryMaker, EntryCorral holdingCell,
                    AuctionServerManager serverManager, MyJBidwatcher myInstance, JBWDropHandler dropHandler,
                    FilterManager filterManager, JTabManager tabManager, ListManager listManager, AuctionsManager auctionsManager,
-                   UIBackbone uiBackbone, UserActions userActions, Injector inject) {
+                   Provider<UIBackbone> uiBackboneProvider, UserActions userActions, Injector inject) {
     this.searchManager = searcher;
     this.corral = holdingCell;
     this.entryFactory = entryMaker;
@@ -521,7 +518,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     this.jtmAuctions = tabManager;
     this.listManager = listManager;
     this.auctionsManager = auctionsManager;
-    this.backbone = uiBackbone;
+    this.backboneProvider = uiBackboneProvider;
     this.userActions = userActions;
     this.injector = inject;
 
@@ -739,7 +736,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     mainFrame = buildFrame();
     mainFrame.setLocation(JConfig.screenx, JConfig.screeny);
     mainFrame.setSize(JConfig.width, JConfig.height);
-    backbone.setMainFrame(mainFrame);
+    backboneProvider.get().setMainFrame(mainFrame);
 
     synchronized (mScriptCompletion) {
       if(JConfig.scriptingEnabled()) {
