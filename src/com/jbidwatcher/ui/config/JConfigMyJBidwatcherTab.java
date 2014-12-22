@@ -91,7 +91,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
   private static final ImageIcon successIcon = new ImageIcon(JConfig.getResource("/icons/status_green_16.png"));
   private static final ImageIcon failIcon = new ImageIcon(JConfig.getResource("/icons/status_red_16.png"));
 
-  private JPanel buildUserSettings() {
+  private JPanel buildUserSettings(JPasteListener pasteListener) {
     JPanel jp = new JPanel(new BorderLayout());
     jp.setBorder(BorderFactory.createTitledBorder("My JBidwatcher User Settings"));
 
@@ -99,7 +99,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     innerPanel.setLayout(new SpringLayout());
 
     mEmail = new JTextField();
-    mEmail.addMouseListener(JPasteListener.getInstance());
+    mEmail.addMouseListener(pasteListener);
     setComponentTooltip(mEmail, "Email address to use for your My JBidwatcher account.");
     final JLabel emailLabel = new JLabel("Email Address:");
     emailLabel.setLabelFor(mEmail);
@@ -107,7 +107,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     innerPanel.add(mEmail);
 
     mPassword = new JTextField();
-    mPassword.addMouseListener(JPasteListener.getInstance());
+    mPassword.addMouseListener(pasteListener);
     setComponentTooltip(mPassword, "My JBidwatcher access key");
     final JLabel passwordLabel = new JLabel("Access Key:");
     passwordLabel.setLabelFor(mPassword);
@@ -184,7 +184,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     return(jp);
   }
 
-  public JConfigMyJBidwatcherTab(MyJBidwatcher myJBidwatcher) {
+  public JConfigMyJBidwatcherTab(MyJBidwatcher myJBidwatcher, JPasteListener pasteListener) {
     super();
     this.myJBidwatcher = myJBidwatcher;
     String prefix = "<html><body><div style=\"font-size: 0.96em;\"><center><i>";
@@ -194,7 +194,7 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     this.setLayout(new BorderLayout());
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
-    jp.add(buildUserSettings(), BorderLayout.NORTH);
+    jp.add(buildUserSettings(pasteListener), BorderLayout.NORTH);
     jp.add(buildExtraSettings(), BorderLayout.SOUTH);
     this.add(panelPack(jp), BorderLayout.CENTER);
     this.add(jep, BorderLayout.NORTH);

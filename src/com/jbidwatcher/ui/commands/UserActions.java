@@ -22,6 +22,7 @@ import com.cyberfox.util.platform.Path;
 import com.cyberfox.util.platform.Platform;
 import com.github.rjeschke.txtmark.Processor;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.jbidwatcher.my.MyJBidwatcher;
 import com.jbidwatcher.search.SearchManager;
@@ -50,7 +51,6 @@ import com.l2fprod.common.swing.JFontChooser;
 public class UserActions implements MessageQueue.Listener {
   private final JTabManager mTabs;
   private final EntryCorral entryCorral;
-  private static JConfigFrame jcf = null;
   private static SearchFrame _searchFrame = null;
   private final AuctionsManager auctionsManager;
   private final EntryFactory entryFactory;
@@ -61,6 +61,7 @@ public class UserActions implements MessageQueue.Listener {
   private final SearchManager searchManager;
   private final MyJBidwatcher myJBidwatcher;
   private final myTableCellRenderer cellRenderer;
+  private final Provider<JConfigFrame> configFrameProvider;
   private OptionUI _oui = new OptionUI();
   private static StringBuffer _colorHelp = null;
   private static StringBuffer _aboutText = null;
@@ -72,6 +73,7 @@ public class UserActions implements MessageQueue.Listener {
   private ScriptManager mScriptFrame;
   private final JBidToolBar toolBar;
   private final ListManager listManager;
+  private final JPasteListener pasteListener;
 
   public void DoFAQ() {
     new FAQCommand().execute();
@@ -81,7 +83,8 @@ public class UserActions implements MessageQueue.Listener {
   public UserActions(EntryCorral corral, JTabManager tabManager, EntryFactory factory, AuctionsManager auctionsManager,
                      AuctionServerManager serverManager, PauseManager pauseManager, ErrorMonitor errorMonitor,
                      MultiSnipeManager multiSnipeManager, SearchManager searchManager, MyJBidwatcher myJBidwatcher,
-                     JBidToolBar toolBar, ListManager listManager, myTableCellRenderer cellRenderer) {
+                     JBidToolBar toolBar, ListManager listManager, myTableCellRenderer cellRenderer, JPasteListener pasteListener,
+                     Provider<JConfigFrame> configFrameProvider) {
     this.entryCorral = corral;
     this.mTabs = tabManager;
     this.entryFactory = factory;
@@ -95,6 +98,8 @@ public class UserActions implements MessageQueue.Listener {
     this.toolBar = toolBar;
     this.listManager = listManager;
     this.cellRenderer = cellRenderer;
+    this.configFrameProvider = configFrameProvider;
+    this.pasteListener = pasteListener;
   }
 
   //  Message Listener stuff
@@ -169,7 +174,7 @@ public class UserActions implements MessageQueue.Listener {
 
   public void DoSearch() {
     if(_searchFrame == null) {
-      _searchFrame = new SearchFrame(searchManager, mTabs, listManager);
+      _searchFrame = new SearchFrame(searchManager, mTabs, listManager, pasteListener);
     } else {
       _searchFrame.show();
     }
@@ -361,11 +366,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   public void DoConfigure() {
-    if(jcf == null) {
-      jcf = new JConfigFrame(myJBidwatcher, serverManager.getServer().getFriendlyName());
-    } else {
-      jcf.show();
-    }
+    configFrameProvider.get().show();
   }
 
   private static Pattern digitSearch = Pattern.compile("[0-9]+");
@@ -1419,12 +1420,12 @@ public class UserActions implements MessageQueue.Listener {
   public void DoHelp(Component src) {
     //  Not really implemented yet...  --  BUGBUG (need to write help!)
     JOptionPane.showMessageDialog(src,
-                                  "I'm very sorry, but help has not been implemented yet.\n" +
-                                  "If you'd like to assist in getting help up, you could\n" +
-                                  "write me an email at cyberfox@jbidwatcher.com\n" +
-                                  "describing how you use a particular part of JBidwatcher,\n" +
-                                  "and I'll try to collect those into contextual help options.",
-                                  "Sorry, no help!", JOptionPane.INFORMATION_MESSAGE);
+        "I'm very sorry, but help has not been implemented yet.\n" +
+            "If you'd like to assist in getting help up, you could\n" +
+            "write me an email at cyberfox@jbidwatcher.com\n" +
+            "describing how you use a particular part of JBidwatcher,\n" +
+            "and I'll try to collect those into contextual help options.",
+        "Sorry, no help!", JOptionPane.INFORMATION_MESSAGE);
   }
 
   private final static StringBuffer badColors = new StringBuffer("Error loading Color help text!  (D'oh!)  Email <a href=\"mailto:cyberfox%40jbidwatcher.com\">me</a>!");

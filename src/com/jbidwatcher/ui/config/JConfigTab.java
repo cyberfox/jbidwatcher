@@ -13,6 +13,7 @@ import javax.swing.event.*;
 import java.awt.*;
 
 public abstract class JConfigTab extends JPanel {
+  protected JPasteListener pasteListener;
   public abstract String getTabName();
   public abstract void cancel();
   public abstract void apply();
@@ -28,10 +29,14 @@ public abstract class JConfigTab extends JPanel {
     return(onelineBox);
   }
 
-  public static void adjustField(JComponent jc, String accessibleName, DocumentListener dl) {
+  public void adjustField(JComponent jc, String accessibleName, DocumentListener dl) {
     if(jc == null) return;
 
-    jc.addMouseListener(JPasteListener.getInstance());
+    jc.addMouseListener(pasteListener);
+    tweakTextField(jc, accessibleName, dl);
+  }
+
+  public static void tweakTextField(JComponent jc, String accessibleName, DocumentListener dl) {
     if(jc instanceof JTextField) {
       if(dl != null) {
         ((JTextComponent) jc).getDocument().addDocumentListener(dl);

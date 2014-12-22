@@ -81,6 +81,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private final MyJBidwatcher myJBidwatcher;
   private final JBWDropHandler dropHandler;
   private final Provider<UIBackbone> backboneProvider;
+  private final Provider<JConfigFrame> configFrameProvider;
   @Inject
   private MiniServerFactory miniServerFactory;
   @Inject
@@ -143,8 +144,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
   private void getUserSetup() {
     JConfig.setConfiguration("config.firstrun", "true");
-    JConfigFrame jcf = new JConfigFrame(myJBidwatcher, serverManager.getServer().getFriendlyName());
-    jcf.spinWait();
+    configFrameProvider.get().spinWait();
   }
 
   /**
@@ -496,7 +496,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
   public JBidWatch(ErrorMonitor monitor, SearchManager searcher, EntryFactory entryMaker, EntryCorral holdingCell,
                    AuctionServerManager serverManager, MyJBidwatcher myInstance, JBWDropHandler dropHandler,
                    FilterManager filterManager, JTabManager tabManager, ListManager listManager, AuctionsManager auctionsManager,
-                   Provider<UIBackbone> uiBackboneProvider, UserActions userActions, Injector inject) {
+                   UserActions userActions, Injector inject,
+                   Provider<UIBackbone> uiBackboneProvider, Provider<JConfigFrame> configFrameProvider) {
     this.searchManager = searcher;
     this.corral = holdingCell;
     this.entryFactory = entryMaker;
@@ -511,6 +512,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     this.backboneProvider = uiBackboneProvider;
     this.userActions = userActions;
     this.injector = inject;
+    this.configFrameProvider = configFrameProvider;
 
     AuctionEntry.addObserver(entryFactory);
     MultiSnipe.setCorral(corral);

@@ -6,13 +6,15 @@ package com.jbidwatcher.ui.util;
  */
 
 import com.cyberfox.util.platform.Platform;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import java.awt.event.*;
 import javax.swing.*;
 
+@Singleton
 public class JPasteListener extends MouseAdapter {
   private static JPopupMenu _jpm = null;
-  private static JPasteListener _instance = null;
   private static MouseEvent _me = null;
   private static ActionListener _aep = new ActionListener() {
       public void actionPerformed(ActionEvent ae) {
@@ -21,6 +23,7 @@ public class JPasteListener extends MouseAdapter {
       }
     };
 
+  @Inject
   private JPasteListener() {
     _jpm = new JPopupMenu();
     _jpm.add("Cut").setEnabled(false);
@@ -60,13 +63,5 @@ public class JPasteListener extends MouseAdapter {
       _me = me;
       _jpm.show(me.getComponent(), me.getX(), me.getY());
     }
-  }
-
-  public static JPasteListener getInstance() {
-    if(_instance == null) {
-      _instance = new JPasteListener();
-    }
-
-    return _instance;
   }
 }

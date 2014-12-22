@@ -6,7 +6,11 @@ package com.jbidwatcher.ui.config;
  */
 
 import com.cyberfox.util.platform.Platform;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.my.MyJBidwatcher;
+import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.ui.util.JBidFrame;
@@ -28,6 +32,7 @@ import javax.swing.border.TitledBorder;
  *
  * @version $Revision: 1.38 $
  */
+@Singleton
 public class JConfigFrame implements ActionListener {
   private JFrame mainFrame;
   private boolean buttonPressed = false;
@@ -47,8 +52,10 @@ public class JConfigFrame implements ActionListener {
     }
   }
 
-  public JConfigFrame(MyJBidwatcher myJBidwatcher, String friendlyName) {
-    mainFrame = createConfigFrame(myJBidwatcher, friendlyName);
+  @Inject
+  public JConfigFrame(MyJBidwatcher myJBidwatcher, AuctionServerManager serverManager, JPasteListener pasteListener) {
+    String friendlyName = serverManager.getServer().getFriendlyName();
+    mainFrame = createConfigFrame(myJBidwatcher, pasteListener, friendlyName);
     Rectangle rec = OptionUI.findCenterBounds(mainFrame.getPreferredSize());
     mainFrame.setLocation(rec.x, rec.y);
     show();
@@ -139,7 +146,7 @@ public class JConfigFrame implements ActionListener {
   private static String QUICK_CARD = "Quick Configuration";
   private static String ADVANCED_CARD = "Advanced Configuration";
 
-  private JFrame createConfigFrame(MyJBidwatcher myJBidwatcher, String friendlyName) {
+  private JFrame createConfigFrame(MyJBidwatcher myJBidwatcher, JPasteListener pasteListener, String friendlyName) {
     JTabbedPane jtpAllTabs = new JTabbedPane();
     final JFrame w;
 
@@ -152,31 +159,31 @@ public class JConfigFrame implements ActionListener {
 
     Container contentPane = w.getContentPane();
     contentPane.setLayout(new BorderLayout());
-    establishCards(jtpAllTabs, contentPane, friendlyName);
+    establishCards(jtpAllTabs, contentPane, pasteListener, friendlyName);
 
     allTabs = new ArrayList<JConfigTab>();
 
     //  Add all non-server-specific tabs here.
     allTabs.add(new JConfigGeneralTab());
-    allTabs.add(new JConfigEbayTab(false, friendlyName));
+    allTabs.add(new JConfigEbayTab(false, pasteListener, friendlyName));
     allTabs.add(quickTab);
 
     //  Stub the browser tab under MacOSX, so they don't try to use it.
     if(Platform.isMac()) {
       allTabs.add(new JConfigMacBrowserTab());
     } else {
-      allTabs.add(new JConfigBrowserTab());
+      allTabs.add(new JConfigBrowserTab(pasteListener));
     }
-    allTabs.add(new JConfigFirewallTab());
-    allTabs.add(new JConfigSnipeTab());
+    allTabs.add(new JConfigFirewallTab(pasteListener));
+    allTabs.add(new JConfigSnipeTab(pasteListener));
 //    if(JConfig.queryConfiguration("allow.my_jbidwatcher", "false").equals("true"))
-      allTabs.add(new JConfigMyJBidwatcherTab(myJBidwatcher));
-    allTabs.add(new JConfigFilePathTab());
+    allTabs.add(new JConfigMyJBidwatcherTab(myJBidwatcher, pasteListener));
+    allTabs.add(new JConfigFilePathTab(pasteListener));
     allTabs.add(new JConfigWebserverTab());
-    allTabs.add(new JConfigDatabaseTab());
+    allTabs.add(new JConfigDatabaseTab(pasteListener));
 
     allTabs.add(new JConfigSecurityTab());
-    allTabs.add(new JConfigAdvancedTab());
+    allTabs.add(new JConfigAdvancedTab(pasteListener));
 
     //  HACKHACK -- Presently all tabs created need to have 3 rows of
     //  GridLayout.  In general, all tabs have to have the same number
@@ -202,11 +209,11 @@ public class JConfigFrame implements ActionListener {
     return w;
   }
 
-  private void establishCards(JTabbedPane jtpAllTabs, Container contentPane, String friendlyName) {
+  private void establishCards(JTabbedPane jtpAllTabs, Container contentPane, JPasteListener pasteListener, String friendlyName) {
     CardLayout swapper = new CardLayout();
     cards = new JPanel(swapper);
     contentPane.add(cards, BorderLayout.CENTER);
-    quickTab = new JConfigEbayTab(true, friendlyName);
+    quickTab = new JConfigEbayTab(true, pasteListener, friendlyName);
     JPanel quickPanel = new JPanel(new BorderLayout());
     quickPanel.setBorder(BorderFactory.createTitledBorder(null, "Quick Start Configuration", TitledBorder.CENTER, TitledBorder.ABOVE_TOP));
     quickPanel.add(quickTab, BorderLayout.CENTER);

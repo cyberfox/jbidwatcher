@@ -29,7 +29,7 @@ public class JConfigFilePathTab extends JConfigTab {
     filePath.setText(JConfig.queryConfiguration("savefile", Path.getCanonicalFile("auctions.xml", "jbidwatcher", false)));
   }
 
-  private JPanel buildFilePathSettings() {
+  private JPanel buildFilePathSettings(JPasteListener pasteListener) {
     JPanel tp = new JPanel();
 	JLabel jl = new JLabel("What is the path to the auctions save file:");
 
@@ -37,7 +37,7 @@ public class JConfigFilePathTab extends JConfigTab {
     tp.setLayout(new BorderLayout());
 
     filePath = new JTextField();
-    filePath.addMouseListener(JPasteListener.getInstance());
+    filePath.addMouseListener(pasteListener);
     filePath.setToolTipText("Full path and filename to load auctions save file from.");
 
     updateValues();
@@ -75,9 +75,9 @@ public class JConfigFilePathTab extends JConfigTab {
     return tp;
   }
 
-  public JConfigFilePathTab() {
+  public JConfigFilePathTab(JPasteListener pasteListener) {
     super();
     this.setLayout(new BorderLayout());
-    this.add(panelPack(buildFilePathSettings()), BorderLayout.NORTH);
+    this.add(panelPack(buildFilePathSettings(pasteListener)), BorderLayout.NORTH);
   }
 }

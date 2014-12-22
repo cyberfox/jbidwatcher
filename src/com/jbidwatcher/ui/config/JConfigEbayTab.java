@@ -82,19 +82,19 @@ public class JConfigEbayTab extends JConfigTab
     }
   }
 
-  private JPanel buildUsernamePanel() {
+  private JPanel buildUsernamePanel(JPasteListener pasteListener) {
     JPanel tp = new JPanel();
 
     tp.setBorder(BorderFactory.createTitledBorder("eBay User ID"));
     tp.setLayout(new BorderLayout());
     username = new JTextField();
-    username.addMouseListener(JPasteListener.getInstance());
+    username.addMouseListener(pasteListener);
 
     username.setText(JConfig.queryConfiguration(mSitename + ".user", "default"));
     username.setEditable(true);
     username.getAccessibleContext().setAccessibleName("User name to log into eBay");
     password = new JPasswordField(JConfig.queryConfiguration(mSitename + ".password"));
-    password.addMouseListener(JPasteListener.getInstance());
+    password.addMouseListener(pasteListener);
     password.setEditable(true);
 
     //  Get the password from the configuration entry!  FIX
@@ -172,14 +172,14 @@ public class JConfigEbayTab extends JConfigTab
     return tp;
   }
 
-  public JConfigEbayTab(boolean isQuickConfig, String friendlyName) {
+  public JConfigEbayTab(boolean isQuickConfig, JPasteListener pasteListener, String friendlyName) {
     this.friendlyName = friendlyName;
     quickConfig = isQuickConfig;
     mDisplayName = Constants.EBAY_DISPLAY_NAME;
     setLayout(new BorderLayout());
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
-    jp.add(panelPack(buildUsernamePanel()), BorderLayout.NORTH);
+    jp.add(panelPack(buildUsernamePanel(pasteListener)), BorderLayout.NORTH);
     if(!quickConfig) {
       jp.add(panelPack(buildBrowseTargetPanel()), BorderLayout.CENTER);
       add(jp, BorderLayout.NORTH);

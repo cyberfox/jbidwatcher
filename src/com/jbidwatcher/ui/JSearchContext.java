@@ -6,6 +6,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.cyberfox.util.platform.Path;
+import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.search.Searcher;
@@ -23,6 +24,7 @@ public class JSearchContext extends JBidTableContext {
   private static SearchInfoDialog _searchDetail = null;
   private final SearchManager searchManager;
   private final ListManager listManager;
+  private final JPasteListener pasteListener;
 
   private void addMenu(JPopupMenu p, String name, String cmd) {
     p.add(makeMenuItem(name, cmd)).addActionListener(this);
@@ -96,7 +98,7 @@ public class JSearchContext extends JBidTableContext {
 
   private void showEdit(Searcher s) {
     if(_searchDetail == null) {
-      _searchDetail = new SearchInfoDialog(searchManager, listManager);
+      _searchDetail = new SearchInfoDialog(searchManager, listManager, pasteListener);
     }
     _searchDetail.prepare(s);
     _searchDetail.pack();
@@ -220,10 +222,11 @@ public class JSearchContext extends JBidTableContext {
     else System.out.println("Cannot figure out what '" + cmd + "'.");
   }
 
-  public JSearchContext(SearchManager searchManager, JTabManager tabManager, ListManager listManager) {
+  public JSearchContext(SearchManager searchManager, JTabManager tabManager, ListManager listManager, JPasteListener pasteListener) {
     super(tabManager, listManager);
     this.searchManager = searchManager;
     this.listManager = listManager;
+    this.pasteListener = pasteListener;
     localPopup = constructTablePopup();
   }
 

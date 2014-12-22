@@ -92,7 +92,7 @@ public class JConfigAdvancedTab extends JConfigTab {
     box.requestFocus();
   }
 
-  private JPanel buildAdvancedConfiguration() {
+  private JPanel buildAdvancedConfiguration(JPasteListener pasteListener) {
     JPanel tp = new JPanel();
 
     setButton = new JButton("Set...");
@@ -105,7 +105,7 @@ public class JConfigAdvancedTab extends JConfigTab {
     tp.add(new JLabel("Configuration Key"));
 
     configValue = new JTextField();
-    configValue.addMouseListener(JPasteListener.getInstance());
+    configValue.addMouseListener(pasteListener);
     configValue.setToolTipText("The associated configuration value for the entered key.");
     configValue.setEditable(true);
     configValue.getAccessibleContext().setAccessibleName("The configuration value for the entered key.");
@@ -151,8 +151,8 @@ public class JConfigAdvancedTab extends JConfigTab {
     return tp;
   }
 
-  public JConfigAdvancedTab() {
+  public JConfigAdvancedTab(JPasteListener pasteListener) {
     setLayout(new BorderLayout());
-    add(panelPack(buildAdvancedConfiguration()), BorderLayout.NORTH);
+    add(panelPack(buildAdvancedConfiguration(pasteListener)), BorderLayout.NORTH);
   }
 }

@@ -35,7 +35,7 @@ public class JConfigSnipeTab extends JConfigTab {
     autoSubtractShippingBox.setSelected(autoSubtractShipping.equals("true"));
   }
 
-  private JPanel buildSnipeSettings() {
+  private JPanel buildSnipeSettings(JPasteListener pasteListener) {
     JPanel tp = new JPanel();
     JLabel jl = new JLabel("How close to snipe (in seconds):");
 
@@ -43,7 +43,7 @@ public class JConfigSnipeTab extends JConfigTab {
     tp.setLayout(new BorderLayout());
 
     snipeTime = new JTextField();
-    snipeTime.addMouseListener(JPasteListener.getInstance());
+    snipeTime.addMouseListener(pasteListener);
     snipeTime.setToolTipText("Number of seconds prior to auction end to fire a snipe.");
 
     snipeTime.setEditable(true);
@@ -66,12 +66,12 @@ public class JConfigSnipeTab extends JConfigTab {
     return tp;
   }
 
-  public JConfigSnipeTab() {
+  public JConfigSnipeTab(JPasteListener pasteListener) {
     super();
     this.setLayout(new BorderLayout());
     JPanel jp = new JPanel();
     jp.setLayout(new BorderLayout());
-    jp.add(buildSnipeSettings(), BorderLayout.NORTH);
+    jp.add(buildSnipeSettings(pasteListener), BorderLayout.NORTH);
     jp.add(buildExtraSettings(), BorderLayout.SOUTH);
     this.add(panelPack(jp), BorderLayout.NORTH);
     updateValues();

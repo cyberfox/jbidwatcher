@@ -3,6 +3,7 @@ package com.jbidwatcher.ui;
 import com.cyberfox.util.platform.Platform;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.config.JConfigTab;
 import com.jbidwatcher.ui.util.SearchField;
@@ -31,6 +32,7 @@ import java.awt.event.MouseEvent;
 public class JBidToolBar {
   private static final int SELECT_BOX_SIZE=20;
   private final AuctionServerManager serverManager;
+  private final JPasteListener pasteListener;
   private final JTabManager tabManager;
   @Inject
   private PopupMenuFactory menuFactory;
@@ -171,7 +173,9 @@ public class JBidToolBar {
         public void removeUpdate(DocumentEvent de) {
         }
       };
-    JConfigTab.adjustField(mSelectBox, "Search and select items from the current table.", selectListener);
+
+    mSelectBox.addMouseListener(pasteListener);
+    JConfigTab.tweakTextField(mSelectBox, "Search and select items from the current table.", selectListener);
     ActionListener doSearch = new ActionListener() {
         public void actionPerformed(ActionEvent ae) {
           inAction.selectBySearch(mSelectBox.getText());
@@ -205,9 +209,10 @@ public class JBidToolBar {
   }
 
   @Inject
-  private JBidToolBar(AuctionServerManager serverManager, JTabManager tabManager) {
+  private JBidToolBar(AuctionServerManager serverManager, JTabManager tabManager, JPasteListener pasteListener) {
     this.tabManager = tabManager;
     this.serverManager = serverManager;
+    this.pasteListener = pasteListener;
     mSelectBox = new SearchField("Select", SELECT_BOX_SIZE);
     if(Platform.isMac()) {
       mSelectBox.putClientProperty("Quaqua.TextField.style", "search");

@@ -6,6 +6,7 @@ package com.jbidwatcher.ui;
  */
 
 import com.cyberfox.util.platform.Platform;
+import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.search.SearchManager;
@@ -26,9 +27,9 @@ public class SearchFrame implements ActionListener {
   private SearchTableModel _stm;
   private final SearchManager searchManager;
 
-  public SearchFrame(SearchManager searchManager, JTabManager tabManager, ListManager listManager) {
+  public SearchFrame(SearchManager searchManager, JTabManager tabManager, ListManager listManager, JPasteListener pasteListener) {
     this.searchManager = searchManager;
-    mainFrame = createSearchFrame(searchManager, tabManager, listManager);
+    mainFrame = createSearchFrame(searchManager, tabManager, listManager, pasteListener);
 
     Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
     int height = Math.min(305, screensize.height / 2);
@@ -59,12 +60,12 @@ public class SearchFrame implements ActionListener {
     JConfig.setAuxConfiguration("searches.height", Integer.toString(mainFrame.getHeight()));
   }
 
-  private JFrame createSearchFrame(final SearchManager searchManager, JTabManager tabManager, ListManager listManager) {
+  private JFrame createSearchFrame(final SearchManager searchManager, JTabManager tabManager, ListManager listManager, JPasteListener pasteListener) {
     JPanel wholePanel = new JPanel(new BorderLayout(), true);
     JPanel subPanel = new JPanel(new BorderLayout(), true);
     JPanel buttonPanel = new JPanel(new BorderLayout(), true);
     Box buttonBox = Box.createHorizontalBox();
-    JSearchContext jsc = new JSearchContext(searchManager, tabManager, listManager);
+    JSearchContext jsc = new JSearchContext(searchManager, tabManager, listManager, pasteListener);
 
     final JFrame w = new JBidFrame("Search Manager");
 

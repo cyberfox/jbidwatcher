@@ -5,6 +5,7 @@ package com.jbidwatcher.ui.config;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.util.config.JConfig;
 
 import java.awt.*;
@@ -87,8 +88,9 @@ public class JConfigFirewallTab extends JConfigTab {
     }
   }
 
-  public JConfigFirewallTab() {
+  public JConfigFirewallTab(JPasteListener pasteListener) {
     super();
+    this.pasteListener = pasteListener;
     JPanel topPanes = new JPanel();
     JPanel bottomPanes = new JPanel();
 
@@ -331,8 +333,8 @@ public class JConfigFirewallTab extends JConfigTab {
 
     setAllFirewallStatus(false);
 
-    adjustField(firewallHost, "Host name or IP address of SOCKS firewall", firewallTextFieldListener);
-    adjustField(firewallPort, "Port number for SOCKS firewall", firewallTextFieldListener);
+    adjustField((JComponent) firewallHost, (String) "Host name or IP address of SOCKS firewall", (DocumentListener) firewallTextFieldListener);
+    adjustField((JComponent) firewallPort, (String) "Port number for SOCKS firewall", (DocumentListener) firewallTextFieldListener);
 
     updownBox = Box.createVerticalBox();
     updownBox.add(makeLine(new JLabel("SOCKS Host: "), firewallHost));
@@ -355,10 +357,10 @@ public class JConfigFirewallTab extends JConfigTab {
     proxyPass = new JPasswordField();
 
     setAllProxyStatus(false);
-    adjustField(proxyHost, "Host name or IP address of web proxy server", firewallTextFieldListener);
-    adjustField(proxyPort, "Port number that a web proxy server runs on", firewallTextFieldListener);
-    adjustField(proxyUser, "Username (if needed) for web proxy server", firewallTextFieldListener);
-    adjustField(proxyPass, "Password (if needed) for web proxy server", firewallTextFieldListener);
+    adjustField((JComponent) proxyHost, (String) "Host name or IP address of web proxy server", (DocumentListener) firewallTextFieldListener);
+    adjustField((JComponent) proxyPort, (String) "Port number that a web proxy server runs on", (DocumentListener) firewallTextFieldListener);
+    adjustField((JComponent) proxyUser, (String) "Username (if needed) for web proxy server", (DocumentListener) firewallTextFieldListener);
+    adjustField((JComponent) proxyPass, (String) "Password (if needed) for web proxy server", (DocumentListener) firewallTextFieldListener);
 
     proxyPanel.add(makeLine(new JLabel("Host: "), proxyHost));
     proxyPanel.add(makeLine(new JLabel("Port:  "), proxyPort));
@@ -378,8 +380,8 @@ public class JConfigFirewallTab extends JConfigTab {
     httpsProxyHost = new JTextField();
     httpsProxyPort = new JTextField();
     setAllHTTPSStatus(false);
-    adjustField(httpsProxyHost, "Host name or IP address of HTTPS proxy server", firewallTextFieldListener);
-    adjustField(httpsProxyPort, "Port number that the HTTPS proxy server runs on", firewallTextFieldListener);
+    adjustField((JComponent) httpsProxyHost, (String) "Host name or IP address of HTTPS proxy server", (DocumentListener) firewallTextFieldListener);
+    adjustField((JComponent) httpsProxyPort, (String) "Port number that the HTTPS proxy server runs on", (DocumentListener) firewallTextFieldListener);
 
     proxyHttps = new JCheckBox("Enable HTTPS (secure http) proxy?");
     proxyHttps.addActionListener(rad);

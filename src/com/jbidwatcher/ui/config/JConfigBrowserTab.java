@@ -38,20 +38,20 @@ public class JConfigBrowserTab extends JConfigTab {
     overrideDefault.setSelected(overrideOn.equals("true"));
   }
 
-  private JPanel buildLinuxBrowserLaunch() {
+  private JPanel buildLinuxBrowserLaunch(JPasteListener pasteListener) {
     JPanel tp = new JPanel();
     tp.setBorder(BorderFactory.createTitledBorder("Browser Command"));
     tp.setLayout(new BoxLayout(tp, BoxLayout.Y_AXIS));
 
     linuxBrowserLaunchCommand = new JTextField();
-    linuxBrowserLaunchCommand.addMouseListener(JPasteListener.getInstance());
+    linuxBrowserLaunchCommand.addMouseListener(pasteListener);
 
     linuxBrowserLaunchCommand.setText(JConfig.queryConfiguration("browser.launch.Linux"));
     linuxBrowserLaunchCommand.setEditable(true);
     linuxBrowserLaunchCommand.getAccessibleContext().setAccessibleName("Command to use to launch the web browser under Linux");
 
     windowsBrowserLaunchCommand = new JTextField();
-    windowsBrowserLaunchCommand.addMouseListener(JPasteListener.getInstance());
+    windowsBrowserLaunchCommand.addMouseListener(pasteListener);
 
     windowsBrowserLaunchCommand.setText(JConfig.queryConfiguration("browser.launch.Windows"));
     windowsBrowserLaunchCommand.setEditable(true);
@@ -136,10 +136,10 @@ public class JConfigBrowserTab extends JConfigTab {
     return testButton;
   }
 
-  public JConfigBrowserTab() {
+  public JConfigBrowserTab(JPasteListener pasteListener) {
     super();
     this.setLayout(new BorderLayout());
-    this.add(panelPack(buildLinuxBrowserLaunch()), BorderLayout.NORTH);
+    this.add(panelPack(buildLinuxBrowserLaunch(pasteListener)), BorderLayout.NORTH);
     this.add(panelPack(buildOverridePreference()), BorderLayout.CENTER);
   }
 }

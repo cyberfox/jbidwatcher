@@ -1,5 +1,6 @@
 package com.jbidwatcher.ui.config;
 
+import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.ui.util.OptionUI;
 
@@ -33,8 +34,9 @@ public class JConfigDatabaseTab extends JConfigTab {
     }
   }
 
-  public JConfigDatabaseTab() {
+  public JConfigDatabaseTab(JPasteListener pasteListener) {
     super();
+    this.pasteListener = pasteListener;
     JPanel topPanes = new JPanel();
     JPanel bottomPanes = new JPanel();
 
@@ -193,11 +195,11 @@ public class JConfigDatabaseTab extends JConfigTab {
     mysqlUser = new JTextField();
     mysqlPassword = new JPasswordField();
 
-    adjustField(mysqlHost, "Host name or IP address of MySQL server", null);
-    adjustField(mysqlPort, "Port number for MySQL server (default: 3306)", null);
-    adjustField(mysqlDatabase, "The database on the server to use (default: jbidwatcher)", null);
-    adjustField(mysqlUser, "Username (if needed) for MySQL server", null);
-    adjustField(mysqlPassword, "Password (if needed) for MySQL server", null);
+    adjustField((JComponent) mysqlHost, (String) "Host name or IP address of MySQL server", (javax.swing.event.DocumentListener) null);
+    adjustField((JComponent) mysqlPort, (String) "Port number for MySQL server (default: 3306)", (javax.swing.event.DocumentListener) null);
+    adjustField((JComponent) mysqlDatabase, (String) "The database on the server to use (default: jbidwatcher)", (javax.swing.event.DocumentListener) null);
+    adjustField((JComponent) mysqlUser, (String) "Username (if needed) for MySQL server", (javax.swing.event.DocumentListener) null);
+    adjustField((JComponent) mysqlPassword, (String) "Password (if needed) for MySQL server", (javax.swing.event.DocumentListener) null);
 
     proxyPanel.add(makeLine(new JLabel("MySQL Host: "), mysqlHost));
     proxyPanel.add(makeLine(new JLabel("MySQL Port: "), mysqlPort));

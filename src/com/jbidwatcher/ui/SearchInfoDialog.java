@@ -63,7 +63,7 @@ public class SearchInfoDialog extends BasicDialog {
     return curToId.get(currencyBox.getSelectedItem().toString());
   }
 
-  public SearchInfoDialog(SearchManager searchManager, ListManager listManager) {
+  public SearchInfoDialog(SearchManager searchManager, ListManager listManager, JPasteListener pasteListener) {
     super();
     this.searchManager = searchManager;
     this.listManager = listManager;
@@ -78,7 +78,7 @@ public class SearchInfoDialog extends BasicDialog {
     JConfig.setConfiguration("ebay.currencySearch.13", "Swiss franc");
 
     addBehavior();
-    setupUI();
+    setupUI(pasteListener);
     setModal(true);
   }
 
@@ -153,7 +153,7 @@ public class SearchInfoDialog extends BasicDialog {
     return newBox;
   }
 
-  private void setupUI() {
+  private void setupUI(JPasteListener pasteListener) {
     final JPanel panel3 = new JPanel();
     panel3.setLayout(new BorderLayout());
 
@@ -162,7 +162,7 @@ public class SearchInfoDialog extends BasicDialog {
 
     final JLabel label1 = new JLabel("Search Name: ");
     searchNameField = new JTextField(12);
-    searchNameField.addMouseListener(JPasteListener.getInstance());
+    searchNameField.addMouseListener(pasteListener);
 
     final JLabel label2 = new JLabel(" Search Type: ");
     searchTypeBox = new JComboBox(_search_types);
@@ -178,7 +178,7 @@ public class SearchInfoDialog extends BasicDialog {
 
     final JLabel searchLabel = new JLabel("Search: ");
     searchField = new JTextField(40);
-    searchField.addMouseListener(JPasteListener.getInstance());
+    searchField.addMouseListener(pasteListener);
 
     final JLabel tabLabel = new JLabel("Destination Tab: ");
 
