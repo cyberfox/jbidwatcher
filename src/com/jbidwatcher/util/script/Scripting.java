@@ -1,11 +1,16 @@
 package com.jbidwatcher.util.script;
 
+import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.ui.AuctionsManager;
+import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.util.config.JConfig;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.Ruby;
 import org.jruby.internal.runtime.GlobalVariable;
+import org.jruby.internal.runtime.ReadonlyAccessor;
 import org.jruby.internal.runtime.ValueAccessor;
 import org.jruby.javasupport.JavaEmbedUtils;
+import org.jruby.javasupport.JavaUtil;
 
 import java.util.ArrayList;
 import java.io.*;
@@ -59,7 +64,7 @@ public class Scripting {
   public static void setOutput(OutputStream stream) { sOutput.setOutput(stream); }
   public static void setInput(InputStream stream) { sInput.setInput(stream); }
 
-  public static void initialize() throws ClassNotFoundException {
+  public static void initialize(AuctionServerManager serverManager, AuctionsManager auctionsManager, FilterManager filterManager) throws ClassNotFoundException {
     //  Test for JRuby's presence
     Class.forName("org.jruby.RubyInstanceConfig", true, Thread.currentThread().getContextClassLoader());
 
@@ -81,6 +86,9 @@ public class Scripting {
     final Ruby runtime = Ruby.newInstance(config);
 
     runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))), GlobalVariable.Scope.GLOBAL);
+    runtime.getGlobalVariables().defineReadonly("$auction_server_manager", new ValueAccessor(JavaUtil.convertJavaToRuby(runtime, serverManager)), GlobalVariable.Scope.GLOBAL);
+    runtime.getGlobalVariables().defineReadonly("$auctions_manager", new ValueAccessor(JavaUtil.convertJavaToRuby(runtime, auctionsManager)), GlobalVariable.Scope.GLOBAL);
+    runtime.getGlobalVariables().defineReadonly("$filter_manager", new ValueAccessor(JavaUtil.convertJavaToRuby(runtime, filterManager)), GlobalVariable.Scope.GLOBAL);
     if(JConfig.queryConfiguration("platform.path") != null) {
       runtime.getLoadService().addPaths(JConfig.queryConfiguration("platform.path"));
     }

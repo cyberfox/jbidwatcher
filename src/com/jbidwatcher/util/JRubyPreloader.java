@@ -1,5 +1,10 @@
 package com.jbidwatcher.util;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.ui.AuctionsManager;
+import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.script.Scripting;
 
@@ -13,9 +18,21 @@ import java.net.URLClassLoader;
 /**
 * Created by mschweers on 8/1/14.
 */
+@Singleton
 public class JRubyPreloader implements Runnable {
-  private final Object syncObject;
-  public JRubyPreloader(Object scriptSync) {
+  private final FilterManager filterManager;
+  private final AuctionsManager auctionsManager;
+  private final AuctionServerManager serverManager;
+  private Object syncObject;
+
+  @Inject
+  public JRubyPreloader(AuctionServerManager serverManager, AuctionsManager auctionsManager, FilterManager filterManager) {
+    this.serverManager = serverManager;
+    this.auctionsManager = auctionsManager;
+    this.filterManager = filterManager;
+  }
+
+  public void setSyncObject(Object scriptSync) {
     syncObject = scriptSync;
   }
 
@@ -23,7 +40,7 @@ public class JRubyPreloader implements Runnable {
     synchronized(syncObject) {
       try {
         preloadLibrary();
-        Scripting.initialize();
+        Scripting.initialize(serverManager, auctionsManager, filterManager);
         JConfig.enableScripting();
         JConfig.log().logMessage("Scripting is enabled.");
       } catch (NoClassDefFoundError ncdfe) {

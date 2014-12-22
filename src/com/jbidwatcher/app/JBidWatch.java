@@ -220,16 +220,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
       JOptionPane.showMessageDialog(null, "<html><body>usage:<br><center>java JBidWatch [{cfg-file}]</center><br>Default user home: " +
           Path.getHome() + "</body></html>", "Help display", JOptionPane.PLAIN_MESSAGE);
       return true;
-    } else if (arg.startsWith("--test-ruby")) {
-      try {
-        Scripting.initialize();
-        JConfig.enableScripting();
-        Scripting.ruby("require 'jbidwatcher/utilities'");
-        Scripting.rubyMethod("play_around", "Zarf");
-      } catch (Throwable t) {
-        JConfig.disableScripting();
-      }
-      return true;
     } else if (arg.startsWith("--usb")) {
       Path.setHome(System.getProperty("user.dir"));
       sUSB = true;
@@ -672,20 +662,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
   }
 
-  protected static void enableScripting() {
-    try {
-      preloadLibrary();
-      Scripting.initialize();
-      JConfig.enableScripting();
-      JConfig.log().logMessage("Scripting is enabled.");
-    } catch (NoClassDefFoundError ncdfe) {
-      JConfig.log().logMessage("Scripting is not enabled.");
-    } catch (Throwable e) {
-      JConfig.log().logMessage("Error setting up scripting: " + e.toString());
-      JConfig.disableScripting();
-    }
-  }
-
   /**
    * @brief Load the saved auctions, build the UI frame, close down
    * the splash screen, and start the monitor and update threads.
@@ -705,7 +681,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
     ThumbnailLoader.start();
 
     inSplash.message("Initializing Scripting");
-    Thread scriptLoading = new Thread(new JRubyPreloader(mScriptCompletion));
+    JRubyPreloader preloader = new JRubyPreloader(serverManager, auctionsManager, filters);
+    preloader.setSyncObject(mScriptCompletion);
+    Thread scriptLoading = new Thread(preloader);
     scriptLoading.start();
 
     inSplash.message("Initializing Database");

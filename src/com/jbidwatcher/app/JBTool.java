@@ -44,6 +44,7 @@ import java.net.HttpURLConnection;
  */
 @SuppressWarnings({"UtilityClass", "UtilityClassWithoutPrivateConstructor"})
 public class JBTool implements ToolInterface {
+  private final AuctionsManager auctionsManager;
   @Inject
   private AuctionServerFactory serverFactory;
   @Inject
@@ -144,11 +145,12 @@ public class JBTool implements ToolInterface {
   }
 
   public JBTool(EntryFactory eFactory, final EntryCorral corral, SearchManager searchManager, AuctionServerManager serverManager,
-                MyJBidwatcher myJBidwatcher) {
+                MyJBidwatcher myJBidwatcher, AuctionsManager auctionsManager) {
     this.entryFactory = eFactory;
     this.searchManager = searchManager;
     this.auctionServerManager = serverManager;
     this.myJBidwatcher = myJBidwatcher;
+    this.auctionsManager = auctionsManager;
 
     ActiveRecord.disableDatabase();
     AuctionEntry.addObserver(entryFactory);
@@ -199,7 +201,8 @@ public class JBTool implements ToolInterface {
   }
 
   private void comparative(String fname) {
-    JBidWatch.enableScripting();
+    JRubyPreloader preloader = new JRubyPreloader(auctionServerManager, null, null);
+    preloader.run();
     StringBuffer sb = new StringBuffer(StringTools.cat(fname));
     try {
       Record jResults = mEbay.doParse(sb).getBacking();

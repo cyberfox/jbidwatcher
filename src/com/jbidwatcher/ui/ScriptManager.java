@@ -19,17 +19,6 @@ public class ScriptManager implements MessageQueue.Listener
 
   private static final String EXECUTE = "EXECUTE ";
 
-  public static void main(String[] args) {
-    try {
-      Scripting.initialize();
-      ScriptManager sm = new ScriptManager();
-      sm.prepFrame();
-      sm.show();
-    } catch(ClassNotFoundException e) {
-      System.err.println("Failed to initialize scripting.");
-    }
-  }
-
   public void show() {
     mFrame.setVisible(true);
     try { t2.join(); } catch(InterruptedException e) { /* ignore */ }
