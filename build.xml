@@ -67,6 +67,7 @@
     <pathelement path="${lib.dir}/guice-assistedinject-3.0.jar" />
     <pathelement path="${lib.dir}/mahalo.jar" />
     <pathelement path="${lib.dir}/javax.inject.jar" />
+    <pathelement path="${lib.dir}/jsr305-1.3.9.jar" />
     <pathelement path="${lib.dir}/jDeskMetrics.jar" />
     <pathelement path="${lib.dir}/txtmark.jar" />
     <pathelement path="${lib.dir}/jdesktop.jar" />
@@ -197,6 +198,7 @@
       <fileset dir="${main.dir}" includes="lib/guice-assistedinject-3.0.jar" />
       <fileset dir="${main.dir}" includes="lib/mahalo.jar" />
       <fileset dir="${main.dir}" includes="lib/javax.inject.jar" />
+      <fileset dir="${main.dir}" includes="lib/jsr305-1.3.9.jar" />
       <fileset dir="${main.dir}" includes="lib/jDeskMetrics.jar" />
       <fileset dir="${main.dir}" includes="lib/txtmark.jar" />
       <fileset dir="${main.dir}" includes="lib/jdesktop.jar" />
@@ -354,6 +356,7 @@
       <fileset dir="${lib.dir}" includes="jl1.0.1.jar" />
       <fileset dir="${lib.dir}" includes="jsoup-1.7.1.jar" />
       <fileset dir="${lib.dir}" includes="mahalo.jar" />
+      <fileset dir="${lib.dir}" includes="jsr305-1.3.9.jar" />
       <fileset dir="${lib.dir}" includes="jDeskMetrics.jar" />
       <fileset dir="${lib.dir}" includes="txtmark.jar" />
       <fileset dir="${lib.dir}" includes="json_simple-1.1.jar" />
