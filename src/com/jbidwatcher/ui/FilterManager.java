@@ -109,8 +109,12 @@ public class FilterManager implements MessageQueue.Listener, FilterInterface {
         } else {
           auctionTableModel model = (auctionTableModel)tabs.getCurrentTable().getModel();
           int row = model.findRow(ae);
-          row = tabs.getCurrentTable().convertRowIndexToView(row);
-          tabs.getCurrentTable().tableChanged(new TableModelEvent(model, row));
+          if(row == -1) {
+            //  Log that it's confused?
+          } else {
+            row = tabs.getCurrentTable().convertRowIndexToView(row);
+            tabs.getCurrentTable().tableChanged(new TableModelEvent(model, row));
+          }
         }
         return;
       }
