@@ -1000,12 +1000,7 @@ public class UserActions implements MessageQueue.Listener {
       return;
     }
 
-    MQFactory.getConcrete(ae.getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionActionImpl(ae.getIdentifier(), bidAmount, 1) {
-      @Override
-      protected int execute(AuctionEntry ae, Currency curr, int quant) {
-        return ae.bid(curr, quant);
-      }
-    }, "none"));
+    MQFactory.getConcrete(ae.getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount), "none"));
     entryCorral.put(ae);
   }
 
