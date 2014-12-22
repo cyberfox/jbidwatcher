@@ -15,6 +15,7 @@ import com.jbidwatcher.util.queue.MessageQueue;
 
 import java.awt.event.*;
 import java.awt.*;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.event.PopupMenuEvent;
@@ -37,7 +38,7 @@ public class JTabPopupMenu extends JContext implements MessageQueue.Listener {
    * on the tabbed display.
    */
   @Inject
-  public JTabPopupMenu(ListManager listManager, FilterManager filters, @Assisted JTabbedPane inTabs, @Assisted JPopupMenu popup) {
+  public JTabPopupMenu(ListManager listManager, FilterManager filters, @Assisted JTabbedPane inTabs, @Nullable @Assisted JPopupMenu popup) {
     this.listManager = listManager;
     mFilter = filters;
     mTabs = inTabs;

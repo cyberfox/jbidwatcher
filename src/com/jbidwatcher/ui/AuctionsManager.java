@@ -16,6 +16,7 @@ package com.jbidwatcher.ui;
 
 import com.cyberfox.util.platform.Path;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.jbidwatcher.util.PauseManager;
 import com.jbidwatcher.util.config.*;
@@ -38,7 +39,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   private FilterManager mFilter;
   private final PauseManager mPauseManager;
   private final EntryCorral entryCorral;
-  private final AuctionServerManager serverManager;
+  private final Provider<AuctionServerManager> serverManagerProvider;
 
   //  Checkpoint (save) every N minutes where N is configurable.
   private long mCheckpointFrequency;
@@ -52,7 +53,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * in the system.
    */
   @Inject
-  private AuctionsManager(FilterManager filterManager, PauseManager pauseManager, EntryCorral corral, AuctionServerManager asm) {
+  private AuctionsManager(FilterManager filterManager, PauseManager pauseManager, EntryCorral corral, Provider<AuctionServerManager> serverManagerProvider) {
     //  This should be loaded from the configuration settings.
     mCheckpointFrequency = 10 * Constants.ONE_MINUTE;
     mLastCheckpointed = System.currentTimeMillis();
@@ -60,7 +61,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     mPauseManager = pauseManager;
     mFilter = filterManager;
     entryCorral = corral;
-    serverManager = asm;
+    this.serverManagerProvider = serverManagerProvider;
 
     MQFactory.getConcrete("manager").registerListener(this);
   }
@@ -257,14 +258,14 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     MQFactory.getConcrete("splash").enqueue("WIDTH " + activeCount);
     MQFactory.getConcrete("splash").enqueue("SET 0");
 
-    AuctionServer newServer = serverManager.getServer();
+    AuctionServer newServer = serverManagerProvider.get().getServer();
     if (totalCount == 0) {
       if(JConfig.queryConfiguration("stats.auctions") == null) JConfig.setConfiguration("stats.auctions", "0");
       return 0;
     }
 
-    serverManager.loadAuctionsFromDB(newServer);
-    AuctionStats as = serverManager.getStats();
+    serverManagerProvider.get().loadAuctionsFromDB(newServer);
+    AuctionStats as = serverManagerProvider.get().getStats();
 
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if (as != null) {
@@ -301,9 +302,9 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       MQFactory.getConcrete("splash").enqueue("WIDTH " + auctionTotal);
     }
 
-    serverManager.fromXML(auctionsXML);
+    serverManagerProvider.get().fromXML(auctionsXML);
 
-    AuctionStats as = serverManager.getStats();
+    AuctionStats as = serverManagerProvider.get().getStats();
 
     int savedCount = Integer.parseInt(JConfig.queryConfiguration("last.auctioncount", "-1"));
     if(as != null) {
@@ -327,7 +328,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
    * @return - the filename if it successfully saved, null if an error occurred.
    */
   public String saveAuctions() {
-    XMLElement auctionsData = serverManager.toXML();
+    XMLElement auctionsData = serverManagerProvider.get().toXML();
     String oldSave = JConfig.queryConfiguration("savefile", "auctions.xml");
     String saveFilename = Path.getCanonicalFile(JConfig.queryConfiguration("savefile", "auctions.xml"), "jbidwatcher", false);
     String newSave=saveFilename;

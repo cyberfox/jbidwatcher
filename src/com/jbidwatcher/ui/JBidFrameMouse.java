@@ -5,6 +5,8 @@ package com.jbidwatcher.ui;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.google.inject.Inject;
+
 import javax.swing.*;
 import java.awt.event.MouseEvent;
 
@@ -29,6 +31,7 @@ public class JBidFrameMouse extends JBidTableContext {
     tabManager.deselect();
   }
 
+  @Inject
   public JBidFrameMouse(JTabManager tabManager, ListManager listManager) {
     super(tabManager, listManager);
     this.tabManager = tabManager;

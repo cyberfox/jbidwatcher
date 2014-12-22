@@ -29,6 +29,7 @@ import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServer;
 
+import javax.annotation.Nullable;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -355,7 +356,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
    */
   @Inject
   private ebayServer(EntryCorral corral, SearchManager searchManager, AuctionServerManager asm, MultiSnipeManager multiSnipeManager,
-                     @Assisted("site") String site, @Assisted("username") String username, @Assisted("password") String password) {
+                     @Nullable @Assisted("site") String site, @Nullable @Assisted("username") String username, @Nullable @Assisted("password") String password) {
     if (site == null) site = JConfig.queryConfiguration(getName() + ".browse.site");
     if (site == null) site = "0";
 
