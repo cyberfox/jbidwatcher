@@ -247,7 +247,16 @@ public class JTabManager extends JMouseAdapter {
   public void updateTime(final JTable table) {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        table.tableChanged(new TableModelEvent(table.getModel(), 0, table.getRowCount(), table.getColumnModel().getColumnIndex("Time left")));
+        if(table.getModel().getRowCount() > 0) {
+          int firstRow = 0;
+          int lastRow = table.getRowCount() - 1;
+          int timeLeftColumn = table.getColumnModel().getColumnIndex("Time left");
+          if(firstRow == lastRow) {
+            table.tableChanged(new TableModelEvent(table.getModel(), 0, 0, timeLeftColumn));
+          } else {
+            table.tableChanged(new TableModelEvent(table.getModel(), firstRow, lastRow, timeLeftColumn));
+          }
+        }
       }
     });
   }

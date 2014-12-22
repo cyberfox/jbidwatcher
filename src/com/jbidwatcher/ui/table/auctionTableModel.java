@@ -32,6 +32,7 @@ public class auctionTableModel extends AbstractTableModel
 
   public void delete(int row) {
     dispList.remove(row);
+    fireTableRowsDeleted(row, row);
   }
 
   public synchronized int findRow(Comparison c) {
@@ -57,12 +58,17 @@ public class auctionTableModel extends AbstractTableModel
 
   public boolean delete(Object o) {
     int row = findRow(o);
-    if(row != -1) delete(row);
+    if(row != -1) {
+      delete(row);
+      fireTableRowsDeleted(row, row);
+    }
     return row != -1;
   }
 
   public int insert(Object o) {
     dispList.add((AuctionEntry)o);
+    int row = findRow(o);
+    fireTableRowsInserted(row, row);
     return dispList.size()-1;
   }
 
