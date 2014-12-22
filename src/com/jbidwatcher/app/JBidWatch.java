@@ -211,6 +211,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
       rval |= handleArgument(arg);
     }
 
+    rval |= transformCommand(inArgs);
+
     return rval;
   }
 
@@ -456,16 +458,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
     JConfig.setConfiguration("temp.cfg.load", cfgLoad);
     loadConfig(configStream);
     JConfig.setConfiguration("first.run", firstRun ? "true" : "false");
-    if (args.length > 0 && args[0] != null && args[0].equals("-transform")) {
-      String outName;
-      if (args.length == 1 || args[1] == null) {
-        outName = Path.getCanonicalFile("auctions.html", "jbidwatcher", false);
-      } else {
-        outName = args[1];
-      }
-      AuctionTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml"), outName);
-      System.exit(0);
-    }
     setUI(null, null, UIManager.getInstalledLookAndFeels());
 
     JConfig.log().logMessage(Constants.PROGRAM_NAME + " " + Constants.PROGRAM_VERS + "-" + Constants.REVISION());
@@ -479,6 +471,20 @@ public final class JBidWatch implements JConfig.ConfigListener {
     if (JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
       XMLElement.rejectBadHTML(true);
     }
+  }
+
+  private static boolean transformCommand(String[] args) {
+    if (args.length > 0 && args[0] != null && args[0].equals("-transform")) {
+      String outName;
+      if (args.length == 1 || args[1] == null) {
+        outName = Path.getCanonicalFile("auctions.html", "jbidwatcher", false);
+      } else {
+        outName = args[1];
+      }
+      AuctionTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml"), outName);
+      return true;
+    }
+    return false;
   }
 
   private void startDatabase() {
