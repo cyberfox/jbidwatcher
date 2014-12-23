@@ -17,14 +17,13 @@ package com.jbidwatcher.auction.server;
  * is, and do the appropriate parsing for that site.
  */
 import com.jbidwatcher.search.SearchManager;
-import com.jbidwatcher.util.Record;
+import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
-import com.jbidwatcher.util.Constants;
-import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.util.script.Scripting;
@@ -191,23 +190,33 @@ public abstract class AuctionServer implements AuctionServerInterface {
    */
   public void reload(String auctionId) {
     AuctionEntry ae = (AuctionEntry) entryCorral.takeForWrite(auctionId);
-    SpecificAuction curAuction;
-    try {
-      curAuction = (SpecificAuction) loadAuction(auctionId, ae);
+    AuctionInfo ai = ae.getAuction();
 
-      if (curAuction != null) {
-        curAuction.saveDB();
-        ae.setAuctionInfo(curAuction);
-        ae.clearInvalid();
-        MQFactory.getConcrete("Swing").enqueue("LINK UP");
-      } else {
-        if(!ae.isDeleted() && !ae.getLastStatus().contains("Seller away - item unavailable.")) {
-          ae.setLastStatus("Failed to load from server!");
-          ae.setInvalid();
+    Map<String,Object> r = rubyUpdate(auctionId, ae.getLastUpdated());
+    if(r != null && !r.isEmpty()) {
+      ai.setMonetary("curBid", Currency.getCurrency((String)r.get("current_price")));
+      ai.setBoolean("ended", (Boolean) r.get("ended"));
+      ai.setNumBids(((Long) r.get("bid_count")).intValue());
+      ai.setDate("end", new Date((Long)r.get("end_date")));
+    } else {
+      SpecificAuction curAuction;
+      try {
+        curAuction = (SpecificAuction) loadAuction(auctionId, ae);
+
+        if (curAuction != null) {
+          curAuction.saveDB();
+          ae.setAuctionInfo(curAuction);
+          ae.clearInvalid();
+          MQFactory.getConcrete("Swing").enqueue("LINK UP");
+        } else {
+          if (!ae.isDeleted() && !ae.getLastStatus().contains("Seller away - item unavailable.")) {
+            ae.setLastStatus("Failed to load from server!");
+            ae.setInvalid();
+          }
         }
+      } finally {
+        entryCorral.release(auctionId);
       }
-    } finally {
-      entryCorral.release(auctionId);
     }
   }
 
@@ -244,6 +253,7 @@ public abstract class AuctionServer implements AuctionServerInterface {
 
     if (curAuction == null) {
       JConfig.log().logMessage("Multiple failures attempting to load item " + item_id + ", giving up.");
+      JConfig.getMetrics().trackEventValue("item", "loadfailure", item_id);
 
       if (ae != null && ae.getLastStatus().contains("Seller away - item unavailable.")) {
         ae.setInvalid();
@@ -280,6 +290,8 @@ public abstract class AuctionServer implements AuctionServerInterface {
   public SpecificAuction doParse(StringBuffer sb) throws ReloadItemException {
     return doParse(sb, null, null);
   }
+
+  //  TODO(mschweers) - Eliminate the creation of a new object unless ae is null...or something.
 
   private SpecificAuction doParse(StringBuffer sb, AuctionEntry ae, String item_id) throws ReloadItemException {
     SpecificAuction curAuction = getNewSpecificAuction();
@@ -359,13 +371,32 @@ public abstract class AuctionServer implements AuctionServerInterface {
     return curAuction;
   }
 
+  public Map<String, Object> rubyUpdate(String auctionId, Date lastUpdatedAt) {
+    long before = System.currentTimeMillis();
+    try {
+      Map<String, Object> maps = (Map<String, Object>) Scripting.rubyMethod("get_update", auctionId, lastUpdatedAt);
+      if (maps != null) {
+        String timerLog = "Ruby took " + (System.currentTimeMillis() - before) + "ms";
+        JConfig.log().logMessage(timerLog);
+        return maps;
+      }
+    } catch (Exception e) {
+      JConfig.log().logMessage("Could not parse easy-update.  Using complex update.");
+    }
+    String timerLog = "Ruby took " + (System.currentTimeMillis() - before) + "ms, and failed.";
+    JConfig.log().logMessage(timerLog);
+    return null;
+  }
+
   public Record tryRuby(StringBuffer sb) {
     long before = System.currentTimeMillis();
     Record rubyResults = null;
     try {
       Map<String, String> maps = (Map<String, String>) Scripting.rubyMethod("parse", sb.toString());
-      rubyResults = new Record();
-      rubyResults.putAll(maps);
+      if(maps != null) {
+        rubyResults = new Record();
+        rubyResults.putAll(maps);
+      }
     } catch (Exception e) {
       e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
     }

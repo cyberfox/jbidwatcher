@@ -4,7 +4,10 @@ require 'digest/md5'
 require 'net/http.rb'
 require 'cgi'
 require 'nokogiri'
+require 'json'
+require 'open-uri'
 require 'ebay_parser'
+require 'time'
 require 'pp'
 
 java_import com.jbidwatcher.util.config.JConfig
@@ -21,6 +24,13 @@ java_import com.jbidwatcher.ui.commands.UserActions
 java_import com.jbidwatcher.ui.commands.MenuCommand
 
 puts "Loading JBidwatcher Ruby Utilities"
+
+unless defined? nil.blank?
+  class NilClass
+    def blank?; true end
+    def empty?; true end
+  end
+end
 
 class JBidwatcherUtilities
   MY_JBIDWATCHER_URL = "http://my.jbidwatcher.com:9876/advanced"
@@ -176,6 +186,40 @@ class JBidwatcherUtilities
 
   def parse(body)
     Ebay::Parser.new(body).parse
+  end
+
+  def log(msg)
+    JConfig.log.logMessage msg
+  end
+
+  def get_update(auction_id, last_updated_at)
+    current = (Time.now.to_f*1000).to_i
+    last_int = last_updated_at.nil? ? 0 : last_updated_at.time
+    lite_url = "http://www.ebay.com/itm/ws/eBayISAPI.dll?ViewItemLite&pbv=0&item=#{auction_id}"
+    lite_url += "&lastaccessed=#{last_int}&lvr=0&dl=5&_=#{current}"
+    body = open(lite_url).read
+    result = JSON.parse(body)
+    response = result['ViewItemLiteResponse']
+
+    if response['Error'].empty?
+      item = response['Item'].first
+      end_date = item['EndDate']
+
+      ends_at = Time.parse(end_date['Time'] + ' ' + end_date['Date'])
+      cur_price = item['CurrentPrice']['MoneyStandard']
+      ended = item['IsEnded']
+      bid_count = item['BidCount']
+
+      {
+          'current_price' => cur_price,
+          'end_date' => (ends_at.to_f*1000).to_i,
+          'ended' => ended,
+          'bid_count' => bid_count
+      }
+    end
+  rescue => e
+    log e.inspect
+    return nil
   end
 
   def dump_hash(h)
