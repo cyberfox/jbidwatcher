@@ -83,7 +83,7 @@ public class ebayAuction2 extends SpecificAuction {
 
     if (parse.containsKey("price.current")) setCurBid(Currency.getCurrency(parse.get("price.current")));
     if (parse.containsKey("price.current_us")) setUSCur(Currency.getCurrency(parse.get("price.current_us")));
-    if (parse.get("price.minimum").equals("true")) setMinBid(getCurBid());
+    if ("true".equals(parse.get("price.minimum"))) setMinBid(getCurBid());
 
     if(parse.containsKey("price.bin")) setBuyNow(Currency.getCurrency(parse.get("price.bin")));
     if(parse.containsKey("price.bin_us")) setBuyNowUS(Currency.getCurrency(parse.get("price.bin_us")));
@@ -168,7 +168,7 @@ public class ebayAuction2 extends SpecificAuction {
 
     // These are optional; we don't care about them failing. They may be unavailable, or parsing has changed, and it doesn't matter.
     try { parse.put("location", parseLocation()); } catch (Exception e) { /* Ignored */ }
-    try { boolean paypal = deprecated.parsePaypal(mDocument); paypal = paypal || !mDocument2.select(":containsOwn(Payments:)").parents().first().select("[alt=PayPal]").isEmpty(); parse.put("paypal", Boolean.toString(paypal)); } catch (Exception e) { /* Ignored */ }
+    try { parse.put("paypal", Boolean.toString(supportsPaypal())); } catch (Exception e) { /* Ignored */ }
     try { insertChild(parse, "feedback", deprecated.parseFeedback(mDocument)); } catch(Exception e){ /* Ignored */ }
     try { insertChild(parse, "shipping", deprecated.parseShippingInsurance(mDocument)); } catch (Exception e) { /* Ignored */ }
     try { parse.put("seller", deprecated.parseSeller(mDocument)); } catch (Exception e) { /* Ignored */ }
@@ -210,6 +210,12 @@ public class ebayAuction2 extends SpecificAuction {
     // if(!maxBid.isNull()) ae.setBid(maxBid)
 
     return parse;
+  }
+
+  private boolean supportsPaypal() {
+    boolean paypal = deprecated.parsePaypal(mDocument);
+    paypal = paypal || !mDocument2.select(":containsOwn(Payments:)").parents().first().select("[alt=PayPal]").isEmpty();
+    return paypal;
   }
 
   public boolean parseFixedPrice() {
@@ -255,7 +261,12 @@ public class ebayAuction2 extends SpecificAuction {
   private Record parsePrices() {
     Elements offers = mDocument2.select("[itemprop=offers]");
     if(offers.first() == null) {
-      return deprecated.parsePrices(mDocument);
+      Record r = checkTwitterMicroformat();
+      if(r.isEmpty()) {
+        return deprecated.parsePrices(mDocument);
+      } else {
+        return r;
+      }
     }
 
     Record record = new Record();
@@ -294,6 +305,24 @@ public class ebayAuction2 extends SpecificAuction {
     // If minimum is true, then current is the minimum bid.
     // Both bin and current can have *_us versions, which is the converted price.
     return record;
+  }
+
+  private Record checkTwitterMicroformat() {
+    Record r = new Record();
+
+    //  Twitter microformat
+    Elements twitter = mDocument2.select("meta[name=twitter:text:price]");
+    if (twitter.isEmpty()) {
+      twitter = mDocument2.select("meta[name=twitter:label1,content=Price]");
+      if (!twitter.isEmpty()) {
+        twitter = mDocument2.select("meta[name=twitter:data1]");
+      }
+    }
+
+    if(!twitter.isEmpty()) {
+      r.put("current", twitter.first().attr("content"));
+    }
+    return r;
   }
 
   /**

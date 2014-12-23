@@ -103,11 +103,16 @@ public class JHTML implements JHTMLListener {
           }
         } else if(xe.getTagName().equals("meta")) {
           String property = xe.getProperty("property");
+          String content = xe.getProperty("content");
           if(property != null && property.startsWith("og:")) {
             itemprop = property.substring(3);
-            String content = xe.getProperty("content");
             if (rval.get(itemprop) == null || rval.get(itemprop).length() == 0 || content.length() != 0) {
               rval.put(itemprop, content);
+            }
+          } else {
+            String name = xe.getProperty("name");
+            if(name != null && name.equals("twitter:text:price")) {
+              rval.put("price", content);
             }
           }
         }
