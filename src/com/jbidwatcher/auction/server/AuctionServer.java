@@ -218,13 +218,12 @@ public abstract class AuctionServer implements AuctionServerInterface {
   }
 
   public ParseResults parseAuction(ItemParser itemParser, AuctionEntry ae) {
-    SpecificAuction auction;
     String sellerName = null;
+    SpecificAuction auction = getNewSpecificAuction();
+    AuctionInfo output = auction;
 
-    if (ae == null) {
-      auction = getNewSpecificAuction();
-    } else {
-      auction = (SpecificAuction) ae.getAuction();
+    if (ae != null) {
+      output = ae.getAuction();
       sellerName = ae.getSellerName();
     }
 
@@ -237,7 +236,17 @@ public abstract class AuctionServer implements AuctionServerInterface {
       }
     }
 
-    return new ParseResults(auction, setResult);
+    if (setResult == ItemParser.ParseErrors.SUCCESS) {
+      if(output != auction) {
+        Record newBacking = auction.getBacking();
+
+        for (String key : newBacking.keySet()) {
+          output.set(key, newBacking.get(key));
+        }
+      }
+    }
+
+    return new ParseResults(output, setResult);
   }
 
   public AuctionInfo doParse(StringBuffer sb) throws ReloadItemException {
