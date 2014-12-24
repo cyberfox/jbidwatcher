@@ -143,6 +143,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
       ae.update();
       Record after = ae.getBacking();
 
+      //  TODO(mschweers) - This probably detects too much, like timestamp changes, etc...  Need to test.
       boolean same = JSONObject.toJSONString(after).equals(JSONObject.toJSONString(before));
 
       MQFactory.getConcrete("my").enqueue("UPDATE " + ae.getIdentifier() + "," + Boolean.toString(!same));

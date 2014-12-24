@@ -156,8 +156,6 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
      * will never be added to the items list.
      */
     if (mLoaded) {
-      AuctionServerInterface newServer = (AuctionServerInterface) info.getServer();
-      if(newServer != null) setServer(newServer);
       Currency currentPrice = info.getBestPrice();
       setDate("last_updated_at", new Date());
       setDefaultCurrency(currentPrice);

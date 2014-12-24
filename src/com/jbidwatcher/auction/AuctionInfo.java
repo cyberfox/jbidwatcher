@@ -24,9 +24,6 @@ import java.util.*;
 
 public class AuctionInfo extends AuctionCore {
   private String potentialThumbnail = null;
-  private Object mServer = null; //  TODO --  This is a hack!
-  //  It's so that the AuctionServer that creates this can record
-  // 'who it is', so the AuctionEntry will pick it up.
 
   protected Seller mSeller;
   protected GZip mLoadedPage = null;
@@ -132,8 +129,6 @@ public class AuctionInfo extends AuctionCore {
     }
     return(sb);
   }
-
-  public Object getServer() { return mServer; }
 
   public String getSellerName() {
     refreshSeller();

@@ -363,7 +363,6 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     constructServer(corral, searchManager, asm, multiSnipeManager, site, username, password);
   }
 
-  // TODO(mschweers) - Make this method properly handle null in site/username/password, and eliminate all the extra constructors.
   private void constructServer(EntryCorral corral, SearchManager searchManager, AuctionServerManager asm, MultiSnipeManager multiSnipeManager, String site, String username, String password) {
     this.entryCorral = corral;
     this.searcher = searchManager;
