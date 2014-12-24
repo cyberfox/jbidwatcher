@@ -17,7 +17,7 @@ import com.jbidwatcher.util.Observer;
 import com.jbidwatcher.util.config.JConfig;
 import com.cyberfox.util.config.Base64;
 import com.jbidwatcher.util.db.ActiveRecord;
-import com.jbidwatcher.scripting.script.Scripting;
+import com.jbidwatcher.scripting.Scripting;
 import com.jbidwatcher.webserver.AbstractMiniServer;
 import com.jbidwatcher.webserver.MiniServer;
 import com.jbidwatcher.webserver.MiniServerFactory;
@@ -204,7 +204,7 @@ public class JBTool implements ToolInterface {
   }
 
   private void comparative(String fname) {
-    JRubyPreloader preloader = new JRubyPreloader(auctionServerManager, null, null);
+    JRubyPreloader preloader = new JRubyPreloader(new Object());
     preloader.run();
     StringBuffer sb = new StringBuffer(StringTools.cat(fname));
     try {

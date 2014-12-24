@@ -34,7 +34,7 @@ import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
-import com.jbidwatcher.scripting.script.Scripting;
+import com.jbidwatcher.scripting.Scripting;
 import com.jbidwatcher.util.services.ActivityMonitor;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.html.JHTMLOutput;

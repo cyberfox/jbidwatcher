@@ -26,7 +26,7 @@ import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.search.SearchManagerInterface;
 import com.jbidwatcher.auction.*;
-import com.jbidwatcher.scripting.script.Scripting;
+import com.jbidwatcher.scripting.Scripting;
 
 import java.util.*;
 import java.net.*;

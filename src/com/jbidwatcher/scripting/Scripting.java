@@ -1,4 +1,4 @@
-package com.jbidwatcher.scripting.script;
+package com.jbidwatcher.scripting;
 
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.ui.AuctionsManager;
@@ -61,7 +61,7 @@ public class Scripting {
   public static void setOutput(OutputStream stream) { sOutput.setOutput(stream); }
   public static void setInput(InputStream stream) { sInput.setInput(stream); }
 
-  public static void initialize(AuctionServerManager serverManager, AuctionsManager auctionsManager, FilterManager filterManager) throws ClassNotFoundException {
+  public static void initialize() throws ClassNotFoundException {
     //  Test for JRuby's presence
     Class.forName("org.jruby.RubyInstanceConfig", true, Thread.currentThread().getContextClassLoader());
 
@@ -83,21 +83,22 @@ public class Scripting {
     final Ruby runtime = Ruby.newInstance(config);
 
     runtime.getGlobalVariables().defineReadonly("$$", new ValueAccessor(runtime.newFixnum(System.identityHashCode(runtime))), GlobalVariable.Scope.GLOBAL);
-    runtime.getGlobalVariables().defineReadonly("$auction_server_manager", new ValueAccessor(JavaUtil.convertJavaToRuby(runtime, serverManager)), GlobalVariable.Scope.GLOBAL);
-    runtime.getGlobalVariables().defineReadonly("$auctions_manager", new ValueAccessor(JavaUtil.convertJavaToRuby(runtime, auctionsManager)), GlobalVariable.Scope.GLOBAL);
-    runtime.getGlobalVariables().defineReadonly("$filter_manager", new ValueAccessor(JavaUtil.convertJavaToRuby(runtime, filterManager)), GlobalVariable.Scope.GLOBAL);
+
     if(JConfig.queryConfiguration("platform.path") != null) {
       runtime.getLoadService().addPaths(JConfig.queryConfiguration("platform.path"));
     }
 
     runtime.getLoadService().addPaths("lib/jbidwatcher", "lib/jbidwatcher/nokogiri-1.5.2-java/lib");
 
-    //    runtime.evalScriptlet("require 'builtin/javasupport.rb'; require 'utilities';");
-    //    runtime.getLoadService().init(loadPath);
-
-    runtime.evalScriptlet("require 'utilities';");
-
     sRuby = runtime;
+  }
+
+  public static void require(String file) {
+    getRuntime().evalScriptlet("require '" + file + "';");
+  }
+
+  public static void setGlobalVariable(String variable, Object value) {
+    getRuntime().getGlobalVariables().defineReadonly(variable, new ValueAccessor(JavaUtil.convertJavaToRuby(getRuntime(), value)), GlobalVariable.Scope.GLOBAL);
   }
 
   public static Object ruby(String command) {

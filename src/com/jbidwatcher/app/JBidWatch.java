@@ -33,7 +33,7 @@ import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.services.ActivityMonitor;
 import com.jbidwatcher.util.ErrorMonitor;
-import com.jbidwatcher.scripting.script.Scripting;
+import com.jbidwatcher.scripting.Scripting;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.services.AudioPlayer;
@@ -684,8 +684,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     ThumbnailLoader.start();
 
     inSplash.message("Initializing Scripting");
-    JRubyPreloader preloader = new JRubyPreloader(serverManager, auctionsManager, filters);
-    preloader.setSyncObject(mScriptCompletion);
+    JRubyPreloader preloader = new JRubyPreloader(mScriptCompletion);
     Thread scriptLoading = new Thread(preloader);
     scriptLoading.start();
 
@@ -722,6 +721,12 @@ public final class JBidWatch implements JConfig.ConfigListener {
     synchronized (mScriptCompletion) {
       if(JConfig.scriptingEnabled()) {
         inSplash.message("Starting scripts");
+
+        Scripting.setGlobalVariable("$auction_server_manager", serverManager);
+        Scripting.setGlobalVariable("$auctions_manager", auctionsManager);
+        Scripting.setGlobalVariable("$filter_manager", filters);
+
+        Scripting.require("utilities");
         Scripting.ruby("JBidwatcher.after_startup");
       }
     }

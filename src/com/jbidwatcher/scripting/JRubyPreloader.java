@@ -6,7 +6,6 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.scripting.script.Scripting;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -20,27 +19,16 @@ import java.net.URLClassLoader;
 */
 @Singleton
 public class JRubyPreloader implements Runnable {
-  private final FilterManager filterManager;
-  private final AuctionsManager auctionsManager;
-  private final AuctionServerManager serverManager;
-  private Object syncObject;
+  private final Object syncObject;
 
   @Inject
-  public JRubyPreloader(AuctionServerManager serverManager, AuctionsManager auctionsManager, FilterManager filterManager) {
-    this.serverManager = serverManager;
-    this.auctionsManager = auctionsManager;
-    this.filterManager = filterManager;
-  }
-
-  public void setSyncObject(Object scriptSync) {
-    syncObject = scriptSync;
-  }
+  public JRubyPreloader(Object scriptSync) { syncObject = scriptSync; }
 
   public void run() {
     synchronized(syncObject) {
       try {
         preloadLibrary();
-        Scripting.initialize(serverManager, auctionsManager, filterManager);
+        Scripting.initialize();
         JConfig.enableScripting();
         JConfig.log().logMessage("Scripting is enabled.");
       } catch (NoClassDefFoundError ncdfe) {

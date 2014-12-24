@@ -2,7 +2,7 @@ package com.jbidwatcher.ui;
 
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
-import com.jbidwatcher.scripting.script.Scripting;
+import com.jbidwatcher.scripting.Scripting;
 
 import javax.swing.*;
 import java.awt.*;
