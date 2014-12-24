@@ -885,7 +885,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     // We REALLY don't want to leave an auction in the 'updating'
     // state.  It does bad things.
     try {
-      getServer().reload(getIdentifier());
+      AuctionInfo ai = getServer().reload(getIdentifier());
     } catch(Exception e) {
       JConfig.log().handleException("Unexpected exception during auction reload/update.", e);
     }

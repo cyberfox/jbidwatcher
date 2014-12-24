@@ -420,6 +420,13 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
     JConfig.registerListener(this);
   }
 
+  @Override
+  protected ItemParser getItemParser(StringBuffer itemContents, AuctionEntry ae, String item_id) {
+    Record updateRecord = new Record();
+    Record highBidderInfo = new Record();
+    return new ebayItemParser(T, itemContents, updateRecord, highBidderInfo);
+  }
+
   /**
    * @brief Given a standard URL, strip it apart, and find the items
    * identifier from the standard eBay 'ViewItem' URL.

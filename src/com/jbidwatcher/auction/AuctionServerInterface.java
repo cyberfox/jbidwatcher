@@ -97,7 +97,7 @@ public interface AuctionServerInterface {
    */
   TimeZone getOfficialServerTimeZone();
 
-  void reload(String auctionId);
+  AuctionInfo reload(String auctionId);
 
   /**
    * @brief Returns the amount of time it takes to retrieve a page

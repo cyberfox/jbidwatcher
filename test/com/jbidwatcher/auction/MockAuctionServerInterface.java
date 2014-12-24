@@ -64,7 +64,8 @@ class MockAuctionServerInterface implements AuctionServerInterface {
     return null;
   }
 
-  public void reload(String auctionId) {
+  public AuctionInfo reload(String auctionId) {
+    return null;
   }
 
   public long getPageRequestTime() {
