@@ -21,15 +21,13 @@ import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.server.AuctionServer;
-import com.jbidwatcher.util.webserver.AbstractMiniServer;
+import com.jbidwatcher.webserver.AbstractMiniServer;
 import com.jbidwatcher.util.xml.XMLElement;
 import org.json.simple.JSONValue;
 
 import java.net.*;
 import java.util.*;
 import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.nio.charset.Charset;
 
 public class JBidProxy extends AbstractMiniServer {

@@ -1,4 +1,4 @@
-package com.jbidwatcher.util.script;
+package com.jbidwatcher.scripting.script;
 
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.ui.AuctionsManager;
@@ -7,14 +7,11 @@ import com.jbidwatcher.util.config.JConfig;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.Ruby;
 import org.jruby.internal.runtime.GlobalVariable;
-import org.jruby.internal.runtime.ReadonlyAccessor;
 import org.jruby.internal.runtime.ValueAccessor;
 import org.jruby.javasupport.JavaEmbedUtils;
 import org.jruby.javasupport.JavaUtil;
 
-import java.util.ArrayList;
 import java.io.*;
-import java.util.List;
 
 /**
  * User: Morgan

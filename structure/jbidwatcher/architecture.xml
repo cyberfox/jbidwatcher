@@ -64,7 +64,7 @@
             <grid>
                <row>
                   <cell name="browser" pattern="com.jbidwatcher.util.browser.?" vexpanded="true" visibility="public" />
-                  <cell name="script" pattern="com.jbidwatcher.util.script.?" vexpanded="true" visibility="public" />
+                  <cell name="script" pattern="com.jbidwatcher.scripting.script.?" vexpanded="true" visibility="public" />
                   <cell name="html" pattern="com.jbidwatcher.util.html.?" vexpanded="true" visibility="public" />
                   <cell name="services" pattern="com.jbidwatcher.util.services.?" vexpanded="true" visibility="public" />
                </row>

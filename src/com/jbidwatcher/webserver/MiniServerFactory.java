@@ -4,11 +4,9 @@
  * Date: 12/20/14
  * Time: 10:45 PM
  */
-package com.jbidwatcher.app;
+package com.jbidwatcher.webserver;
 
 import com.jbidwatcher.util.ToolInterface;
-import com.jbidwatcher.util.webserver.AbstractMiniServer;
-import com.jbidwatcher.util.webserver.ProxyClient;
 
 import java.net.Socket;
 

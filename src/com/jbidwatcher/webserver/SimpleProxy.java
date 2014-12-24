@@ -1,18 +1,15 @@
-package com.jbidwatcher.util.webserver;
+package com.jbidwatcher.webserver;
 /*
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.google.inject.Provider;
-import com.jbidwatcher.app.MiniServerFactory;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.ToolInterface;
 
 import java.net.*;
 import java.io.*;
-import java.lang.reflect.Constructor;
 
 @SuppressWarnings({"ClassExplicitlyExtendsThread"})
 public class SimpleProxy extends Thread {

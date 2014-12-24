@@ -1,14 +1,14 @@
-package com.jbidwatcher.ui;
+package com.jbidwatcher.app;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.jbidwatcher.app.JBidProxy;
-import com.jbidwatcher.app.MiniServerFactory;
+import com.jbidwatcher.webserver.MiniServerFactory;
 import com.jbidwatcher.auction.EntryManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerFactory;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
-import com.jbidwatcher.util.webserver.AbstractMiniServer;
+import com.jbidwatcher.ui.*;
+import com.jbidwatcher.webserver.AbstractMiniServer;
 
 /**
 * Created by mrs on 12/21/14.

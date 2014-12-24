@@ -1,4 +1,4 @@
-package com.jbidwatcher.util;
+package com.jbidwatcher.scripting;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -6,7 +6,7 @@ import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.script.Scripting;
+import com.jbidwatcher.scripting.script.Scripting;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;

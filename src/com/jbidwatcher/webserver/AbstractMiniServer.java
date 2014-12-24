@@ -1,4 +1,4 @@
-package com.jbidwatcher.util.webserver;
+package com.jbidwatcher.webserver;
 
 import com.jbidwatcher.util.config.JConfig;
 

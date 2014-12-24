@@ -1,8 +1,7 @@
-package com.jbidwatcher.app;
+package com.jbidwatcher.webserver;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import com.jbidwatcher.util.webserver.AbstractMiniServer;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.ToolInterface;
 import com.jbidwatcher.util.config.JConfig;
