@@ -25,9 +25,6 @@
             <cell name="jbidwatcher" pattern="com.jbidwatcher.?" vexpanded="true" visibility="public" />
          </row>
          <row>
-            <cell name="webserver" pattern="com.jbidwatcher.webserver.?" vexpanded="true" visibility="public" />
-         </row>
-         <row>
             <cell name="ui" pattern="com.jbidwatcher.ui.*" vexpanded="true" visibility="public">
                <grid>
                   <row>
@@ -81,7 +78,6 @@
                <grid>
                   <row>
                      <cell name="browser" pattern="com.jbidwatcher.util.browser.?" vexpanded="true" visibility="public" />
-                     <cell name="script" pattern="com.jbidwatcher.util.script.?" vexpanded="true" visibility="public" />
                      <cell name="html" pattern="com.jbidwatcher.util.html.?" vexpanded="true" visibility="public" />
                      <cell name="services" pattern="com.jbidwatcher.util.services.?" vexpanded="true" visibility="public" />
                   </row>

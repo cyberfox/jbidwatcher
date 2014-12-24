@@ -9,7 +9,6 @@ import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.ui.util.OptionUI;
 import com.jbidwatcher.ui.util.SpringUtilities;
 import com.jbidwatcher.util.config.JConfig;
-import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.my.MyJBidwatcher;
 
 import java.awt.*;
@@ -26,7 +25,6 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
   private JTextField mPassword;
   private JButton mCreateOrUpdate;
   private JLabel mStatusLabel;
-  private JButton mDoUpload;
   private Map<JCheckBox,String> mConfigurationMap = new HashMap<JCheckBox,String>();
   private Map<JCheckBox,String> mEnabledMap = new HashMap<JCheckBox,String>();
   private JLabel mListingStats;
@@ -80,7 +78,6 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     for(ActionListener al : mEnable.getActionListeners()) {
       al.actionPerformed(new ActionEvent(mEnable, ActionEvent.ACTION_PERFORMED, "Redraw"));
     }
-    mDoUpload.setEnabled(JConfig.queryConfiguration("my.jbidwatcher.uploaded") == null);
   }
 
   private void setComponentTooltip(JComponent comp, String text) {
@@ -135,19 +132,19 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     });
     button.add(mCreateOrUpdate);
     button.add(mStatusLabel);
-    mDoUpload = new JButton("Upload All");
-    mDoUpload.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        String action = e.getActionCommand();
-        if (action == null) return;
-
-        MQFactory.getConcrete("user").enqueue("Upload");
-        JConfig.setConfiguration("my.jbidwatcher.uploaded", "true");
-        mDoUpload.setEnabled(false);
-      }
-    });
-    mDoUpload.setEnabled(JConfig.queryConfiguration("my.jbidwatcher.uploaded") == null);
-    innerPanel.add(mDoUpload);
+//    mDoUpload = new JButton("Upload All");
+//    mDoUpload.addActionListener(new ActionListener() {
+//      public void actionPerformed(ActionEvent e) {
+//        String action = e.getActionCommand();
+//        if (action == null) return;
+//
+//        MQFactory.getConcrete("user").enqueue("Upload");
+//        JConfig.setConfiguration("my.jbidwatcher.uploaded", "true");
+//        mDoUpload.setEnabled(false);
+//      }
+//    });
+//    mDoUpload.setEnabled(JConfig.queryConfiguration("my.jbidwatcher.uploaded") == null);
+//    innerPanel.add(mDoUpload);
     innerPanel.add(button);
 
     SpringUtilities.makeCompactGrid(innerPanel, 3, 2, 6, 6, 6, 1);

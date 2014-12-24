@@ -1,7 +1,5 @@
 package com.jbidwatcher.auction.server.ebay;
 
-import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.AuctionInfo;
 import com.jbidwatcher.auction.ItemParser;
 import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.util.*;

@@ -8,8 +8,6 @@ package com.jbidwatcher.ui.table;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;
 import com.jbidwatcher.util.*;
-import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.*;

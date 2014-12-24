@@ -6,9 +6,7 @@ package com.jbidwatcher.auction;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.Task;
-import com.jbidwatcher.util.xml.XMLInterface;
 
 public class Auctions {
   boolean _complete = false;

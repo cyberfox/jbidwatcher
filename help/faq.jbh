@@ -59,7 +59,6 @@ on Windows it's usually at:<pre>   C:\Documents and Settings\{username}\.jbidwat
 on Linux (and other unices), it's at:<pre>   ~/.jbidwatcher</pre>
 <br>
 In that directory would be a set of files:<ul>
-<li>auctions.xml - the XML version of your auctions you are monitoring.</li>
 <li>searches.xml - all the searches you've defined for it.</li>
 <li>JBidWatch.cfg - the configuration file for the program.</li>
 <li>display.cfg - Display-related configurations (windowsize, column widths, etc.)</li>
@@ -95,14 +94,7 @@ multisnipe successfully.
 <%end%>
 
 <%que 9%>How do I save the auction data as a comma-seperated list, or load the historical auction data into Excel?
-<%ans%>The latest versions of Excel (after Excel 2000, I believe) can
-load XML files, as long as you have the DTD (document type) for it
-available.  The DTD for the auctions save data is kept on the
-www.jbidwatcher.com server, so as long as Excel has a net connection
-it should be able to load it.  All you need to do is drag
-<pre><%auctions_save%></pre>(your auctions save file) onto Excel, and
-drop it.  Excel should automatically load the XML into columns.<br>
-<br>The other option is to right-click (or control click under Mac OS X) on
+<%ans%>Right-click (or control click under Mac OS X) on
 the tab name itself, and there should be an option 'Export', which will save
 all the information in the currently visible columns for all the rows in the
 current table out as a CSV file.

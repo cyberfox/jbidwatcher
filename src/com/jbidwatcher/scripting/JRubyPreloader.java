@@ -2,9 +2,6 @@ package com.jbidwatcher.scripting;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.ui.AuctionsManager;
-import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.util.config.JConfig;
 
 import java.io.File;

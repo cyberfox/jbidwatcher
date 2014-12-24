@@ -17,9 +17,6 @@ import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.db.*;
-import com.jbidwatcher.util.db.ActiveRecord;
-import com.jbidwatcher.util.xml.XMLElement;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,167 +32,10 @@ public class AuctionInfo extends AuctionCore {
   protected GZip mLoadedPage = null;
 
   /**
-   * @brief Empty constructor, for XML parsing.
+   * @brief Empty constructor, for ActiveRecord.
    *
    */
   public AuctionInfo() { }
-
-  protected String[] infoTags = { "title", "seller", "highbidder", "bidcount", "start", "end",
-                                "currently", "dutch", "reserve", "private", "content",
-                                "shipping", "insurance", "buynow", "usprice", "fixed", "minimum",
-                                "paypal", "location", "feedback", "percentage", "sellerinfo", "buy_now_us"};
-  protected String[] getTags() { return infoTags; }
-
-  protected void handleTag(int i, XMLElement curElement) {
-    switch(i) {
-      case 0:  //  Title
-        setString(infoTags[i], XMLElement.decodeString(curElement.getContents()));
-        break;
-      case 1:  //  Seller name
-        if(curElement.getChild("name") == null) {
-          setSellerName(curElement.getContents());
-        } else {
-          mSeller = Seller.newFromXML(curElement);
-        }
-        break;
-      case 2:  //  High bidder name
-      case 18: //  Location of item
-        setString(infoTags[i], curElement.getContents());
-        break;
-      case 3:  //  Bid count
-        setInteger(infoTags[i], Integer.parseInt(curElement.getContents()));
-        break;
-      case 4:  //  Start date
-      case 5:  //  End date
-        setDate(infoTags[i], new Date(Long.parseLong(curElement.getContents())));
-        break;
-      case 6:  //  Current price
-      case 11: //  Shipping cost
-      case 12: //  Insurance cost
-      case 13: //  Buy Now price
-      case 22: //  Buy Now US price
-      case 14: //  Current US price
-      case 16: //  Minimum price/bid
-        Currency amount = Currency.getCurrency(curElement.getProperty("CURRENCY"), curElement.getProperty("PRICE"));
-        setMonetary(infoTags[i], amount, i != 22 && i != 14);
-        switch(i) {
-          case 13:
-            setDefaultCurrency(amount);
-            break;
-          case 6:
-            if (amount.getCurrencyType() == Currency.US_DOLLAR) {
-              setMonetary("us_cur", amount, false);
-              setString("currency", amount.fullCurrencyName());
-            }
-            setDefaultCurrency(amount);
-            break;
-          case 12:
-            String optional = curElement.getProperty("OPTIONAL");
-            setBoolean("insurance_optional", optional == null || (optional.equals("true")));
-            break;
-        }
-        break;
-      case 7:  //  Is a dutch auction?
-      case 8:  //  Is a reserve auction?
-      case 9:  //  Is a private auction?
-      case 15: //  Fixed price
-      case 17: //  PayPal accepted
-        setBoolean(infoTags[i], true);
-        if(i==7 || i==15) {
-          String quant = curElement.getProperty("QUANTITY");
-          if(quant == null) {
-            setInteger("quantity", 1);
-          } else {
-            setInteger("quantity", Integer.parseInt(quant));
-          }
-        } else if(i==8) {
-          setBoolean("reserve_met", "true".equals(curElement.getProperty("MET")));
-        }
-        break;
-      case 19: //  Feedback score
-        String feedback = curElement.getContents();
-        if(mSeller == null) mSeller = new Seller();
-        if(feedback != null) mSeller.setFeedback(Integer.parseInt(feedback));
-        break;
-      case 20: //  Positive feedback percentage (w/o the % sign)
-        String percentage = curElement.getContents();
-        if (mSeller == null) mSeller = new Seller();
-        mSeller.setPositivePercentage(percentage);
-        break;
-      case 21: //  Seller info block
-        mSeller = Seller.newFromXML(curElement);
-        break;
-      default:
-        break;
-        // commented out for FORWARDS compatibility.
-        //        throw new RuntimeException("Unexpected value when handling AuctionInfo tags!");
-    }
-  }
-
-  public void fromXML(XMLElement inXML) {
-    super.fromXML(inXML);
-    if(mSeller != null) mSeller.saveDB();
-  }
-
-  public XMLElement toXML() {
-    XMLElement xmlResult = new XMLElement("info");
-
-    addStringChild(xmlResult, "title");
-
-    if(!getSellerName().equals("(unknown)") && mSeller != null) {
-      XMLElement xseller = mSeller.toXML();
-      xmlResult.addChild(xseller);
-    }
-
-    Date start = getStart();
-    if(start != null) {
-      XMLElement xstart = new XMLElement("start");
-      xstart.setContents(Long.toString(start.getTime()));
-      xmlResult.addChild(xstart);
-    }
-
-    Date end = getEnd();
-    if(end != null) {
-      XMLElement xend = new XMLElement("end");
-      xend.setContents(Long.toString(end.getTime()));
-      xmlResult.addChild(xend);
-    }
-
-    XMLElement xbidcount = new XMLElement("bidcount");
-    xbidcount.setContents(Integer.toString(getNumBids()));
-    xmlResult.addChild(xbidcount);
-
-    XMLElement xinsurance = addCurrencyChild(xmlResult, "insurance");
-    if(xinsurance != null) xinsurance.setProperty("optional", isInsuranceOptional() ?"true":"false");
-
-    if(getCurBid() != null && !getCurBid().isNull()) {
-      if (getCurBid().getCurrencyType() != Currency.US_DOLLAR) {
-        addCurrencyChild(xmlResult, "usprice", Currency.US_DOLLAR);
-      }
-    }
-
-    addCurrencyChild(xmlResult, "currently");
-    addCurrencyChild(xmlResult, "shipping");
-    addCurrencyChild(xmlResult, "buynow");
-    addCurrencyChild(xmlResult, "buy_now_us");
-    addCurrencyChild(xmlResult, "minimum");
-
-    XMLElement xdutch = addBooleanChild(xmlResult, "dutch");
-    if(xdutch != null) xdutch.setProperty("quantity", Integer.toString(getQuantity()));
-
-    XMLElement xreserve = addBooleanChild(xmlResult, "reserve");
-    if(xreserve != null) xreserve.setProperty("met", isReserveMet() ?"true":"false");
-
-    addBooleanChild(xmlResult, "paypal");
-    XMLElement xfixed = addBooleanChild(xmlResult, "fixed");
-    if(xfixed != null && getQuantity() != 1) xfixed.setProperty("quantity", Integer.toString(getQuantity()));
-    addBooleanChild(xmlResult, "private");
-
-    addStringChild(xmlResult, "location");
-    addStringChild(xmlResult, "highbidder");
-
-    return xmlResult;
-  }
 
   public void setThumbnail(String thumbPath) {
     if(thumbPath == null) setNoThumbnail(true);

@@ -1,6 +1,5 @@
 package com.jbidwatcher.auction.server.ebay;
 
-import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.TT;

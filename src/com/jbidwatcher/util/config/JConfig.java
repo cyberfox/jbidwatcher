@@ -1,7 +1,6 @@
 package com.jbidwatcher.util.config;
 
 import com.DeskMetrics.DeskMetrics;
-import com.jbidwatcher.util.Constants;
 
 import java.io.File;
 
@@ -21,7 +20,7 @@ public class JConfig extends com.cyberfox.util.config.JConfig {
     metrics.setEndpoint("https://my.jbidwatcher.com/report/usage");
 
     String version = null;
-    Package pack = Constants.class.getPackage();
+    Package pack = JConfig.class.getPackage();
     if (pack != null) version = pack.getImplementationVersion();
     if (version == null) {
       version = "debug";
@@ -33,20 +32,20 @@ public class JConfig extends com.cyberfox.util.config.JConfig {
     metrics.start("4f4a195ca14ad72a1d000000", version);
   }
 
-  public static boolean sendMetricsAllowed() {
+  public static boolean sendMetricsAllowed(String version) {
     return queryConfiguration("metrics.optin", "false").equals("true") ||
-           (queryConfiguration("metrics.optin", "false").equals("pre") && isPrerelease());
+           (queryConfiguration("metrics.optin", "false").equals("pre") && isPrerelease(version));
   }
 
-  public static boolean isPrerelease() {return Constants.PROGRAM_VERS.matches(".*(pre|alpha|beta).*");}
+  public static boolean isPrerelease(String version) {return version.matches(".*(pre|alpha|beta).*");}
 
-  public static void stopMetrics() {
+  public static void stopMetrics(String version) {
     try {
       if(metrics != null) {
         //  With the exception of certain metrics operations which upload
         //  immediately (and that I don't use), this will prevent the metrics
         //  code from uploading anything until the end of the session.
-        if(sendMetricsAllowed()) {
+        if(sendMetricsAllowed(version)) {
           metrics.stop();
         }
       }
@@ -69,10 +68,6 @@ public class JConfig extends com.cyberfox.util.config.JConfig {
     for (String[] pair : s) {
       setConfiguration(pair[0], homeDirectory + sep + pair[1]);
     }
-  }
-
-  public static String getVersion() {
-    return Constants.PROGRAM_VERS;
   }
 
   public static File getContentFile(String identifier) {

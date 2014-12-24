@@ -6,7 +6,6 @@ package com.jbidwatcher.ui;
  */
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.jbidwatcher.ui.table.auctionTableModel;
 import com.jbidwatcher.util.config.JConfig;
@@ -14,7 +13,6 @@ import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.Auctions;
 import com.jbidwatcher.auction.Category;
 import com.jbidwatcher.auction.EntryCorral;
 

@@ -15,9 +15,7 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionEntry;
-import com.jbidwatcher.auction.DeletedEntry;
 import com.jbidwatcher.auction.EntryCorral;
-import com.jbidwatcher.auction.server.AuctionServer;
 
 public class JBWDropHandler implements MessageQueue.Listener {
   private static boolean do_uber_debug = false;

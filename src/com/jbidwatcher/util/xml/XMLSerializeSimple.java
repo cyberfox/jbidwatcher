@@ -30,10 +30,4 @@ public abstract class XMLSerializeSimple implements XMLSerialize {
   }
 
   public abstract XMLElement toXML();
-
-  protected void addStatusXML(XMLElement xmlResult, String statusTag) {
-    XMLElement xtag = new XMLElement(statusTag);
-    xtag.setEmpty();
-    xmlResult.addChild(xtag);
-  }
 }

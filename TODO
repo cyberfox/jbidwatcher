@@ -16,26 +16,11 @@ Allow browsing the logs.
 
 Beeps on a regular interval when auctions are getting close.
 
-Obsolete: Move general configuration options to a program specific XML data
-          file, using the same XML class as used to load the auctions.  This
-          file needs to have the display info, locations of other files, some
-          auction-site specific information, debugging status, etc.  This will
-          obsolete the JConfig class, and make all datafiles stored by
-          JBidwatcher XML.
-
-Update Configuration Panes
-	Internal Web Server
-		Port to listen on
-		Require jbidwatcher/[password] or any valid userid/password pair?
-		(Neither is NOT an option!)
-
 Uncreated Configuration Panes
 	Security
 		Primary JBidwatcher password
 			--  encrypts passwords on disk, also used for login to the JBidwatcher
 				program if the internal HTTP server is running.
-	File paths
-		Save file pathspec.
 
 Keyboard navigation of the entire program.
 

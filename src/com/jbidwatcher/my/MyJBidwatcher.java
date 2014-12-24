@@ -21,6 +21,7 @@ import com.jbidwatcher.util.http.ClientHttpRequest;
 import com.jbidwatcher.util.http.HttpInterface;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.EntryCorral;
+import org.json.simple.JSONObject;
 
 import java.io.File;
 import java.io.InputStream;
@@ -163,6 +164,22 @@ public class MyJBidwatcher {
     if (queue != null) http().putTo(queue, aucXML);
   }
 
+  public void postXML(String queue, String body) {
+    XMLElement xmlWrapper = new XMLElement("message");
+    XMLElement user = new XMLElement("user");
+    XMLElement access_key = new XMLElement("key");
+    user.setContents(JConfig.queryConfiguration("my.jbidwatcher.id"));
+    access_key.setContents(JConfig.queryConfiguration("my.jbidwatcher.key"));
+    XMLElement data = new XMLElement("data");
+    xmlWrapper.addChild(user);
+    xmlWrapper.addChild(access_key);
+    data.setContents(body);
+    xmlWrapper.addChild(data);
+    String aucXML = xmlWrapper.toString();
+
+    if (queue != null) http().putTo(queue, aucXML);
+  }
+
   void checkUpdated(String pair) {
     String[] params = pair.split(",");
     String identifier = params[0];
@@ -240,7 +257,7 @@ public class MyJBidwatcher {
   }
 
   private void uploadSync(AuctionEntry ae) {
-    postXML(mSyncQueueURL, ae);
+    postXML(mSyncQueueURL, JSONObject.toJSONString(ae.getBacking()));
     String identifier = ae.getIdentifier();
     My status = My.findByIdentifier(identifier);
     if (status == null) status = new My(identifier);
@@ -290,7 +307,9 @@ public class MyJBidwatcher {
       XMLElement root = new XMLElement(uploadType);
       XMLElement s3Key = new XMLElement("s3");
       s3Key.setContents(s3Result);
-      root.addChild(ae.toXML());
+      XMLElement auction = new XMLElement("auction");
+      auction.setContents(JSONObject.toJSONString(ae.getBacking()));
+      root.addChild(auction);
       postXML(mReportQueueURL, root);
       My status = My.findByIdentifier(ae.getIdentifier());
       String identifier = ae.getIdentifier();

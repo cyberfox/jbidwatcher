@@ -18,17 +18,14 @@ import com.jbidwatcher.util.config.JConfig;
 import com.cyberfox.util.config.Base64;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.scripting.Scripting;
-import com.jbidwatcher.webserver.AbstractMiniServer;
-import com.jbidwatcher.webserver.MiniServer;
-import com.jbidwatcher.webserver.MiniServerFactory;
-import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.my.MyJBidwatcher;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import java.util.*;
 import java.text.SimpleDateFormat;
@@ -39,19 +36,16 @@ import java.net.HttpURLConnection;
 
 /**
  * This provides a command-line interface to JBidwatcher, loading an individual auction
- * and returning the XML for it.
+ * and returning the JSON for it.
  *
  * User: mrs
  * Date: Oct 4, 2008
  * Time: 6:42:11 PM
  */
 @SuppressWarnings({"UtilityClass", "UtilityClassWithoutPrivateConstructor"})
-public class JBTool implements ToolInterface {
-  private final AuctionsManager auctionsManager;
+public class JBTool {
   @Inject
   private AuctionServerFactory serverFactory;
-  @Inject
-  private MiniServerFactory miniServerFactory;
 
   private final EntryFactory entryFactory;
   private final SearchManager searchManager;
@@ -60,11 +54,8 @@ public class JBTool implements ToolInterface {
   private boolean mLogin = false;
   private String mUsername = null;
   private String mPassword = null;
-  private SimpleProxy mServer = null;
   private boolean mJustMyeBay = false;
-  private boolean mRunServer = false;
-//  private int mSiteNumber = -1;
-  private String mPortNumber = null;
+  //  private int mSiteNumber = -1;
   private List<String> mParams;
   private ebayServer mEbay;
   private String mCountry = "ebay.com";
@@ -124,11 +115,9 @@ public class JBTool implements ToolInterface {
 
   public void execute() {
     setupAuctionResolver();
-    if(mLogin) forceLogin();
+    if(mLogin) mEbay.forceLogin();
 
-    if(mRunServer) {
-      spawnServer();
-    } else if(mJustMyeBay) {
+    if (mJustMyeBay) {
       MQFactory.getConcrete(mEbay.getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, null));
       try { Thread.sleep(120000); } catch(Exception ignored) { }
     } else if(mParseFile != null) {
@@ -148,12 +137,11 @@ public class JBTool implements ToolInterface {
   }
 
   public JBTool(EntryFactory eFactory, final EntryCorral corral, SearchManager searchManager, AuctionServerManager serverManager,
-                MyJBidwatcher myJBidwatcher, AuctionsManager auctionsManager) {
+                MyJBidwatcher myJBidwatcher) {
     this.entryFactory = eFactory;
     this.searchManager = searchManager;
     this.auctionServerManager = serverManager;
     this.myJBidwatcher = myJBidwatcher;
-    this.auctionsManager = auctionsManager;
 
     ActiveRecord.disableDatabase();
     AuctionEntry.addObserver(entryFactory);
@@ -174,9 +162,6 @@ public class JBTool implements ToolInterface {
         install(new FactoryModuleBuilder()
             .implement(AuctionServer.class, ebayServer.class)
             .build(AuctionServerFactory.class));
-        install(new FactoryModuleBuilder()
-            .implement(AbstractMiniServer.class, MiniServer.class)
-            .build(MiniServerFactory.class));
       }
     };
 
@@ -197,7 +182,7 @@ public class JBTool implements ToolInterface {
       AuctionEntry ae = entryFactory.constructEntry();
       ae.setAuctionInfo(ai);
       System.out.println("Took: " + (System.currentTimeMillis() - start));
-      System.out.println(ae.toXML().toString());
+      System.out.println(JSONObject.toJSONString(ae.getBacking()));
     } catch (Exception e) {
       JConfig.log().handleException("Failed to load auction from file: " + fname, e);
     }
@@ -225,23 +210,16 @@ public class JBTool implements ToolInterface {
   private void retrieveAndVerifyAuctions(List<String> params) {
     if(params.size() == 0) return;
     try {
-      XMLElement auctionList = new XMLElement("auctions");
+      JSONArray ary = new JSONArray();
       for (String id : params) {
-        XMLElement xmlized = mEbay.create(id).toXML();
-        if (xmlized != null) auctionList.addChild(xmlized);
+        JSONObject element = new JSONObject();
+        element.putAll(mEbay.create(id).getBacking());
+        ary.add(element);
       }
-      System.out.println(auctionList.toString());
+      System.out.println(ary.toJSONString());
     } catch(Exception dumpMe) {
       JConfig.log().handleException("Failure during serialization or deserialization of an auction", dumpMe);
     }
-  }
-
-  private void spawnServer() {
-    int listenPort = 9099;
-    if(mPortNumber != null) listenPort = Integer.parseInt(mPortNumber);
-    mServer = new SimpleProxy(listenPort, miniServerFactory, this);
-    mServer.go();
-    try { mServer.join(); } catch(Exception ignored) { /* Time to die... */ }
   }
 
   private void setupAuctionResolver() {
@@ -288,15 +266,13 @@ public class JBTool implements ToolInterface {
       if(option.equals("uk")) { option="country=ebay.co.uk"; }
       if(option.equals("accountinfo")) { testAccountInfo(); return params; }
       if(option.equals("searching")) { testSearching(); return params; }
-      if(option.equals("server")) mRunServer = true;
-      if(option.startsWith("port=")) mPortNumber = option.substring(5);
       if(option.equals("logging")) JConfig.setConfiguration("logging", "true");
       if(option.equals("debug")) JConfig.setConfiguration("debugging", "true");
       if(option.equals("timetest")) testDateFormatting();
       if(option.equals("logconfig")) JConfig.setConfiguration("config.logging", "true");
       if(option.equals("logurls")) JConfig.setConfiguration("debug.urls", "true");
       if(option.equals("myebay")) mJustMyeBay = true;
-      if(option.equals("sandbox")) JConfig.setConfiguration("replace." + JConfig.getVersion() + ".ebayServer.viewHost", "cgi.sandbox.ebay.com");
+      if(option.equals("sandbox")) JConfig.setConfiguration("replace." + Constants.PROGRAM_VERS + ".ebayServer.viewHost", "cgi.sandbox.ebay.com");
       if(option.startsWith("country=")) {
         mCountry = option.substring(8);
         if(getSiteNumber(mCountry) == -1) System.out.println("That country is not recognized by JBidwatcher's eBay Server.");
@@ -331,15 +307,6 @@ public class JBTool implements ToolInterface {
       if(site.equals(Constants.SITE_CHOICES[i])) return i;
     }
     return -1;
-  }
-
-  public void done() {
-    mServer.halt();
-    mServer.interrupt();
-  }
-
-  public void forceLogin() {
-    mEbay.forceLogin();
   }
 
   private void dumpMap(Map m) {

@@ -14,8 +14,6 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
-import com.jbidwatcher.util.xml.XMLElement;
-import com.jbidwatcher.util.xml.XMLInterface;
 
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -189,9 +187,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
 
   /**
    * A constructor that does almost nothing.  This is to be used
-   * for loading from XML data later on, where the fromXML function
-   * will fill out all the internal information.  Similarly, ActiveRecord
-   * fills this out when pulling from a database record.
+   * for ActiveRecord, which fills this out when pulling from a database record.
    * <p/>
    * Uses the default server.
    */
@@ -630,180 +626,6 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     return mEntryEvents;
   }
 
-  //////////////////////////
-  //  XML Handling functions
-  protected final String[] infoTags = { "info", "bid", "snipe", "complete", "invalid", "comment", "log", "multisnipe", "shipping", "category", "winning" };
-  @SuppressWarnings({"ReturnOfCollectionOrArrayField"})
-  protected String[] getTags() { return infoTags; }
-
-  /**
-   * @brief XML load-handling.  It would be really nice to be able to
-   * abstract this for all the classes that serialize to XML.
-   *
-   * @param tagId - The index into 'entryTags' for the current tag.
-   * @param curElement - The current XML element that we're loading from.
-   */
-  @SuppressWarnings({"FeatureEnvy"})
-  protected void handleTag(int tagId, XMLElement curElement) {
-    switch(tagId) {
-      case 0:  //  Get the general auction information
-        //  TODO -- What if it's already in the database?
-        break;
-      case 1:  //  Get bid info
-        Currency bidAmount = Currency.getCurrency(curElement.getProperty("CURRENCY"),
-                                          curElement.getProperty("PRICE"));
-        setBid(bidAmount);
-        setBidQuantity(Integer.parseInt(curElement.getProperty("QUANTITY")));
-        if(curElement.getProperty("WHEN", null) != null) {
-          mBidAt = Long.parseLong(curElement.getProperty("WHEN"));
-        }
-        break;
-      case 2:  //  Get the snipe info together
-        Currency snipeAmount = Currency.getCurrency(curElement.getProperty("CURRENCY"),
-                                            curElement.getProperty("PRICE"));
-        prepareSnipe(snipeAmount, Integer.parseInt(curElement.getProperty("QUANTITY")));
-        mSnipeAt = Long.parseLong(curElement.getProperty("SECONDSPRIOR"));
-        break;
-      case 3:
-        setComplete(true);
-        break;
-      case 4:
-        setInvalid();
-        break;
-      case 5:
-        setComment(curElement.getContents());
-        break;
-      case 6:
-        mEntryEvents = new EventLogger(getIdentifier(), getId(), getTitle());
-        mEntryEvents.fromXML(curElement);
-        break;
-      case 7:
-        MQFactory.getConcrete("multisnipe_xml").enqueue(getIdentifier() + " " + curElement.toString());
-        break;
-      case 8:
-        Currency shipping = Currency.getCurrency(curElement.getProperty("CURRENCY"),
-                                         curElement.getProperty("PRICE"));
-        setShipping(shipping);
-        break;
-      case 9:
-        setCategory(curElement.getContents());
-        setSticky(curElement.getProperty("STICKY", "false").equals("true"));
-        break;
-      case 10:
-        setWinning(true);
-        break;
-      default:
-        break;
-        // commented out for FORWARDS compatibility.
-        //        throw new RuntimeException("Unexpected value when handling AuctionEntry tags!");
-    }
-  }
-
-  public XMLElement toXML() {
-    return toXML(true);
-  }
-
-  /**
-   * @brief Check everything and build an XML element that contains as
-   * children all of the values that need storing for this item.
-   *
-   * This would be so much more useful if it were 'standard'.
-   *
-   * @return An XMLElement containing as children, all of the key
-   * values associated with this auction entry.
-   */
-  @SuppressWarnings({"FeatureEnvy"})
-  public XMLElement toXML(boolean includeEvents) {
-    XMLElement xmlResult = new XMLElement("auction");
-
-    xmlResult.setProperty("id", getIdentifier());
-    AuctionInfo ai = findByIdOrIdentifier(getAuctionId(), getIdentifier());
-    xmlResult.addChild(ai.toXML());
-
-    if(isBidOn()) {
-      XMLElement xbid = new XMLElement("bid");
-      xbid.setEmpty();
-      xbid.setProperty("quantity", Integer.toString(getBidQuantity()));
-      xbid.setProperty("currency", getBid().fullCurrencyName());
-      xbid.setProperty("price", Double.toString(getBid().getValue()));
-      if(mBidAt != 0) {
-        xbid.setProperty("when", Long.toString(mBidAt));
-      }
-      xmlResult.addChild(xbid);
-    }
-
-    if(isSniped()) {
-      XMLElement xsnipe = new XMLElement("snipe");
-      xsnipe.setEmpty();
-      xsnipe.setProperty("quantity", Integer.toString(getSnipe().getQuantity()));
-      xsnipe.setProperty("currency", getSnipe().getAmount().fullCurrencyName());
-      xsnipe.setProperty("price", Double.toString(getSnipe().getAmount().getValue()));
-      xsnipe.setProperty("secondsprior", Long.toString(mSnipeAt));
-      xmlResult.addChild(xsnipe);
-    }
-
-//    if(isMultiSniped()) xmlResult.addChild(getMultiSnipe().toXML());
-
-    if(isComplete()) addStatusXML(xmlResult, "complete");
-    if(isInvalid()) addStatusXML(xmlResult, "invalid");
-    if(isDeleted()) addStatusXML(xmlResult, "deleted");
-    if(isWinning()) addStatusXML(xmlResult, "winning");
-
-    if(getComment() != null) {
-      XMLElement xcomment = new XMLElement("comment");
-      xcomment.setContents(getComment());
-      xmlResult.addChild(xcomment);
-    }
-
-    if(getCategory() != null) {
-      XMLElement xcategory = new XMLElement("category");
-      xcategory.setContents(getCategory());
-      xcategory.setProperty("sticky", isSticky() ?"true":"false");
-      xmlResult.addChild(xcategory);
-    }
-
-    if(getShipping() != null) {
-      XMLElement xshipping = new XMLElement("shipping");
-      xshipping.setEmpty();
-      xshipping.setProperty("currency", getShipping().fullCurrencyName());
-      xshipping.setProperty("price", Double.toString(getShipping().getValue()));
-      xmlResult.addChild(xshipping);
-    }
-
-    if(includeEvents && mEntryEvents != null) {
-      XMLElement xlog = mEntryEvents.toXML();
-      if (xlog != null) {
-        xmlResult.addChild(xlog);
-      }
-    }
-    return xmlResult;
-  }
-
-  /**
-   * @brief Load auction entries from an XML element.
-   *
-   * @param inXML - The XMLElement that contains the items to load.
-   */
-  public void fromXML(XMLInterface inXML) {
-    String inID = inXML.getProperty("ID", null);
-    if(inID != null) {
-      set("identifier", inID);
-
-      super.fromXML(inXML);
-
-      mLoaded = false;
-
-      if(!isComplete()) setNeedsUpdate();
-
-      saveDB();
-      if(mEntryEvents == null) {
-        getEvents();
-      }
-      checkHighBidder();
-      saveDB();
-    }
-  }
-
   /////////////////////
   //  Sniping functions
 
@@ -1239,8 +1061,10 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     //  Whoops!  Dates are equal, down to the second probably, or both null...
 
     //  If this has a null identifier, we're lower.
-    if(identifier == null && other.getIdentifier() != null) return -1;
-    if(identifier == null && other.getIdentifier() == null) return 0;
+    if (identifier == null) {
+      if (other.getIdentifier() != null) return -1;
+      return 0;
+    }
     //  At this point, we know identifier != null, so if the compared entry
     //  has a null identifier, we sort higher.
     if(other.getIdentifier() == null) return 1;

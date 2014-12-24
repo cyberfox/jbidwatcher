@@ -15,14 +15,12 @@ import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerFactory;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.platform.*;
-import com.jbidwatcher.ui.FilterManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.ui.commands.UserActions;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.*;
-import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.ui.util.JBidFrame;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.RuntimeInfo;
@@ -30,16 +28,12 @@ import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.scripting.JRubyPreloader;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.db.ActiveRecord;
-import com.jbidwatcher.util.db.Database;
 import com.jbidwatcher.util.services.ActivityMonitor;
 import com.jbidwatcher.util.ErrorMonitor;
 import com.jbidwatcher.scripting.Scripting;
 import com.jbidwatcher.util.queue.*;
-import com.jbidwatcher.util.queue.TimerHandler;
 import com.jbidwatcher.util.services.AudioPlayer;
 import com.jbidwatcher.util.services.SyncService;
-import com.jbidwatcher.webserver.MiniServerFactory;
-import com.jbidwatcher.webserver.SimpleProxy;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.*;
 import com.jbidwatcher.my.MyJBidwatcher;
@@ -51,7 +45,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
 import java.util.*;
-import java.lang.reflect.*;
 
 /**
  * @file   JBidWatch.java
@@ -84,8 +77,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private final Provider<UIBackbone> backboneProvider;
   private final Provider<JConfigFrame> configFrameProvider;
   @Inject
-  private MiniServerFactory miniServerFactory;
-  @Inject
   private AuctionServerFactory serverFactory;
   @Inject
   private PopupMenuFactory menuFactory;
@@ -100,11 +91,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private ErrorMonitor errorMonitor;
   private Injector injector;
 
-  /** SimpleProxy is the internal web server proxy class.  This lets
-   * us turn on or off the proxy, based on configuration changes.
-   */
-  private SimpleProxy sp = null;
-
   private final Object memInfoSynch = new Object();
   private MacFriendlyFrame mainFrame;
   private JTabManager jtmAuctions;
@@ -115,7 +101,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private static final int HOURS_IN_DAY = 24;
   private static final int MINUTES_IN_HOUR = 60;
   private static boolean sUSB = false;
-  private static boolean sCreatedDB = false;
   private boolean ebayLoaded = false;
 
   private final Object mScriptCompletion = new Object();
@@ -208,8 +193,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
     for(String arg : inArgs) {
       rval |= handleArgument(arg);
     }
-
-    rval |= transformCommand(inArgs);
 
     return rval;
   }
@@ -305,7 +288,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
             String host = getRequestingHost();
 
             //  If talking to my.jbidwatcher.com, JBidwatcher handles authentication itself.
-            if(host == null || host.indexOf("jbidwatcher") == -1) {
+            if(host == null || !host.contains("jbidwatcher")) {
               return (new PasswordAuthentication(user, pass.toCharArray()));
             }
             return null;
@@ -461,32 +444,18 @@ public final class JBidWatch implements JConfig.ConfigListener {
     }
   }
 
-  private static boolean transformCommand(String[] args) {
-    if (args.length > 0 && args[0] != null && args[0].equals("-transform")) {
-      String outName;
-      if (args.length == 1 || args[1] == null) {
-        outName = Path.getCanonicalFile("auctions.html", "jbidwatcher", false);
-      } else {
-        outName = args[1];
-      }
-      AuctionTransformer.outputHTML(JConfig.queryConfiguration("savefile", "auctions.xml"), outName);
-      return true;
-    }
-    return false;
-  }
-
   private void startDatabase() {
     try {
-      boolean creatingDB = JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("false");
+//      boolean creatingDB = JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("false");
       Upgrader.upgrade();
-      if (creatingDB && JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("true")) {
-        sCreatedDB = true;
-      }
+//      if (creatingDB && JConfig.queryConfiguration("jbidwatcher.created_db", "false").equals("true")) {
+        //  Ignored - We just created the database.
+//      }
     } catch (Exception e) {
       if (e.getMessage().matches("^Failed to start database.*")) {
         JConfig.log().handleException("JBidwatcher can't access it's database.", e);
         JOptionPane.showMessageDialog(null, "JBidwatcher can't access its database.\nPlease check to see if you are running another instance.", "Can't access auction database", JOptionPane.PLAIN_MESSAGE);
-        JConfig.stopMetrics();
+        JConfig.stopMetrics(Constants.PROGRAM_VERS);
         System.exit(0);
       }
       JConfig.log().handleException("Upgrading error", e);
@@ -584,15 +553,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
   /**
    * @brief Callback called by JConfig when the configuration changes.
    *
-   * We're very interested in whether the internal webserver is
-   * activated or not.  If it changes state, we start or stop the
-   * server.
-   *
    * Also, we check the background color, and set it appropriately.
    */
   public final void updateConfiguration() {
-    int localServer_port = Integer.parseInt(JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING));
-
     String savedBGColor = JConfig.queryConfiguration("background", "false");
     if(!savedBGColor.equals("false")) {
       listManager.setBackground(Color.decode('#' + savedBGColor));
@@ -600,16 +563,10 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     //  Enable the internal server, if it's set.
     if(JConfig.queryConfiguration("server.enabled", "false").equals("true")) {
-      if(sp == null) {
-        sp = new SimpleProxy(localServer_port, miniServerFactory, null);
-      }
-
-      sp.go();
-      mServiceAdvertiser = new SyncService(localServer_port);
+      mServiceAdvertiser = new SyncService(9099);
       mServiceAdvertiser.advertise();
     } else {
-      if(sp != null) {
-        sp.halt();
+      if(mServiceAdvertiser != null) {
         mServiceAdvertiser.stopAdvertising();
       }
     }
@@ -632,37 +589,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
     URL iconURL = JConfig.getResource(JConfig.queryConfiguration("icon", "jbidwatch64.jpg"));
     JMouseAdapter myFrameAdapter = injector.getInstance(JBidFrameMouse.class);
     return new MacFriendlyFrame(injector.getInstance(JBidToolBar.class), "JBidwatcher", myFrameAdapter, iconURL, jtmAuctions);
-  }
-
-  private static void preloadLibrary() {
-    String jrubyFile = JConfig.queryConfiguration("platform.path") + File.separator + "jruby-incomplete.jar";
-    File fp = new File(jrubyFile);
-
-    if (fp.exists()) {
-      try {
-        URL srcJar = fp.toURI().toURL();
-        URLClassLoader myCL;
-        try {
-          ClassLoader cl = Thread.currentThread().getContextClassLoader();
-          if (cl instanceof URLClassLoader) {
-            myCL = (URLClassLoader) cl;
-          } else {
-            myCL = (URLClassLoader) cl.getParent();
-          }
-        } catch (ClassCastException cce) {
-          throw new RuntimeException("Can't locate a valid class loader to bring in the scripting library.");
-        }
-        Class sysClass = URLClassLoader.class;
-        Method sysMethod = sysClass.getDeclaredMethod("addURL", new Class[]{URL.class});
-        sysMethod.setAccessible(true);
-        sysMethod.invoke(myCL, srcJar);
-      } catch (NoSuchMethodException ignored) {
-      } catch (MalformedURLException ignored) {
-      } catch (InvocationTargetException ignored) {
-      } catch (IllegalAccessException ignored) {
-        //  All these possible failures are ignored, it just means the scripting class won't be loaded.
-      }
-    }
   }
 
   /**
@@ -692,18 +618,11 @@ public final class JBidWatch implements JConfig.ConfigListener {
     Initializer.setup(jtmAuctions, listManager, menuFactory);
     filters.loadFilters();
     inSplash.message("Loading Auctions");
-    if (sCreatedDB) {
-      auctionsManager.loadAuctions();
-    } else {
-      auctionsManager.loadAuctionsFromDatabase();
-    }
+    auctionsManager.loadAuctionsFromDatabase();
 
     serverManager.getDefaultServerTime();
 
     JConfig.registerListener(this);
-
-//    String defaultServer = AuctionServerManager.getInstance().getServer().getName();
-//    MQFactory.getConcrete(defaultServer).enqueue(new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null)); //$NON-NLS-1$
 
     //  Register the handler for all 'drop' events.
     Browser.start();
@@ -791,7 +710,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       JConfig.log().handleException("timeQueue interrupted", e);
     }
     internal_shutdown();
-    JConfig.stopMetrics();
+    JConfig.stopMetrics(Constants.PROGRAM_VERS);
     System.exit(0);
   }
 
@@ -845,7 +764,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     MQFactory.getConcrete("metrics").registerListener(new MessageQueue.Listener() {
       public void messageAction(Object deQ) {
-        if(JConfig.sendMetricsAllowed()) {
+        if(JConfig.sendMetricsAllowed(Constants.PROGRAM_VERS)) {
           try {
             JConfig.getMetrics().flush();
           } catch (IOException e) {
@@ -896,10 +815,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
       searchManager.saveSearches();
       AuctionStats as = serverManager.getStats();
       JConfig.setConfiguration("last.auctioncount", Integer.toString(as.getCount()));
-      if (Database.saveDBConfig()) {
-        // If we're changing databases, we'll need the auction information saved so we can load it into the new database.
-        auctionsManager.saveAuctions();
-      }
       JConfig.saveConfiguration(cfgFilename);
       ActiveRecord.shutdown();
     } catch(Exception e) {

@@ -2,13 +2,11 @@ package com.jbidwatcher.app;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.jbidwatcher.webserver.MiniServerFactory;
 import com.jbidwatcher.auction.EntryManager;
 import com.jbidwatcher.auction.server.AuctionServer;
 import com.jbidwatcher.auction.server.AuctionServerFactory;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.ui.*;
-import com.jbidwatcher.webserver.AbstractMiniServer;
 
 /**
 * Created by mrs on 12/21/14.
@@ -20,9 +18,6 @@ public class JBidwatcherModule extends AbstractModule {
     install(new FactoryModuleBuilder()
         .implement(AuctionServer.class, ebayServer.class)
         .build(AuctionServerFactory.class));
-    install(new FactoryModuleBuilder()
-        .implement(AbstractMiniServer.class, JBidProxy.class)
-        .build(MiniServerFactory.class));
     install(new FactoryModuleBuilder()
         .implement(JTabPopupMenu.class, JTabPopupMenu.class)
         .build(PopupMenuFactory.class));

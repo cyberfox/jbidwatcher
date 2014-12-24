@@ -7,7 +7,6 @@ import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.OptionUI;
-import com.jbidwatcher.ui.util.ButtonMaker;
 import com.jbidwatcher.ui.*;
 import com.cyberfox.util.platform.Platform;
 
@@ -58,7 +57,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
 
     JPanel headerBar = toolBar.buildHeaderBar(this, tabManager);
 
-    JPanel statusPane = buildStatusLine(tabManager);
+    JPanel statusPane = buildStatusLine();
 
     getContentPane().add(tabManager.getTabs());
     getContentPane().add(statusPane, BorderLayout.SOUTH);
@@ -84,7 +83,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
     });
   }
 
-  private JPanel buildStatusLine(JTabManager tabManager) {
+  private JPanel buildStatusLine() {
     final JPanel statusPane = new JPanel();
     Border myBorder = BorderFactory.createCompoundBorder(
         BorderFactory.createCompoundBorder(

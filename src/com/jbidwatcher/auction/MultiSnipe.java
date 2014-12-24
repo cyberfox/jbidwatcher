@@ -6,7 +6,6 @@ package com.jbidwatcher.auction;
  */
 
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
 
@@ -252,36 +251,5 @@ public class MultiSnipe extends ActiveRecord {
     }
 
     return toDelete.get(0).getDatabase().deleteBy("id IN (" + multisnipes + ")");
-  }
-
-  public XMLElement toXML() {
-    XMLElement xmulti = new XMLElement("multisnipe");
-    xmulti.setEmpty();
-    xmulti.setProperty("subtractshipping", Boolean.toString(subtractShipping()));
-    xmulti.setProperty("color", getColorString());
-    xmulti.setProperty("default", getSnipeValue(null).fullCurrency());
-    xmulti.setProperty("id", Long.toString(getIdentifier()));
-
-    return xmulti;
-  }
-
-  @SuppressWarnings({"UnusedParameters"})
-  public void fromXML(XMLElement in) {
-
-  }
-
-  public static MultiSnipe loadFromXML(XMLElement curElement) {
-    String identifier = curElement.getProperty("ID");
-    String bgColor = curElement.getProperty("COLOR");
-    Currency defaultSnipe = Currency.getCurrency(curElement.getProperty("DEFAULT"));
-    boolean subtractShipping = curElement.getProperty("SUBTRACTSHIPPING", "false").equals("true");
-
-    MultiSnipe ms = MultiSnipe.findFirstBy("identifier", identifier);
-    if(ms == null) {
-      ms = new MultiSnipe(bgColor, defaultSnipe, Long.parseLong(identifier), subtractShipping);
-      ms.saveDB();
-    }
-
-    return ms;
   }
 }

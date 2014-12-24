@@ -1,9 +1,5 @@
 package com.jbidwatcher.util;
 
-import com.jbidwatcher.util.xml.XMLElement;
-import com.jbidwatcher.util.xml.XMLSerializeSimple;
-import com.jbidwatcher.util.xml.XMLInterface;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
@@ -16,7 +12,7 @@ import java.text.SimpleDateFormat;
  * Date: Sep 30, 2007
  * Time: 1:54:43 PM
  */
-public class HashBacked extends XMLSerializeSimple {
+public class HashBacked {
   private static final Record EMPTY = new Record();
   private Record mBacking = EMPTY;
   protected static String DB_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
@@ -209,53 +205,6 @@ public class HashBacked extends XMLSerializeSimple {
         (prev != null && !prev.equals(value))) setDirty();
   }
 
-  protected XMLElement addCurrencyChild(XMLElement parent, String name) {
-    Currency value = getMonetary(name);
-    return addCurrencyChild(parent, name, value);
-  }
-
-  protected XMLInterface addCurrencyChild(XMLElement parent, String name, int currencyType) {
-    Currency value = getMonetary(name, currencyType);
-    return addCurrencyChild(parent, name, value);
-  }
-
-  protected XMLElement addCurrencyChild(XMLElement parent, String name, Currency value) {
-    XMLElement xadd = null;
-    if (value != null && !value.isNull()) {
-      xadd = new XMLElement(name);
-      xadd.setProperty("currency", value.fullCurrencyName());
-      xadd.setProperty("price", Double.toString(value.getValue()));
-      xadd.setEmpty();
-      parent.addChild(xadd);
-    }
-
-    return xadd;
-  }
-
-  protected XMLInterface addStringChild(XMLElement parent, String name) {
-    String value = getString(name);
-    XMLElement xadd = null;
-    if (value != null && value.length() != 0) {
-      xadd = new XMLElement(name);
-      xadd.setContents(getString(name));
-      parent.addChild(xadd);
-    }
-
-    return xadd;
-  }
-
-  protected XMLElement addBooleanChild(XMLElement parent, String name) {
-    boolean value = getBoolean(name);
-    XMLElement xadd = null;
-    if (value) {
-      xadd = new XMLElement(name);
-      xadd.setEmpty();
-      parent.addChild(xadd);
-    }
-
-    return xadd;
-  }
-
   public Record getBacking() { return mBacking; }
   public void setBacking(Record r) {
     mBacking = r;
@@ -263,10 +212,6 @@ public class HashBacked extends XMLSerializeSimple {
     else mDefaultCurrency = get("currency");    
     clearDirty();
   }
-
-  protected void handleTag(int i, XMLElement curElement) { }
-  protected String[] getTags() { return new String[0]; }
-  public XMLElement toXML() { return null; }
 
   public String dumpRecord() {
     StringBuffer sb = new StringBuffer("<record>\n");

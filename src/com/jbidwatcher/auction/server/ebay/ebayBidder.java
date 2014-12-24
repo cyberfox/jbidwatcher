@@ -4,14 +4,12 @@ import com.jbidwatcher.auction.server.*;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.BadBidException;
 import com.jbidwatcher.auction.LoginManager;
-import com.jbidwatcher.auction.AuctionServerInterface;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.http.CookieJar;
 import com.jbidwatcher.util.http.Http;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
-//import com.jbidwatcher.my.MyJBidwatcher;
 
 import java.net.URLConnection;
 import java.io.IOException;

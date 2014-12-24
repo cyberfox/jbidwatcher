@@ -7,7 +7,6 @@ package com.jbidwatcher.ui.commands;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
 import javax.swing.*;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-import com.cyberfox.util.platform.Path;
 import com.cyberfox.util.platform.Platform;
 import com.github.rjeschke.txtmark.Processor;
 import com.google.inject.Inject;
@@ -36,15 +34,12 @@ import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
 import com.jbidwatcher.scripting.Scripting;
 import com.jbidwatcher.util.services.ActivityMonitor;
-import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.auction.AuctionServerInterface;
 import com.l2fprod.common.swing.JFontChooser;
 
 @Singleton
@@ -632,7 +627,7 @@ public class UserActions implements MessageQueue.Listener {
 
   @MenuCommand(params = 1)
   public void DoMultipleSnipe(Component src) {
-    if(JConfig.isPrerelease() || true) {
+    if(JConfig.isPrerelease(Constants.PROGRAM_VERS) || true) {
       JOptionPane.showMessageDialog(src, "Creating new multi-snipes is disabled in this pre-release, as the underlying high-bidder detection code isn't certain to work.", "MultiSniping Disabled", JOptionPane.WARNING_MESSAGE);
       return;
     }
@@ -1274,58 +1269,8 @@ public class UserActions implements MessageQueue.Listener {
     showLog(ActivityMonitor.getInstance(), "Activity Log");
   }
 
-  public void DoSerialize() {
-    System.out.println(serverManager.toXML());
-  }
-
-  @MenuCommand(action = "Upload")
-  public void DoUploadAuctions() {
-    String fname = auctionsManager.saveAuctions();
-    MQFactory.getConcrete("my").enqueue("SYNC " + fname);
-  }
-
-  @MenuCommand(params = -1)
-  public void DoLoad(String fname) {
-    String canonicalFName = fname;
-    if(canonicalFName == null) {
-
-      canonicalFName = JConfig.queryConfiguration("savefile", "auctions.xml");
-      String oldFname = canonicalFName;
-
-      canonicalFName = Path.getCanonicalFile(canonicalFName, "jbidwatcher", true);
-
-      if(!canonicalFName.equals(oldFname)) {
-        JConfig.setConfiguration("savefile", canonicalFName);
-      }
-    }
-
-    try {
-      XMLElement xmlFile = new XMLElement(true);
-
-      InputStreamReader isr = new InputStreamReader(new FileInputStream(canonicalFName));
-
-      xmlFile.parseFromReader(isr);
-
-      serverManager.fromXML(xmlFile);
-    } catch(IOException e) {
-      JConfig.log().handleException("Error loading XML file with auctions: " + canonicalFName, e);
-    }
-  }
-
   public void DoExit() {
     MQFactory.getConcrete("Swing").enqueue("QUIT");
-  }
-
-  @MenuCommand(params = 1)
-  public void DoSave(Component src) {
-    String didSave = auctionsManager.saveAuctions();
-    System.gc();
-
-    if(didSave != null) {
-      _oui.promptWithCheckbox(src, "Auctions saved!", "Save Complete", "prompt.savecomplete", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
-    } else {
-      JOptionPane.showMessageDialog(src, "An error occurred in saving the auctions!", "Save Failed", JOptionPane.INFORMATION_MESSAGE);
-    }
   }
 
   /**
