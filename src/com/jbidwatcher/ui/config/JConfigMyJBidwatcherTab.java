@@ -132,19 +132,8 @@ public class JConfigMyJBidwatcherTab extends JConfigTab {
     });
     button.add(mCreateOrUpdate);
     button.add(mStatusLabel);
-//    mDoUpload = new JButton("Upload All");
-//    mDoUpload.addActionListener(new ActionListener() {
-//      public void actionPerformed(ActionEvent e) {
-//        String action = e.getActionCommand();
-//        if (action == null) return;
-//
-//        MQFactory.getConcrete("user").enqueue("Upload");
-//        JConfig.setConfiguration("my.jbidwatcher.uploaded", "true");
-//        mDoUpload.setEnabled(false);
-//      }
-//    });
-//    mDoUpload.setEnabled(JConfig.queryConfiguration("my.jbidwatcher.uploaded") == null);
-//    innerPanel.add(mDoUpload);
+
+    innerPanel.add(new JLabel());  //  Just a dead zone, to make the rows * columns work out.
     innerPanel.add(button);
 
     SpringUtilities.makeCompactGrid(innerPanel, 3, 2, 6, 6, 6, 1);
