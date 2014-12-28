@@ -74,6 +74,8 @@
     <pathelement path="${lib.dir}/jl1.0.1.jar" />
     <pathelement path="${lib.dir}/jsoup-1.7.1.jar" />
     <pathelement path="${lib.dir}/jruby-incomplete.jar" />
+    <pathelement path="${lib.dir}/jline-2.11.jar" />
+    <pathelement path="${lib.dir}/readline.jar" />
     <pathelement path="${lib.dir}/json_simple-1.1.jar" />
     <pathelement path="${lib.dir}/l2fprod-common-fontchooser.jar" />
     <pathelement path="${lib.dir}/mysql-connector-java-5.1.7-bin.jar" />
@@ -261,6 +263,8 @@
   <target name="dmg-scripting" depends="osx-distribution">
     <copy todir="${osx.app.path}/Contents/Resources/Java">
       <fileset dir="${lib.dir}" includes="jruby-incomplete.jar" />
+      <fileset dir="${lib.dir}" includes="jline-2.11.jar" />
+      <fileset dir="${lib.dir}" includes="readline.jar" />
       <fileset dir="${main.dir}" includes="lib/jbidwatcher/**" />
     </copy>
     <antcall target="dmg-real" />
@@ -388,6 +392,8 @@
 
   <target name="osx-app-scripting" depends="osx-distribution">
     <copy todir="${osx.app.path}/Contents/Resources/Java">
+      <fileset dir="${lib.dir}" includes="readline.jar" />
+      <fileset dir="${lib.dir}" includes="jline-2.11.jar" />
       <fileset dir="${lib.dir}" includes="jruby-incomplete.jar" />
       <fileset dir="${main.dir}" includes="lib/jbidwatcher/**" />
     </copy>

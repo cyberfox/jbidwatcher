@@ -1,15 +1,5 @@
 require 'java'
 
-require 'digest/md5'
-require 'net/http.rb'
-require 'cgi'
-require 'nokogiri'
-require 'json'
-require 'open-uri'
-require 'ebay_parser'
-require 'time'
-require 'pp'
-
 java_import com.jbidwatcher.util.config.JConfig
 java_import com.cyberfox.util.platform.Path
 java_import com.jbidwatcher.util.Currency
@@ -26,10 +16,17 @@ puts "Loading JBidwatcher Ruby Utilities"
 
 gems = JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gems.jar').to_s
 ENV['GEM_PATH']="#{gems}!/jruby/1.9"
-puts ENV['GEM_PATH']
-#ENV['GEM_PATH'] = "/Users/mrs/IdeaProjects/bidwatcher/lib/jbidwatcher/gems/jruby/1.9"
 Gem.paths = ENV
 require 'activerecord-jdbcderby-adapter'
+require 'digest/md5'
+require 'net/http.rb'
+require 'cgi'
+require 'nokogiri'
+require 'json'
+require 'open-uri'
+require 'ebay_parser'
+require 'time'
+require 'pp'
 
 unless defined? nil.blank?
   class NilClass
