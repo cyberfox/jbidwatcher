@@ -72,27 +72,8 @@ public class auctionTableModel extends AbstractTableModel
     return dispList.size()-1;
   }
 
-  public int getColumnNumber(String colName) {
-    return TableColumnController.getInstance().getColumnNumber(colName);
-  }
-
   //  All columns return strings...
   public Class getColumnClass(int aColumn) { if(aColumn != 5) return String.class; return Icon.class; }
-
-  //  Except when we want to sort them...
-  public Class getSortByColumnClass(int i) {
-    //  Status is the only one where the type is very different than the dummy data.
-    if(i==TableColumnController.STATUS ||
-       i==TableColumnController.THUMBNAIL ||
-       i==TableColumnController.SELLER_FEEDBACK ||
-       i==TableColumnController.BIDCOUNT ||
-       i==TableColumnController.SELLER_POSITIVE_FEEDBACK) return Integer.class;
-
-    if(i==-1 || i > TableColumnController.MAX_FIXED_COLUMN) return String.class;
-
-    Object o = getDummyValueAtColumn(i);
-    return o.getClass();
-  }
 
   private static final ImageIcon dummyIcon = new ImageIcon(JConfig.getResource("/icons/white_ball.gif"));
   private static final ImageIcon greenIcon = new ImageIcon(JConfig.getResource("/icons/green_ball.gif"));
@@ -432,7 +413,7 @@ public class auctionTableModel extends AbstractTableModel
         }
       }
       ImageIcon thumbIcon = new ImageIcon(base.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH));
-      if(thumbIcon != null) iconCache.put(thumb, thumbIcon);
+      iconCache.put(thumb, thumbIcon);
       return thumbIcon;
     } else return dummyIcon;
   }
@@ -475,29 +456,6 @@ public class auctionTableModel extends AbstractTableModel
     } else {
       return curPrice + " (" + Integer.toString(aEntry.getNumBidders()) + ')';
     }
-  }
-
-  private ImageIcon scaleImage(String thumb) {
-    ImageIcon base = new ImageIcon(thumb);
-    int h = base.getIconHeight();
-    int w = base.getIconWidth();
-    if (h <= 64 && w <= 64) {
-      h = -1;
-      w = -1;
-    }
-    if (h != -1 && w != -1) {
-      if (h > w) {
-        h = 64;
-        w = -1;
-      } else if (w > h) {
-        w = 64;
-        h = -1;
-      } else if (h == w) {
-        h = 64;
-        w = -1;
-      }
-    }
-    return new ImageIcon(base.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH));
   }
 
   public auctionTableModel(MultiSnipeManager multiManager, AuctionList inList) {
