@@ -17,7 +17,7 @@
       <all-permissions/>
   </security>
   <resources>
-    <j2se version="1.5+"/>
+    <j2se version="1.6+"/>
     <jar href="http://www.jbidwatcher.com/download/JBidwatcher-2.0.jar" />
   </resources>
   <application-desc main-class="com.simontuffs.onejar.Boot"/>
