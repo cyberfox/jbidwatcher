@@ -14,6 +14,7 @@ java_import com.jbidwatcher.ui.commands.MenuCommand
 
 puts "Loading JBidwatcher Ruby Utilities"
 
+require 'rubygems'
 gems = JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gems.jar').to_s
 ENV['GEM_PATH']="#{gems}!/jruby/1.9"
 Gem.paths = ENV
