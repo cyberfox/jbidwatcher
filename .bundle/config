@@ -1,0 +1,3 @@
+---
+BUNDLE_PATH: lib/jbidwatcher/gems
+BUNDLE_DISABLE_SHARED_GEMS: '1'

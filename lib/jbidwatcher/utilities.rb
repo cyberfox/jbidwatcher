@@ -15,7 +15,6 @@ java_import com.cyberfox.util.platform.Path
 java_import com.jbidwatcher.util.Currency
 java_import com.jbidwatcher.util.queue.MQFactory
 java_import com.jbidwatcher.auction.AuctionEntry
-java_import com.jbidwatcher.auction.Category
 java_import com.jbidwatcher.auction.server.AuctionServerManager
 java_import com.jbidwatcher.ui.AuctionsManager
 java_import com.jbidwatcher.ui.FilterManager
@@ -24,6 +23,13 @@ java_import com.jbidwatcher.ui.commands.UserActions
 java_import com.jbidwatcher.ui.commands.MenuCommand
 
 puts "Loading JBidwatcher Ruby Utilities"
+
+gems = JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gems.jar').to_s
+ENV['GEM_PATH']="#{gems}!/jruby/1.9"
+puts ENV['GEM_PATH']
+#ENV['GEM_PATH'] = "/Users/mrs/IdeaProjects/bidwatcher/lib/jbidwatcher/gems/jruby/1.9"
+Gem.paths = ENV
+require 'activerecord-jdbcderby-adapter'
 
 unless defined? nil.blank?
   class NilClass
@@ -235,3 +241,40 @@ $table_controller = TableColumnController.getInstance
 JBidwatcher = JBidwatcherUtilities.new
 
 JBidwatcher.load_scripts
+
+ActiveRecord::Base.establish_connection(:adapter => 'jdbcderby', :database => "jbdb", username: 'user1', password: 'user1')
+
+class Auction < ActiveRecord::Base
+  has_one :entry
+  belongs_to :seller
+end
+
+class Entry < ActiveRecord::Base
+  belongs_to :auction
+  belongs_to :multisnipe
+  belongs_to :snipe
+  belongs_to :category
+
+  class << self
+    def instance_method_already_implemented?(method_name)
+      return true if method_name == "invalid?"
+      super
+    end
+  end
+end
+
+class Seller < ActiveRecord::Base
+  has_many :auctions
+end
+
+class Category < ActiveRecord::Base
+  has_many :entries
+end
+
+class Snipe < ActiveRecord::Base
+  has_one :entry
+end
+
+class Multisnipe < ActiveRecord::Base
+  has_many :entries
+end
