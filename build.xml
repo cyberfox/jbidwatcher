@@ -220,14 +220,20 @@
   </target>
 
   <target name="exe-real">
+    <exec executable="git" outputproperty="GITVERSION" errorproperty="" failifexecutionfails="no">
+      <arg line="describe --tags --long"/>
+    </exec>
+
+    <copy file="${INTERMEDIATE}" todir="/tmp"/>
     <copy file="${BINARY}" todir="/tmp"/>
     <copy file="${packaging}/jbidwatcher.ico" todir="/tmp"/>
     <copy file="${packaging}/jbidwatcher-launch.xml" todir="/tmp">
       <filterchain>
         <replacetokens begintoken="`" endtoken="`">
-          <token key="binary" value="${BINARY}"/>
+          <token key="binary" value="${INTERMEDIATE}"/>
           <token key="executable" value="${EXEFILE}"/>
 	  <token key="appname" value="${app.name}" />
+	  <token key="version" value="${GITVERSION}" />
         </replacetokens>
       </filterchain>
     </copy>

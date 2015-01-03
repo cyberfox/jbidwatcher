@@ -5,13 +5,41 @@
   <outfile>`executable`</outfile>
   <errTitle>`appname` launch error</errTitle>
   <cmdLine></cmdLine>
-  <chdir></chdir>
+  <chdir>.</chdir>
   <priority>normal</priority>
   <downloadUrl>http://java.com/download</downloadUrl>
   <supportUrl></supportUrl>
   <customProcName>false</customProcName>
   <stayAlive>false</stayAlive>
   <icon>/tmp/jbidwatcher.ico</icon>
+  <singleInstance>
+    <mutexName>com.jbidwatcher.JBidwatcher</mutexName>
+  </singleInstance>
+  <classPath>
+    <mainClass>com.jbidwatcher.app.JBidWatch</mainClass>
+    <cp>%EXEDIR%/lib/annotations.jar</cp>
+    <cp>%EXEDIR%/lib/aopalliance.jar</cp>
+    <cp>%EXEDIR%/lib/apple.jar</cp>
+    <cp>%EXEDIR%/lib/derby.jar</cp>
+    <cp>%EXEDIR%/lib/guice-3.0.jar</cp>
+    <cp>%EXEDIR%/lib/guice-assistedinject-3.0.jar</cp>
+    <cp>%EXEDIR%/lib/javax.inject.jar</cp>
+    <cp>%EXEDIR%/lib/jbidwatcher</cp>
+    <cp>%EXEDIR%/lib/jbidwatcher/gems.jar</cp>
+    <cp>%EXEDIR%/lib/jDeskMetrics.jar</cp>
+    <cp>%EXEDIR%/lib/jdesktop.jar</cp>
+    <cp>%EXEDIR%/lib/jl1.0.1.jar</cp>
+    <cp>%EXEDIR%/lib/jline-2.11.jar</cp>
+    <cp>%EXEDIR%/lib/jruby-incomplete.jar</cp>
+    <cp>%EXEDIR%/lib/json_simple-1.1.jar</cp>
+    <cp>%EXEDIR%/lib/jsoup-1.7.1.jar</cp>
+    <cp>%EXEDIR%/lib/jsr305-1.3.9.jar</cp>
+    <cp>%EXEDIR%/lib/l2fprod-common-fontchooser.jar</cp>
+    <cp>%EXEDIR%/lib/mahalo.jar</cp>
+    <cp>%EXEDIR%/lib/mysql-connector-java-5.1.7-bin.jar</cp>
+    <cp>%EXEDIR%/lib/readline.jar</cp>
+    <cp>%EXEDIR%/lib/txtmark.jar</cp>
+  </classPath>
   <jre>
     <path></path>
     <minVersion>1.6.0</minVersion>
@@ -21,4 +49,12 @@
     <maxHeapSize>0</maxHeapSize>
     <opt>-Xmx512m</opt>
   </jre>
+<!--  <versionInfo>
+    <fileVersion>2.99.0.1</fileVersion>
+    <txtFileVersion>`version`</txtFileVersion>
+    <fileDescription>JBidwatcher monitors and bids on eBay auctions on your behalf.</fileDescription>
+    <productName>JBidwatcher</productName>
+    <companyName>CyberFOX Software, Inc.</companyName>
+    <copyright>All rights reserved</copyright>
+  </versionInfo> -->
 </launch4jConfig>

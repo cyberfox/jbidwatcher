@@ -15,9 +15,19 @@ java_import com.jbidwatcher.ui.commands.MenuCommand
 puts "Loading JBidwatcher Ruby Utilities"
 
 require 'rubygems'
-gems = JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gems.jar').to_s
+gems = nil
+if File.exists? 'lib/jbidwatcher/gems.jar'
+  dirname = File.dirname(__FILE__)
+  gems = File.expand_path(File.join(dirname, 'gems.jar'))
+else
+  gems = JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gems.jar').to_s
+end
+
 ENV['GEM_PATH']="#{gems}!/jruby/1.9"
+
 Gem.paths = ENV
+require 'active_support'
+require 'active_support/core_ext'
 require 'activerecord-jdbcderby-adapter'
 require 'digest/md5'
 require 'net/http.rb'
@@ -29,9 +39,15 @@ require 'ebay_parser'
 require 'time'
 require 'pp'
 
+# Obsoleted by including active_support/core_ext
 unless defined? nil.blank?
   class NilClass
     def blank?; true end
+  end
+end
+
+unless defined? nil.empty?
+  class NilClass
     def empty?; true end
   end
 end
