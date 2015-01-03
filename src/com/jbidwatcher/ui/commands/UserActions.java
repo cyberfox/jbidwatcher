@@ -1024,20 +1024,9 @@ public class UserActions implements MessageQueue.Listener {
    * @param inEntry - The auction entry to load up and display in the users browser.
    */
   public void showInBrowser(AuctionEntry inEntry) {
-    final String entryId = inEntry.getIdentifier();
-    String doLocalServer = JConfig.queryConfiguration("server.enabled", "false");
     String browseTo;
 
-    if (doLocalServer.equals("false")) {
-      browseTo = inEntry.getBrowseableURL();
-    } else {
-      String localServerPort = JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING);
-      if (inEntry.isInvalid()) {
-        browseTo = "http://localhost:" + localServerPort + "/cached_" + entryId;
-      } else {
-        browseTo = "http://localhost:" + localServerPort + '/' + entryId;
-      }
-    }
+    browseTo = inEntry.getBrowseableURL();
 
     JConfig.getMetrics().trackEvent("browse", "auction");
     MQFactory.getConcrete("browse").enqueue(browseTo);
