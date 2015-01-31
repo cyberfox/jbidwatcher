@@ -839,18 +839,7 @@ public class UserActions implements MessageQueue.Listener {
     } catch(Currency.CurrencyTypeException cte) {
       minimumNextBid = null;
     }
-    String prompt = genBidSnipeHTML(ae, minimumNextBid);
-    prompt += "</body></html>";
-
-    String previous = "";
-    if(ae.isSniped()) previous = ae.getSnipeAmount().getValueString();
-    SnipeDialog sd = new SnipeDialog(previous);
-    sd.clear();
-    sd.setPrompt(prompt);
-    sd.pack();
-    Rectangle rec = OptionUI.findCenterBounds(sd.getPreferredSize());
-    sd.setLocation(rec.x, rec.y);
-    sd.setVisible(true);
+    SnipeDialog sd = showSnipeDialog(ae, minimumNextBid);
 
     if(sd.isCancelled() || sd.getAmount().length() == 0) return;
 
@@ -885,6 +874,22 @@ public class UserActions implements MessageQueue.Listener {
 
     MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
     _oui.promptWithCheckbox(src, "Sniped for: " + ae.getSnipeAmount(), "Snipe Alert", "message.sniped", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
+  }
+
+  public SnipeDialog showSnipeDialog(AuctionEntry ae, Currency minimumNextBid) {
+    String prompt = genBidSnipeHTML(ae, minimumNextBid);
+    prompt += "</body></html>";
+
+    String previous = "";
+    if(ae.isSniped()) previous = ae.getSnipeAmount().getValueString();
+    SnipeDialog sd = new SnipeDialog(previous);
+    sd.clear();
+    sd.setPrompt(prompt);
+    sd.pack();
+    Rectangle rec = OptionUI.findCenterBounds(sd.getPreferredSize());
+    sd.setLocation(rec.x, rec.y);
+    sd.setVisible(true);
+    return sd;
   }
 
   @MenuCommand(params = 2)
