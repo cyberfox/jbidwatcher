@@ -23,6 +23,13 @@ else
   gems = JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gems.jar').to_s
 end
 
+if File.exists? 'lib/jbidwatcher/gixen'
+  dirname = File.dirname(__FILE__)
+  $:<< File.join(dirname, "gixen")
+else
+  $:<< JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gixen').to_s
+end
+
 ENV['GEM_PATH']="#{gems}!/jruby/1.9"
 
 Gem.paths = ENV
@@ -38,6 +45,7 @@ require 'open-uri'
 require 'ebay_parser'
 require 'time'
 require 'pp'
+require 'gixen'
 
 # Obsoleted by including active_support/core_ext
 unless defined? nil.blank?
