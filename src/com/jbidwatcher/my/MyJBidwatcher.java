@@ -48,11 +48,9 @@ public class MyJBidwatcher {
   private static final String THUMBNAIL_UPLOAD_URL = "my.jbidwatcher.com/upload/thumbnail";
   private String mSyncQueueURL = null;
   private String mReportQueueURL = null;
-  private String mGixenQueueURL = null;
   private boolean mUseSSL = false;
   private boolean mUploadHTML = false;
   private boolean mUseServerParser = false;
-  private boolean mGixen = false;
   private boolean mReadSnipesFromServer = false;
   private ZoneDate mExpiry;
 
@@ -210,8 +208,6 @@ public class MyJBidwatcher {
                 if (cmd.equals("ACCOUNT")) getAccountInfo();
                 if (cmd.startsWith("UPDATE ")) checkUpdated(cmd.substring(7));
                 if (cmd.startsWith("SYNC ")) uploadAuctionList(cmd.substring(5));
-                if (cmd.startsWith("SNIPE ")) doGixen(cmd.substring(6), false);
-                if (cmd.startsWith("CANCEL ")) doGixen(cmd.substring(7), true);
               }
             }
           });
@@ -324,63 +320,10 @@ public class MyJBidwatcher {
   private static boolean canSync() { return allow("sync"); }
   private static boolean canParse() { return allow("parser"); }
   private static boolean canGetSnipes() { return allow("snipes"); }
-  private static boolean canSendSnipeToGixen() { return allow("gixen"); }
 
   private static boolean allow(String type) {
     return JConfig.queryConfiguration("my.jbidwatcher.allow." + type, "false").equals("true") &&
            JConfig.queryConfiguration("my.jbidwatcher." + type, "false").equals("true");
-  }
-
-  private void doGixen(String identifier, boolean cancel) {
-    if(canSendSnipeToGixen() && mGixenQueueURL != null) {
-      AuctionEntry ae = entryCorral.takeForRead(identifier);
-
-      //  If we're being asked to set a snipe, and one isn't assigned to the entry, punt.
-      if(!cancel && !ae.isSniped()) {
-        JConfig.log().logMessage("Submitted auction " + identifier + " to snipe on Gixen, but doesn't have any snipe information set!");
-        return;
-      }
-
-      //  If we've already submitted a snipe for this listing, don't send it again.
-      My status = My.findByIdentifier(identifier);
-      if (status != null && ae.getSnipeAmount().equals(status.getMonetary("snipe_amount"))) return;
-      if (status == null) status = new My(identifier);
-
-      XMLElement gixen = generateGixenXML(identifier, cancel, ae);
-      if (gixen == null) return;
-      postXML(mGixenQueueURL, gixen);
-      if (cancel) {
-        status.setDate("snipe_submitted_at", null);
-        status.setMonetary("snipe_amount", null);
-      } else {
-        status.setDate("snipe_submitted_at", new Date());
-        status.setMonetary("snipe_amount", ae.getSnipeAmount());
-      }
-      status.saveDB();
-    }
-  }
-
-  private static XMLElement generateGixenXML(String identifier, boolean cancel, AuctionEntry ae) {
-    XMLElement gixen = new XMLElement(cancel ? "cancelsnipe" : "snipe");
-    gixen.setProperty("AUCTION", identifier);
-
-    if (!cancel) {
-      String bid = ae.getSnipeAmount().getValueString();
-      gixen.setProperty("AMOUNT", bid);
-    }
-
-    XMLElement userInfo = new XMLElement("credentials");
-    String user = JConfig.queryConfiguration(ae.getServer().getName() + ".user");
-    String password = JConfig.queryConfiguration(ae.getServer().getName() + ".password");
-    if(user == null || password == null) {
-      JConfig.log().logMessage("Failed to submit snipe to Gixen; one or both of username and password are not set.");
-      return null;
-    }
-    userInfo.setProperty("user", user);
-    userInfo.setProperty("password", Base64.encodeString(password));
-    userInfo.setEmpty();
-    gixen.addChild(userInfo);
-    return gixen;
   }
 
   public boolean getAccountInfo() {
@@ -405,7 +348,6 @@ public class MyJBidwatcher {
     XMLInterface ssl = xml.getChild("ssl");
     XMLInterface uploadHTML = xml.getChild("uploadhtml");
     XMLInterface serverParser = xml.getChild("parser");
-    XMLInterface gixen = xml.getChild("gixen");
 
     checkExpiration(expires);
 
@@ -423,9 +365,6 @@ public class MyJBidwatcher {
     JConfig.setConfiguration("my.jbidwatcher.allow.uploadhtml", Boolean.toString(mUploadHTML));
     mUseServerParser = getBoolean(serverParser);
     JConfig.setConfiguration("my.jbidwatcher.allow.parser", Boolean.toString(mUseServerParser));
-    mGixen = getBoolean(gixen);
-    JConfig.setConfiguration("my.jbidwatcher.allow.gixen", Boolean.toString(mGixen));
-    mGixenQueueURL = snipe == null ? null : snipe.getContents();
 
     return mSyncQueueURL != null && mReportQueueURL != null;
   }
