@@ -3,6 +3,7 @@ require 'java'
 java_import com.jbidwatcher.util.config.JConfig
 java_import com.cyberfox.util.platform.Path
 java_import com.jbidwatcher.util.Currency
+java_import com.jbidwatcher.util.Constants
 java_import com.jbidwatcher.util.queue.MQFactory
 java_import com.jbidwatcher.auction.AuctionEntry
 java_import com.jbidwatcher.auction.server.AuctionServerManager
@@ -252,6 +253,15 @@ class JBidwatcherUtilities
 
   def dump_hash(h)
     pp h
+  end
+
+  def gixen
+    @gixen ||= begin
+      server_prefix = Constants.EBAY_SERVER_NAME
+      username = JConfig.query_configuration("#{server_prefix}.user")
+      password = JConfig.query_configuration("#{server_prefix}.password")
+      Gixen.new(username, password) if username != 'default'
+    end
   end
 end
 

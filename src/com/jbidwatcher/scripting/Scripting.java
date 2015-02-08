@@ -9,6 +9,8 @@ import org.jruby.javasupport.JavaEmbedUtils;
 import org.jruby.javasupport.JavaUtil;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * User: Morgan
@@ -19,7 +21,6 @@ import java.io.*;
  */
 public class Scripting {
   private static Object sRuby = null;
-  private static Object sJBidwatcher = null;
   private static FauxOutputStream sOutput;
   private static FauxInputStream sInput;
 
@@ -107,10 +108,44 @@ public class Scripting {
   }
 
   public static Object rubyMethod(String method, Object... method_params) {
+    return doRuby("JBidwatcher", method, method_params);
+  }
+
+  private static Map<String, Object> expressionCache = new HashMap<String, Object>();
+
+  /**
+   * Forget a cached expression result for doRuby's use.
+   *
+   * @param what The expression to un-cache.
+   */
+  public static void forget(String what) {
+    expressionCache.remove(what);
+  }
+
+  /**
+   * Execute a ruby method on an arbitrary Ruby object.  The ruby expression
+   * to call the method on is cached, so later calls to execute methods on the
+   * same object won't have to look up the object first.  If you need to clear
+   * the cache, @see Scripting.forget.
+   *
+   * @param on An expression that results in a Ruby object.
+   * @param method The method name to call on the Ruby object.
+   * @param method_params Any parameters to pass to the method.
+   *
+   * @return Whatever return value the method returns.
+   */
+  public static Object doRuby(String on, String method, Object... method_params) {
     if (sRuby == null) return null;
-
-    if (sJBidwatcher == null) sJBidwatcher = ruby("JBidwatcher");
-
-    return JavaEmbedUtils.invokeMethod((Ruby)sRuby, sJBidwatcher, method, method_params, Object.class);
+    Object actOn = expressionCache.get(on);
+    if(actOn == null) {
+      actOn = ruby(on);
+      if(actOn != null) {
+        expressionCache.put(on, actOn);
+      }
+    }
+    if(actOn != null) {
+      return JavaEmbedUtils.invokeMethod((Ruby)sRuby, actOn, method, method_params, Object.class);
+    }
+    return null;
   }
 }
