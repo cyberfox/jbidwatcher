@@ -91,6 +91,8 @@ public class JConfigFrame implements ActionListener {
     } else if(actionString.equals("Cancel")) {
       cancelAll();
     } else if(actionString.equals("Advanced")) {
+      quickTab.apply();
+      JConfig.updateComplete();
       CardLayout swap = (CardLayout) cards.getLayout();
       advancedToggleButton.setText("Quick");
       advancedToggleButton.setActionCommand("Quick");
@@ -103,6 +105,8 @@ public class JConfigFrame implements ActionListener {
       swap.show(cards, ADVANCED_CARD);
       return;
     } else if(actionString.equals("Quick")) {
+      applyAll();
+      JConfig.updateComplete();
       CardLayout swap = (CardLayout) cards.getLayout();
       advancedToggleButton.setText("Advanced");
       advancedToggleButton.setActionCommand("Advanced");
