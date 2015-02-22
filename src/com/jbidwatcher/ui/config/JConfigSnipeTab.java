@@ -110,8 +110,15 @@ public class JConfigSnipeTab extends JConfigTab {
     return tp;
   }
 
+  private static final String HTML_PREFIX = "<html><body><div style=\"font-size: 0.96em;\"><i>";
+  private static final String HTML_SUFFIX = "</div></body></html>";
   private static final String GIXEN_DISABLED = "Gixen support is disabled until an eBay username and password are set.";
-  private final String DISABLED_HTML = "<html><body><div style=\"font-size: 0.96em;\"><i>" + GIXEN_DISABLED + "</div></body></html>";
+  private static final String GIXEN_AVAILABLE = "If you change to a new Gixen mode, JBidwatcher will submit your eBay username " +
+      "and password to Gixen to verify that you have a Gixen Mirror account.";
+
+
+  private final String DISABLED_HTML = HTML_PREFIX + GIXEN_DISABLED + HTML_SUFFIX;
+  private final String AVAILABLE_HTML = HTML_PREFIX + GIXEN_AVAILABLE + HTML_SUFFIX;
 
   private void checkGixenEligibility() {
     String user = JConfig.queryConfiguration(Constants.EBAY_SERVER_NAME + ".user");
@@ -121,8 +128,7 @@ public class JConfigSnipeTab extends JConfigTab {
       gixenDisabledWarning.setVisible(true);
     } else {
       gixenMode.enable();
-      gixenDisabledWarning.setText("");
-      gixenDisabledWarning.setVisible(false);
+      gixenDisabledWarning.setText(AVAILABLE_HTML);
     }
     this.repaint();
   }
