@@ -479,7 +479,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   @MenuCommand(params = 2, action = "Cancel Snipe")
-  private void CancelSnipe(Component src, AuctionEntry ae) {
+  public void DoCancelSnipe(Component src, AuctionEntry ae) {
     int[] rowList = mTabs.getPossibleRows();
     int len = rowList.length;
 
