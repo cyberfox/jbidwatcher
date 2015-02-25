@@ -443,7 +443,7 @@ public class UserActions implements MessageQueue.Listener {
     return rval;
   }
 
-  private void DoSQL(Component src) {
+  public void DoSQL(Component src) {
     String sql = promptString(src, "Enter the command to run", "Executing");
     if (sql == null || sql.length() == 0) return;
     sql = sql.trim();
@@ -479,7 +479,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   @MenuCommand(params = 2, action = "Cancel Snipe")
-  public void DoCancelSnipe(Component src, AuctionEntry ae) {
+  private void CancelSnipe(Component src, AuctionEntry ae) {
     int[] rowList = mTabs.getPossibleRows();
     int len = rowList.length;
 
@@ -1038,7 +1038,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   @MenuCommand(params = -2, action = "Remove Comment")
-  private void DeleteComment(AuctionEntry ae) {
+  public void DoDeleteComment(AuctionEntry ae) {
     if(ae == null) {
       JConfig.log().logMessage("Auction selected to delete comment from is null, unexpected error!");
       return;
@@ -1065,7 +1065,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   @MenuCommand(params = 2, action = "View Comment")
-  private void ShowComment(Component src, AuctionEntry inAuction) {
+  public void DoShowComment(Component src, AuctionEntry inAuction) {
     if(inAuction == null) {
       JConfig.log().logMessage("Can't show comments from menu items yet.");
       return;
@@ -1214,7 +1214,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   @MenuCommand(action = "Clear Donation")
-  private void UndoDonate() {
+  public void UndoDonate() {
     boolean alreadyClicked = JConfig.queryConfiguration("donation.clicked", "false").equals("true");
     if(donateFrame != null) donateFrame.setVisible(false);
     JConfig.setConfiguration("donation.clicked", "true");

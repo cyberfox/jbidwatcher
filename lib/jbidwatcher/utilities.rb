@@ -175,9 +175,10 @@ class JBidwatcherUtilities
   }
 
   def handle_action(action, action_manager, *params)
-    pair = COMMANDS[action] || COMMANDS["Do#{action.gsub(' ', '')}".to_sym]
+    do_action = "Do#{action.gsub(' ', '')}".to_sym
+    pair = COMMANDS[action] || COMMANDS[do_action]
 
-    method = pair.nil? ? "Do#{action.gsub(' ', '')}".to_sym : pair[:name]
+    method = pair.nil? ? do_action : pair[:name]
     arity = pair.nil? ? 0 : pair[:arity]
 
     # Special case params: -1 means pass in null as the sole parameter, -2 means just the auction entry.
