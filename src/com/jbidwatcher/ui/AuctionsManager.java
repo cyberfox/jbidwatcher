@@ -105,18 +105,18 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
     boolean neededUpdate = false;
     List<AuctionEntry> needUpdate;
     if(!mPauseManager.isPaused()) {
-      needUpdate = normalizeEntries(AuctionEntry.findAllNeedingUpdates(Constants.ONE_MINUTE * 69)); // TODO: Simplify to load just identifiers?
+      needUpdate = normalizeEntries(EntryCorral.findAllNeedingUpdates(Constants.ONE_MINUTE * 69)); // TODO: Simplify to load just identifiers?
       updateList(needUpdate);
       neededUpdate = !needUpdate.isEmpty();
 
       //  These could be two separate threads, doing slow and fast updates.
-      needUpdate = normalizeEntries(AuctionEntry.findEndingNeedingUpdates(Constants.ONE_MINUTE));
+      needUpdate = normalizeEntries(EntryCorral.findEndingNeedingUpdates(Constants.ONE_MINUTE));
       updateList(needUpdate);
       neededUpdate |= !needUpdate.isEmpty();
     }
 
     //  Or three, doing slow, fast, and manual...
-    needUpdate = normalizeEntries(AuctionEntry.findManualUpdates());
+    needUpdate = normalizeEntries(EntryCorral.findManualUpdates());
     updateList(needUpdate);
     neededUpdate |= !needUpdate.isEmpty();
 
@@ -208,7 +208,7 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
 
   public int loadAuctionsFromDatabase() {
     int totalCount = AuctionInfo.count();
-    int activeCount = AuctionEntry.activeCount();
+    int activeCount = EntryCorral.activeCount();
 
     MQFactory.getConcrete("splash").enqueue("WIDTH " + activeCount);
     MQFactory.getConcrete("splash").enqueue("SET 0");

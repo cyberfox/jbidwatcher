@@ -7,16 +7,12 @@ package com.jbidwatcher.auction;
 
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.auction.event.EventLogger;
-import com.jbidwatcher.auction.event.EventStatus;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.Observer;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.queue.MQFactory;
-import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.db.Table;
 
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -70,7 +66,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     return isSniped() ? getSnipe().getQuantity() : 0;
   }
 
-  private AuctionSnipe getSnipe() {
+  AuctionSnipe getSnipe() {
     if(mSnipe == null) {
       if(get("snipe_id") != null) {
         mSnipe = AuctionSnipe.find(get("snipe_id"));
@@ -108,12 +104,6 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
    * AuctionEntry's actions?
    */
   private AuctionServerInterface mServer = null;
-
-  /**
-   * The last time this auction was bid on.  Not presently used,
-   * although set, saved, and loaded consistently.
-   */
-  private long mBidAt = 0;
 
   /**
    * Delta in time from the end of the auction that sniping will
@@ -195,7 +185,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
   }
 
   public boolean hasAuction() {
-    AuctionInfo ai = findByIdOrIdentifier(getAuctionId(), getIdentifier());
+    AuctionInfo ai = AuctionInfo.findByIdOrIdentifier(getAuctionId(), getIdentifier());
     return (ai != null);
   }
 
@@ -230,14 +220,12 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
    * entry table, otherwise returns a valid AuctionEntry for the auction identifier provided.
    */
   static AuctionEntry construct(String identifier, AuctionServerInterface server) {
-    if (!DeletedEntry.exists(identifier) && findByIdentifier(identifier) == null) {
-      AuctionEntry ae = new AuctionEntry(identifier, server);
-      if(ae.isLoaded()) {
-        String id = ae.saveDB();
-        if (id != null) {
-          JConfig.increment("stats.auctions");
-          return ae;
-        }
+    AuctionEntry ae = new AuctionEntry(identifier, server);
+    if (ae.isLoaded()) {
+      String id = ae.saveDB();
+      if (id != null) {
+        JConfig.increment("stats.auctions");
+        return ae;
       }
     }
     return null;
@@ -705,7 +693,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     // We REALLY don't want to leave an auction in the 'updating'
     // state.  It does bad things.
     try {
-      AuctionInfo ai = getServer().reload(getIdentifier());
+      getServer().reload(getIdentifier());
     } catch(Exception e) {
       JConfig.log().handleException("Unexpected exception during auction reload/update.", e);
     }
@@ -808,7 +796,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
   public int bid(Currency bid, int bidQuantity) {
     setBid(bid);
     setBidQuantity(bidQuantity);
-    mBidAt = System.currentTimeMillis();
+    setDate("last_bid_at", new Date(System.currentTimeMillis()));
 
     JConfig.log().logDebug("Bidding " + bid + " on " + bidQuantity + " item[s] of (" + getIdentifier() + ")-" + getTitle());
 
@@ -830,7 +818,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     if(bin != null && !bin.isNull()) {
       setBid(getBuyNow());
       setBidQuantity(quant);
-      mBidAt = System.currentTimeMillis();
+      setDate("last_bid_at", new Date(System.currentTimeMillis()));
       JConfig.log().logDebug("Buying " + quant + " item[s] of (" + getIdentifier() + ")-" + getTitle());
       rval = getServer().buy(getIdentifier(), quant);
       // Metrics
@@ -910,26 +898,9 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     }
   }
 
-  // TODO mrs -- Move this to a TimeLeftBuilder class.
   public static final String endedAuction = "Auction ended.";
-  private static final String mf_min_sec = "{6}{2,number,##}m, {7}{3,number,##}s";
-  private static final String mf_hrs_min = "{5}{1,number,##}h, {6}{2,number,##}m";
-  private static final String mf_day_hrs = "{4}{0,number,##}d, {5}{1,number,##}h";
-
-  private static final String mf_min_sec_detailed = "{6}{2,number,##} minute{2,choice,0#, |1#, |1<s,} {7}{3,number,##} second{3,choice,0#|1#|1<s}";
-  private static final String mf_hrs_min_detailed = "{5}{1,number,##} hour{1,choice,0#, |1#, |1<s,} {6}{2,number,##} minute{2,choice,0#|1#|1<s}";
-  private static final String mf_day_hrs_detailed = "{4}{0,number,##} day{0,choice,0#, |1#, |1<s,}  {5}{1,number,##} hour{1,choice,0#|1#|1<s}";
 
   //0,choice,0#are no files|1#is one file|1<are {0,number,integer} files}
-
-  private static String convertToMsgFormat(String simpleFormat) {
-    String msgFmt = simpleFormat.replaceAll("DD", "{4}{0,number,##}");
-    msgFmt = msgFmt.replaceAll("HH", "{5}{1,number,##}");
-    msgFmt = msgFmt.replaceAll("MM", "{6}{2,number,##}");
-    msgFmt = msgFmt.replaceAll("SS", "{7}{3,number,##}");
-
-    return msgFmt;
-  }
 
   /**
    * @brief Determine the amount of time left, and format it prettily.
@@ -951,53 +922,10 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
         dateDiff = 0;
       }
 
-      if(dateDiff > Constants.ONE_DAY * 60) return "N/A";
-
-      if(dateDiff >= 0) {
-        long days = dateDiff / (Constants.ONE_DAY);
-        dateDiff -= days * (Constants.ONE_DAY);
-        long hours = dateDiff / (Constants.ONE_HOUR);
-        dateDiff -= hours * (Constants.ONE_HOUR);
-        long minutes = dateDiff / (Constants.ONE_MINUTE);
-        dateDiff -= minutes * (Constants.ONE_MINUTE);
-        long seconds = dateDiff / Constants.ONE_SECOND;
-
-        String mf = getTimeFormatter(days, hours);
-
-        Object[] timeArgs = { days,           hours,      minutes,     seconds,
-                              pad(days), pad(hours), pad(minutes), pad(seconds) };
-
-        return(MessageFormat.format(mf, timeArgs));
-      }
+      String mf = TimeLeftBuilder.getTimeLeftString(dateDiff);
+      if (mf != null) return mf;
     }
     return endedAuction;
-  }
-
-  @SuppressWarnings({"FeatureEnvy"})
-  private static String getTimeFormatter(long days, long hours) {
-    String mf;
-    boolean use_detailed = JConfig.queryConfiguration("timeleft.detailed", "false").equals("true");
-    String cfg;
-    if(days == 0) {
-      if(hours == 0) {
-        mf = use_detailed?mf_min_sec_detailed:mf_min_sec;
-        cfg = JConfig.queryConfiguration("timeleft.minutes");
-        if(cfg != null) mf = convertToMsgFormat(cfg);
-      } else {
-        mf = use_detailed?mf_hrs_min_detailed:mf_hrs_min;
-        cfg = JConfig.queryConfiguration("timeleft.hours");
-        if (cfg != null) mf = convertToMsgFormat(cfg);
-      }
-    } else {
-      mf = use_detailed?mf_day_hrs_detailed:mf_day_hrs;
-      cfg = JConfig.queryConfiguration("timeleft.days");
-      if (cfg != null) mf = convertToMsgFormat(cfg);
-    }
-    return mf;
-  }
-
-  private static String pad(long x) {
-    return (x < 10) ? " " : "";
   }
 
   /**
@@ -1111,7 +1039,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     String identifier = getString("identifier");
     String auctionId = getString("auction_id");
 
-    AuctionInfo info = findByIdOrIdentifier(auctionId, identifier);
+    AuctionInfo info = AuctionInfo.findByIdOrIdentifier(auctionId, identifier);
 
     if(info == null) {
       if(!deleting) {
@@ -1144,7 +1072,7 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
   }
 
   protected void loadSecondary() {
-    AuctionInfo ai = findByIdOrIdentifier(getAuctionId(), getIdentifier());
+    AuctionInfo ai = AuctionInfo.findByIdOrIdentifier(getAuctionId(), getIdentifier());
     if(ai != null) setAuctionInfo(ai);
   }
 
@@ -1280,7 +1208,9 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
   public String getAuctionId() { return get("auction_id"); }
 
   /**
-   * @return - Has this auction already ended?  We keep track of this, so we
+   * Set this auction as completed.
+   *
+   * Has this auction already ended?  We keep track of this, so we
    * don't waste time on it afterwards, even as much as creating a
    * Date object, and comparing.
    */
@@ -1318,207 +1248,34 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     return id;
   }
 
-  public boolean reload() {
-    try {
-      AuctionEntry ae = AuctionEntry.findFirstBy("id", get("id"));
-      if (ae != null) {
-        setBacking(ae.getBacking());
+//  public boolean reload() {
+//    try {
+//      AuctionEntry ae = EntryCorral.findFirstBy("id", get("id"));
+//      if (ae != null) {
+//        setBacking(ae.getBacking());
+//
+//        AuctionInfo ai = AuctionInfo.findByIdOrIdentifier(getAuctionId(), getIdentifier());
+//        setAuctionInfo(ai);
+//
+//        ae.getCategory();
+//        mCategory = ae.mCategory;
+//        mSnipe = ae.getSnipe();
+//        mEntryEvents = ae.getEvents();
+//        return true;
+//      }
+//    } catch (Exception e) {
+//      //  Ignored - the reload semi-silently fails.
+//      JConfig.log().logDebug("reload from the database failed for (" + getIdentifier() + ")");
+//    }
+//    return false;
+//  }
 
-        AuctionInfo ai = findByIdOrIdentifier(getAuctionId(), getIdentifier());
-        setAuctionInfo(ai);
-
-        ae.getCategory();
-        mCategory = ae.mCategory;
-        mSnipe = ae.getSnipe();
-        mEntryEvents = ae.getEvents();
-        return true;
-      }
-    } catch (Exception e) {
-      //  Ignored - the reload semi-silently fails.
-      JConfig.log().logDebug("reload from the database failed for (" + getIdentifier() + ")");
-    }
-    return false;
-  }
-
-//  private static Table sDB = null;
-  protected static String getTableName() { return "entries"; }
   protected Table getDatabase() {
-    return getRealDatabase();
-  }
-
-  private static ThreadLocal<Table> tDB = new ThreadLocal<Table>() {
-    protected synchronized Table initialValue() {
-      return openDB(getTableName());
-    }
-  };
-
-  public static Table getRealDatabase() {
-    return tDB.get();
-  }
-
-  public static AuctionEntry findFirstBy(String key, String value) {
-    return (AuctionEntry) ActiveRecord.findFirstBy(AuctionEntry.class, key, value);
-  }
-
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findActive() {
-    String notEndedQuery = "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE (e.ended != 1 OR e.ended IS NULL) ORDER BY a.ending_at ASC";
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, notEndedQuery);
-  }
-
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findEnded() {
-    return (List<AuctionEntry>) findAllBy(AuctionEntry.class, "ended", "1");
-  }
-
-  /** Already corralled... **/
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findAllSniped() {
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT * FROM " + getTableName() + " WHERE (snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL)");
-  }
-
-  private static Date updateSince = new Date();
-  private static Date endingSoon = new Date();
-  private static Date hourAgo = new Date();
-  private static SimpleDateFormat mDateFormat = new SimpleDateFormat(DB_DATE_FORMAT);
-
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findAllNeedingUpdates(long since) {
-    long timeRange = System.currentTimeMillis() - since;
-    updateSince.setTime(timeRange);
-    return (List<AuctionEntry>) findAllByPrepared(AuctionEntry.class,
-        "SELECT e.* FROM entries e" +
-        "  JOIN auctions a ON a.id = e.auction_id" +
-        "  WHERE (e.ended != 1 OR e.ended IS NULL)" +
-        "    AND (e.last_updated_at IS NULL OR e.last_updated_at < ?)" +
-        "  ORDER BY a.ending_at ASC", mDateFormat.format(updateSince));
-  }
-
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findEndingNeedingUpdates(long since) {
-    long timeRange = System.currentTimeMillis() - since;
-    updateSince.setTime(timeRange);
-
-    //  Update more frequently in the last 25 minutes.
-    endingSoon.setTime(System.currentTimeMillis() + 25 * Constants.ONE_MINUTE);
-    hourAgo.setTime(System.currentTimeMillis() - Constants.ONE_HOUR);
-
-    return (List<AuctionEntry>)findAllByPrepared(AuctionEntry.class,
-        "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id" +
-        "  WHERE (e.last_updated_at IS NULL OR e.last_updated_at < ?)" +
-        "    AND (e.ended != 1 OR e.ended IS NULL)" +
-        "    AND a.ending_at < ? AND a.ending_at > ?" +
-        "  ORDER BY a.ending_at ASC", mDateFormat.format(updateSince),
-        mDateFormat.format(endingSoon), mDateFormat.format(hourAgo));
-  }
-
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findAll() {
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT * FROM entries");
-  }
-
-  public static int count() {
-    return count(AuctionEntry.class);
-  }
-
-  public static int activeCount() {
-    return getRealDatabase().countBy("(ended != 1 OR ended IS NULL)");
-  }
-
-  public static int completedCount() {
-    return getRealDatabase().countBy("ended = 1");
-  }
-
-  public static int uniqueCount() {
-    return getRealDatabase().countBySQL("SELECT COUNT(DISTINCT(identifier)) FROM entries WHERE identifier IS NOT NULL");
-  }
-
-  private static final String snipeFinder = "(snipe_id IS NOT NULL OR multisnipe_id IS NOT NULL) AND (entries.ended != 1 OR entries.ended IS NULL)";
-
-  public static int snipedCount() {
-    return getRealDatabase().countBy(snipeFinder);
-  }
-
-  public static AuctionEntry nextSniped() {
-    String sql = "SELECT entries.* FROM entries, auctions WHERE " + snipeFinder + 
-        " AND (entries.auction_id = auctions.id) ORDER BY auctions.ending_at ASC";
-    return (AuctionEntry) findFirstBySQL(AuctionEntry.class, sql);
-  }
-
-  private static AuctionInfo findByIdOrIdentifier(String id, String identifier) {
-    AuctionInfo ai = null;
-    if(id != null) {
-      ai = AuctionInfo.find(id);
-    }
-
-    if (ai == null && identifier != null) {
-      ai = AuctionInfo.findByIdentifier(identifier);
-    }
-    return ai;
-  }
-
-  /**
-   * Locate an AuctionEntry by first finding an AuctionInfo with the passed
-   * in auction identifier, and then looking for an AuctionEntry which
-   * refers to that AuctionInfo row.
-   *
-   * TODO EntryCorral callers? (Probably!)
-   *
-   * @param identifier - The auction identifier to search for.
-   * @return - null indicates that the auction isn't in the database yet,
-   * otherwise an AuctionEntry will be loaded and returned.
-   */
-  public static AuctionEntry findByIdentifier(String identifier) {
-    AuctionEntry ae = findFirstBy("identifier", identifier);
-    AuctionInfo ai;
-
-    if(ae != null) {
-      ai = findByIdOrIdentifier(ae.getAuctionId(), identifier);
-      if(ai == null) {
-        JConfig.log().logMessage("Error loading auction #" + identifier + ", entry found, auction missing.");
-        ae = null;
-      }
-    }
-
-    if(ae == null) {
-      ai = findByIdOrIdentifier(null, identifier);
-
-      if(ai != null) {
-        ae = AuctionEntry.findFirstBy("auction_id", ai.getString("id"));
-        if (ae != null) ae.setAuctionInfo(ai);
-      }
-    }
-
-    return ae;
-  }
-
-  /**
-   * TODO: Clear from the entry corral?
-   * @param toDelete
-   * @return
-   */
-  public static boolean deleteAll(List<AuctionEntry> toDelete) {
-    if(toDelete.isEmpty()) return true;
-
-    String entries = makeCommaList(toDelete);
-    List<Integer> auctions = new ArrayList<Integer>();
-    List<AuctionSnipe> snipes = new ArrayList<AuctionSnipe>();
-
-    for(AuctionEntry entry : toDelete) {
-      auctions.add(entry.getInteger("auction_id"));
-      if(entry.isSniped()) snipes.add(entry.getSnipe());
-    }
-
-    boolean success = new EventStatus().deleteAllEntries(entries);
-    if(!snipes.isEmpty()) success &= AuctionSnipe.deleteAll(snipes);
-    success &= AuctionInfo.deleteAll(auctions);
-    success &= getRealDatabase().deleteBy("id IN (" + entries + ")");
-
-    return success;
+    return EntryTable.getRealDatabase();
   }
 
   public boolean delete() {
-    AuctionInfo ai = findByIdOrIdentifier(getAuctionId(), getIdentifier());
+    AuctionInfo ai = AuctionInfo.findByIdOrIdentifier(getAuctionId(), getIdentifier());
     if(ai != null) ai.delete();
     if(getSnipe() != null) getSnipe().delete();
     return super.delete();
@@ -1528,53 +1285,14 @@ public class AuctionEntry extends AuctionCore implements Comparable<AuctionEntry
     return mAuctionEntryPresenter;
   }
 
-  public static int countByCategory(Category c) {
-    if(c == null) return 0;
-    return getRealDatabase().countBySQL("SELECT COUNT(*) FROM entries WHERE category_id=" + c.getId());
-  }
-
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findAllBy(String column, String value) {
-    return (List<AuctionEntry>)ActiveRecord.findAllBy(AuctionEntry.class, column, value);
-  }
-
   public void setNumBids(int bidCount) {
-    AuctionInfo info = findByIdOrIdentifier(getAuctionId(), getIdentifier());
+    AuctionInfo info = AuctionInfo.findByIdOrIdentifier(getAuctionId(), getIdentifier());
     info.setNumBids(bidCount);
     info.saveDB();
   }
 
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findManualUpdates() {
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE e.last_updated_at IS NULL ORDER BY a.ending_at ASC");
-  }
-
   public boolean isUpdateRequired() {
     return getDate("last_updated_at") == null;
-  }
-
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findRecentlyEnded(int itemCount) {
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE e.ended = 1 ORDER BY a.ending_at DESC", itemCount);
-  }
-
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findEndingSoon(int itemCount) {
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE (e.ended != 1 OR e.ended IS NULL) ORDER BY a.ending_at ASC", itemCount);
-  }
-
-  @SuppressWarnings({"unchecked"})
-  public static List<AuctionEntry> findBidOrSniped(int itemCount) {
-    return (List<AuctionEntry>) findAllBySQL(AuctionEntry.class, "SELECT e.* FROM entries e JOIN auctions a ON a.id = e.auction_id WHERE (e.snipe_id IS NOT NULL OR e.multisnipe_id IS NOT NULL OR e.bid_amount IS NOT NULL) ORDER BY a.ending_at ASC", itemCount);
-  }
-
-  public static void forceUpdateActive() {
-    getRealDatabase().execute("UPDATE entries SET last_updated_at=NULL WHERE ended != 1 OR ended IS NULL");
-  }
-
-  public static void trueUpEntries() {
-    getRealDatabase().execute("UPDATE entries SET auction_id=(SELECT max(id) FROM auctions WHERE auctions.identifier=entries.identifier)");
-    getRealDatabase().execute("DELETE FROM entries e WHERE id != (SELECT max(id) FROM entries e2 WHERE e2.auction_id = e.auction_id)");
   }
 
   public String getUnique() {

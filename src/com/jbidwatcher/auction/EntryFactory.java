@@ -45,8 +45,11 @@ public class EntryFactory extends Observer<AuctionEntry> {
     AuctionServerInterface server = resolver.getServer();
     String strippedId = server.stripId(auctionId);
 
-    AuctionEntry ae = AuctionEntry.construct(strippedId, server);
-    if(ae != null) ae.setPresenter(new AuctionEntryHTMLPresenter(ae));
+    AuctionEntry ae = null;
+    if (!DeletedEntry.exists(strippedId) && EntryCorral.findByIdentifier(strippedId) == null) {
+      ae = AuctionEntry.construct(strippedId, server);
+      if(ae != null) ae.setPresenter(new AuctionEntryHTMLPresenter(ae));
+    }
 
     return ae;
   }
@@ -81,7 +84,7 @@ public class EntryFactory extends Observer<AuctionEntry> {
       JConfig.log().logDebug("Rejecting bad identifier: " + aucId);
     } else {
       if (interactive) {
-        invalid = AuctionEntry.findByIdentifier(aucId) != null;
+        invalid = EntryCorral.findByIdentifier(aucId) != null;
         if (invalid) {
           MQFactory.getConcrete("Swing").enqueue("Cannot add auction " + aucId + ", it is already in your auction list.");
         }

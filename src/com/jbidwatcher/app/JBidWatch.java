@@ -648,7 +648,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
         Scripting.require("utilities");
         Scripting.ruby("JBidwatcher.after_startup");
       } else {
-	JOptionPane.showMessageDialog(null, "<html><body>JBidwatcher is unable to load its scripting layer;<br>" +
+        JOptionPane.showMessageDialog(null, "<html><body>JBidwatcher is unable to load its scripting layer;<br>" +
 				      "as of 3.0 and later, scripting is a core part of JBidwatcher<br>" +
 				      "and it will not run without it.</body</html>", "Scripting Error", JOptionPane.ERROR_MESSAGE);
 

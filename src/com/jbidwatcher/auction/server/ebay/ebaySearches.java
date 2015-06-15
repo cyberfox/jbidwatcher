@@ -272,7 +272,7 @@ public class ebaySearches {
     if(label != null) {
       Category c = Category.findFirstByName(label);
       if(c !=  null) {
-        int count = AuctionEntry.countByCategory(c);
+        int count = EntryCorral.countByCategory(c);
         if(count != 0) reportTab = label;
       }
     }

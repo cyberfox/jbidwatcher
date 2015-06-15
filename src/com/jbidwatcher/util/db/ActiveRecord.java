@@ -20,7 +20,7 @@ public abstract class ActiveRecord extends HashBacked {
     sDBDisabled = true;
   }
 
-  protected static Table openDB(String tableName) {
+  public static Table openDB(String tableName) {
     if (sDBDisabled || tableName == null) return null;
 
     Table db;
@@ -92,7 +92,7 @@ public abstract class ActiveRecord extends HashBacked {
     return id;
   }
 
-  protected static List<? extends ActiveRecord> findAllBy(Class klass, String key, String value) {
+  public static List<? extends ActiveRecord> findAllBy(Class klass, String key, String value) {
     return findAllBy(klass, key, value, null);
   }
 
@@ -117,18 +117,18 @@ public abstract class ActiveRecord extends HashBacked {
     return convertResultsToList(klass, results);
   }
 
-  protected static List<? extends ActiveRecord> findAllByPrepared(Class klass, String query, String... parameters) {
+  public static List<? extends ActiveRecord> findAllByPrepared(Class klass, String query, String... parameters) {
     if(sDBDisabled) return new LinkedList<ActiveRecord>();
     ActiveRecord found = getExemplar(klass);
     List<Record> results = getTable(found).findAllPrepared(query, 0, parameters);
     return convertResultsToList(klass, results);
   }
 
-  protected static List<? extends ActiveRecord> findAllBySQL(Class klass, String query) {
+  public static List<? extends ActiveRecord> findAllBySQL(Class klass, String query) {
     return findAllBySQL(klass, query, 0);
   }
 
-  protected static List<? extends ActiveRecord> findAllBySQL(Class klass, String query, int count) {
+  public static List<? extends ActiveRecord> findAllBySQL(Class klass, String query, int count) {
     if(sDBDisabled) return new LinkedList<ActiveRecord>();
     ActiveRecord found = getExemplar(klass);
     List<Record> results = getTable(found).findAll(query, count);
@@ -167,7 +167,7 @@ public abstract class ActiveRecord extends HashBacked {
 
   public Integer getId() { return getInteger("id"); }
 
-  protected static String makeCommaList(List<? extends ActiveRecord> records) {
+  public static String makeCommaList(List<? extends ActiveRecord> records) {
     StringBuffer ids = new StringBuffer("");
 
     boolean first = true;
@@ -187,7 +187,7 @@ public abstract class ActiveRecord extends HashBacked {
     return id != null && getDatabase().delete(Integer.parseInt(id));
   }
 
-  protected static ActiveRecord findFirstBySQL(Class klass, String query) {
+  public static ActiveRecord findFirstBySQL(Class klass, String query) {
     if(sDBDisabled) return null;
     ActiveRecord found = getExemplar(klass);
     Table t = getTable(found);
@@ -213,7 +213,7 @@ public abstract class ActiveRecord extends HashBacked {
     return found;
   }
 
-  protected static ActiveRecord findFirstBy(Class klass, String key, String value) {
+  public static ActiveRecord findFirstBy(Class klass, String key, String value) {
     return findFirstByUncached(klass, key, value);
   }
 

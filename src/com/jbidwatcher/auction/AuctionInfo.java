@@ -34,6 +34,18 @@ public class AuctionInfo extends AuctionCore {
    */
   public AuctionInfo() { }
 
+  static AuctionInfo findByIdOrIdentifier(String id, String identifier) {
+    AuctionInfo ai = null;
+    if(id != null) {
+      ai = find(id);
+    }
+
+    if (ai == null && identifier != null) {
+      ai = findByIdentifier(identifier);
+    }
+    return ai;
+  }
+
   public void setThumbnail(String thumbPath) {
     if(thumbPath == null) setNoThumbnail(true);
     mThumbnailPath = thumbPath;

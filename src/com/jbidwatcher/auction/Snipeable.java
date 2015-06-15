@@ -48,9 +48,7 @@ public interface Snipeable {
    */
   boolean hasDefaultSnipeTime();
 
-  public String getIdentifier();
+  String getIdentifier();
 
-  public boolean reload();
-
-  public boolean isComplete();
+  boolean isComplete();
 }

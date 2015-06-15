@@ -4,9 +4,6 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.config.JConfig;
-import com.cyberfox.util.config.ErrorManagement;
-import com.jbidwatcher.Upgrader;
 
 import java.util.Date;
 
@@ -43,7 +40,7 @@ public class AuctionEntryTest extends TestCase {
   }
 
   public void tearDown() throws Exception {
-    mAE = AuctionEntry.findByIdentifier(mai.getIdentifier());
+    mAE = EntryCorral.findByIdentifier(mai.getIdentifier());
     if(mAE != null) mAE.delete();
     
     super.tearDown();

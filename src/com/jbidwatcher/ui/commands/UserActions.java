@@ -152,7 +152,7 @@ public class UserActions implements MessageQueue.Listener {
 
     String id = serverManager.getServer().stripId(auctionSource);
     if(EntryFactory.isInvalid(true, id)) {
-      AuctionEntry found = AuctionEntry.findByIdentifier(id);
+      AuctionEntry found = EntryCorral.findByIdentifier(id);
       if (found != null) {
         JConfig.log().logMessage("Found auction " + id + " in category " + found.getCategory());
         mTabs.showEntry(found);
@@ -315,7 +315,7 @@ public class UserActions implements MessageQueue.Listener {
               DeletedEntry.create(entry.getIdentifier());
             }
             //  Just pass the list of ids down to a low-level 'delete multiple' method.
-            AuctionEntry.deleteAll(mEntries);
+            EntryCorral.deleteAll(mEntries);
             if(mDontPrompt) {
               JConfig.setConfiguration("prompt.hide_delete_confirm", "true");
             }
@@ -1075,7 +1075,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   public void DoUpdateAll() {
-    AuctionEntry.forceUpdateActive();
+    EntryCorral.forceUpdateActive();
     entryCorral.clear();
   }
 
