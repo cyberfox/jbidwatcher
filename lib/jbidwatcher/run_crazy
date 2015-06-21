@@ -1,0 +1,6 @@
+#!/bin/bash
+FILELOC=`dirname $0`
+JARCLASSES=$(ruby -e 'puts ARGV.reject {|x| x.include? "jruby"}.join(":")' `ls -1 $FILELOC/../*.jar`)
+export CLASSPATH=$FILELOC/../../classes:$JARCLASSES
+
+~/oss/jruby-1.7.12/bin/jruby -S rspec -I $FILELOC $@ $FILELOC/column_lookup_spec.rb

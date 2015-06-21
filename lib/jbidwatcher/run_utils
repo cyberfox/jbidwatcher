@@ -1,0 +1,6 @@
+#!/bin/bash
+FILELOC=`dirname $0`
+JARCLASSES=$(ruby -e 'puts ARGV.reject {|x| x.include? "jruby"}.join(":")' `ls -1 $FILELOC/../*.jar`)
+CLASSPATH=$FILELOC/../../classes:$JARCLASSES
+
+java -Xmx500m -Xss2048k -Dfile.encoding=UTF-8 -Xbootclasspath/a:$FILELOC/../jruby-incomplete.jar -classpath $CLASSPATH -Djruby.home=$HOME/oss/jruby-1.7.12 -Djruby.script=jruby -Djruby.shell=/bin/sh org.jruby.Main -S rspec -I $FILELOC:$FILELOC/nokogiri-1.5.2-java/lib $@ $FILELOC/utilities_spec.rb
