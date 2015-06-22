@@ -407,7 +407,7 @@ public class auctionTableModel extends AbstractTableModel
         } else if (w > h) {
           w = 64;
           h = -1;
-        } else if (h == w && h != -1) {
+        } else if (h == w) {
           h = 64;
           w = -1;
         }
