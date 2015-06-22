@@ -246,6 +246,11 @@ class JBidwatcherUtilities
       Gixen.new(username, password) if username != 'default'
     end
   end
+
+  # This is just a dumping ground right now; I should change that soon.
+  def get_value(entry, column)
+
+  end
 end
 
 # $auction_server_manager = AuctionServerManager.getInstance

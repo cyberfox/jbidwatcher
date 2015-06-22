@@ -11,7 +11,7 @@ class ColumnLookup
       TableColumnController::ID => proc { |aEntry| aEntry.identifier },
       TableColumnController::CUR_BID => :current_bid.to_proc,
       TableColumnController::SNIPE_OR_MAX => :format_snipe_and_bid.to_proc,
-      TableColumnController::MAX => proc { |aEntry| aEntry.isBiOn ? format_bid(aEntry, "*") : "n/a" },
+      TableColumnController::MAX => :max_bid.to_proc,
       TableColumnController::SNIPE => proc { |aEntry|},
       TableColumnController::TIME_LEFT => proc { |aEntry|},
       TableColumnController::END_DATE => proc { |aEntry|},
@@ -32,11 +32,35 @@ class ColumnLookup
       TableColumnController::SNIPE_TOTAL => proc { |aEntry|}
   }
 
-  def current_bid(aEntry)
-
+  def max_bid(entry)
+    entry.bid_on? ? format_bid(entry, error_note(entry)) : "n/a"
   end
 
-  def value(col_num, aEntry)
-    TableColumnController::I
+  def current_bid(aEntry)
+    cur_price = aEntry.current_price
+    if aEntry.fixed?
+      quantity = aEntry.quantity > 1 ? " x #{aEntry.quantity}" : ""
+      "#{cur_price} (FP#{quantity})"
+    else
+      "#{cur_price} (#{aEntry.num_bidders})"
+    end
+  end
+
+  def get_value(entry, col_num)
+    method = LOOKUP_MAP[col_num]
+    if method.arity == 1
+      method.call(entry)
+    else
+      method.call(self, entry)
+    end
+  end
+
+  private
+  def error_note(aEntry)
+    aEntry.error_page.nil? ? "" : "*"
+  end
+
+  def format_bid(entry, note)
+    "#{note}#{entry.get_bid}"
   end
 end
