@@ -51,8 +51,8 @@ public class Constants {
 
 /** What browser to pretend to be, when talking to the auction servers.
  */
-  public static final String FAKE_BROWSER = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.4) Gecko/20100611 Firefox/3.6.4 ( .NET CLR 3.5.30729; .NET4.0C)";
-//public static final String FAKE_BROWSER = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_6; en-US) AppleWebKit/534.13 (KHTML, like Gecko) Chrome/9.0.597.84 Safari/534.13";
+  public static final String FAKE_BROWSER = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
+
 /** Indicates that there is no popup context for this action.  Used to
  * prepend to menu and button actions which do the same as popup
  * actions, but need to operate on selection lists.;
