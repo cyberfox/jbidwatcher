@@ -8,7 +8,6 @@ package com.jbidwatcher.util;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@SuppressWarnings({"UtilityClass", "ClassMayBeInterface", "UtilityClassWithoutPrivateConstructor"})
 public class Constants {
 /** Program identifaction constants, so we change the version and such
  * in just one place.
@@ -49,12 +48,7 @@ public class Constants {
 /** One day in microseconds.
  */
   public static final long ONE_DAY= 24 * ONE_HOUR;
-/** What port to listen on, by default.
- */
-  public static final int DEFAULT_SERVER_PORT = 9099;
-/** String version of what port to listen on by default.
- */
-  public static final String DEFAULT_SERVER_PORT_STRING = Integer.toString(Constants.DEFAULT_SERVER_PORT);
+
 /** What browser to pretend to be, when talking to the auction servers.
  */
   public static final String FAKE_BROWSER = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.4) Gecko/20100611 Firefox/3.6.4 ( .NET CLR 3.5.30729; .NET4.0C)";

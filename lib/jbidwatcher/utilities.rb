@@ -151,9 +151,9 @@ class JBidwatcherUtilities
   end
 
   TRANSLATIONS = {
-      "Add New" => "Add",
-      "Check For Updates" => "Check Updates",
-      "Explain Colors And Icons" => "Help Colors"
+      'Add New' => 'Add',
+      'Check For Updates' => 'Check Updates',
+      'Explain Colors And Icons' => 'Help Colors'
   }
 
   def handle_action(action, action_manager, *params)
@@ -261,7 +261,7 @@ JBidwatcher = JBidwatcherUtilities.new
 
 JBidwatcher.load_scripts
 
-ActiveRecord::Base.establish_connection(:adapter => 'jdbcderby', :database => "jbdb", username: 'user1', password: 'user1')
+ActiveRecord::Base.establish_connection(adapter: 'jdbcderby', database: 'jbdb', username: 'user1', password: 'user1')
 
 class Auction < ActiveRecord::Base
   has_one :entry

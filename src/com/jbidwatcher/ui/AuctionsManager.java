@@ -40,8 +40,6 @@ public class AuctionsManager implements TimerHandler.WakeupProcess, EntryManager
   //  Checkpoint (save) every N minutes where N is configurable.
   private long mCheckpointFrequency;
   private long mLastCheckpointed = 0;
-  private static final int AUCTIONCOUNT = 100;
-  private static final int MAX_PERCENT = AUCTIONCOUNT;
   private static TimerHandler sTimer = null;
 
   /**

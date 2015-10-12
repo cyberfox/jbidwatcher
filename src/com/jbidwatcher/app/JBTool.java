@@ -11,6 +11,8 @@ import com.jbidwatcher.auction.server.AuctionServerFactory;
 import com.jbidwatcher.auction.server.ebay.ebayServer;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.scripting.JRubyPreloader;
+import com.jbidwatcher.ui.AuctionListHolder;
+import com.jbidwatcher.ui.AuctionListHolderFactory;
 import com.jbidwatcher.ui.AuctionsManager;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Observer;
@@ -136,6 +138,7 @@ public class JBTool {
     }
   }
 
+  @Inject
   public JBTool(EntryFactory eFactory, final EntryCorral corral, SearchManager searchManager, AuctionServerManager serverManager,
                 MyJBidwatcher myJBidwatcher) {
     this.entryFactory = eFactory;
@@ -162,6 +165,7 @@ public class JBTool {
         install(new FactoryModuleBuilder()
             .implement(AuctionServer.class, ebayServer.class)
             .build(AuctionServerFactory.class));
+        install(new FactoryModuleBuilder().implement(AuctionListHolder.class, AuctionListHolder.class).build(AuctionListHolderFactory.class));
       }
     };
 

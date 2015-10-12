@@ -100,7 +100,7 @@ public class JConfigSnipeTab extends JConfigTab {
     label.add(Box.createHorizontalGlue());
     tp.add(label);
 
-    gixenMode = new JComboBox(GixenModes.values());
+    gixenMode = new JComboBox<GixenModes>(GixenModes.values());
 
     Box gixenBox = Box.createHorizontalBox();
     gixenBox.add(gixenMode);
@@ -123,11 +123,11 @@ public class JConfigSnipeTab extends JConfigTab {
   private void checkGixenEligibility() {
     String user = JConfig.queryConfiguration(Constants.EBAY_SERVER_NAME + ".user");
     if(user == null || user.equals("default")) {
-      gixenMode.disable();
+      gixenMode.setEnabled(false);
       gixenDisabledWarning.setText(DISABLED_HTML);
       gixenDisabledWarning.setVisible(true);
     } else {
-      gixenMode.enable();
+      gixenMode.setEnabled(true);
       gixenDisabledWarning.setText(AVAILABLE_HTML);
     }
     this.repaint();

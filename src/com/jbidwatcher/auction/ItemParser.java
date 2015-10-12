@@ -8,7 +8,7 @@ import com.jbidwatcher.util.Record;
 public interface ItemParser {
   Record parseItemDetails();
 
-  public enum ParseErrors {
+  enum ParseErrors {
     SUCCESS,
     NOT_ADULT,
     BAD_TITLE,
