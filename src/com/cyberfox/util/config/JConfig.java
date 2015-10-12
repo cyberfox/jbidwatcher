@@ -419,7 +419,7 @@ public class JConfig {
     }
 
     if(fileLoadFailed) {
-      dispIS = urlCL.getResourceAsStream("/display.cfg");
+      dispIS = urlCL.getResourceAsStream("/resources/display.cfg");
     }
     return dispIS;
   }

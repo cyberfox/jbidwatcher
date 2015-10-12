@@ -14,6 +14,7 @@
   <property name="src.dir" value="src" />
   <property name="dest.dir" value="." />
   <property name="main.dir" value="." />
+  <property name="resource.dir" value="${main.dir}/resources"/>
   <property name="log.dir" value="logs" />
   <property name="lib.dir" value="lib" />
   <property name="sparkle.dir" value="platform/sparkle" />
@@ -109,34 +110,34 @@
   <target name="tar" description="Building source .tar file.">
     <tar destfile="${TARFILE}" compression="bzip2" longfile="gnu">
       <tarfileset prefix="${TARSRC}/src" dir="${src.dir}" includes="**/*.java" />
-      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.jpg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.sql" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="*.xsl" />
-      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="display.cfg" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="auctions.dtd" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="TODO" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="COPYING.html" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="build.xml" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="platform/jbidwatcher.jnlp" />
       <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="${MANIFEST}" />
-      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="jbidwatcher.properties" />
-      <tarfileset prefix="${TARSRC}" dir="${main.dir}" includes="ebay_*.properties" />
-      <tarfileset prefix="${TARSRC}/icons" dir="${main.dir}/icons" includes="**/*.gif" />
-      <tarfileset prefix="${TARSRC}/icons" dir="${main.dir}/icons" includes="**/*.png" />
-      <tarfileset prefix="${TARSRC}/audio" dir="${main.dir}/audio" includes="*.mp3" />
-      <tarfileset prefix="${TARSRC}/db" dir="${main.dir}/db" includes="*.sql" />
-      <tarfileset prefix="${TARSRC}/platform" dir="${main.dir}/platform" />
-      <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jpg" />
-      <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.jbh" />
-      <tarfileset prefix="${TARSRC}/help" dir="${main.dir}/help" includes="*.md" />
-      <tarfileset prefix="${TARSRC}/lib" dir="${main.dir}/lib" />
-      <tarfileset prefix="${TARSRC}/onejar" dir="${main.dir}/onejar" />
+      <tarfileset prefix="${TARSRC}/platform" dir="${main.dir}/platform"/>
+      <tarfileset prefix="${TARSRC}/lib" dir="${main.dir}/lib"/>
+      <tarfileset prefix="${TARSRC}/onejar" dir="${main.dir}/onejar"/>
+      <tarfileset prefix="${TARSRC}/resources" dir="resources" includes="*.jpg"/>
+      <tarfileset prefix="${TARSRC}/resources" dir="resources" includes="display.cfg"/>
+      <tarfileset prefix="${TARSRC}/resources" dir="resources" includes="jbidwatcher.properties" />
+      <tarfileset prefix="${TARSRC}/resources" dir="resources" includes="ebay_*.properties" />
+      <tarfileset prefix="${TARSRC}/resources/icons" dir="resources/icons" includes="**/*.gif" />
+      <tarfileset prefix="${TARSRC}/resources/icons" dir="resources/icons" includes="**/*.png" />
+      <tarfileset prefix="${TARSRC}/resources/audio" dir="resources/audio" includes="*.mp3" />
+      <tarfileset prefix="${TARSRC}/resources/db" dir="resources/db" includes="*.sql" />
+      <tarfileset prefix="${TARSRC}/resources/help" dir="resources/help" includes="*.jpg" />
+      <tarfileset prefix="${TARSRC}/resources/help" dir="resources/help" includes="*.jbh" />
+      <tarfileset prefix="${TARSRC}/resources/help" dir="resources/help" includes="*.md" />
     </tar>
   </target>
 
   <target name="jar-real" depends="compile">
     <echo level="info" message="Building primary .jar file." />
-    <copy todir="help/" file="COPYING.html" />
+    <copy todir="resources/help/" file="COPYING.html" />
 
     <exec executable="git" outputproperty="GITVERSION" errorproperty="" failifexecutionfails="no">
       <arg line="describe --tags --long"/>
@@ -153,25 +154,24 @@
     </manifest>
 
     <jar jarfile="${INTERMEDIATE}" manifest="${MANIFEST}" index="true">
-      <fileset dir="${main.dir}" includes="*.jpg" />
-      <fileset dir="${main.dir}" includes="*.sql" />
-      <fileset dir="${main.dir}" includes="*.xsl" />
-      <fileset dir="${main.dir}" includes="display.cfg" />
       <fileset dir="${build.dir}" includes="**/*.class" />
       <!-- <fileset dir="${lib.dir}" includes="**/*.class" /> -->
-      <fileset dir="${main.dir}" includes="icons/**/*.gif" />
-      <fileset dir="${main.dir}" includes="icons/**/*.png" />
-      <fileset dir="${main.dir}" includes="audio/*.mp3" />
-      <fileset dir="${main.dir}" includes="db/*.sql" />
-      <fileset dir="${main.dir}" includes="help/*.jpg" />
-      <fileset dir="${main.dir}" includes="help/*.jbh" />
-      <fileset dir="${main.dir}" includes="help/*.md" />
-      <fileset dir="${main.dir}" includes="help/*.html" />
-      <fileset dir="${main.dir}" includes="platform/tray.dll" />
-      <fileset dir="${main.dir}" includes="jbidwatcher.properties" />
-      <fileset dir="${main.dir}" includes="ebay_*.properties" />
+      <fileset dir="${resource.dir}" includes="*.jpg"/>
+      <fileset dir="${resource.dir}" includes="*.sql"/>
+      <fileset dir="${resource.dir}" includes="display.cfg"/>
+      <fileset dir="${main.dir}" includes="platform/tray.dll"/>
+      <fileset dir="${resource.dir}" includes="icons/**/*.gif" />
+      <fileset dir="${resource.dir}" includes="icons/**/*.png" />
+      <fileset dir="${resource.dir}" includes="audio/*.mp3" />
+      <fileset dir="${resource.dir}" includes="db/*.sql" />
+      <fileset dir="${resource.dir}" includes="help/*.jpg" />
+      <fileset dir="${resource.dir}" includes="help/*.jbh" />
+      <fileset dir="${resource.dir}" includes="help/*.md" />
+      <fileset dir="${resource.dir}" includes="help/*.html" />
+      <fileset dir="${resource.dir}" includes="jbidwatcher.properties" />
+      <fileset dir="${resource.dir}" includes="ebay_*.properties" />
     </jar>
-    <delete file="help/COPYING.html" />
+    <delete file="resources/help/COPYING.html" />
   </target>
 
   <target name="jar" depends="jar-real">
