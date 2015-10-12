@@ -4,11 +4,14 @@ import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.StringTools;
 import com.jbidwatcher.util.TT;
 import com.jbidwatcher.util.html.JHTML;
+import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -70,7 +73,12 @@ public class ebayItemParser implements com.jbidwatcher.auction.ItemParser {
       parse.put("reserve_met", "false");
     }
 
-    parse.put("ending_at", parseEndDate());
+    String endDate = parseEndDate();
+    if(endDate == null) {
+      endDate = getAlternateEndDate();
+    }
+    System.out.println("Date format: " + endDate);
+    parse.put("ending_at", endDate);
 
     parse.put("identifier", parseIdentifier());
 
@@ -88,6 +96,24 @@ public class ebayItemParser implements com.jbidwatcher.auction.ItemParser {
     // if(!maxBid.isNull()) ae.setBid(maxBid)
 
     return parse;
+  }
+
+  @Nullable
+  private String getAlternateEndDate() {
+    String endDate = null;
+    String time = null;
+    Element timeMs = mDocument2.select("span.timeMs").first();
+
+    if(timeMs != null) {
+      time = timeMs.attr("timems");
+      System.out.println("Alt time: " + time);
+    }
+    if(time != null) {
+      SimpleDateFormat df = new SimpleDateFormat(T.s("ebayServer.itemDateFormat"));
+      endDate = df.format(new Date(Long.parseLong(time)));
+    }
+
+    return endDate;
   }
 
   private boolean supportsPaypal() {
