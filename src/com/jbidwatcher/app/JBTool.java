@@ -186,7 +186,7 @@ public class JBTool {
       AuctionEntry ae = entryFactory.constructEntry();
       ae.setAuctionInfo(ai);
       System.out.println("Took: " + (System.currentTimeMillis() - start));
-      System.out.println(JSONObject.toJSONString(ae.getBacking()));
+      System.out.println(JSONObject.toJSONString(ai.getBacking()));
     } catch (Exception e) {
       JConfig.log().handleException("Failed to load auction from file: " + fname, e);
     }
