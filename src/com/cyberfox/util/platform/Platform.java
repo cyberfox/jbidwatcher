@@ -192,19 +192,12 @@ public class Platform {
   public static boolean supportsTray() {
     if(!traySupportDisabled && isWindows()) return true;
     if(isLinux() && !JConfig.queryConfiguration("tray.override", "false").equals("true")) return false;
-    if(isMac()) return false;
 
-    boolean supported = SystemTray.isSupported();
-
-    if(supported) {
-      JConfig.setConfiguration("temp.tray.java6", "true");
-    }
-
-    return supported;
+    return SystemTray.isSupported();
   }
 
   public static boolean isRawMac() {
-    return System.getProperty("mrj.version") != null;
+    return System.getProperty("os.name").contains("OS X");
   }
 
   public static boolean isUSBased() {

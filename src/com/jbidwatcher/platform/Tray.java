@@ -98,6 +98,8 @@ public class Tray implements ItemListener, MessageQueue.Listener {
   }
 
   private boolean setSystemTray(final JPopupMenu menu, ImageIcon jbw_icon) {
+    if(!SystemTray.isSupported()) return false;
+
     systemTray = SystemTray.getSystemTray();
     trayIcon = new TrayIcon(jbw_icon.getImage(), "JBidwatcher", null);
     trayIcon.addMouseListener(new MouseAdapter() {
