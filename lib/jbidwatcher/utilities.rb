@@ -261,7 +261,17 @@ JBidwatcher = JBidwatcherUtilities.new
 
 JBidwatcher.load_scripts
 
-ActiveRecord::Base.establish_connection(adapter: 'jdbcderby', database: 'jbdb', username: 'user1', password: 'user1')
+driver = JConfig.query_configuration("db.driver") || "org.apache.derby.jdbc.EmbeddedDriver"
+
+if driver.include? 'mysql'
+  db = JConfig.query_configuration("db.mysql.database")
+  user = JConfig.query_configuration('db.user')
+  pass = JConfig.query_configuration('db.pass')
+  protocol = JConfig.query_configuration('db.protocol') # jdbc:mysql://cyberfox.com:3306/
+  ActiveRecord::Base.establish_connection(adapter: 'jdbc', driver: 'com.mysql.jdbc.Driver', url: "#{protocol}#{db}", username: user, password: pass)
+else
+  ActiveRecord::Base.establish_connection(adapter: 'jdbcderby', database: 'jbdb', username: 'user1', password: 'user1')
+end
 
 class Auction < ActiveRecord::Base
   has_one :entry
