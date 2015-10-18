@@ -5,8 +5,6 @@ package com.jbidwatcher.app;
  * Developed by mrs (Morgan Schweers)
  */
 
-import com.cyberfox.util.config.ErrorManagement;
-
 import com.cyberfox.util.platform.Path;
 import com.cyberfox.util.platform.Platform;
 import com.cyberfox.util.platform.osx.NoNap;
@@ -26,6 +24,7 @@ import com.jbidwatcher.ui.util.JMouseAdapter;
 import com.jbidwatcher.ui.util.RuntimeInfo;
 import com.jbidwatcher.util.Constants;
 import com.jbidwatcher.scripting.JRubyPreloader;
+import com.jbidwatcher.util.config.JBErrorManagement;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.services.ActivityMonitor;
@@ -357,7 +356,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
    * @param args Command line arguments.
    */
   public static void main(String[] args) {
-    JConfig.setLogger(new ErrorManagement());
+    JConfig.setLogger(new JBErrorManagement());
     if (checkArguments(args)) {
       System.exit(0);
     }
