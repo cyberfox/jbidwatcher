@@ -283,7 +283,9 @@ public class ebayLoginManager implements LoginManager {
           if(redirect_form != null) {
             hidUrl = redirect_form.getInputValue("hidUrl");
           }
-          if(hidUrl != null && (hidUrl.matches("^https?://(signin.ebay.(com|co.uk|ie))?.*my.*ebay.*(com|co.uk|ie).*ws.*eBayISAPI.dll.*My.*eBay.*$") || hidUrl.matches("^https?://www.ebay.(com|co.uk|ie).*$"))) {
+
+          boolean success = checkFinalRedirect(hidUrl);
+          if(success) {
             MQFactory.getConcrete("login").enqueue("SUCCESSFUL");
           } else {
             JConfig.log().logFile("Security checks out, but no My eBay form link on final page...", confirm);
@@ -294,6 +296,20 @@ public class ebayLoginManager implements LoginManager {
       }
     }
     return cj;
+  }
+
+  private boolean checkFinalRedirect(String hidUrl) {
+    boolean success = false;
+    if(hidUrl != null) {
+      if(hidUrl.matches("^https?://signin.ebay.(com|co.uk|ie).*ws.*eBayISAPI.dll\\?SignInMCAlert.*$")) {
+        MQFactory.getConcrete("Swing").enqueue("NOTIFY " + "You have a message from eBay during login.");
+        success = true;
+      } else {
+        success = hidUrl.matches("^https?://(signin.ebay.(com|co.uk|ie))?.*my.*ebay.*(com|co.uk|ie).*ws.*eBayISAPI.dll.*My.*eBay.*$") ||
+            hidUrl.matches("^https?://www.ebay.(com|co.uk|ie).*$");
+      }
+    }
+    return success;
   }
 
   private CookieJar retryLoginWithoutAdult(CookieJar cj, String username, String password) {//  Disable adult mode and try again.
