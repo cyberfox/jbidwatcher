@@ -376,20 +376,20 @@
     </copy>
     <tar destfile="${APPFILE}" compression="gzip" longfile="gnu">
       <tarfileset dir="${osx.app.path}" prefix="${app.name}.app" mode="755">
-	<include name="Contents/MacOS/JavaApplicationStub" />
-	<include name="Contents/Resources/Java/libquaqua.jnilib" />
-	<include name="Contents/Resources/Java/libNoNap.jnilib" />
+        <include name="Contents/MacOS/JavaApplicationStub"/>
+        <include name="Contents/Resources/Java/libquaqua.jnilib"/>
+        <include name="Contents/Resources/Java/libNoNap.jnilib"/>
       </tarfileset>
 
       <tarfileset dir="${osx.app.path}" prefix="${app.name}.app">
-	<include name="**" />
-	<exclude name="Contents" />
-	<exclude name="Contents/MacOS" />
-	<exclude name="Contents/Resources" />
-	<exclude name="Contents/Resources/Java" />
-	<exclude name="Contents/MacOS/JavaApplicationStub" />
-	<exclude name="Contents/Resources/Java/libquaqua.jnilib" />
-	<exclude name="Contents/Resources/Java/libNoNap.jnilib" />
+        <include name="**"/>
+        <exclude name="Contents"/>
+        <exclude name="Contents/MacOS"/>
+        <exclude name="Contents/Resources"/>
+        <exclude name="Contents/Resources/Java"/>
+        <exclude name="Contents/MacOS/JavaApplicationStub"/>
+        <exclude name="Contents/Resources/Java/libquaqua.jnilib"/>
+        <exclude name="Contents/Resources/Java/libNoNap.jnilib"/>
       </tarfileset>
     </tar>
   </target>
