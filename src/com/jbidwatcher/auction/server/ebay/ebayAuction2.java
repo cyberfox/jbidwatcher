@@ -10,6 +10,7 @@ import com.jbidwatcher.util.queue.PlainMessageQueue;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
@@ -188,7 +189,12 @@ public class ebayAuction2 extends SpecificAuction {
       parse.put("reserve_met", "false");
     }
 
-    parse.put("ending_at", parseEndDate());
+    String endDate = parseEndDate();
+    if(endDate == null) {
+      endDate = getAlternateEndDate();
+    }
+    System.out.println("Date format: " + endDate);
+    parse.put("ending_at", endDate);
 
     parse.put("identifier", parseIdentifier());
 
@@ -210,6 +216,23 @@ public class ebayAuction2 extends SpecificAuction {
     // if(!maxBid.isNull()) ae.setBid(maxBid)
 
     return parse;
+  }
+
+  private String getAlternateEndDate() {
+    String endDate = null;
+    String time = null;
+    Element timeMs = mDocument2.select("span.timeMs").first();
+
+    if(timeMs != null) {
+      time = timeMs.attr("timems");
+      System.out.println("Alt time: " + time);
+    }
+    if(time != null) {
+      SimpleDateFormat df = new SimpleDateFormat(T.s("ebayServer.itemDateFormat"));
+      endDate = df.format(new Date(Long.parseLong(time)));
+    }
+
+    return endDate;
   }
 
   public boolean parseFixedPrice() {
