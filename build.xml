@@ -82,6 +82,10 @@
     <pathelement path="${lib.dir}/mysql-connector-java-5.1.7-bin.jar" />
   </path>
 
+  <taskdef name="bundleapp"
+           classname="com.oracle.appbundler.AppBundlerTask"
+           classpath="lib/appbundler-1.0ea-dq1.jar"/>
+
   <target name="init" description="Prepare for build">
     <tstamp/>
     <mkdir dir="${build.dir}" />
@@ -365,6 +369,50 @@
       <fileset dir="${lib.dir}" includes="l2fprod-common-fontchooser.jar" />
       <fileset dir="${lib.dir}" includes="mysql-connector-java-5.1.7-bin.jar" />
     </copy>
+  </target>
+
+  <target name="osx-bundle">
+    <bundleapp outputdirectory="dist" name="JBidwatcher" displayname="JBidwatcher" identifier="com.jbidwatcher.JBidwatcher" mainclassname="com.jbidwatcher.app.JBidWatch" icon="platform/jbidicon.icns" signature="JBid" shortversion="${VER}">
+      <classpath file="JBidwatcher.jar"/>
+      <classpath file="lib/*.jar"/>
+      <classpath file="platform/*.jar"/>
+      <classpath file="platform/*.jnilib"/>
+      <classpath file="platform/libsparkle_init.dylib"/>
+      <classpath file="lib"/>
+
+      <option value="-Xms128m"/>
+      <option value="-Xmx768m"/>
+      <option value="-Dapple.laf.useScreenMenuBar=true"/>
+      <option value="-Dapple.awt.graphics.useQuartz=true"/>
+      <option value="-Dapple.awt.showGrowBox=true"/>
+      <option value="-Dapple.awt.brushMetalLook=false"/>
+      <option value="-Dapple.awt.window.position.forceSafeCreation=true"/>
+      <option value="-Dapple.awt.window.position.forceSafeProgrammaticPositioning=true"/>
+      <option value="-Dapple.awt.window.position.forceSafeUserPositioning=true"/>
+    </bundleapp>
+
+    <!-- The Sparkle Framework must also be copied into the application package -->
+    <unzip src="${sparkle.dir}/Sparkle.framework.zip" dest="dist/JBidwatcher.app/Contents/Frameworks"/>
+    <!-- The Ant unzip task does not preserve symlinks, so we recreate them -->
+    <symlink link="dist/JBidwatcher.app/Contents/Frameworks/Sparkle.framework/Versions/Current" resource="./A"/>
+    <symlink link="dist/JBidwatcher.app/Contents/Frameworks/Sparkle.framework/Headers" resource="./Versions/Current/Headers"/>
+    <symlink link="dist/JBidwatcher.app/Contents/Frameworks/Sparkle.framework/Resources" resource="./Versions/Current/Resources"/>
+    <symlink link="dist/JBidwatcher.app/Contents/Frameworks/Sparkle.framework/Sparkle" resource="./Versions/Current/Sparkle"/>
+    <symlink link="dist/JBidwatcher.app/Contents/Frameworks/Sparkle.framework/Resources/fr_CA.lproj" resource="./fr.lproj"/>
+    <!-- Restore the file permissions to the Sparkle relaunch tool -->
+    <chmod file="dist/JBidwatcher.app/Contents/Frameworks/Sparkle.framework/Resources/relaunch" perm="ugo+rx"/>
+    <copy file="${sparkle.dir}/dsa_pub.pem" todir="dist/JBidwatcher.app/Contents/Resources/"/>
+
+    <copy todir="dist/JBidwatcher.app/Contents/Java">
+      <fileset dir="${main.dir}" includes="lib/jbidwatcher/**"/>
+    </copy>
+
+    <chmod file="dist/JBidwatcher.app/Contents/Java/libquaqua.jnilib" perm="755"/>
+    <chmod file="dist/JBidwatcher.app/Contents/Java/libquaqua64.jnilib" perm="755"/>
+    <chmod file="dist/JBidwatcher.app/Contents/Java/libNoNap.jnilib" perm="755"/>
+    <copy file="${packaging}/libsparkle_init.dylib" todir="dist/JBidwatcher.app/Contents/Java/"/>
+    <chmod file="dist/JBidwatcher.app/Contents/Java/libsparkle_init.dylib" perm="755"/>
+    <symlink link="dist/JBidwatcher.app/Contents/Java/libsparkle_init.jnilib" resource="libsparkle_init.dylib"/>
   </target>
 
   <target name="osx-app">
