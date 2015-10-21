@@ -380,6 +380,9 @@
       <classpath file="platform/libsparkle_init.dylib"/>
       <classpath file="lib"/>
 
+      <runtime dir="/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home"/>
+      <!--<runtime dir="${env.JAVA_HOME}"/>-->
+
       <option value="-Xms128m"/>
       <option value="-Xmx768m"/>
       <option value="-Dapple.laf.useScreenMenuBar=true"/>
