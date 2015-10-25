@@ -47,8 +47,6 @@ public class Sparkle {
    * @throws Exception - If anything goes wrong.
    */
   public void start() throws Exception {
-    initSparkle(System.getProperty("user.dir")
-        + "/../../Frameworks/Sparkle.framework",
-        updateAtStartup, checkInterval);
+    initSparkle(System.getProperty("java.library.path") + "/../Frameworks/Sparkle.framework", updateAtStartup, checkInterval);
   }
 }

@@ -84,7 +84,7 @@
 
   <taskdef name="bundleapp"
            classname="com.oracle.appbundler.AppBundlerTask"
-           classpath="lib/appbundler-1.0ea-dq1.jar"/>
+           classpath="lib/appbundler-1.0ea.jar"/>
 
   <target name="init" description="Prepare for build">
     <tstamp/>
@@ -372,7 +372,10 @@
   </target>
 
   <target name="osx-bundle">
-    <bundleapp outputdirectory="dist" name="JBidwatcher" displayname="JBidwatcher" identifier="com.jbidwatcher.JBidwatcher" mainclassname="com.jbidwatcher.app.JBidWatch" icon="platform/jbidicon.icns" signature="JBid" shortversion="${VER}">
+    <exec executable="/usr/libexec/java_home" outputproperty="JAVA_HOME"/>
+    <bundleapp outputdirectory="dist" name="JBidwatcher" displayname="JBidwatcher" identifier="com.jbidwatcher.JBidwatcher"
+               mainclassname="com.jbidwatcher.app.JBidWatch" icon="platform/jbidicon.icns" signature="JBid" shortversion="${VER}"
+               allowhttp="true" includejavaroot="true">
       <classpath file="JBidwatcher.jar"/>
       <classpath file="lib/*.jar"/>
       <classpath file="platform/*.jar"/>
@@ -380,8 +383,7 @@
       <classpath file="platform/libsparkle_init.dylib"/>
       <classpath file="lib"/>
 
-      <runtime dir="/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home"/>
-      <!--<runtime dir="${env.JAVA_HOME}"/>-->
+      <runtime dir="${JAVA_HOME}"/>
 
       <option value="-Xms128m"/>
       <option value="-Xmx768m"/>
@@ -392,7 +394,20 @@
       <option value="-Dapple.awt.window.position.forceSafeCreation=true"/>
       <option value="-Dapple.awt.window.position.forceSafeProgrammaticPositioning=true"/>
       <option value="-Dapple.awt.window.position.forceSafeUserPositioning=true"/>
+
+      <plistentry key="SUCheckAtStartup" value="YES"/>
+      <plistentry key="SUScheduledCheckInterval" value="86400"/>
+      <plistentry key="SUPublicDSAKeyFile" value="dsa_pub.pem"/>
+      <plistentry key="SUFeedURL" value="https://www.jbidwatcher.com/sparkle/updates.xml"/>
+      <plistentry key="SUShowReleaseNotes" value="YES"/>
+
+      <arch name="x86_64"/>
+      <arch name="i386"/>
     </bundleapp>
+
+    <delete verbose="true">
+      <fileset dir="dist" includes="**/*fx*"/>
+    </delete>
 
     <!-- The Sparkle Framework must also be copied into the application package -->
     <unzip src="${sparkle.dir}/Sparkle.framework.zip" dest="dist/JBidwatcher.app/Contents/Frameworks"/>
@@ -413,9 +428,8 @@
     <chmod file="dist/JBidwatcher.app/Contents/Java/libquaqua.jnilib" perm="755"/>
     <chmod file="dist/JBidwatcher.app/Contents/Java/libquaqua64.jnilib" perm="755"/>
     <chmod file="dist/JBidwatcher.app/Contents/Java/libNoNap.jnilib" perm="755"/>
-    <copy file="${packaging}/libsparkle_init.dylib" todir="dist/JBidwatcher.app/Contents/Java/"/>
-    <chmod file="dist/JBidwatcher.app/Contents/Java/libsparkle_init.dylib" perm="755"/>
-    <symlink link="dist/JBidwatcher.app/Contents/Java/libsparkle_init.jnilib" resource="libsparkle_init.dylib"/>
+    <copy file="${packaging}/libsparkle_init.dylib" tofile="dist/JBidwatcher.app/Contents/MacOS/libsparkle_init.jnilib"/>
+    <chmod file="dist/JBidwatcher.app/Contents/MacOS/libsparkle_init.jnilib" perm="755"/>
   </target>
 
   <target name="osx-app">
