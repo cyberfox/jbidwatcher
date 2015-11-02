@@ -163,7 +163,6 @@
       <fileset dir="${resource.dir}" includes="*.jpg"/>
       <fileset dir="${resource.dir}" includes="*.sql"/>
       <fileset dir="${resource.dir}" includes="display.cfg"/>
-      <fileset dir="${main.dir}" includes="platform/tray.dll"/>
       <fileset dir="${resource.dir}" includes="icons/**/*.gif" />
       <fileset dir="${resource.dir}" includes="icons/**/*.png" />
       <fileset dir="${resource.dir}" includes="audio/*.mp3" />

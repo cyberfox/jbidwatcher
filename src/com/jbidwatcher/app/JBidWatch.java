@@ -173,7 +173,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     String platform = makePlatformDirectory(JConfig.queryConfiguration("platform.path"));
     if(platform != null) {
       JConfig.setConfiguration("platform.path", platform);
-      if((Platform.isWindows() && Platform.extractAndLoadLibrary()) || Platform.supportsTray()) {
+      if(Platform.supportsTray()) {
         Platform.setTrayEnabled(true);
       }
     }
