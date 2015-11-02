@@ -6,10 +6,12 @@
   <errTitle>`appname` launch error</errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
+
   <priority>normal</priority>
   <downloadUrl>http://java.com/download</downloadUrl>
-  <supportUrl></supportUrl>
+  <supportUrl>http://www.jbidwatcher.com</supportUrl>
   <customProcName>false</customProcName>
+
   <stayAlive>false</stayAlive>
   <icon>/tmp/jbidwatcher.ico</icon>
   <singleInstance>
@@ -41,20 +43,21 @@
     <cp>%EXEDIR%/lib/txtmark.jar</cp>
   </classPath>
   <jre>
-    <path></path>
-    <minVersion>1.6.0</minVersion>
-    <maxVersion></maxVersion>
-    <dontUsePrivateJres>false</dontUsePrivateJres>
+    <path>jre8</path>
+    <minVersion>1.8.0</minVersion>
+    <bundledJreAsFallback>true</bundledJreAsFallback>
+    <jdkPreference>preferJre</jdkPreference>
+    <runtimeBits>64/32</runtimeBits>
     <initialHeapSize>0</initialHeapSize>
     <maxHeapSize>0</maxHeapSize>
     <opt>-Xmx512m</opt>
   </jre>
-<!--  <versionInfo>
-    <fileVersion>2.99.0.1</fileVersion>
+  <versionInfo>
+    <fileVersion>2.99.0.2</fileVersion>
     <txtFileVersion>`version`</txtFileVersion>
     <fileDescription>JBidwatcher monitors and bids on eBay auctions on your behalf.</fileDescription>
-    <productName>JBidwatcher</productName>
+    <productName>J`appname`</productName>
     <companyName>CyberFOX Software, Inc.</companyName>
-    <copyright>All rights reserved</copyright>
-  </versionInfo> -->
+    <copyright>Some rights reserved</copyright>
+  </versionInfo>
 </launch4jConfig>
