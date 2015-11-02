@@ -54,9 +54,13 @@
   </jre>
   <versionInfo>
     <fileVersion>2.99.0.2</fileVersion>
+    <productVersion>2.99.0.2</productVersion>
     <txtFileVersion>`version`</txtFileVersion>
+    <txtProductVersion>`version`</txtProductVersion>
+    <internalName>JBidwatcher</internalName>
+    <originalFilename>JBidwatcher.exe</originalFilename>
     <fileDescription>JBidwatcher monitors and bids on eBay auctions on your behalf.</fileDescription>
-    <productName>J`appname`</productName>
+    <productName>`appname`</productName>
     <companyName>CyberFOX Software, Inc.</companyName>
     <copyright>Some rights reserved</copyright>
   </versionInfo>

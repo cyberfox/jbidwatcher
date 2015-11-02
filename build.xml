@@ -29,6 +29,7 @@
   <property name="BINARYSCRIPTING" value="${app.name}-${VER}-script.jar" />
   <property name="OPT_BIN" value="${app.name}-${VER}_o.jar" />
   <property name="UNOPT_BIN" value="${app.name}-${VER}_u.jar" />
+  <property name="ZIPFILE" value="${app.name}-${VER}.zip" />
   <property name="TARFILE" value="${TARSRC}.tar.bz2" />
   <property name="APPSCRIPTING" value="${app.name}-${VER}-script.app.tar.gz" />
   <property name="APPFILE" value="${app.name}-${VER}.app.tar.gz" />
@@ -228,7 +229,6 @@
     </exec>
 
     <copy file="${INTERMEDIATE}" todir="/tmp"/>
-    <copy file="${BINARY}" todir="/tmp"/>
     <copy file="${packaging}/jbidwatcher.ico" todir="/tmp"/>
     <copy file="${packaging}/jbidwatcher-launch.xml" todir="/tmp">
       <filterchain>
@@ -247,6 +247,32 @@
     <delete file="/tmp/${BINARY}"/>
     <delete file="/tmp/jbidwatcher.ico"/>
     <copy file="/tmp/${EXEFILE}" todir="."/>
+
+    <zip destfile="${ZIPFILE}">
+      <fileset dir="." includes="lib/annotations.jar"/>
+      <fileset dir="." includes="lib/aopalliance.jar"/>
+      <fileset dir="." includes="lib/apple.jar"/>
+      <fileset dir="." includes="lib/derby.jar"/>
+      <fileset dir="." includes="lib/guice-3.0.jar"/>
+      <fileset dir="." includes="lib/guice-assistedinject-3.0.jar"/>
+      <fileset dir="." includes="lib/javax.inject.jar"/>
+      <fileset dir="." includes="lib/jbidwatcher/**"/>
+      <fileset dir="." includes="lib/jDeskMetrics.jar"/>
+      <fileset dir="." includes="lib/jdesktop.jar"/>
+      <fileset dir="." includes="lib/jl1.0.1.jar"/>
+      <fileset dir="." includes="lib/jline-2.11.jar"/>
+      <fileset dir="." includes="lib/jruby-incomplete.jar"/>
+      <fileset dir="." includes="lib/json_simple-1.1.jar"/>
+      <fileset dir="." includes="lib/jsoup-1.7.1.jar"/>
+      <fileset dir="." includes="lib/jsr305-1.3.9.jar"/>
+      <fileset dir="." includes="lib/l2fprod-common-fontchooser.jar"/>
+      <fileset dir="." includes="lib/mahalo.jar"/>
+      <fileset dir="." includes="lib/mysql-connector-java-5.1.7-bin.jar"/>
+      <fileset dir="." includes="lib/readline.jar"/>
+      <fileset dir="." includes="lib/txtmark.jar"/>
+      <fileset dir="." includes="${EXEFILE}"/>
+      <fileset dir="platform" includes="jbidwatcher.ico"/>
+    </zip>
   </target>
 
   <target name="osx" depends="jar">
@@ -537,9 +563,7 @@
 	<include name="${BINARY}" />
 	<include name="${APPFILE}" />
 	<include name="${EXEFILE}" />
-	<include name="${BINARYSCRIPTING}" />
-	<include name="${APPSCRIPTING}" />
-	<include name="${EXESCRIPTING}" />
+        <include name="${ZIPFILE}" />
 	<include name="${TARFILE}" />
 	<include name="${DMGFILE}" />
       </fileset>
