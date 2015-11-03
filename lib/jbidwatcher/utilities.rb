@@ -32,7 +32,15 @@ else
   $:<< JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gixen').to_s
 end
 
-ENV['GEM_PATH']="#{gems}!/jruby/1.9"
+# This is an awful hack, but if I don't do this, Windows doesn't load active_support. :(
+class File
+  def self.realpath(x)
+    x
+  end
+end
+
+require gems
+ENV['GEM_PATH']="#{gems}!/"
 Gem.paths = ENV
 require 'active_support'
 require 'active_support/core_ext'
