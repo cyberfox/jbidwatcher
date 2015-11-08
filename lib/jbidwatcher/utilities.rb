@@ -16,13 +16,11 @@ java_import com.jbidwatcher.ui.commands.MenuCommand
 puts "Loading JBidwatcher Ruby Utilities"
 
 require 'rubygems'
-gems = nil
-
 dirname = File.dirname(__FILE__)
-if File.exists?(File.join(dirname, 'gems.jar')) || File.exists?('lib/jbidwatcher/gems.jar')
-  gems = File.expand_path(File.join(dirname, 'gems.jar'))
+gems = if File.exists?(File.join(dirname, 'gems.jar')) || File.exists?('lib/jbidwatcher/gems.jar')
+  File.expand_path(File.join(dirname, 'gems.jar'))
 else
-  gems = JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gems.jar').to_s
+  JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gems.jar').to_s
 end
 
 if File.exists?(File.join(dirname, "gixen")) || File.exists?('lib/jbidwatcher/gixen')
@@ -221,7 +219,7 @@ class JBidwatcherUtilities
     result = JSON.parse(body)
     response = result['ViewItemLiteResponse']
 
-    if response['Error'].empty?
+    if response['Error'].blank?
       item = response['Item'].first
       end_date = item['EndDate']
 
@@ -275,7 +273,7 @@ if driver.include? 'mysql'
   db = JConfig.query_configuration("db.mysql.database")
   user = JConfig.query_configuration('db.user')
   pass = JConfig.query_configuration('db.pass')
-  protocol = JConfig.query_configuration('db.protocol') # jdbc:mysql://cyberfox.com:3306/
+  protocol = JConfig.query_configuration('db.protocol') # e.g. jdbc:mysql://cyberfox.com:3306/
   ActiveRecord::Base.establish_connection(adapter: 'jdbc', driver: 'com.mysql.jdbc.Driver', url: "#{protocol}#{db}", username: user, password: pass)
 else
   ActiveRecord::Base.establish_connection(adapter: 'jdbcderby', database: 'jbdb', username: 'user1', password: 'user1')

@@ -9,7 +9,7 @@
 require 'parser'
 
 class NilClass; def to_nil; end end
-class String; def to_nil; self if !empty? end end
+class String; def to_nil; self unless empty? end end
 class Array; def to_nil; self unless empty? end end
 
 class Ebay
