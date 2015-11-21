@@ -216,18 +216,18 @@ public class ebayLoginManager implements LoginManager {
       //  We don't know how far we might have gotten...  The cookies
       //  may be valid, even!  We can't assume it, though.
       MQFactory.getConcrete("login").enqueue("FAILED " + e.getMessage());
-      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN " + e.getMessage());
+      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID_LOGIN " + e.getMessage());
       JConfig.log().handleException("Couldn't sign in!", e);
       cj = null;
     } catch(CaptchaException ce) {
       MQFactory.getConcrete("login").enqueue("CAPTCHA");
-      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's increased security monitoring has been triggered, JBidwatcher cannot log in for a while.");
+      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID_LOGIN eBay's increased security monitoring has been triggered, JBidwatcher cannot log in for a while.");
       notifySecurityIssue();
       JConfig.log().handleException("Couldn't sign in, captcha interference!", ce);
       cj = null;
     } catch(CookieJar.CookieRedirectException cre) {
       MQFactory.getConcrete("login").enqueue("CAPTCHA");
-      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN The login page is redirecting to itself infinitely; this probably means eBay's increased security monitoring has been triggered and JBidwatcher cannot log in for a while.");
+      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID_LOGIN The login page is redirecting to itself infinitely; this probably means eBay's increased security monitoring has been triggered and JBidwatcher cannot log in for a while.");
       notifySecurityIssue();
       JConfig.log().handleException("Couldn't sign in, endless redirection; probably captcha interference!", cre);
     }
@@ -263,7 +263,7 @@ public class ebayLoginManager implements LoginManager {
 
       if (adult) {
         if (getAdultRedirector(uc_signin, cj)) {
-          if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
+          if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID_LOGIN");
         } else {
           cj = retryLoginWithoutAdult(cj, username, password);
         }
@@ -291,7 +291,7 @@ public class ebayLoginManager implements LoginManager {
             JConfig.log().logFile("Security checks out, but no My eBay form link on final page...", confirm);
             MQFactory.getConcrete("login").enqueue("NEUTRAL");
           }
-          if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID LOGIN");
+          if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID_LOGIN");
         }
       }
     }
@@ -349,7 +349,7 @@ public class ebayLoginManager implements LoginManager {
        doc.grep(T.s("enter.a.verification.code.to.continue")) != null ||
        doc.grep(T.s("please.enter.the.verification.code")) != null) {
       JConfig.log().logMessage("eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
-      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
+      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID_LOGIN eBay's security monitoring has been triggered, and temporarily requires human intervention to log in.");
       notifySecurityIssue();
       mBadPassword = getPassword();
       mBadUsername = getUserId();
@@ -359,7 +359,7 @@ public class ebayLoginManager implements LoginManager {
     if (doc.grep(T.s("your.sign.in.information.is.not.valid")) != null ||
         doc.grep(T.s("your.user.id.or.password.is.incorrect")) != null) {
       JConfig.log().logMessage("Your sign in information is not correct.");
-      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID LOGIN Your sign in information is not correct.  Fix it in the eBay tab in the Configuration Manager.");
+      if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID_LOGIN Your sign in information is not correct.  Fix it in the eBay tab in the Configuration Manager.");
       notifyBadSignin();
       mBadPassword = getPassword();
       mBadUsername = getUserId();

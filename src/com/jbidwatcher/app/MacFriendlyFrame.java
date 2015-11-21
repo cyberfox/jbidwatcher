@@ -1,6 +1,7 @@
 package com.jbidwatcher.app;
 
 import com.jbidwatcher.auction.EntryCorral;
+import com.jbidwatcher.util.UIConstants;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.Constants;
@@ -78,7 +79,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
 
       public void windowClosing(WindowEvent we) {
         super.windowClosing(we);
-        MQFactory.getConcrete("Swing").enqueue(UIBackbone.QUIT_MSG);
+        MQFactory.getConcrete("Swing").enqueue(UIConstants.QUIT_MSG);
       }
     });
   }
@@ -139,7 +140,7 @@ class MacFriendlyFrame extends JFrame implements com.apple.mrj.MRJQuitHandler, c
   public void handleQuit() {
     if (!(JConfig.queryConfiguration("prompt.snipe_quit", "false").equals("true")) &&
         (EntryCorral.snipedCount() != 0)) {
-      MQFactory.getConcrete("Swing").enqueue(UIBackbone.QUIT_MSG);
+      MQFactory.getConcrete("Swing").enqueue(UIConstants.QUIT_MSG);
       //  Please wait, we'll be ready to quit shortly.
       throw new IllegalStateException("Ne changez pas mains, il viendra bient?t.");
     } else {

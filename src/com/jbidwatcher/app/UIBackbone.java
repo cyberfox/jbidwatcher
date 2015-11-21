@@ -27,8 +27,9 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.*;
 
+import static com.jbidwatcher.util.UIConstants.*;
+
 /**
- * Created by IntelliJ IDEA.
  * User: Morgan
  * Date: Mar 9, 2008
  * Time: 1:23:58 AM
@@ -51,13 +52,6 @@ public final class UIBackbone implements MessageQueue.Listener {
   private final PauseManager pauseManager;
   private final JBidToolBar toolBar;
 
-  private static final ImageIcon redStatus = new ImageIcon(JConfig.getResource("/icons/status_red.png"));
-  private static final ImageIcon redStatus16 = new ImageIcon(JConfig.getResource("/icons/status_red_16.png"));
-  private static final ImageIcon greenStatus = new ImageIcon(JConfig.getResource("/icons/status_green.png"));
-  private static final ImageIcon greenStatus16 = new ImageIcon(JConfig.getResource("/icons/status_green_16.png"));
-  private static final ImageIcon yellowStatus = new ImageIcon(JConfig.getResource("/icons/status_yellow.png"));
-  private static final ImageIcon yellowStatus16 = new ImageIcon(JConfig.getResource("/icons/status_yellow_16.png"));
-
   @Inject
   public UIBackbone(AuctionServerManager serverManager, AuctionsManager auctionsManager, SearchManager searcher, JTabManager tabs,
                     EntryCorral entryCorral, PauseManager pauseManager, JBidToolBar toolBar) {
@@ -70,6 +64,11 @@ public final class UIBackbone implements MessageQueue.Listener {
     this.toolBar = toolBar;
 
     TimerHandler clockTimer = new TimerHandler(new TimerHandler.WakeupProcess() {
+      /**
+       * Check and update the clock every second; also handles recognition of sleep-based slippage of time.
+       *
+       * @return True always.
+       */
       public boolean check() {
         checkClock();
         return true;
@@ -82,27 +81,155 @@ public final class UIBackbone implements MessageQueue.Listener {
     MQFactory.getConcrete("Swing").registerListener(this);
   }
 
-  private void logActivity(String action) {
-    MQFactory.getConcrete("activity").enqueue(action);
-  }
-
   private boolean _linkUp = true;
 
   /**
-   * @param linkIsUp Is the connection to the auction server up or down?
    * @brief Function to let any class tell us that the link is down or
    * up again.
+   *
+   * @param linkIsUp Is the connection to the auction server up or down?
    */
   public void setLinkUp(boolean linkIsUp) {
     _linkUp = linkIsUp;
   }
 
   /**
-   * @return - true if the connection with the auction server appears to be working, false otherwise.
    * @brief Function to identify if the link is up or down.
+   *
+   * @return - true if the connection with the auction server appears to be working, false otherwise.
    */
   public boolean getLinkUp() {
     return _linkUp;
+  }
+
+  /**
+   * Handle messages to tell the UI to do something.
+   * <br>
+   * <br>
+   * This is the sole place that UI updates should be done, and all
+   * requests to do UI activities should be sent via the MessageQueue
+   * for "Swing".  This ensures that they are done on the Swing UI
+   * update thread, instead of in random threads throughout the
+   * program.  Since Swing is single-threaded, this is necessary.
+   * <br>
+   * <br>
+   * Anything else is presumed to be a status message, to be displayed
+   * in the status bar at the bottom of the screen.
+   * <br>
+   * <br>
+   * The messages supported (suffixed by _MSG) are partially documented in
+   * {@link com.jbidwatcher.util.UIConstants}
+   *
+   * @param deQ A string containing a command to be processed by the UI.
+   */
+  public void messageAction(Object deQ) {
+    String[] cmdMessage = ((String) deQ).split(" ", 2);
+    switch(cmdMessage[0]) {
+      case QUIT_MSG:
+        logActivity("Shutting down.");
+        mFrame.shutdown();
+        break;
+      case HIDE_MSG:
+        hideUI();
+        break;
+      case RESTORE_MSG:
+        showUI();
+        break;
+      case VISIBILITY_MSG:
+        toggleVisibility();
+        break;
+      case SNIPE_ALTERED_MSG:
+        alterSnipeStatus();
+        break;
+      case NEWVERSION_MSG:
+        logActivity("New version found!");
+        announceNewVersion();
+        break;
+      case SMALL_USERINFO:
+        mSmall = !mSmall;
+        break;
+      case START_UPDATING:
+        startUpdating();
+        break;
+      case VALID_LOGIN_MSG:
+        handleValidLogin();
+        break;
+      case NO_NEWVERSION_MSG:
+        JOptionPane.showMessageDialog(null, "No new version available yet.\nKeep checking back!", "No new version", JOptionPane.PLAIN_MESSAGE);
+        break;
+      case BAD_NEWVERSION_MSG:
+        JOptionPane.showMessageDialog(null, "Failed to check for a new version\nProbably a temporary network issue; try again in a little while.",
+            "Version check failed", JOptionPane.PLAIN_MESSAGE);
+        break;
+      case TOOLBAR_MSG:
+        toolBar.togglePanel();
+        break;
+      case HEADER_MSG:
+        String headerMsg = cmdMessage[1];
+        handleHeader(headerMsg);
+        break;
+      case LOGIN_STATUS_MSG:
+        handleLoginStatus(cmdMessage[1]);
+        break;
+      case LINK_MSG:
+        String linkMsg = cmdMessage[1];
+        handleLinkStatus(linkMsg);
+        break;
+      case DEVICE_REGISTRATION:
+        String code = cmdMessage[1];
+        JOptionPane.showMessageDialog(null, "Enter the following code on your device: " + code, "Set up Synchronization", JOptionPane.PLAIN_MESSAGE);
+        break;
+      case ALERT_MSG:
+        String alertMsg = cmdMessage[1];
+        logActivity("Alert: " + alertMsg);
+        if (!duplicateDialog(alertMsg)) {
+          JOptionPane.showMessageDialog(null, alertMsg, "Alert", JOptionPane.PLAIN_MESSAGE);
+        }
+        break;
+      case NOACCOUNT_MSG:
+        String noAcctMsg = cmdMessage[1];
+        logActivity("Alert: " + noAcctMsg);
+        JOptionPane.showMessageDialog(null, noAcctMsg, "No auction account", JOptionPane.PLAIN_MESSAGE);
+        break;
+      case NOTIFY_MSG:
+        String notifyMsg = cmdMessage[1];
+        logActivity("Notify: " + notifyMsg);
+        handleNotify(notifyMsg);
+        break;
+      case IGNORABLE_MSG:
+        String configstr = cmdMessage[1];
+        handleIgnorable(configstr);
+        break;
+      case ERROR_MSG:
+        String errorMsg = cmdMessage[1];
+        logActivity("Error: " + errorMsg);
+        JOptionPane.showMessageDialog(null, errorMsg, "An error occurred", JOptionPane.PLAIN_MESSAGE);
+        break;
+      case INVALID_LOGIN_MSG:
+        String rest = cmdMessage[1];
+        handleInvalidLogin(rest);
+        break;
+      case PRICE:
+        if (mFrame != null) {
+          mFrame.setPrice(cmdMessage[1]);
+        }
+        break;
+      default:
+        String msg = (String) deQ;
+
+        logActivity(msg);
+        setStatus(msg);
+        break;
+    }
+  }
+
+  /**
+   * Set the primary UI frame.
+   *
+   * @param frame The window (JFrame) that we are doing our primary display and UI for.
+   */
+  public void setMainFrame(MacFriendlyFrame frame) {
+    mFrame = frame;
   }
 
   /**
@@ -129,120 +256,8 @@ public final class UIBackbone implements MessageQueue.Listener {
     }
   }
 
-  private final static String HEADER_MSG = "HEADER ";
-  private final static String SNIPE_ALTERED_MSG = "SNIPECHANGED";
-  final static String QUIT_MSG = "QUIT";
-  private final static String LINK_MSG = "LINK ";
-  private final static String ERROR_MSG = "ERROR ";
-  private final static String VISIBILITY_MSG = "VISIBILITY";
-  private final static String NEWVERSION_MSG = "NEWVERSION";
-  private final static String NO_NEWVERSION_MSG = "NO_NEWVERSION";
-  private final static String BAD_NEWVERSION_MSG = "BAD_NEWVERSION";
-  private final static String ALERT_MSG = "ALERT ";
-  private final static String NOTIFY_MSG = "NOTIFY ";
-  private final static String HIDE_MSG = "HIDE";
-  private final static String RESTORE_MSG = "RESTORE";
-  private final static String IGNORABLE_MSG = "IGNORE ";
-  private final static String INVALID_LOGIN_MSG = "INVALID LOGIN";
-  private final static String VALID_LOGIN_MSG = "VALID LOGIN";
-  private final static String START_UPDATING = "ALLOW_UPDATES";
-  private static final String NOACCOUNT_MSG = "NOACCOUNT ";
-  private static final String PRICE = "PRICE ";
-  private static final String SMALL_USERINFO = "TOGGLE_SMALL";
-  private static final String DEVICE_REGISTRATION = "SECURITY ";
-
-  /**
-   * @brief Handle messages to tell the UI to do something.
-   * <p/>
-   * This is the sole place that UI updates should be done, and all
-   * requests to do UI activities should be sent via the MessageQueue
-   * for "Swing".  This ensures that they are done on the Swing UI
-   * update thread, instead of in random threads throughout the
-   * program.  Since Swing is single-threaded, this is necessary.
-   * <p/>
-   * Messages supported (suffixed by _MSG) are:
-   * HEADER     (Draw text on the header (site time))
-   * LINK       (Identify whether the link is up/down)
-   * QUIT       (Shut down the program.)
-   * ERROR      (Show an error message.)
-   * NEWVERSION (Show an announcement about the new version!)
-   * NO_NEWVERSION (Note that no new version is ready.)
-   * <p/>
-   * anything else is presumed to be a status message, to be displayed
-   * in the status bar at the bottom of the screen.
-   */
-  public void messageAction(Object deQ) {
-    String msg = (String) deQ;
-    if (msg.startsWith(HEADER_MSG)) {
-      String headerMsg = msg.substring(HEADER_MSG.length());
-      handleHeader(headerMsg);
-    } else if (msg.startsWith("LOGINSTATUS ")) {
-      handleLoginStatus(msg);
-    } else if (msg.startsWith(LINK_MSG)) {
-      String linkMsg = msg.substring(LINK_MSG.length());
-      handleLinkStatus(linkMsg);
-    } else if (msg.equals(QUIT_MSG)) {
-      logActivity("Shutting down.");
-      mFrame.shutdown();
-    } else if (msg.equals(VISIBILITY_MSG)) {
-      toggleVisibility();
-    } else if (msg.equals(HIDE_MSG)) {
-      hideUI();
-    } else if (msg.equals(RESTORE_MSG)) {
-      showUI();
-    } else if (msg.equals(SNIPE_ALTERED_MSG)) {
-      alterSnipeStatus();
-    } else if (msg.startsWith(DEVICE_REGISTRATION)) {
-      String code = msg.substring(DEVICE_REGISTRATION.length());
-      JOptionPane.showMessageDialog(null, "Enter the following code on your device: " + code, "Set up Synchronization", JOptionPane.PLAIN_MESSAGE);
-    } else if (msg.startsWith(ALERT_MSG)) {
-      String alertMsg = msg.substring(ALERT_MSG.length());
-      logActivity("Alert: " + alertMsg);
-      if(!duplicateDialog(alertMsg)) {
-        JOptionPane.showMessageDialog(null, alertMsg, "Alert", JOptionPane.PLAIN_MESSAGE);
-      }
-    } else if (msg.startsWith(NOACCOUNT_MSG)) {
-      String noAcctMsg = msg.substring(NOACCOUNT_MSG.length());
-      logActivity("Alert: " + noAcctMsg);
-      JOptionPane.showMessageDialog(null, noAcctMsg, "No auction account", JOptionPane.PLAIN_MESSAGE);
-    } else if (msg.startsWith(NOTIFY_MSG)) {
-      String notifyMsg = msg.substring(NOTIFY_MSG.length());
-      logActivity("Notify: " + notifyMsg);
-      handleNotify(msg, notifyMsg);
-    } else if (msg.startsWith(IGNORABLE_MSG)) {
-      String configstr = msg.substring(IGNORABLE_MSG.length());
-      handleIgnorable(configstr);
-    } else if (msg.startsWith(ERROR_MSG)) {
-      String errorMsg = msg.substring(ERROR_MSG.length());
-      logActivity("Error: " + errorMsg);
-      JOptionPane.showMessageDialog(null, errorMsg, "An error occurred", JOptionPane.PLAIN_MESSAGE);
-    } else if (msg.equals(NEWVERSION_MSG)) {
-      logActivity("New version found!");
-      announceNewVersion();
-    } else if (msg.startsWith(INVALID_LOGIN_MSG)) {
-      String rest = msg.substring(INVALID_LOGIN_MSG.length());
-      handleInvalidLogin(rest);
-    } else if (msg.equals(SMALL_USERINFO)) {
-      mSmall = !mSmall;
-    } else if (msg.equals(START_UPDATING)) {
-      startUpdating();
-    } else if (msg.equals(VALID_LOGIN_MSG)) {
-      handleValidLogin();
-    } else if (msg.equals(NO_NEWVERSION_MSG)) {
-      JOptionPane.showMessageDialog(null, "No new version available yet.\nKeep checking back!", "No new version", JOptionPane.PLAIN_MESSAGE);
-    } else if (msg.equals(BAD_NEWVERSION_MSG)) {
-      JOptionPane.showMessageDialog(null, "Failed to check for a new version\nProbably a temporary network issue; try again in a little while.",
-          "Version check failed", JOptionPane.PLAIN_MESSAGE);
-    } else if (msg.equals("TOOLBAR")) {
-      toolBar.togglePanel();
-    } else if (msg.startsWith(PRICE)) {
-      if(mFrame != null) {
-        mFrame.setPrice(msg.substring(PRICE.length()));
-      }
-    } else {
-      logActivity(msg);
-      setStatus(msg);
-    }
+  private void logActivity(String action) {
+    MQFactory.getConcrete("activity").enqueue(action);
   }
 
   private boolean duplicateDialog(String alertMsg) {
@@ -264,8 +279,7 @@ public final class UIBackbone implements MessageQueue.Listener {
     return false;
   }
 
-  private void handleLoginStatus(String msg) {
-    String status = msg.substring("LOGINSTATUS ".length());
+  private void handleLoginStatus(String status) {
     if(status.startsWith("FAILED")) {
       toolBar.setToolTipText("Login failed.");
       toolBar.setTextIcon(redStatus, redStatus16);
@@ -337,9 +351,9 @@ public final class UIBackbone implements MessageQueue.Listener {
     oui.promptWithCheckbox(null, realMsg, "Alert", configstr, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
   }
 
-  private void handleNotify(String msg, String notifyMsg) {
+  private void handleNotify(String notifyMsg) {
     if (Platform.isTrayEnabled()) {
-      MQFactory.getConcrete("tray").enqueue(msg);
+      MQFactory.getConcrete("tray").enqueue(NOTIFY_MSG + " " + notifyMsg);
     } else {
       MQFactory.getConcrete("Swing").enqueue(notifyMsg);
     }
@@ -417,7 +431,7 @@ public final class UIBackbone implements MessageQueue.Listener {
    * decide what to do about it.
    */
   private static void announceNewVersion() {
-    List<String> buttons = new ArrayList<String>();
+    List<String> buttons = new ArrayList<>();
     buttons.add("Download");
     buttons.add("Ignore");
 
@@ -441,6 +455,11 @@ public final class UIBackbone implements MessageQueue.Listener {
     MyActionListener mal = new MyActionListener() {
       private final String go_to = ue.getURL();
 
+      /**
+       * Handle the user's actions, in the dialog.
+       *
+       * @param listen_ae What the user did (clicked on) in the dialog.
+       */
       public void actionPerformed(ActionEvent listen_ae) {
         String actionString = listen_ae.getActionCommand();
         if (actionString.equals("Download")) {
@@ -457,13 +476,13 @@ public final class UIBackbone implements MessageQueue.Listener {
     mal.setFrame(newFrame);
   }
 
-  static long lastTime;
+  private static long lastTime;
 
   /**
    * @brief Show the time once a second, in strikeout if the link to
    * the default auction server is down.
    */
-  void checkClock() {
+  private void checkClock() {
     long now = System.currentTimeMillis();
     if (lastTime != 0) {
       if ((lastTime + Constants.ONE_MINUTE) < now) {
@@ -478,7 +497,7 @@ public final class UIBackbone implements MessageQueue.Listener {
     }
 
     if (!_userValid) defaultServerTime = "Not logged in...";
-    String headerLine = _linkUp ? defaultServerTime : "<strike>" + defaultServerTime + "</strike>";
+    String headerLine = getLinkUp() ? defaultServerTime : "<strike>" + defaultServerTime + "</strike>";
     if(mSmall) headerLine = "<small>" + headerLine + "</small>";
     headerLine = "<html><body>" + headerLine + "</body></html>";
 
@@ -515,9 +534,5 @@ public final class UIBackbone implements MessageQueue.Listener {
     AuctionQObject updateEvent = new AuctionQObject(AuctionQObject.MENU_CMD, AuctionServer.UPDATE_LOGIN_COOKIE, null);
 
     SuperQueue.getInstance().getQueue().add(updateEvent, mainServer.getFriendlyName(), wakeUp);
-  }
-
-  public void setMainFrame(MacFriendlyFrame frame) {
-    mFrame = frame;
   }
 }
