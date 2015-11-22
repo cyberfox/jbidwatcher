@@ -60,6 +60,10 @@ class AuctionSortable {
   /** Key methods **/
   public String getId() { return entry.getIdentifier(); }
   public Currency getCurrentBid() {
+    if(entry.getDefaultCurrency().getCurrencyType() == Currency.US_DOLLAR) {
+      return entry.getCurrentPrice();
+    }
+
     Currency rval = entry.getUSCurBid();
     if(rval.getValue() == 0.0 && rval.getCurrencyType() == Currency.US_DOLLAR) {
       return entry.getCurrentUSPrice();

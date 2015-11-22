@@ -17,12 +17,15 @@ import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
 import com.jbidwatcher.ui.table.AuctionTable;
 import com.jbidwatcher.util.queue.PlainMessageQueue;
+import sun.jvm.hotspot.ui.table.SortableTableModel;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -45,7 +48,7 @@ public class AuctionsUIModel {
   private JPanel mPanel;
 
   private final myTableCellRenderer _myRenderer;
-  private TableModel model;
+  private auctionTableModel model;
   private final TableRowSorter<TableModel> sorter;
 
   /**
@@ -80,7 +83,8 @@ public class AuctionsUIModel {
     // provide sufficient vertical height in the rows for micro-thumbnails list view
     adjustRowHeight();
 
-    sorter = new TableRowSorter<TableModel>(_table.getModel());
+    AbstractTableModel sortedModel = new DelegatedTableModel(model);
+    sorter = new TableRowSorter<TableModel>(sortedModel);
     _table.setRowSorter(sorter);
     _table.addMouseListener(tableContextMenu);
     if(Platform.isMac() || JConfig.queryConfiguration("ui.useCornerButton", "true").equals("true")) {
@@ -487,5 +491,40 @@ public class AuctionsUIModel {
 
   public void redrawAll() {
     _table.tableChanged(new TableModelEvent(model));
+  }
+
+  private class DelegatedTableModel extends AbstractTableModel {
+    private final auctionTableModel delegate;
+
+    public DelegatedTableModel(auctionTableModel model) {
+      delegate = model;
+    }
+
+    @Override
+    public int getRowCount() {return delegate.getRowCount();}
+
+    @Override
+    public int getColumnCount() {return delegate.getColumnCount();}
+
+    @Override
+    public String getColumnName(int columnIndex) {return delegate.getColumnName(columnIndex);}
+
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {return delegate.getSortByColumnClass(columnIndex);}
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {return delegate.isCellEditable(rowIndex, columnIndex);}
+
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex) {return delegate.getSortByValueAt(rowIndex, columnIndex);}
+
+    @Override
+    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {delegate.setValueAt(aValue, rowIndex, columnIndex);}
+
+    @Override
+    public void addTableModelListener(TableModelListener l) {delegate.addTableModelListener(l);}
+
+    @Override
+    public void removeTableModelListener(TableModelListener l) {delegate.removeTableModelListener(l);}
   }
 }

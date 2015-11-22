@@ -12,6 +12,7 @@ import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.Currency;
 import com.jbidwatcher.util.IconFactory;
 import com.jbidwatcher.util.xml.XMLElement;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -22,6 +23,7 @@ import java.util.*;
 public class auctionTableModel extends AbstractTableModel
 {
   private static final String neverBid = "--";
+  private static final AuctionEntry nullEntry = new NullEntry();
   private final MultiSnipeManager multiManager;
   private AuctionList dispList;
   private Date futureForever = new Date(Long.MAX_VALUE);
@@ -43,7 +45,7 @@ public class auctionTableModel extends AbstractTableModel
   }
 
   public synchronized int findRow(Object o) {
-    List<Object> cache = new ArrayList<Object>();
+    List<Object> cache = new ArrayList<>();
     for(int i=0; i<getRowCount(); i++) {
       Object curStep = getValueAt(i, -1);
       if(curStep == o) return i;
@@ -90,12 +92,13 @@ public class auctionTableModel extends AbstractTableModel
   //  private final static ImageIcon boughtIcon = new ImageIcon(JConfig.getResource("/icons/blue_check_ball.gif"));
   //  private final static ImageIcon soldIcon = new ImageIcon(JConfig.getResource("/icons/green_check_ball.gif"));
 
+  @NotNull
   private Object getDummyValueAtColumn(int j) {
     switch(j) {
       // For the 'get the whole object', all we can safely do is
       // return null.
       case -1:
-        return null;
+        return nullEntry;
       case TableColumnController.CUR_BID:
       case TableColumnController.SNIPE_OR_MAX:
       case TableColumnController.SHIPPING_INSURANCE:
@@ -173,8 +176,22 @@ public class auctionTableModel extends AbstractTableModel
     return ret_icon;
   }
 
+  //  Except when we want to sort them...
+  public Class getSortByColumnClass(int i) {
+    //  Status is the only one where the type is very different than the dummy data.
+    if (i == TableColumnController.STATUS ||
+        i == TableColumnController.THUMBNAIL ||
+        i == TableColumnController.SELLER_FEEDBACK ||
+        i == TableColumnController.BIDCOUNT ||
+        i == TableColumnController.SELLER_POSITIVE_FEEDBACK) return Integer.class;
+
+    if (i == -1 || i > TableColumnController.MAX_FIXED_COLUMN) return String.class;
+
+    Object o = getDummyValueAtColumn(i);
+    return o.getClass();
+  }
+
   public Object getSortByValueAt(int i, int j) {
-    JConfig.log().logMessage("Trying to sort by value at (" + i + ", " + j + ")");
     try {
       AuctionEntry entry = dispList.get(i);
       AuctionSortable sortBy = new AuctionSortable(entry);
@@ -290,9 +307,9 @@ public class auctionTableModel extends AbstractTableModel
     }
   }
 
-  static Map<String, ImageIcon> iconCache = new HashMap<String, ImageIcon>();
+  static Map<String, ImageIcon> iconCache = new HashMap<>();
 
-  private static Map<String, Seller> sellers = new HashMap<String, Seller>();
+  private static Map<String, Seller> sellers = new HashMap<>();
   private Seller getSeller(String sellerId) {
     Seller seller;
     if(sellers.containsKey(sellerId)) {
