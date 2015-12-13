@@ -9,16 +9,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
-* Created by mschweers on 8/1/14.
-*/
+ * Holds the sortable methods for an AuctionEntry.  This is a featherweight; containing the current auction entry to be processed
+ * rather than creating a new one every time we need to do a lookup.  This also caches seller information, which may not be a great
+ * choice on long-running instances.
+ *
+ * Created by mschweers on 8/1/14.
+ */
 class AuctionSortable {
   private AuctionEntry entry;
 
   private static Map<String, Seller> sellers = new HashMap<String, Seller>();
 
-  private Integer Zero = 0;
+  public AuctionSortable() { }
 
-  public AuctionSortable(AuctionEntry ae) { entry = ae; }
+  public void setEntry(AuctionEntry ae) {
+    entry = ae;
+  }
 
   /** Utility methods **/
   private Seller getSeller(String sellerId) {
@@ -27,6 +33,7 @@ class AuctionSortable {
       seller = sellers.get(sellerId);
     } else {
       seller = Seller.findFirstBy("id", sellerId);
+      sellers.put(sellerId, seller);
     }
     return seller;
   }
@@ -139,7 +146,7 @@ class AuctionSortable {
       if(feedbackPercent != null) feedbackPercent = feedbackPercent.replace("%", "");
       return safeConvert(feedbackPercent);
     } catch(Exception e) {
-      return Zero;
+      return 0;
     }
   }
 

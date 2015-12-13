@@ -17,6 +17,7 @@ import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
 import com.jbidwatcher.ui.table.AuctionTable;
 import com.jbidwatcher.util.queue.PlainMessageQueue;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -168,10 +169,6 @@ public class AuctionsUIModel {
     mPanel.add(statusPanel, BorderLayout.NORTH);
   }
 
-  public JPanel getPanel() {
-    return mPanel;
-  }
-
   private void addSumMonitor(JTable table) {
     table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent event) {
@@ -209,24 +206,18 @@ public class AuctionsUIModel {
     return checkEntry.bestValue();
   }
 
-  public TableRowSorter<TableModel> getTableSorter() { return sorter; }
-  public JTable getTable() { return _table; }
-
   private static Currency addUSD(Currency inCurr, AuctionEntry ae) {
     boolean newCurrency = (inCurr == null || inCurr.isNull());
     Currency currentUSPrice = ae.getCurrentUSPrice();
     try {
       if(ae.getShippingWithInsurance().isNull()) {
-        if(newCurrency) {
-          return currentUSPrice;
-        }
-        return inCurr.add(currentUSPrice);
-      }
-
-      if(newCurrency) {
-        inCurr = currentUSPrice.add(Currency.convertToUSD(currentUSPrice, ae.getCurrentPrice(), ae.getShippingWithInsurance()));
+        inCurr = newCurrency ? currentUSPrice : inCurr.add(currentUSPrice);
       } else {
-        inCurr = inCurr.add(currentUSPrice.add(Currency.convertToUSD(currentUSPrice, ae.getCurrentPrice(), ae.getShippingWithInsurance())));
+        if (newCurrency) {
+          inCurr = currentUSPrice.add(Currency.convertToUSD(currentUSPrice, ae.getCurrentPrice(), ae.getShippingWithInsurance()));
+        } else {
+          inCurr = inCurr.add(currentUSPrice.add(Currency.convertToUSD(currentUSPrice, ae.getCurrentPrice(), ae.getShippingWithInsurance())));
+        }
       }
     } catch(Currency.CurrencyTypeException cte) {
       JConfig.log().handleException("This should have been cleaned up.", cte);
@@ -238,16 +229,13 @@ public class AuctionsUIModel {
     boolean newCurrency = inCurr == null || inCurr.isNull();
     try {
       if(ae.getShippingWithInsurance().isNull()) {
-        if(newCurrency) {
-          return getBestBidValue(ae);
-        }
-        return inCurr.add(getBestBidValue(ae));
-      }
-
-      if(newCurrency) {
-        inCurr = getBestBidValue(ae).add(ae.getShippingWithInsurance());
+        inCurr = newCurrency ? getBestBidValue(ae) : inCurr.add(getBestBidValue(ae));
       } else {
-        inCurr = inCurr.add(getBestBidValue(ae).add(ae.getShippingWithInsurance()));
+        if (newCurrency) {
+          inCurr = getBestBidValue(ae).add(ae.getShippingWithInsurance());
+        } else {
+          inCurr = inCurr.add(getBestBidValue(ae).add(ae.getShippingWithInsurance()));
+        }
       }
     } catch(Currency.CurrencyTypeException cte) {
       JConfig.log().handleException("This should have been cleaned up.", cte);
@@ -262,38 +250,32 @@ public class AuctionsUIModel {
     Currency withShipping = null;
     Currency withRealShipping = null;
     Currency realAccum = null;
+    String result = null;
 
     try {
       for (int aRowList : rowList) {
-        AuctionEntry ae2;
+        AuctionEntry entry;
         try {
-          ae2 = (AuctionEntry) _table.getValueAt(aRowList, -1);
-        } catch (ClassCastException cce) {
-          ae2 = null;
-        } catch (IndexOutOfBoundsException bounds) {
-          ae2 = null;
-          approx = true;
-        }
-        if (ae2 != null) {
-          Currency currentUSPrice = ae2.getCurrentUSPrice();
+          entry = (AuctionEntry) _table.getValueAt(aRowList, -1);
+          Currency currentUSPrice = entry.getCurrentUSPrice();
 
           if (accum == null) {
             accum = currentUSPrice;
-            realAccum = getBestBidValue(ae2);
-            withShipping = addUSD(withShipping, ae2);
-            withRealShipping = addNonUSD(withRealShipping, ae2);
+            realAccum = getBestBidValue(entry);
+            withShipping = addUSD(withShipping, entry);
+            withRealShipping = addNonUSD(withRealShipping, entry);
           } else {
             if (!currentUSPrice.isNull() && !accum.isNull() && currentUSPrice.getCurrencyType() != Currency.NONE) {
               accum = accum.add(currentUSPrice);
-              withShipping = addUSD(withShipping, ae2);
+              withShipping = addUSD(withShipping, entry);
 
               //  If we're still trying to do the internationalization
               //  thing, then try to keep track of the 'real' total.
               if (i18n) {
                 //noinspection NestedTryStatement
                 try {
-                  realAccum = realAccum.add(getBestBidValue(ae2));
-                  withRealShipping = addNonUSD(withRealShipping, ae2);
+                  realAccum = realAccum.add(getBestBidValue(entry));
+                  withRealShipping = addNonUSD(withRealShipping, entry);
                 } catch (Currency.CurrencyTypeException cte) {
                   //  We can't handle multiple non-USD currency types, so
                   //  we stop trying to do the internationalization thing.
@@ -302,56 +284,76 @@ public class AuctionsUIModel {
               }
             }
           }
-          if (ae2.getCurrentPrice().getCurrencyType() != Currency.US_DOLLAR) approx = true;
+
+          if (entry.getCurrentPrice().getCurrencyType() != Currency.US_DOLLAR) approx = true;
+        } catch (ClassCastException cce) {
+          // Ignored
+        } catch (IndexOutOfBoundsException bounds) {
+          approx = true;
         }
       }
+
+      result = formatSum(approx, i18n, accum, withShipping, withRealShipping, realAccum);
     } catch(Currency.CurrencyTypeException e) {
       JConfig.log().handleException("Sum currency exception!", e);
-      return null;
     } catch(ArrayIndexOutOfBoundsException ignored) {
       JConfig.log().logDebug("Selection of " + rowList.length + " items changed out from under 'sum'.");
-      return null;
     } catch(NullPointerException npe) {
       JConfig.log().logDebug("sum got NPE - this is common during delete operations");
-      return null;
     } catch(Exception e) {
       JConfig.log().handleException("Sum serious exception!", e);
-      return null;
     }
 
-    if(accum == null || accum.isNull()) {
-      return null;
-    }
+    return result;
+  }
 
-    String sAndH = "s/h";
-    if(!Locale.getDefault().equals(Locale.US)) sAndH = "p/p";
+  @Nullable
+  private String formatSum(boolean approx, boolean i18n, Currency accum, Currency withShipping, Currency withRealShipping, Currency realAccum) {
+    if (accum != null && !accum.isNull()) {
+      String sAndH = "s/h";
+      if (!Locale.getDefault().equals(Locale.US)) sAndH = "p/p";
 
-    //  If we managed to do the i18n thing through it all, and we have
-    //  some real values, return it.
-    if(i18n && realAccum != null) {
-      StringBuilder result = new StringBuilder(realAccum.toString());
-      if(withRealShipping != null && !realAccum.equals(withRealShipping)) {
-        result.append(" (").append(withRealShipping).append(" with ").append(sAndH).append(')');
+      StringBuilder result = new StringBuilder();
+      //  If we managed to do the i18n thing through it all, and we have
+      //  some real values, return it.
+      if (i18n && realAccum != null) {
+        result.append(realAccum.toString());
+        if (withRealShipping != null && !realAccum.equals(withRealShipping)) {
+          result.append(" (").append(withRealShipping).append(" with ").append(sAndH).append(')');
+        }
+      } else {
+        if (approx) {
+          if (withShipping != null && !accum.equals(withShipping)) {
+            result.append("About ");
+            formatAmountAndShipping(accum, withShipping, sAndH, result);
+          } else {
+            result.append("About ").append(accum.toString());
+          }
+        } else {
+          if (withShipping != null && !accum.equals(withShipping)) {
+            formatAmountAndShipping(accum, withShipping, sAndH, result);
+          } else {
+            result.append(accum.toString());
+          }
+        }
       }
       return result.toString();
     }
-
-    if(approx) {
-      String result;
-      if(withShipping != null && !accum.equals(withShipping)) {
-        result = "About " + accum.toString() + " (" + withShipping + " with " + sAndH + ')';
-      } else {
-        result = "About " + accum.toString();
-      }
-      return result;
-    }
-
-    if(withShipping != null && !accum.equals(withShipping)) {
-      return accum.toString() + " (" + withShipping + " with " + sAndH + ')';
-    }
-
-    return accum.toString();
+    return null;
   }
+
+  private void formatAmountAndShipping(Currency accum, Currency withShipping, String sAndH, StringBuilder result) {
+    result.append(accum.toString())
+          .append(" (")
+          .append(withShipping)
+          .append(" with ")
+          .append(sAndH)
+          .append(')');
+  }
+
+  public JPanel getPanel() { return mPanel; }
+  public TableRowSorter<TableModel> getTableSorter() { return sorter; }
+  public JTable getTable() { return _table; }
 
   /**
    * @brief Sets the background color for this tab to the passed in color.
@@ -380,7 +382,7 @@ public class AuctionsUIModel {
    * @param inEntry - The auction entry to delete.
    */
   public void delEntry(EntryInterface inEntry) {
-    ((auctionTableModel)model).delete(inEntry);
+    model.delete(inEntry);
   }
 
   /**
@@ -391,7 +393,7 @@ public class AuctionsUIModel {
    * @param aeNew - The new auction entry to add to the tables.
    */
   public void addEntry(EntryInterface aeNew) {
-    if (aeNew != null && ((auctionTableModel)model).insert(aeNew) == -1) {
+    if (aeNew != null && model.insert(aeNew) == -1) {
       JConfig.log().logMessage("JBidWatch: Bad auction entry, cannot add!");
     }
   }
