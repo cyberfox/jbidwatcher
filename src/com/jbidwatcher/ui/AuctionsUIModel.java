@@ -17,7 +17,6 @@ import com.jbidwatcher.ui.table.TableColumnController;
 import com.jbidwatcher.ui.table.CSVExporter;
 import com.jbidwatcher.ui.table.AuctionTable;
 import com.jbidwatcher.util.queue.PlainMessageQueue;
-import sun.jvm.hotspot.ui.table.SortableTableModel;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
