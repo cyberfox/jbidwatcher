@@ -398,9 +398,12 @@
 
   <target name="osx-bundle">
     <exec executable="/usr/libexec/java_home" outputproperty="JAVA_HOME"/>
+    <exec executable="git" outputproperty="GITVERSION" errorproperty="" failifexecutionfails="no">
+      <arg line="describe --tags --long"/>
+    </exec>
     <bundleapp outputdirectory="dist" name="JBidwatcher" displayname="JBidwatcher" identifier="com.jbidwatcher.JBidwatcher"
                mainclassname="com.jbidwatcher.app.JBidWatch" icon="platform/jbidicon.icns" signature="JBid" shortversion="${VER}"
-               allowhttp="true" includejavaroot="true">
+               allowhttp="true" includejavaroot="true" version="${GITVERSION}">
       <classpath file="JBidwatcher.jar"/>
       <classpath file="lib/*.jar"/>
       <classpath file="platform/*.jar"/>
