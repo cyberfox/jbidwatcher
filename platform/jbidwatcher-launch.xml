@@ -53,8 +53,8 @@
     <opt>-Xmx512m</opt>
   </jre>
   <versionInfo>
-    <fileVersion>2.99.0.2</fileVersion>
-    <productVersion>2.99.0.2</productVersion>
+    <fileVersion>2.99.0.4</fileVersion>
+    <productVersion>2.99.0.4</productVersion>
     <txtFileVersion>`version`</txtFileVersion>
     <txtProductVersion>`version`</txtProductVersion>
     <internalName>JBidwatcher</internalName>
