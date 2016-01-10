@@ -22,7 +22,7 @@
   <property name="JAVADIR" value="src" />
 
   <property name="app.name"   value="JBidwatcher" />
-  <property name="VER" value="2.99pre2" />
+  <property name="VER" value="2.99pre4" />
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
@@ -96,7 +96,7 @@
   <target name="compile" depends="init">
     <echo level="info" message="Compiling all classes." />
     <mkdir dir="${build.dir}" />
-      <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="on" source="1.7" target="1.7">
+      <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="on" source="1.8" target="1.8">
           <classpath refid="project.class.path" />
           <include name="**/*.java" />
       </javac>
