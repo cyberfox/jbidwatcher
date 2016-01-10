@@ -274,6 +274,11 @@ public class ebayLoginManager implements LoginManager {
         if(fixYourPassword || doc.getTitle().equals("Reset your password")) {
           JConfig.log().logMessage("eBay is requesting that you change your password.");
           MQFactory.getConcrete("login").enqueue("FAILED You must change your password on eBay.");
+        } else if (doc.getTitle().contains("Secret Question")) {
+          String notification = "eBay is requesting that you provide security questions for account recovery.";
+          JConfig.log().logMessage(notification);
+          MQFactory.getConcrete("login").enqueue("SUCCESSFUL " + notification);
+          if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID_LOGIN");
         } else if (checkSecurityConfirmation(doc)) { //  Check for CAPTCHA and bad passwords...
           cj = null;
           MQFactory.getConcrete("login").enqueue("FAILED Sign in information is not valid.");

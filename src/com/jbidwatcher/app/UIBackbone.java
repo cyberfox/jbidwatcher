@@ -290,7 +290,13 @@ public final class UIBackbone implements MessageQueue.Listener {
       toolBar.setTextIcon(redStatus, redStatus16);
       JConfig.getMetrics().trackEvent("login", "captcha");
     } else if(status.startsWith("SUCCESSFUL")) {
-      toolBar.setToolTipText("Last login was successful.");
+      String additionTooltip = "";
+      if(!status.equals("SUCCESSFUL")) {
+        String successMessage = status.substring("SUCCESSFUL ".length());
+        additionTooltip = "\n " + successMessage;
+        notifyAlert(successMessage);
+      }
+      toolBar.setToolTipText("Last login was successful." + additionTooltip);
       toolBar.setTextIcon(greenStatus, greenStatus16);
       JConfig.getMetrics().trackEvent("login", "success");
     } else {   //  Status == NEUTRAL
