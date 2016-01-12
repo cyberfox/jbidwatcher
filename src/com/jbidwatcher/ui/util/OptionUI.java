@@ -30,6 +30,7 @@ public class OptionUI {
     dialog.setResizable(true);
 
     pane.selectInitialValue();
+    dialog.pack();
     dialog.setVisible(true);
     dialog.dispose();
 
