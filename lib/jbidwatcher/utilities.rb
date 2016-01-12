@@ -172,7 +172,7 @@ class JBidwatcherUtilities
     # Special case params: -1 means pass in null as the sole parameter, -2 means just the auction entry.
     params, arity = {-1 => [[nil], 1], -2 => [[params[1]], 1]}[arity] if arity < 0
 
-    if action_manager.respond_to? method
+    if action_manager.respond_to?(method, true)
       params = [method] + params[0...arity]
       action_manager.send(*params)
     else

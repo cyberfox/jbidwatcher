@@ -6,6 +6,8 @@
 
 java_import com.jbidwatcher.auction.AuctionEntry
 java_import java.lang.StringBuffer
+java_import com.jbidwatcher.ui.commands.UserActions
+java_import com.jbidwatcher.ui.commands.MenuCommand
 require 'column_lookup'
 require 'ostruct'
 
