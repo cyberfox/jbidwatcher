@@ -457,6 +457,7 @@
     <chmod file="dist/JBidwatcher.app/Contents/Java/libquaqua64.jnilib" perm="755"/>
     <chmod file="dist/JBidwatcher.app/Contents/Java/libNoNap.jnilib" perm="755"/>
     <copy file="${packaging}/libsparkle_init.dylib" tofile="dist/JBidwatcher.app/Contents/MacOS/libsparkle_init.jnilib"/>
+    <copy file="dist/JBidwatcher.app/Contents/MacOS/JavaAppLauncher" tofile="dist/JBidwatcher.app/Contents/MacOS/JavaApplicationStub"/>
     <chmod file="dist/JBidwatcher.app/Contents/MacOS/libsparkle_init.jnilib" perm="755"/>
   </target>
 
