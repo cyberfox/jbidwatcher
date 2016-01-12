@@ -431,7 +431,6 @@ public class auctionTableModel extends AbstractTableModel
     int row = findRow(o);
     if (row != -1) {
       delete(row);
-      fireTableRowsDeleted(row, row);
     }
     return row != -1;
   }
