@@ -38,8 +38,9 @@ public class Browser extends JConfig implements MessageQueue.Listener {
   public static boolean launchBrowser(String url) {
     boolean browserLaunched = false;
     String errorMessage = "";
+    boolean forceOverride = JConfig.queryConfiguration("browser.override", "false").equals("true");
 
-    if(Desktop.isDesktopSupported()) {
+    if(Desktop.isDesktopSupported() && !forceOverride) {
       try {
         Desktop.getDesktop().browse(new URI(url));
         browserLaunched = true;
