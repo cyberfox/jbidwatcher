@@ -178,6 +178,19 @@
     <delete file="resources/help/COPYING.html" />
   </target>
 
+  <target name="linux" depends="jar-real">
+    <echo level="info" message="Building Linux deployment .tar file." />
+    <mkdir dir="${build.path}/app" />
+    <copy file="${INTERMEDIATE}" tofile="${build.path}/app/JBidwatcher.jar"/>
+    <tar destfile="${app.name}-${VER}.tar.bz2" compression="bzip2" longfile="gnu">
+      <tarfileset prefix="${app.name}" dir="${build.path}" includes="app/JBidwatcher.jar"/>
+      <tarfileset prefix="${app.name}" dir="${main.dir}" includes="lib/*.jar"/>
+      <tarfileset prefix="${app.name}" dir="${main.dir}" includes="lib/jbidwatcher/**"/>
+      <tarfileset prefix="${app.name}" dir="${main.dir}/platform" includes="jbidwatcher.sh" filemode="755"/>
+    </tar>
+    <delete dir="${build.path}/main" />
+  </target>
+
   <target name="jar" depends="jar-real">
     <echo level="info" message="Building envelope .jar file." />
     <mkdir dir="${build.path}/main" />
