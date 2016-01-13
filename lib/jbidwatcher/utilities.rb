@@ -23,13 +23,6 @@ else
   JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gems.jar').to_s
 end
 
-if File.exists?(File.join(dirname, "gixen")) || File.exists?('lib/jbidwatcher/gixen')
-  dirname = File.dirname(__FILE__)
-  $:<< File.join(dirname, "gixen")
-else
-  $:<< JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gixen').to_s
-end
-
 # This is an awful hack, but if I don't do this, Windows doesn't load active_support. :(
 class File
   def self.realpath(x)
@@ -40,9 +33,6 @@ end
 require gems
 ENV['GEM_PATH']="#{gems}!/"
 Gem.paths = ENV
-require 'active_support'
-require 'active_support/core_ext'
-require 'activerecord-jdbcderby-adapter'
 require 'digest/md5'
 require 'net/http.rb'
 require 'cgi'
@@ -51,8 +41,6 @@ require 'json'
 require 'open-uri'
 require 'ebay_parser'
 require 'time'
-require 'pp'
-require 'gixen'
 require 'column_lookup'
 
 class JBidwatcherUtilities
@@ -200,6 +188,11 @@ class JBidwatcherUtilities
   end
 
   def after_startup
+    require "models"
+    gixen
+    require 'active_support'
+    require 'active_support/core_ext'
+    require 'pp'
   end
 
   def parse(body)
@@ -246,7 +239,16 @@ class JBidwatcherUtilities
 
   def gixen
     @gixen ||= begin
-      server_prefix = Constants.EBAY_SERVER_NAME
+      dirname = File.dirname(__FILE__)
+      if File.exists?(File.join(dirname, "gixen")) || File.exists?('lib/jbidwatcher/gixen')
+        $:<< File.join(dirname, "gixen")
+      else
+        $:<< JConfig.java_class.class_loader.resource_as_url('lib/jbidwatcher/gixen').to_s
+      end
+
+      require 'gixen'
+
+      server_prefix = Constants::EBAY_SERVER_NAME
       username = JConfig.query_configuration("#{server_prefix}.user")
       password = JConfig.query_configuration("#{server_prefix}.password")
       Gixen.new(username, password) if username != 'default'
@@ -266,23 +268,6 @@ $table_controller = TableColumnController.getInstance
 JBidwatcher = JBidwatcherUtilities.new
 
 JBidwatcher.load_scripts
-
-driver = JConfig.query_configuration("db.driver") || "org.apache.derby.jdbc.EmbeddedDriver"
-
-if driver.include? 'mysql'
-  db = JConfig.query_configuration("db.mysql.database")
-  user = JConfig.query_configuration('db.user')
-  pass = JConfig.query_configuration('db.pass')
-  protocol = JConfig.query_configuration('db.protocol') # e.g. jdbc:mysql://cyberfox.com:3306/
-  ActiveRecord::Base.establish_connection(adapter: 'jdbc', driver: 'com.mysql.jdbc.Driver', url: "#{protocol}#{db}", username: user, password: pass)
-else
-  ActiveRecord::Base.establish_connection(adapter: 'jdbcderby', database: 'jbdb', username: 'user1', password: 'user1')
-end
-
-class Auction < ActiveRecord::Base
-  has_one :entry
-  belongs_to :seller
-end
 
 # case TableColumnController.CUR_BID :
 #     return currentBid(aEntry);
@@ -337,33 +322,3 @@ end
 #                 return formatTotalSnipe(aEntry, errorNote);
 #
 #
-
-class Entry < ActiveRecord::Base
-  belongs_to :auction
-  belongs_to :multisnipe
-  belongs_to :snipe
-  belongs_to :category
-
-  class << self
-    def instance_method_already_implemented?(method_name)
-      return true if method_name == "invalid?"
-      super
-    end
-  end
-end
-
-class Seller < ActiveRecord::Base
-  has_many :auctions
-end
-
-class Category < ActiveRecord::Base
-  has_many :entries
-end
-
-class Snipe < ActiveRecord::Base
-  has_one :entry
-end
-
-class Multisnipe < ActiveRecord::Base
-  has_many :entries
-end

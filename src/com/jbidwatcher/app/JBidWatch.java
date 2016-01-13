@@ -645,7 +645,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
         Scripting.setGlobalVariable("$filter_manager", filters);
 
         Scripting.require("utilities");
-        Scripting.ruby("JBidwatcher.after_startup");
       } else {
         JOptionPane.showMessageDialog(null, "<html><body>JBidwatcher is unable to load its scripting layer;<br>" +
 				      "as of 3.0 and later, scripting is a core part of JBidwatcher<br>" +
@@ -672,6 +671,13 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  Start any servers if necessary, and set the background colors,
     //  and anything else we need to load from the configuration file.
     updateConfiguration();
+
+    MQFactory.getConcrete("run-script").registerListener(new MessageQueue.Listener() {
+      @Override
+      public void messageAction(Object deQ) {
+        Scripting.ruby((String) deQ);
+      }
+    });
 
     SuperQueue sq = SuperQueue.getInstance();
     preQueueServices(sq);
@@ -737,6 +743,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     q.preQueue("ALLOW_UPDATES", "Swing", now + (Constants.ONE_SECOND * 20));
     establishMetrics(q, now);
+
+    q.preQueue("JBidwatcher.after_startup", "run-script", now + (Constants.ONE_SECOND * 2));
 
     //  Disable this when I am once more gainfully employed.
 //    if(JConfig.queryConfiguration("seen.need_help2") == null) {
