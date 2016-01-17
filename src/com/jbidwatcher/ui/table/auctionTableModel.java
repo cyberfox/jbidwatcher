@@ -15,8 +15,13 @@ import com.jbidwatcher.util.xml.XMLElement;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.Timer;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -44,8 +49,20 @@ public class auctionTableModel extends AbstractTableModel
   //  private final static ImageIcon soldIcon = new ImageIcon(JConfig.getResource("/icons/green_check_ball.gif"));
 
   public auctionTableModel(MultiSnipeManager multiManager, AuctionList inList) {
+    final TableModel model = this;
     this.multiManager = multiManager;
     dispList = inList;
+
+    Timer updateTime = new Timer(990, new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if(dispList.size() != 0) {
+          TableModelEvent event = new TableModelEvent(model, 0, dispList.size()-1, TableColumnController.TIME_LEFT);
+          fireTableChanged(event);
+        }
+      }
+    });
+    updateTime.start();
   }
 
   @NotNull

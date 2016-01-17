@@ -47,18 +47,16 @@ public final class UIBackbone implements MessageQueue.Listener {
   private final AuctionServerManager serverManager;
   private final AuctionsManager auctionsManager;
   private final SearchManager searcher;
-  private final JTabManager tabs;
   private final EntryCorral entryCorral;
   private final PauseManager pauseManager;
   private final JBidToolBar toolBar;
 
   @Inject
-  public UIBackbone(AuctionServerManager serverManager, AuctionsManager auctionsManager, SearchManager searcher, JTabManager tabs,
+  public UIBackbone(AuctionServerManager serverManager, AuctionsManager auctionsManager, SearchManager searcher,
                     EntryCorral entryCorral, PauseManager pauseManager, JBidToolBar toolBar) {
     this.serverManager = serverManager;
     this.auctionsManager = auctionsManager;
     this.searcher = searcher;
-    this.tabs = tabs;
     this.entryCorral = entryCorral;
     this.pauseManager = pauseManager;
     this.toolBar = toolBar;
@@ -424,7 +422,6 @@ public final class UIBackbone implements MessageQueue.Listener {
 
   private void handleHeader(String headerMsg) {
     toolBar.setText(headerMsg);
-    tabs.updateTime();
   }
 
   private static final int ONEK = 1024;

@@ -17,6 +17,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
@@ -242,27 +243,5 @@ public class JTabManager extends JMouseAdapter {
     if (ts != null) {
       ((TableRowSorter)ts.getRowSorter()).sort();
     }
-  }
-
-  public void updateTime(final JTable table) {
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        if(table.getModel().getRowCount() > 0) {
-          int firstRow = 0;
-          int lastRow = table.getRowCount() - 1;
-          int timeLeftColumn = table.getColumnModel().getColumnIndex("Time left");
-          if(firstRow == lastRow) {
-            table.tableChanged(new TableModelEvent(table.getModel(), 0, 0, timeLeftColumn));
-          } else {
-            table.tableChanged(new TableModelEvent(table.getModel(), firstRow, lastRow, timeLeftColumn));
-          }
-        }
-      }
-    });
-  }
-
-  public void updateTime() {
-    JTable ts = getCurrentTable();
-    if(ts != null) updateTime(ts);
   }
 }
