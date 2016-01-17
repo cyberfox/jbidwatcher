@@ -30,7 +30,7 @@ import java.awt.event.MouseEvent;
  */
 @Singleton
 public class JBidToolBar {
-  private static final int SELECT_BOX_SIZE=20;
+  private static final int FILTER_BOX_SIZE = 20;
   private final AuctionServerManager serverManager;
   private final JPasteListener pasteListener;
   private final JTabManager tabManager;
@@ -39,7 +39,7 @@ public class JBidToolBar {
   private JLabel mHeaderStatus;
   private JPanel mBidBarPanel;
   private JBidMenuBar mBidMenu;
-  private JTextField mSelectBox;
+  private JTextField mFilterBox;
   private Icon mCurrentStatus;
   private Icon mCurrentStatus16;
 
@@ -165,29 +165,32 @@ public class JBidToolBar {
    * @return - A component containing the search / select field.
    */
   private JComponent establishSearchBox(final JTabManager inAction) {
-    DocumentListener selectListener = new DocumentListener() {
+    DocumentListener filterListener = new DocumentListener() {
         public void insertUpdate(DocumentEvent de) {
+          inAction.filterBySearch(mFilterBox.getText());
         }
         public void changedUpdate(DocumentEvent de) {
+          inAction.filterBySearch(mFilterBox.getText());
         }
         public void removeUpdate(DocumentEvent de) {
+          inAction.filterBySearch(mFilterBox.getText());
         }
       };
 
-    mSelectBox.addMouseListener(pasteListener);
-    JConfigTab.tweakTextField(mSelectBox, "Search and select items from the current table.", selectListener);
+    mFilterBox.addMouseListener(pasteListener);
+    JConfigTab.tweakTextField(mFilterBox, "Search and filter items from the current table.", filterListener);
     ActionListener doSearch = new ActionListener() {
         public void actionPerformed(ActionEvent ae) {
-          inAction.selectBySearch(mSelectBox.getText());
+          inAction.filterBySearch(mFilterBox.getText());
         }
       };
-    mSelectBox.addActionListener(doSearch);
-    mSelectBox.putClientProperty("JTextField.variant", "search");
+    mFilterBox.addActionListener(doSearch);
+    mFilterBox.putClientProperty("JTextField.variant", "search");
 
     JPanel compact = new JPanel();
     compact.setLayout(new BoxLayout(compact, BoxLayout.X_AXIS));
     compact.setPreferredSize(new Dimension(100, 24));
-    compact.add(mSelectBox);
+    compact.add(mFilterBox);
     return compact;
   }
 
@@ -213,9 +216,9 @@ public class JBidToolBar {
     this.tabManager = tabManager;
     this.serverManager = serverManager;
     this.pasteListener = pasteListener;
-    mSelectBox = new SearchField("Select", SELECT_BOX_SIZE);
+    mFilterBox = new SearchField("Search", FILTER_BOX_SIZE);
     if(Platform.isMac()) {
-      mSelectBox.putClientProperty("Quaqua.TextField.style", "search");
+      mFilterBox.putClientProperty("Quaqua.TextField.style", "search");
     }
   }
 

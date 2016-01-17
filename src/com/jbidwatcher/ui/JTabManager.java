@@ -16,8 +16,6 @@ import com.jbidwatcher.ui.util.JMouseAdapter;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
@@ -98,91 +96,87 @@ public class JTabManager extends JMouseAdapter {
 
   public void showEntry(AuctionEntry found) {
     setTab(found.getCategory());
-    selectBySearch("~n" + found.getIdentifier());
-    int rows[] = getCurrentTable().getSelectedRows();
-    if(rows.length == 0) {
+    filterBySearch("~n" + found.getIdentifier());
+    int rowCount = getCurrentTable().getRowCount();
+    if(rowCount == 0) {
       mFilter.addAuction(found);
       setTab(found.getCategory());
-      selectBySearch("~n" + found.getIdentifier());
-      rows = getCurrentTable().getSelectedRows();
+      filterBySearch("~n" + found.getIdentifier());
     }
-    getCurrentTable().scrollRectToVisible(getCurrentTable().getCellRect(rows[0], 1, true));
     getCurrentTable().requestFocus();
   }
 
-  private class mySelector implements Selector
-  {
+  private class myFilter implements Selector {
     private String _search;
 
-    mySelector(String s) {
+    myFilter(String s) {
       _search = s;
     }
 
     public boolean select(JTable inTable) {
       String trueSearch = _search;
-      boolean invert = false;
+      if(_search.isEmpty()) {
+        ((TableRowSorter)inTable.getRowSorter()).setRowFilter(null);
+      } else {
+        final boolean invert;
 
-      if (trueSearch.startsWith("~!")) {
-        invert = true;
-        trueSearch = trueSearch.substring(2);
-        if (trueSearch.startsWith(" ")) trueSearch = trueSearch.substring(1);
-      }
+        if (trueSearch.startsWith("~!")) {
+          invert = true;
+          trueSearch = trueSearch.substring(2);
+          if (trueSearch.startsWith(" ")) trueSearch = trueSearch.substring(1);
+        } else {
+          invert = false;
+        }
 
-      boolean comment_t = false;
-      boolean seller_t = false;
-      boolean buyer_t = false;
-      boolean all_t = false;
-      boolean number_t = false;
-      if (trueSearch.startsWith("~")) {
-        if (trueSearch.startsWith("~a")) {
-          comment_t = true;
-          seller_t = true;
-          buyer_t = true;
-          all_t = true;
-        }
-        if (trueSearch.startsWith("~n")) number_t = true;
-        if (trueSearch.startsWith("~b")) buyer_t = true;
-        if (trueSearch.startsWith("~c")) comment_t = true;
-        if (trueSearch.startsWith("~s")) seller_t = true;
-        if (trueSearch.startsWith("~u")) {
-          buyer_t = true;
-          seller_t = true;
-        }
+        final boolean comment_t;
+        final boolean seller_t;
+        final boolean buyer_t;
+        final boolean all_t;
+        final boolean number_t;
+
+        all_t = trueSearch.startsWith("~a");
+
+        number_t = trueSearch.startsWith("~n");
+        comment_t = all_t || trueSearch.startsWith("~c");
+        seller_t = all_t || trueSearch.startsWith("~s") || trueSearch.startsWith("~u");
+        buyer_t = all_t || trueSearch.startsWith("~b") || trueSearch.startsWith("~u");
 
         if (seller_t || buyer_t || comment_t || number_t) trueSearch = trueSearch.substring(2);
         if (trueSearch.startsWith(" ")) trueSearch = trueSearch.substring(1);
+
+        if (trueSearch.length() != 0) trueSearch = "(?i).*" + trueSearch + ".*";
+
+        final String finalSearch = trueSearch;
+        ((TableRowSorter) inTable.getRowSorter()).setRowFilter(new RowFilter() {
+          @Override
+          public boolean include(Entry entry) {
+            AuctionEntry ae = (AuctionEntry) entry.getValue(-1);
+            return isMatch(finalSearch, invert, comment_t, seller_t, buyer_t, all_t, number_t, ae);
+          }
+        });
       }
 
-      if(trueSearch.length() != 0) trueSearch = "(?i).*" + trueSearch + ".*";
+      return true;
+    }
 
-      inTable.clearSelection();
-
-      boolean foundOne = false;
-      for (int i = 0; i < inTable.getRowCount(); i++) {
-        boolean match = false;
-        AuctionEntry ae = (AuctionEntry) inTable.getValueAt(i, -1);
-
-        if (          seller_t) match = ae.getSellerName().matches(trueSearch);
-        if (!match && buyer_t && ae.getHighBidder() != null) match = ae.getHighBidder().matches(trueSearch);
-        if (!match && comment_t && ae.getComment() != null) match = ae.getComment().matches(trueSearch);
-        if (!match && number_t) match = ae.getIdentifier().matches(trueSearch);
-        //  If seller or buyer search was set, ignore the title / comments.
-        if (!match && (all_t || (!seller_t && !buyer_t && !comment_t))) {
-          match = ae.getTitle().matches(trueSearch);
-        }
-        if (invert) match = !match;
-        if (match) {
-          inTable.addRowSelectionInterval(i, i);
-          foundOne = true;
-        }
+    private boolean isMatch(String trueSearch, boolean invert, boolean comment_t, boolean seller_t, boolean buyer_t, boolean all_t, boolean number_t, AuctionEntry ae) {
+      boolean match = false;
+      if (          seller_t) match = ae.getSellerName().matches(trueSearch);
+      if (!match && buyer_t && ae.getHighBidder() != null) match = ae.getHighBidder().matches(trueSearch);
+      if (!match && comment_t && ae.getComment() != null) match = ae.getComment().matches(trueSearch);
+      if (!match && number_t) match = ae.getIdentifier().matches(trueSearch);
+      //  If seller or buyer search was set, ignore the title / comments.
+      if (!match && (all_t || (!seller_t && !buyer_t && !comment_t))) {
+        match = ae.getTitle().matches(trueSearch);
       }
-      return foundOne;
+      if (invert) match = !match;
+      return match;
     }
   }
 
-  public void selectBySearch(String srch) {
+  public void filterBySearch(String srch) {
     JTable curTable = getCurrentTable();
-    Selector mySelector = new mySelector(srch);
+    Selector mySelector = new myFilter(srch);
     if(!mySelector.select(curTable)) {
       java.awt.Toolkit.getDefaultToolkit().beep();
       MQFactory.getConcrete("Swing").enqueue("No entries matched!");
