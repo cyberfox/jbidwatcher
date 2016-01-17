@@ -126,6 +126,12 @@ public class JConfigFirewallTab extends JConfigTab {
     updateValues();
   }
 
+  private void storeConfig(String value, String key) {
+    if(value != null) {
+      JConfig.setConfiguration(key, value);
+    }
+  }
+
   //
   //  Apply all changes made to the firewall options.  This does NOT
   //  immediately open a SOCKS server, or a web proxy for all future
@@ -143,62 +149,20 @@ public class JConfigFirewallTab extends JConfigTab {
     }
 
     JConfig.setConfiguration("proxyfirewall", firewallState);
-    if(holdProxyHost != null) {
-      JConfig.setConfiguration("proxy.host", holdProxyHost);
-    }
-    if(holdProxyPort != null) {
-      JConfig.setConfiguration("proxy.port", holdProxyPort);
-    }
-    if(holdProxyUser != null) {
-      JConfig.setConfiguration("proxy.user", holdProxyUser);
-    }
-    if(holdProxyPass != null) {
-      JConfig.setConfiguration("proxy.pass", holdProxyPass);
-    }
-    if(holdFireHost != null) {
-      JConfig.setConfiguration("firewall.host", holdFireHost);
-    }
-    if(holdFirePort != null) {
-      JConfig.setConfiguration("firewall.port", holdFirePort);
-    }
+    storeConfig(holdProxyHost, "proxy.host");
+    storeConfig(holdProxyPort, "proxy.port");
+    storeConfig(holdProxyUser, "proxy.user");
+    storeConfig(holdProxyPass, "proxy.pass");
+
+    storeConfig(holdFireHost, "firewall.host");
+    storeConfig(holdFirePort, "firewall.port");
+
     if(proxyHttps.isSelected()) {
       JConfig.setConfiguration("proxy.https.set", "true");
-      if(holdHTTPSProxyHost != null) {
-        JConfig.setConfiguration("proxy.https.host", holdHTTPSProxyHost);
-      }
-      if(holdHTTPSProxyPort != null) {
-        JConfig.setConfiguration("proxy.https.port", holdHTTPSProxyPort);
-      }
+      storeConfig(holdHTTPSProxyHost, "proxy.https.host");
+      storeConfig(holdHTTPSProxyPort, "proxy.https.port");
     } else {
       JConfig.setConfiguration("proxy.https.set", "false");
-    }
-  }
-
-  //
-  //  If the radio button is selected, return either the default
-  //  value, or if that value is null, the correct value from the
-  //  configuration file, or if THAT value is also null, an empty
-  //  string.
-  //
-  //  If the radio button is NOT selected, return "<disabled>", so
-  //  there's some marker in the text field that it's not editable
-  //  right now.
-  //
-  private String getConfigValue(JToggleButton jrb, String configValue, String defaultValue) {
-    String outputValue;
-
-    if(jrb.isSelected()) {
-      if(defaultValue == null) {
-        outputValue = JConfig.queryConfiguration(configValue);
-        if(outputValue == null) {
-          return "";
-        } else {
-          return outputValue;
-        }
-      }
-      return defaultValue;
-    } else {
-      return "<disabled>";
     }
   }
 
@@ -333,8 +297,8 @@ public class JConfigFirewallTab extends JConfigTab {
 
     setAllFirewallStatus(false);
 
-    adjustField((JComponent) firewallHost, (String) "Host name or IP address of SOCKS firewall", (DocumentListener) firewallTextFieldListener);
-    adjustField((JComponent) firewallPort, (String) "Port number for SOCKS firewall", (DocumentListener) firewallTextFieldListener);
+    adjustField(firewallHost, "Host name or IP address of SOCKS firewall", firewallTextFieldListener);
+    adjustField(firewallPort, "Port number for SOCKS firewall", firewallTextFieldListener);
 
     updownBox = Box.createVerticalBox();
     updownBox.add(makeLine(new JLabel("SOCKS Host: "), firewallHost));
@@ -357,10 +321,10 @@ public class JConfigFirewallTab extends JConfigTab {
     proxyPass = new JPasswordField();
 
     setAllProxyStatus(false);
-    adjustField((JComponent) proxyHost, (String) "Host name or IP address of web proxy server", (DocumentListener) firewallTextFieldListener);
-    adjustField((JComponent) proxyPort, (String) "Port number that a web proxy server runs on", (DocumentListener) firewallTextFieldListener);
-    adjustField((JComponent) proxyUser, (String) "Username (if needed) for web proxy server", (DocumentListener) firewallTextFieldListener);
-    adjustField((JComponent) proxyPass, (String) "Password (if needed) for web proxy server", (DocumentListener) firewallTextFieldListener);
+    adjustField(proxyHost, "Host name or IP address of web proxy server", firewallTextFieldListener);
+    adjustField(proxyPort, "Port number that a web proxy server runs on", firewallTextFieldListener);
+    adjustField(proxyUser, "Username (if needed) for web proxy server", firewallTextFieldListener);
+    adjustField(proxyPass, "Password (if needed) for web proxy server", firewallTextFieldListener);
 
     proxyPanel.add(makeLine(new JLabel("Host: "), proxyHost));
     proxyPanel.add(makeLine(new JLabel("Port:  "), proxyPort));
@@ -380,8 +344,8 @@ public class JConfigFirewallTab extends JConfigTab {
     httpsProxyHost = new JTextField();
     httpsProxyPort = new JTextField();
     setAllHTTPSStatus(false);
-    adjustField((JComponent) httpsProxyHost, (String) "Host name or IP address of HTTPS proxy server", (DocumentListener) firewallTextFieldListener);
-    adjustField((JComponent) httpsProxyPort, (String) "Port number that the HTTPS proxy server runs on", (DocumentListener) firewallTextFieldListener);
+    adjustField(httpsProxyHost, "Host name or IP address of HTTPS proxy server", firewallTextFieldListener);
+    adjustField(httpsProxyPort, "Port number that the HTTPS proxy server runs on", firewallTextFieldListener);
 
     proxyHttps = new JCheckBox("Enable HTTPS (secure http) proxy?");
     proxyHttps.addActionListener(rad);

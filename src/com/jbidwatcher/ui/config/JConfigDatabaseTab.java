@@ -108,34 +108,6 @@ public class JConfigDatabaseTab extends JConfigTab {
 
   }
 
-  //
-  //  If the radio button is selected, return either the default
-  //  value, or if that value is null, the correct value from the
-  //  configuration file, or if THAT value is also null, an empty
-  //  string.
-  //
-  //  If the radio button is NOT selected, return "<disabled>", so
-  //  there's some marker in the text field that it's not editable
-  //  right now.
-  //
-  private String getConfigValue(JToggleButton jrb, String configValue, String defaultValue) {
-    String outputValue;
-
-    if (jrb.isSelected()) {
-      if (defaultValue == null) {
-        outputValue = JConfig.queryConfiguration(configValue);
-        if (outputValue == null) {
-          return "";
-        } else {
-          return outputValue;
-        }
-      }
-      return defaultValue;
-    } else {
-      return "<disabled>";
-    }
-  }
-
   public final void updateValues() {
     mysqlHost.setEnabled(mysqlDB.isSelected());
     mysqlHost.setText(getConfigValue(mysqlDB, "db.mysql.host", "localhost"));
@@ -195,11 +167,11 @@ public class JConfigDatabaseTab extends JConfigTab {
     mysqlUser = new JTextField();
     mysqlPassword = new JPasswordField();
 
-    adjustField((JComponent) mysqlHost, (String) "Host name or IP address of MySQL server", (javax.swing.event.DocumentListener) null);
-    adjustField((JComponent) mysqlPort, (String) "Port number for MySQL server (default: 3306)", (javax.swing.event.DocumentListener) null);
-    adjustField((JComponent) mysqlDatabase, (String) "The database on the server to use (default: jbidwatcher)", (javax.swing.event.DocumentListener) null);
-    adjustField((JComponent) mysqlUser, (String) "Username (if needed) for MySQL server", (javax.swing.event.DocumentListener) null);
-    adjustField((JComponent) mysqlPassword, (String) "Password (if needed) for MySQL server", (javax.swing.event.DocumentListener) null);
+    adjustField(mysqlHost, "Host name or IP address of MySQL server", null);
+    adjustField(mysqlPort, "Port number for MySQL server (default: 3306)", null);
+    adjustField(mysqlDatabase, "The database on the server to use (default: jbidwatcher)", null);
+    adjustField(mysqlUser, "Username (if needed) for MySQL server", null);
+    adjustField(mysqlPassword, "Password (if needed) for MySQL server", null);
 
     proxyPanel.add(makeLine(new JLabel("MySQL Host: "), mysqlHost));
     proxyPanel.add(makeLine(new JLabel("MySQL Port: "), mysqlPort));

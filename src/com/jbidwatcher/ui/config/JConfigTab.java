@@ -6,6 +6,7 @@ package com.jbidwatcher.ui.config;
  */
 
 import com.jbidwatcher.ui.util.JPasteListener;
+import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -53,5 +54,33 @@ public abstract class JConfigTab extends JPanel {
     outer.add(jp, "North");
 
     return outer;
+  }
+
+  //
+  //  If the radio button is selected, return either the default
+  //  value, or if that value is null, the correct value from the
+  //  configuration file, or if THAT value is also null, an empty
+  //  string.
+  //
+  //  If the radio button is NOT selected, return "<disabled>", so
+  //  there's some marker in the text field that it's not editable
+  //  right now.
+  //
+  String getConfigValue(JToggleButton jrb, String configValue, String defaultValue) {
+    String outputValue;
+
+    if (jrb.isSelected()) {
+      if (defaultValue == null) {
+        outputValue = JConfig.queryConfiguration(configValue);
+        if (outputValue == null) {
+          return "";
+        } else {
+          return outputValue;
+        }
+      }
+      return defaultValue;
+    } else {
+      return "<disabled>";
+    }
   }
 }
