@@ -107,7 +107,9 @@ public class AuctionTable extends JTable implements MessageQueue.Listener {
       currentRow = null;
     }
     activeRow = currentRow == null ? activeRow : currentRow.intValue();
-    tableChanged(new TableModelEvent(getModel(), activeRow, activeRow, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE));
+    if(activeRow < getModel().getRowCount()) {
+      tableChanged(new TableModelEvent(getModel(), activeRow, activeRow, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE));
+    }
   }
 
   static class MouseListenerSelectProxy implements MouseListener {
