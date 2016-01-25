@@ -655,6 +655,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       long snipeTime = snipe.getItem().getSnipeTime();
       if (timeLeft > snipeTime) {
         _etqm.add(identifier, getQueueName(), _etqm.getCurrentTime() + (timeLeft - snipeTime));
+        return true;
       } else if (timeLeft > Constants.THREE_SECONDS) {
         long retry_wait = (timeLeft / 10) * 2;
         if (retry_wait < Constants.THREE_SECONDS) retry_wait = Constants.THREE_SECONDS;
@@ -664,6 +665,7 @@ public final class ebayServer extends AuctionServer implements MessageQueue.List
       } else if (force) {
         //  Requeue it for _now_
         MQFactory.getConcrete(getQueueName()).enqueue(identifier);
+        return true;
       }
       return false;
     }
