@@ -261,6 +261,13 @@ public class ebayLoginManager implements LoginManager {
         }
       }
 
+      boolean updateContactInfo = false;
+      for(String page : resultPages) {
+        if(page.indexOf("UpdateContactInfo") != -1) {
+          updateContactInfo = true;
+        }
+      }
+
       if (adult) {
         if (getAdultRedirector(uc_signin, cj)) {
           if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID_LOGIN");
@@ -274,6 +281,11 @@ public class ebayLoginManager implements LoginManager {
         if(fixYourPassword || doc.getTitle().equals("Reset your password")) {
           JConfig.log().logMessage("eBay is requesting that you change your password.");
           MQFactory.getConcrete("login").enqueue("FAILED You must change your password on eBay.");
+        } else if (updateContactInfo) {
+          String notification = "eBay is requesting that you update your contact information.";
+          JConfig.log().logMessage(notification);
+          MQFactory.getConcrete("login").enqueue("SUCCESSFUL " + notification);
+          if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("VALID_LOGIN");
         } else if (doc.getTitle().contains("Secret Question")) {
           String notification = "eBay is requesting that you provide security questions for account recovery.";
           JConfig.log().logMessage(notification);
