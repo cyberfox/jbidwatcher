@@ -645,7 +645,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
         Scripting.setGlobalVariable("$auctions_manager", auctionsManager);
         Scripting.setGlobalVariable("$filter_manager", filters);
 
-        Scripting.require("utilities");
+        Scripting.require("utilities.rb");
       } else {
         JOptionPane.showMessageDialog(null, "<html><body>JBidwatcher is unable to load its scripting layer;<br>" +
 				      "as of 3.0 and later, scripting is a core part of JBidwatcher<br>" +

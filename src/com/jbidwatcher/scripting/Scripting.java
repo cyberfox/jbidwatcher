@@ -86,7 +86,7 @@ public class Scripting {
       runtime.getLoadService().addPaths(JConfig.queryConfiguration("platform.path"));
     }
 
-    runtime.getLoadService().addPaths("lib/jbidwatcher", "lib/jbidwatcher/nokogiri-1.5.2-java/lib");
+    runtime.getLoadService().addPaths("uri:classloader:lib/jbidwatcher", "uri:classloader:lib/jbidwatcher/nokogiri-1.5.2-java/lib");
 
     sRuby = runtime;
   }

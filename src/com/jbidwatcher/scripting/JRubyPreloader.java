@@ -38,7 +38,7 @@ public class JRubyPreloader implements Runnable {
   }
 
   private void preloadLibrary() {
-    String jrubyFile = JConfig.queryConfiguration("platform.path") + File.separator + "jruby-incomplete.jar";
+    String jrubyFile = JConfig.queryConfiguration("platform.path") + File.separator + "jruby-complete.jar";
     File fp = new File(jrubyFile);
 
     if (fp.exists()) {
