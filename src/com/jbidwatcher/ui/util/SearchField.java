@@ -73,6 +73,11 @@ public class SearchField extends JTextField {
     postActionEvent();
   }
 
+  public String getText() {
+    if(showingPlaceholderText) return "";
+    return super.getText();
+  }
+
   public void setSendsNotificationForEachKeystroke(boolean eachKeystroke) {
     this.sendsNotificationForEachKeystroke = eachKeystroke;
   }
