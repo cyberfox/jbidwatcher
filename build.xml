@@ -26,18 +26,15 @@
   <property name="TARSRC" value="jbidwatcher-${VER}" />
   <property name="INTERMEDIATE" value="${app.name}.jar" />
   <property name="BINARY" value="${app.name}-${VER}.jar" />
-  <property name="BINARYSCRIPTING" value="${app.name}-${VER}-script.jar" />
   <property name="OPT_BIN" value="${app.name}-${VER}_o.jar" />
   <property name="UNOPT_BIN" value="${app.name}-${VER}_u.jar" />
   <property name="ZIPFILE" value="${app.name}-${VER}.zip" />
   <property name="TARFILE" value="${TARSRC}.tar.bz2" />
-  <property name="APPSCRIPTING" value="${app.name}-${VER}-script.app.tar.gz" />
   <property name="APPFILE" value="${app.name}-${VER}.app.tar.gz" />
   <property name="osx.app.name" value="${app.name}.app" />
   <property name="build.path" value="/tmp/building" />
   <property name="osx.app.path" value="/tmp/building/${osx.app.name}" />
   <property name="DMGFILE" value="${app.name}-${VER}.dmg" />
-  <property name="EXESCRIPTING" value="${app.name}-${VER}-script.exe" />
   <property name="EXEFILE" value="${app.name}-${VER}.exe" />
   <property name="MANIFEST" value="META-INF/MANIFEST.MF" />
   <property name="ONEJAR_MANIFEST" value="onejar/META-INF/MANIFEST.MF" />
@@ -216,20 +213,6 @@
     <delete dir="${build.path}/main" />
   </target>
 
-  <target name="scripting-jar" depends="jar-real">
-    <echo level="info" message="Building the top-level .jar file." />
-    <mkdir dir="${build.path}/main" />
-    <copy file="${INTERMEDIATE}" tofile="${build.path}/main/main.jar" />
-    <jar jarfile="${BINARY}" manifest="onejar/META-INF/MANIFEST.MF">
-      <fileset dir="${main.dir}/onejar" includes="com/**/*.class" />
-      <fileset dir="${main.dir}/onejar" includes="boot-manifest.mf" />
-      <fileset dir="${build.path}" includes="main/main.jar" />
-      <fileset dir="${main.dir}" includes="lib/*.jar" />
-      <fileset dir="${main.dir}" includes="lib/jbidwatcher/**" />
-    </jar>
-    <delete dir="${build.path}/main" />
-  </target>
-
   <property name="packaging" value="platform" />
 
   <target name="exe" depends="jar">
@@ -292,16 +275,6 @@
     <antcall target="clean-osx-build" />
     <antcall target="osx-distribution" />
     <antcall target="osx-app" />
-  </target>
-
-  <target name="dmg-scripting" depends="osx-distribution">
-    <copy todir="${osx.app.path}/Contents/Resources/Java">
-      <fileset dir="${lib.dir}" includes="jruby-complete.jar" />
-      <fileset dir="${lib.dir}" includes="jline-2.11.jar" />
-      <fileset dir="${lib.dir}" includes="readline.jar" />
-      <fileset dir="${main.dir}" includes="lib/jbidwatcher/**" />
-    </copy>
-    <antcall target="dmg-real" />
   </target>
 
   <target name="dmg" depends="osx-distribution">
@@ -501,16 +474,6 @@
     </tar>
   </target>
 
-  <target name="osx-app-scripting" depends="osx-distribution">
-    <copy todir="${osx.app.path}/Contents/Resources/Java">
-      <fileset dir="${lib.dir}" includes="readline.jar" />
-      <fileset dir="${lib.dir}" includes="jline-2.11.jar" />
-      <fileset dir="${lib.dir}" includes="jruby-complete.jar" />
-      <fileset dir="${main.dir}" includes="lib/jbidwatcher/**" />
-    </copy>
-    <antcall target="osx-app" />
-  </target>
-
   <target name="clean-osx-build">
     <delete dir="${osx.app.path}" />
     <delete dir="${dest.dir}/${osx.app.name}" />
@@ -519,14 +482,11 @@
   <target name="clean" description="Clean all build products.">
     <echo level="info" message="Clean all build products." />
     <delete file="${BINARY}" />
-    <delete file="${BINARYSCRIPTING}" />
     <delete file="${INTERMEDIATE}" />
     <delete file="${UNOPT_BIN}" />
     <delete file="${TARFILE}" />
     <delete file="${APPFILE}" />
     <delete file="${EXEFILE}" />
-    <delete file="${APPSCRIPTING}" />
-    <delete file="${EXESCRIPTING}" />
     <delete file="${DMGFILE}" />
     <delete includeEmptyDirs="true" dir="osx"/>
     <delete dir="${log.dir}" />
@@ -540,21 +500,9 @@
     <delete file="/tmp/jbidwatcher.ico"/>
   </target>
 
-  <target name="scripting" depends="scripting-jar">
-    <antcall target="scripting-jar" />
-    <antcall target="osx-app-scripting" />
-    <antcall target="dmg-scripting" />
-    <antcall target="exe-real" />
-  </target>
-
   <target name="apps" depends="tar,osx,exe,dmg" />
 
   <target name="release" depends="apps" description="Build for a full release.">
-    <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/enhanced/downloads" />
-    <antcall target="upload" />
-  </target>
-
-  <target name="scripting-release" depends="tar,scripting" description="Build for a full release with scripting.">
     <property name="server.path" value="jbidwatcher@jbidwatcher.com:www/enhanced/downloads" />
     <antcall target="upload" />
   </target>
