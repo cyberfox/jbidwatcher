@@ -176,12 +176,8 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   public void DoScripting() {
-    if(JConfig.scriptingEnabled()) {
-      if (mScriptFrame == null) mScriptFrame = new ScriptManager();
-      MQFactory.getConcrete("scripting").enqueue("SHOW");
-    } else {
-      //  Warn the user that scripting is not enabled.
-    }
+    if (mScriptFrame == null) mScriptFrame = new ScriptManager();
+    MQFactory.getConcrete("scripting").enqueue("SHOW");
   }
 
   @MenuCommand(action = "Font")

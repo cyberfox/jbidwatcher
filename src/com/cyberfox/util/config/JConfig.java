@@ -55,7 +55,6 @@ public class JConfig {
 
   //  Were there any configuration changes since the last updateComplete()?
   private static boolean _anyUpdates = false;
-  private static boolean mScripting = false;
   private static LoggerInterface mLogger = new NullLogger();
 
   //  A core loader which loads from an InputStream.  Used so that we can
@@ -72,18 +71,6 @@ public class JConfig {
     }
 
     handleConfigLoading();
-  }
-
-  public static void enableScripting() {
-    mScripting = true;
-  }
-
-  public static void disableScripting() {
-    mScripting = false;
-  }
-
-  public static boolean scriptingEnabled() {
-    return mScripting;
   }
 
   public interface ConfigListener {

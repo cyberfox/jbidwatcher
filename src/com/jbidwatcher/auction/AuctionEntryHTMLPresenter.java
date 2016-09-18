@@ -67,7 +67,7 @@ public class AuctionEntryHTMLPresenter implements Presenter {
       prompt += buildRow("Quantity", mAuctionEntry.getQuantity());
     }
 
-    if (JConfig.debugging() && JConfig.scriptingEnabled()) {
+    if (JConfig.debugging()) {
       prompt += buildRow("Sticky", Boolean.toString(mAuctionEntry.isSticky()));
       prompt += buildRow("Category", mAuctionEntry.getCategory());
     }

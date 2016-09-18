@@ -27,13 +27,11 @@ public class JRubyPreloader implements Runnable {
       try {
         preloadLibrary();
         Scripting.initialize();
-        JConfig.enableScripting();
         JConfig.log().logMessage("Scripting is enabled.");
       } catch (NoClassDefFoundError ncdfe) {
         JConfig.log().logMessage("Scripting is not enabled.");
       } catch (Throwable e) {
         JConfig.log().logMessage("Error setting up scripting: " + e.toString());
-        JConfig.disableScripting();
       }
     }
   }
@@ -69,20 +67,15 @@ public class JRubyPreloader implements Runnable {
     }
   }
 
-  public boolean finish(JSplashScreen inSplash, Object serverManager, Object auctionsManager, Object filters) {
+  public boolean finish(JSplashScreen inSplash, Object serverManager, Object auctionsManager, Object filters, Runnable notifier) {
     synchronized (syncObject) {
-      if (JConfig.scriptingEnabled()) {
-        inSplash.message("Starting scripts");
+      notifier.run();
+      Scripting.setGlobalVariable("$auction_server_manager", serverManager);
+      Scripting.setGlobalVariable("$auctions_manager", auctionsManager);
+      Scripting.setGlobalVariable("$filter_manager", filters);
 
-        Scripting.setGlobalVariable("$auction_server_manager", serverManager);
-        Scripting.setGlobalVariable("$auctions_manager", auctionsManager);
-        Scripting.setGlobalVariable("$filter_manager", filters);
-
-        Scripting.require("utilities.rb");
-        return true;
-      } else {
-        return false;
-      }
+      Scripting.require("utilities.rb");
+      return true;
     }
   }
 }

@@ -587,7 +587,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
    *
    * @noinspection CallToThreadStartDuringObjectConstruction
    */
-  private void run(JSplashScreen inSplash) {
+  private void run(final JSplashScreen inSplash) {
     inSplash.message("Initializing Monitors");
     ActivityMonitor.start();
     MQFactory.getConcrete("login").registerListener(new MessageQueue.Listener() {
@@ -623,14 +623,14 @@ public final class JBidWatch implements JConfig.ConfigListener {
     mainFrame.setSize(JConfig.width, JConfig.height);
     backboneProvider.get().setMainFrame(mainFrame);
 
-    if(!preloader.finish(inSplash, serverManager, auctionsManager, filters)) {
-      JOptionPane.showMessageDialog(null, "<html><body>JBidwatcher is unable to load its scripting layer;<br>" +
-          "as of 3.0 and later, scripting is a core part of JBidwatcher<br>" +
+    try {
+      preloader.finish(inSplash, serverManager, auctionsManager, filters, ()->inSplash.message("Starting scripts"))
+    } catch(Exception e) {
+      JOptionPane.showMessageDialog(null, "<html><body>JBidwatcher is unable to load its scripting layer; as of 3.0<br>" +
+                                          "(and pre-releases) and later, scripting is a core part of JBidwatcher<br>" +
           "and it will not run without it.</body</html>", "Scripting Error", JOptionPane.ERROR_MESSAGE);
     }
     inSplash.close();
-    //noinspection UnusedAssignment
-    inSplash = null;
 
     jtmAuctions.sortDefault();
 

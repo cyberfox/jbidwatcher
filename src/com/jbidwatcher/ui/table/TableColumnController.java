@@ -14,7 +14,6 @@ package com.jbidwatcher.ui.table;
  * Contains the basic list of columns for potential display, and their display-names.
  */
 import com.jbidwatcher.scripting.Scripting;
-import com.jbidwatcher.util.config.JConfig;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -110,8 +109,7 @@ public class TableColumnController {
     m_column_map.put(columnCount++, name);
   }
 
-  public String customColumn(int j, Object auctionEntry) {
-    if(JConfig.scriptingEnabled()) return (String)Scripting.rubyMethod("custom_column", getColumnName(j), auctionEntry);
-    return "";
+  String customColumn(int j, Object auctionEntry) {
+    return (String)Scripting.rubyMethod("custom_column", getColumnName(j), auctionEntry);
   }
 }
