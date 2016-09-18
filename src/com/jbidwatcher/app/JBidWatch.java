@@ -28,14 +28,12 @@ import com.jbidwatcher.util.config.JBErrorManagement;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.db.ActiveRecord;
 import com.jbidwatcher.util.services.ActivityMonitor;
-import com.jbidwatcher.util.ErrorMonitor;
 import com.jbidwatcher.scripting.Scripting;
 import com.jbidwatcher.util.queue.*;
 import com.jbidwatcher.util.services.AudioPlayer;
 import com.jbidwatcher.util.services.SyncService;
 import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.*;
-import com.jbidwatcher.my.MyJBidwatcher;
 
 import javax.swing.*;
 import java.awt.*;
@@ -56,9 +54,8 @@ import java.util.*;
  * Perfection is reached, not when there is no longer anything to add, but
  * when there is no longer anything to take away.
  *                 -- Antoine de Saint-Exupery
- */
-
-/** Primary class which holds the main, and prepares and launches
+ *
+ * Primary class which holds the main, and prepares and launches
  * all the subclasses and threads.  It also holds the general purpose
  * constants.  It implements JConfigListener, which just means that
  * the updateConfiguration() function will be called when the config
@@ -71,8 +68,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
    * file.  See JConfig.java for more details.
    */
   private static ClassLoader urlCL = (ClassLoader)JBidWatch.class.getClassLoader();
-  private final MyJBidwatcher myJBidwatcher;
-  private final JBWDropHandler dropHandler;
   private final Provider<UIBackbone> backboneProvider;
   private final Provider<JConfigFrame> configFrameProvider;
   @Inject
@@ -87,7 +82,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private EntryFactory entryFactory;
   private EntryCorral corral;
   private AuctionServerManager serverManager;
-  private ErrorMonitor errorMonitor;
   private Injector injector;
 
   private final Object memInfoSynch = new Object();
@@ -463,8 +457,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
   }
 
   @Inject
-  public JBidWatch(ErrorMonitor monitor, SearchManager searcher, EntryFactory entryMaker, EntryCorral holdingCell,
-                   AuctionServerManager serverManager, MyJBidwatcher myInstance, JBWDropHandler dropHandler,
+  public JBidWatch(SearchManager searcher, EntryFactory entryMaker, EntryCorral holdingCell,
+                   AuctionServerManager serverManager,
                    FilterManager filterManager, JTabManager tabManager, ListManager listManager, AuctionsManager auctionsManager,
                    UserActions userActions, Injector inject,
                    Provider<UIBackbone> uiBackboneProvider, Provider<JConfigFrame> configFrameProvider) {
@@ -472,9 +466,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
     this.corral = holdingCell;
     this.entryFactory = entryMaker;
     this.serverManager = serverManager;
-    this.errorMonitor = monitor;
-    this.myJBidwatcher = myInstance;
-    this.dropHandler = dropHandler;
     this.filters = filterManager;
     this.jtmAuctions = tabManager;
     this.listManager = listManager;
@@ -746,20 +737,6 @@ public final class JBidWatch implements JConfig.ConfigListener {
     establishMetrics(q, now);
 
     q.preQueue("JBidwatcher.after_startup", "run-script", now + (Constants.ONE_SECOND * 2));
-
-    //  Disable this when I am once more gainfully employed.
-//    if(JConfig.queryConfiguration("seen.need_help2") == null) {
-//      if(JConfig.queryConfiguration("first_run", "false").equals("false")) {
-//        q.preQueue("Need Help", "user", now + (Constants.ONE_SECOND * 15));
-//        JConfig.setConfiguration("seen.need_help2", "true");
-//      }
-//    }
-
-    //  Other interesting examples...
-    //q.preQueue("This is a message for the display!", "Swing", System.currentTimeMillis()+Constants.ONE_MINUTE);
-    //q.preQueue(UserActions.ADD_AUCTION + "5582606163", "user", System.currentTimeMillis() + (Constants.ONE_MINUTE / 2));
-    //q.preQueue("http://www.jbidwatcher.com", "browse", System.currentTimeMillis() + (Constants.ONE_MINUTE / 4));
-    //q.preQueue(new AuctionQObject(AuctionQObject.BID, new AuctionBid("5582606251", Currency.getCurrency("2.99"), 1), "none"), AuctionServerManager.getInstance().getServer(), System.currentTimeMillis() + (Constants.ONE_MINUTE*2) );
   }
 
   /**
@@ -796,7 +773,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
    * etc., in order to save them off so the UI can remain
    * approximately the same between executions.
    */
-  public Properties getColumnProperties() {
+  private Properties getColumnProperties() {
     Properties colProps = new Properties();
 
     colProps = listManager.extractProperties(colProps);
@@ -804,7 +781,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     return (colProps);
   }
 
-  public void internal_shutdown() {
+  private void internal_shutdown() {
     //  Shut down internal timers
     try {
       if(mServiceAdvertiser != null) mServiceAdvertiser.stop();
