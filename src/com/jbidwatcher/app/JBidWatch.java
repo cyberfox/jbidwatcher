@@ -87,12 +87,9 @@ public final class JBidWatch implements JConfig.ConfigListener {
   private final Object memInfoSynch = new Object();
   private MacFriendlyFrame mainFrame;
   private JTabManager jtmAuctions;
-  private static Sparkle mSparkle = null;
   private SyncService mServiceAdvertiser;
 
   private RuntimeInfo _rti = null;
-  private static final int HOURS_IN_DAY = 24;
-  private static final int MINUTES_IN_HOUR = 60;
   private static boolean sUSB = false;
   private boolean ebayLoaded = false;
 
@@ -615,10 +612,8 @@ public final class JBidWatch implements JConfig.ConfigListener {
 
     JConfig.registerListener(this);
 
-    //  Register the handler for all 'drop' events.
     Browser.start();
     MQFactory.getConcrete("user").registerListener(userActions);
-    //    class.getClass().getClassLoader().find('com.jbidwatcher.ui.commands.*').loadAll();
 
     inSplash.message("Building Interface");
     JBidFrame.setDefaultMenuBar(JBidMenuBar.getInstance(menuFactory, jtmAuctions.getTabs(), jtmAuctions, "Search Editor"));
@@ -628,21 +623,10 @@ public final class JBidWatch implements JConfig.ConfigListener {
     mainFrame.setSize(JConfig.width, JConfig.height);
     backboneProvider.get().setMainFrame(mainFrame);
 
-    synchronized (mScriptCompletion) {
-      if(JConfig.scriptingEnabled()) {
-        inSplash.message("Starting scripts");
-
-        Scripting.setGlobalVariable("$auction_server_manager", serverManager);
-        Scripting.setGlobalVariable("$auctions_manager", auctionsManager);
-        Scripting.setGlobalVariable("$filter_manager", filters);
-
-        Scripting.require("utilities.rb");
-      } else {
-        JOptionPane.showMessageDialog(null, "<html><body>JBidwatcher is unable to load its scripting layer;<br>" +
-				      "as of 3.0 and later, scripting is a core part of JBidwatcher<br>" +
-				      "and it will not run without it.</body</html>", "Scripting Error", JOptionPane.ERROR_MESSAGE);
-
-      }
+    if(!preloader.finish(inSplash, serverManager, auctionsManager, filters)) {
+      JOptionPane.showMessageDialog(null, "<html><body>JBidwatcher is unable to load its scripting layer;<br>" +
+          "as of 3.0 and later, scripting is a core part of JBidwatcher<br>" +
+          "and it will not run without it.</body</html>", "Scripting Error", JOptionPane.ERROR_MESSAGE);
     }
     inSplash.close();
     //noinspection UnusedAssignment
@@ -682,25 +666,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
       }
     });
 
-    boolean updaterStarted = false;
-    if(Platform.isMac()) {
-      try {
-        mSparkle = new Sparkle();
-        mSparkle.start();
-        updaterStarted = true;
-        JConfig.setConfiguration("temp.sparkle", "true");
-      } catch(Throwable e) {
-        JConfig.log().handleDebugException("Couldn't start Sparkle - This message is normal under OS X 10.4", e);
-        updaterStarted = false;
-        JConfig.setConfiguration("temp.sparkle", "false");
-      }
-    }
-
-    if(!updaterStarted) {
-      TimerHandler updateTimer = new TimerHandler(UpdateManager.getInstance(), HOURS_IN_DAY * MINUTES_IN_HOUR * Constants.ONE_MINUTE);
-      updateTimer.setName("VersionChecker");
-      updateTimer.start();
-    }
+    UpdateManager.start();
 
     AudioPlayer.start();
 

@@ -2,6 +2,7 @@ package com.jbidwatcher.scripting;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.jbidwatcher.ui.JSplashScreen;
 import com.jbidwatcher.util.config.JConfig;
 
 import java.io.File;
@@ -64,6 +65,23 @@ public class JRubyPreloader implements Runnable {
       } catch (InvocationTargetException ignored) {
       } catch (IllegalAccessException ignored) {
         //  All these possible failures are ignored, it just means the scripting class won't be loaded.
+      }
+    }
+  }
+
+  public boolean finish(JSplashScreen inSplash, Object serverManager, Object auctionsManager, Object filters) {
+    synchronized (syncObject) {
+      if (JConfig.scriptingEnabled()) {
+        inSplash.message("Starting scripts");
+
+        Scripting.setGlobalVariable("$auction_server_manager", serverManager);
+        Scripting.setGlobalVariable("$auctions_manager", auctionsManager);
+        Scripting.setGlobalVariable("$filter_manager", filters);
+
+        Scripting.require("utilities.rb");
+        return true;
+      } else {
+        return false;
       }
     }
   }

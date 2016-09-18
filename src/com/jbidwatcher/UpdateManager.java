@@ -6,6 +6,8 @@ package com.jbidwatcher;
  * Developed by mrs (Morgan Schweers)
  */
 
+import com.cyberfox.util.platform.Platform;
+import com.jbidwatcher.platform.Sparkle;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.MessageQueue;
@@ -15,6 +17,10 @@ import com.jbidwatcher.util.Constants;
 public class UpdateManager implements TimerHandler.WakeupProcess, MessageQueue.Listener {
   private static UpdateManager _instance=null;
   private static UpdaterEntry _ue = null;
+  private static Sparkle mSparkle = null;
+
+  private static final int HOURS_IN_DAY = 24;
+  private static final int MINUTES_IN_HOUR = 60;
 
   private UpdateManager() {
     //  Nothing to do here?
@@ -47,7 +53,7 @@ public class UpdateManager implements TimerHandler.WakeupProcess, MessageQueue.L
     return true;
   }
 
-  public static void checkUpdate(boolean interactive) {
+  private static void checkUpdate(boolean interactive) {
     MQFactory.getConcrete("Swing").enqueue("Checking for a newer version.");
     UpdaterEntry ue = new UpdaterEntry(Constants.PROGRAM_NAME, Constants.UPDATE_URL);
     if(!ue.isValid()) {
@@ -77,6 +83,28 @@ public class UpdateManager implements TimerHandler.WakeupProcess, MessageQueue.L
           ue.applyConfigurationUpdates();
         }
       }
+    }
+  }
+
+  public static void start() {
+    boolean updaterStarted = false;
+    if (Platform.isMac()) {
+      try {
+        mSparkle = new Sparkle();
+        mSparkle.start();
+        updaterStarted = true;
+        JConfig.setConfiguration("temp.sparkle", "true");
+      } catch (Throwable e) {
+        JConfig.log().handleDebugException("Couldn't start Sparkle - This message is normal under OS X 10.4", e);
+        updaterStarted = false;
+        JConfig.setConfiguration("temp.sparkle", "false");
+      }
+    }
+
+    if (!updaterStarted) {
+      TimerHandler updateTimer = new TimerHandler(UpdateManager.getInstance(), HOURS_IN_DAY * MINUTES_IN_HOUR * Constants.ONE_MINUTE);
+      updateTimer.setName("VersionChecker");
+      updateTimer.start();
     }
   }
 }
