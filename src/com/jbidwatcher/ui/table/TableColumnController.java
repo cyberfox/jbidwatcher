@@ -3,11 +3,6 @@ package com.jbidwatcher.ui.table;
  * Copyright (c) 2000-2007, CyberFOX Software, Inc. All Rights Reserved.
  *
  * Developed by mrs (Morgan Schweers)
- */
-
-/**
- * Created by IntelliJ IDEA.
- * User: Morgan Schweers
  * Date: Jun 3, 2005
  * Time: 2:11:32 AM
  *
@@ -45,17 +40,17 @@ public class TableColumnController {
   public static final int SNIPE_TOTAL=20;
   public static final int THUMBNAIL = 21;
 
-  public static final int MAX_FIXED_COLUMN=21;
+  static final int MAX_FIXED_COLUMN=21;
 
   private static int columnCount =22;
   private static Map<Integer, String> m_column_map;
 
-  public static int columnCount() {
+  static int columnCount() {
     return columnCount;
   }
 
   private TableColumnController() {
-    m_column_map = new HashMap<Integer, String>(columnCount *3);
+    m_column_map = new HashMap<>(columnCount * 3);
 
     m_column_map.put(ID, "Number");
     m_column_map.put(CUR_BID, "Current");
@@ -85,7 +80,7 @@ public class TableColumnController {
     return m_instance;
   }
 
-  public String getColumnName(int index) {
+  String getColumnName(int index) {
     return m_column_map.get(index);
   }
 

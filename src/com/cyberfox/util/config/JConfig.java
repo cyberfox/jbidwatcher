@@ -51,7 +51,7 @@ public class JConfig {
 
   //  A vector of ConfigListener classes who (once they've registered) will be told
   //  when a configuration change is made.
-  private static List<ConfigListener> _listeners = new LinkedList<ConfigListener>();
+  private static List<ConfigListener> _listeners = new LinkedList<>();
 
   //  Were there any configuration changes since the last updateComplete()?
   private static boolean _anyUpdates = false;
@@ -180,7 +180,7 @@ public class JConfig {
     }
   }
 
-  public static void saveArbitrary(String cfgName, Properties arbProps) {
+  private static void saveArbitrary(String cfgName, Properties arbProps) {
     try {
       FileOutputStream fos = new FileOutputStream(cfgName);
       arbProps.store(fos, "Configuration information.  Do not modify while running.");
@@ -191,7 +191,7 @@ public class JConfig {
     }
   }
 
-  public static Properties loadArbitrary(InputStream inCfgStream) {
+  private static Properties loadArbitrary(InputStream inCfgStream) {
     Properties slopsProps;
 
     try {
@@ -245,12 +245,12 @@ public class JConfig {
 
   private static void passwordFixup(Properties _inProps) {
     Properties encoded = new Properties();
-    List<String> removedKeys = new ArrayList<String>();
+    List<String> removedKeys = new ArrayList<>();
 
     for (Object o : _inProps.keySet()) {
       String key = o.toString();
       String lcKey = key.toLowerCase();
-      if (lcKey.indexOf("password") != -1 && lcKey.indexOf("_b64") == -1) {
+      if (lcKey.contains("password") && !lcKey.contains("_b64")) {
         String val = _inProps.getProperty(key);
 
         removedKeys.add(key);
@@ -265,12 +265,12 @@ public class JConfig {
 
   private static void passwordUnfixup_b64(Properties _inProps) {
     Properties decoded = new Properties();
-    List<String> removedKeys = new ArrayList<String>();
+    List<String> removedKeys = new ArrayList<>();
 
     for (Object o : _inProps.keySet()) {
       String key = o.toString();
       String lcKey = key.toLowerCase();
-      if (lcKey.indexOf("_b64") != -1) {
+      if (lcKey.contains("_b64")) {
         int b64_start = lcKey.indexOf("_b64");
         String val = _inProps.getProperty(key);
         removedKeys.add(key);
@@ -296,7 +296,7 @@ public class JConfig {
     saveConfiguration(_configFileName);
   }
 
-  public static void setBaseName(String newBaseName) {
+  protected static void setBaseName(String newBaseName) {
     baseName = newBaseName;
   }
 
@@ -508,7 +508,7 @@ public class JConfig {
   }
 
   public static List<String> getAllKeys() {
-    List<String> keyList = new ArrayList<String>();
+    List<String> keyList = new ArrayList<>();
     for (Object name : soleProperty.keySet()) {
       keyList.add(name.toString());
     }
@@ -524,7 +524,7 @@ public class JConfig {
     for (Object aKeySet : keySet) {
       String s = (String) aKeySet;
       if (s.startsWith(prefix)) {
-        if (results == null) results = new ArrayList<String>();
+        if (results == null) results = new ArrayList<>();
         results.add(s.substring(prefixLen));
       }
     }
