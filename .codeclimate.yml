@@ -1,0 +1,21 @@
+engines:
+  rubocop:
+    enabled: true
+  reek:
+    enabled: true
+  duplication:
+    enabled: true
+    config:
+      languages:
+       - ruby
+
+ratings:
+  paths:
+    - "**.rb"
+
+exclude_paths:
+- lib/jbidwatcher/nokogiri-1.5.2-java/**
+- onejar/**
+- platform/**
+- resources/**
+- structure/**
