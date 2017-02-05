@@ -16,7 +16,7 @@ public class AuctionEntryHTMLPresenter implements Presenter {
   }
 
   public String buildInfo(boolean includeEvents) {
-    return (String)Scripting.rubyMethod("info", mAuctionEntry, includeEvents);
+    return (String)Scripting.rubyMethod("render_info", mAuctionEntry, includeEvents);
   }
 
   public String buildComment(boolean showThumbnail) {
@@ -26,18 +26,6 @@ public class AuctionEntryHTMLPresenter implements Presenter {
     if (JConfig.queryConfiguration("display.thumbnail", "true").equals("false")) hasThumb = false;
     if (!hasComment && !hasThumb) return null;
 
-    StringBuffer wholeHTML = new StringBuffer("<html><body>");
-    if (hasThumb && hasComment) {
-      wholeHTML.append("<table><tr><td><img src=\"").append(mAuctionEntry.getThumbnail()).append("\"></td><td>").append(mAuctionEntry.getComment()).append("</td></tr></table>");
-    } else {
-      if (hasThumb) {
-        wholeHTML.append("<img src=\"").append(mAuctionEntry.getThumbnail()).append("\">");
-      } else {
-        wholeHTML.append(mAuctionEntry.getComment());
-      }
-    }
-    wholeHTML.append("</body></html>");
-
-    return wholeHTML.toString();
+    return (String)Scripting.rubyMethod("render_comment", mAuctionEntry);
   }
 }

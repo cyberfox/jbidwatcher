@@ -558,8 +558,9 @@ public class UserActions implements MessageQueue.Listener {
   private void showComplexInformation(int[] rowList) {
     StringBuffer prompt = new StringBuffer();
     for (int aRowList : rowList) {
+      if(prompt.length() != 0) prompt.append("<hr>");
       AuctionEntry stepAE = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
-      prompt.append(stepAE.getPresenter().buildInfo(true)).append("<hr>");
+      prompt.append(stepAE.getPresenter().buildInfo(true));
     }
     int width = getInteger("info.width", 620);
     int height = getInteger("info.height", 440);

@@ -262,8 +262,12 @@ class JBidwatcherUtilities
 
   end
 
-  def info(entry, include_events)
+  def render_info(entry, include_events)
     InfoPresenter.new(entry, include_events).render
+  end
+
+  def render_comment(entry)
+    CommentPresenter.new(entry).render
   end
 end
 
@@ -307,6 +311,16 @@ class InfoPresenter < Presenter
   def render
     @thumb = thumbnail(@entry)
     _render('auction_info.html.erb')
+  end
+end
+
+class CommentPresenter < Presenter
+  def initialize(entry)
+    @entry = entry
+  end
+
+  def render
+    _render('comment.html.erb')
   end
 end
 

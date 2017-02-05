@@ -6,7 +6,7 @@
         <img src="<%= @thumb[:url] %>" height="<%= @thumb[:h] %>" width="<%= @thumb[:w] %>">
       </td>
       <td>
-        <table>
+        <table style="white-space: nowrap">
           <%= _render('info_body.html.erb') %>
         </table>
       </td>
@@ -28,10 +28,10 @@
 
 <% if @entry.is_complete %><i>Listing has ended.</i><br><% end %>
 <% unless @entry.comment.nil? %>
-    <br><u>Comment</u><br>
-    <b><%= @entry.comment %></b><br>
+  <br><u>Comment</u><br>
+  <blockquote><b><%= ERB::Util.h @entry.comment %></b></blockquote>
 <% end %>
 <% if @include_events %>
-  <b><u>Events</u></b>
+  <u>Events</u>
   <blockquote><%= @entry.status_history %></blockquote>
 <% end %>

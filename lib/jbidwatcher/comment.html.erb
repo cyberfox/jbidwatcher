@@ -1,0 +1,10 @@
+<html>
+<body>
+<table>
+  <tr>
+    <% unless @entry.thumbnail.nil? %><td><img src="<%= @entry.thumbnail %>"></td><% end -%>
+    <% unless @entry.comment.nil? %><td><%= ERB::Util.h(@entry.comment) %></td><% end -%>
+  </tr>
+</table>
+</body>
+</html>
