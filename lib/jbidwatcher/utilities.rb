@@ -36,6 +36,7 @@ Gem.paths = ENV
 require 'digest/md5'
 require 'net/http.rb'
 require 'cgi'
+$: << 'lib/jbidwatcher/nokogiri-1.5.2-java/lib'
 require 'nokogiri'
 require 'json'
 require 'open-uri'
@@ -261,17 +262,41 @@ class JBidwatcherUtilities
 
   end
 
+  def info(entry, include_events)
+    InfoPresenter.new(entry, include_events).render
+  end
+end
+
+class Presenter
+  def _render(filename)
+    dirname = File.dirname(__FILE__)
+    canonical_template = File.join(dirname, filename)
+    template = open(canonical_template).read
+    @depth ||= 0
+    @depth += 1
+    ERB.new(template, nil, '-', "_erbout#{@depth}").result(binding).tap do
+      @depth -= 1
+    end
+  end
+end
+
+class InfoPresenter < Presenter
+  def initialize(entry, include_events)
+    @entry = entry
+    @include_events = include_events
+  end
+
   def thumbnail(entry)
     if entry.thumbnail
       nail = javax.swing.ImageIcon.new(java.net.URL.new(entry.thumbnail))
-      if nail.image_load_status == java.awt.MediaTracker.COMPLETE
+      if nail.image_load_status == java.awt.MediaTracker::COMPLETE
         h = nail.icon_height
         w = nail.icon_width
         long_side = [h, w].max
         scale = 192.0 / long_side.to_f
         h = h.to_f * scale
         w = w.to_f * scale
-        {url: entry.thumbnail, h: h, w: w}
+        {url: entry.thumbnail, h: h.to_i, w: w.to_i}
       end
     end
   rescue => e
@@ -279,14 +304,9 @@ class JBidwatcherUtilities
     nil
   end
 
-  puts "Past the thumbnail declaration."
-
-  def info(entry, include_events)
-    info_template = File.read("auction_info.html.erb")
-    thumb = thumbnail(entry)
-    ERB.new(info_template).result(binding).tap do |body|
-      log body
-    end
+  def render
+    @thumb = thumbnail(@entry)
+    _render('auction_info.html.erb')
   end
 end
 
