@@ -16,8 +16,8 @@
   <% end %>
 </table>
 
-<% if !@entry.is_fixed && !@entry.buy_now.is_null %>
-  <% if @entry.is_complete %>
+<% if !@entry.fixed? && !@entry.buy_now.null? %>
+  <% if @entry.complete? %>
     <b>You could have used Buy It Now for <%= @entry.buy_now %></b><br>
   <% else %>
     <b>Or you could buy it now, for <%= @entry.buy_now %>.</b><br>
@@ -26,12 +26,12 @@
   <% end %>
 <% end %>
 
-<% if @entry.is_complete %><i>Listing has ended.</i><br><% end %>
+<% if @entry.complete? %><i>Listing has ended.</i><br><% end %>
 <% unless @entry.comment.nil? %>
   <br><u>Comment</u><br>
   <blockquote><b><%= ERB::Util.h @entry.comment %></b></blockquote>
 <% end %>
 <% if @include_events %>
   <u>Events</u>
-  <blockquote><%= @entry.status_history %></blockquote>
+  <blockquote><pre><%= @entry.status_history %></pre></blockquote>
 <% end %>

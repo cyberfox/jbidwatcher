@@ -99,13 +99,13 @@ public class EventLogger {
    */
   public String getAllStatuses() {
     if(mAllEvents.isEmpty()) {
-        return(mNullEvent.toBulkString() + "<br>");
+        return(mNullEvent.toBulkString() + "\n");
     } else {
       StringBuilder sb = new StringBuilder();
 
       for(EventStatus lastStatus : mAllEvents) {
         sb.append(lastStatus.toBulkString());
-        sb.append("<br>");
+        sb.append("\n");
       }
       return(sb.toString());
     }

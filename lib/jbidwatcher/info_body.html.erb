@@ -1,25 +1,25 @@
-<% if @entry.is_fixed %>
+<% if @entry.fixed? %>
   <tr><td>Price</td><td><%= @entry.current_price %></td></tr>
 <% else %>
   <tr><td>Currently</td><td><%= @entry.current_price %> (<%= @entry.num_bidders %> Bids)</td></tr>
   <tr><td>High bidder</td><td><%= @entry.high_bidder ? @entry.high_bidder : "(n/a)" %></td></tr>
   <% if @entry.quantity > 1 %><tr><td>Quantity</td><td><%= @entry.quantity %></td></tr><% end %>
 <% end %>
-<% if @entry.is_bid_on %>
-  <tr><td>Your max bid</td><td><%= @entry.bid %></td></tr>
+<% if @entry.bid_on? %>
+  <tr><td>Your max bid</td><td><%= @entry.get_bid %></td></tr>
 <% end %>
-<% if @entry.is_sniped %>
+<% if @entry.sniped? %>
   <tr><td>Sniped for</td><td><%= @entry.snipe_amount %></td></tr>
   <tr><td>Sniping at <%= @entry.snipe_time / 1000 %> seconds before the end.</td></tr>
 <% end %>
-<% if @entry.shipping && !@entry.shipping.is_null %>
+<% if @entry.shipping && !@entry.shipping.null? %>
   <tr><td>Shipping</td><td><%= @entry.shipping %></td></tr>
 <% end %>
-<% if @entry.insurance && !@entry.insurance.is_null %>
-  <tr><td>Insurance (<%= @entry.is_insurance_optional ? "optional" : "required" %>)</td><td><%= @entry.insurance %></td></tr>
+<% if @entry.insurance && !@entry.insurance.null? %>
+  <tr><td>Insurance (<%= @entry.insurance_optional? ? "optional" : "required" %>)</td><td><%= @entry.insurance %></td></tr>
 <% end %>
   <tr><td>Seller</td><td><%= @entry.seller_name %></td></tr>
-  <tr><td>Listing <%= @entry.is_complete ? "ended" : "ends" %></td><td><%= @entry.end_date %></td></tr>
+  <tr><td>Listing <%= @entry.complete? ? "ended" : "ends" %></td><td><%= @entry.end_date %></td></tr>
 <% if @entry.last_updated %>
   <tr><td>Last updated at</td><td><%= @entry.last_updated %></td></tr>
 <% end %>
