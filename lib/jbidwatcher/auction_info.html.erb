@@ -1,0 +1,37 @@
+<b><%= entry.title %></b> (<%= entry.identifier %>)
+<table>
+  <% if thumb %>
+    <tr>
+      <td>
+        <img src="<%= thumb.url %>" height="<%= thumb[:h] %>" width="<%= thumb[:w] %>">
+      </td>
+      <td>
+        <table>
+          <%= ERB.new(File.read('info_body.html.erb').result(binding)) %>
+        </table>
+      </td>
+    </tr>
+  <% else %>
+    <%= ERB.new(File.read('info_body.html.erb').result(binding)) %>
+  <% end %>
+</table>
+
+<% if !entry.is_fixed && !entry.buy_now.is_null %>
+  <% if entry.is_complete %>
+    <b>You could have used Buy It Now for <%= entry.buy_now %></b><br>
+  <% else %>
+    <b>Or you could buy it now, for <%= entry.buy_now %>.</b><br>
+    Note: <i>To 'Buy Now' through this program,<br>
+    select 'Buy' from the Auction menu.</i><br>
+  <% end %>
+<% end %>
+
+<% if entry.is_complete %><i>Listing has ended.</i><br><% end %>
+<% unless entry.comment.nil? %>
+    <br><u>Comment</u><br>
+    <b><%= entry.comment %></b><br>
+<% end %>
+<% if include_events %>
+  <b><u>Events</u></b>
+  <blockquote><%= entry.status_history %></blockquote>
+<% end %>

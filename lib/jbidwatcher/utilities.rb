@@ -42,6 +42,7 @@ require 'open-uri'
 require 'ebay_parser'
 require 'time'
 require 'column_lookup'
+require 'erb'
 
 class JBidwatcherUtilities
   MY_JBIDWATCHER_URL = "http://my.jbidwatcher.com:9876/advanced"
@@ -131,7 +132,7 @@ class JBidwatcherUtilities
   end
 
   def initialize
-    @columns = {}    
+    @columns = {}
   end
 
   COMMANDS = {}
@@ -258,6 +259,34 @@ class JBidwatcherUtilities
   # This is just a dumping ground right now; I should change that soon.
   def get_value(entry, column)
 
+  end
+
+  def thumbnail(entry)
+    if entry.thumbnail
+      nail = javax.swing.ImageIcon.new(java.net.URL.new(entry.thumbnail))
+      if nail.image_load_status == java.awt.MediaTracker.COMPLETE
+        h = nail.icon_height
+        w = nail.icon_width
+        long_side = [h, w].max
+        scale = 192.0 / long_side.to_f
+        h = h.to_f * scale
+        w = w.to_f * scale
+        {url: entry.thumbnail, h: h, w: w}
+      end
+    end
+  rescue => e
+    log(e.to_s)
+    nil
+  end
+
+  puts "Past the thumbnail declaration."
+
+  def info(entry, include_events)
+    info_template = File.read("auction_info.html.erb")
+    thumb = thumbnail(entry)
+    ERB.new(info_template).result(binding).tap do |body|
+      log body
+    end
   end
 end
 

@@ -1,6 +1,6 @@
 package com.jbidwatcher.auction;
 
-import com.jbidwatcher.util.StringTools;
+import com.jbidwatcher.scripting.Scripting;
 import com.jbidwatcher.util.config.JConfig;
 
 import javax.swing.*;
@@ -10,22 +10,24 @@ import java.net.URL;
 
 public class AuctionEntryHTMLPresenter implements Presenter {
   private final AuctionEntry mAuctionEntry;
-  public static final String newRow = "<tr><td>";
-  public static final String newCol = "</td><td>";
-  public static final String endRow = "</td></tr>";
+  private static final String newRow = "<tr><td>";
+  private static final String newCol = "</td><td>";
+  private static final String endRow = "</td></tr>";
 
   public AuctionEntryHTMLPresenter(AuctionEntry mAuctionEntry) {
     this.mAuctionEntry = mAuctionEntry;
   }
 
   public String buildInfo(boolean includeEvents) {
-    String prompt = "";
-
-    if (false) {
-      prompt += "<b>" + StringTools.stripHigh(mAuctionEntry.getTitle()) + "</b> (" + mAuctionEntry.getIdentifier() + ")<br>";
+    String prompt = (String)Scripting.rubyMethod("info", mAuctionEntry, includeEvents);
+    if(prompt != null) {
+      return prompt;
     } else {
-      prompt += "<b>" + mAuctionEntry.getTitle() + "</b> (" + mAuctionEntry.getIdentifier() + ")<br>";
+      prompt = "";
     }
+//    String prompt = "";
+
+    prompt += "<b>" + mAuctionEntry.getTitle() + "</b> (" + mAuctionEntry.getIdentifier() + ")<br>";
     prompt += "<table>";
     boolean addedThumbnail = false;
     if (mAuctionEntry.getThumbnail() != null) {
