@@ -26,12 +26,23 @@ public class ScrollingBuffer implements ErrorHandler {
   public void addLog(String s) {
     if(s == null) return;
     synchronized(sLogBuffer) {
-      if(s.length() + sLogBuffer.length() > mMaxSize) {
-        int newline = sLogBuffer.indexOf("\n", s.length());
-        sLogBuffer.delete(0, newline);
-      }
+      makeRoom(s);
       sLogBuffer.append(s);
       sLogBuffer.append("\n");
+    }
+  }
+
+  private void makeRoom(String s) {
+    if(s.length() + sLogBuffer.length() > mMaxSize) {
+      int newline = sLogBuffer.indexOf("\n", s.length());
+      if(newline >= 0) {
+        // Truncate AFTER the newline, so the first line isn't blank.
+        newline++;
+      } else {
+        // If there's no newline from s.length on, clear everything.
+        newline = sLogBuffer.length();
+      }
+      sLogBuffer.delete(0, newline);
     }
   }
 
