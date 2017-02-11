@@ -214,7 +214,7 @@ public class HashBacked {
   }
 
   public String dumpRecord() {
-    StringBuffer sb = new StringBuffer("<record>\n");
+    StringBuilder sb = new StringBuilder("<record>\n");
     for(String key : mBacking.keySet()) {
       sb.append("  <").append(key).append('>').append(mBacking.get(key)).append("</").append(key).append(">\n");
     }

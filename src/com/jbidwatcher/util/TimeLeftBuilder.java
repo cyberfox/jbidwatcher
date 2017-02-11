@@ -1,10 +1,9 @@
 package com.jbidwatcher.util;
 
 import com.jbidwatcher.util.config.JConfig;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 
 /**
  * Created by mrs on 6/14/15.

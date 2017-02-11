@@ -3,11 +3,6 @@ package com.jbidwatcher.auction;
 import com.jbidwatcher.scripting.Scripting;
 import com.jbidwatcher.util.config.JConfig;
 
-import javax.swing.*;
-import java.awt.MediaTracker;
-import java.net.MalformedURLException;
-import java.net.URL;
-
 public class AuctionEntryHTMLPresenter implements Presenter {
   private final AuctionEntry mAuctionEntry;
 

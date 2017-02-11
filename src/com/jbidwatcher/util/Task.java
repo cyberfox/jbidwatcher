@@ -8,5 +8,5 @@ package com.jbidwatcher.util;
 * To change this template use File | Settings | File Templates.
 */
 public interface Task {
-  public void execute(Object o);
+  void execute(Object o);
 }

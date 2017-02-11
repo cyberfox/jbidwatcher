@@ -11,28 +11,24 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/*!@class EventLogger
- *
- * @brief Encapsulates a super-simple event log for display purposes.
+/**
+ * Encapsulates a super-simple event log for display purposes.
  *
  * Each EventLogger object has a 'title' and an 'id' which will be
  * shown once for all the events.
- *
+ * <br><br>
  * Arbitrary number of events can be added, and when they are, it
  * time-stamps when they happened.  It keeps track of the 'last
  * message', and the number of times it happened, only tracking the
  * first time it happened.
- *
+ * <br><br>
  * It also allows for saving and loading to/from the DB, so any
  * given object can have its own event log as well.
- *
+ * <br><br>
  * The naming isn't quite right, it should probably be 'addEvent' and
  * 'getEvents'.
- *
  */
 public class EventLogger {
-  /** Records all status messages that are added.
-   */
   private String mIdentifier =null;
   private String mTitle =null;
   private Integer mEntryId = null;

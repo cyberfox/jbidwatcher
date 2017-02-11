@@ -13,12 +13,7 @@ import java.util.regex.Pattern;
 public class StringTools {
   private static final int YEAR_BASE = 1990;
   private static GregorianCalendar sMidpointDate = new GregorianCalendar(YEAR_BASE, Calendar.JANUARY, 1);
-  public static final int HIGHBIT_ASCII = 0x80;
-
-  public static String decodeLatin(String latinString) {
-    //  Why?  Because it seems to Just Work on Windows.  Argh.
-    return decode(latinString, "ISO-8859-1");
-  }
+  private static final int HIGHBIT_ASCII = 0x80;
 
   public static String decode(String original, String charset) {
     if(charset == null || charset.equalsIgnoreCase("UTF-8")) return original;
@@ -99,7 +94,7 @@ public class StringTools {
    *         were invalid in any way.
    * @brief Delete characters from a range within a stringbuffer, safely.
    */
-  public static boolean deleteRange(StringBuffer sb, int desc_start, int desc_end) {
+  private static boolean deleteRange(StringBuffer sb, int desc_start, int desc_end) {
     if (desc_start < desc_end &&
         desc_start != -1 &&
         desc_end != -1) {
@@ -107,33 +102,6 @@ public class StringTools {
       return true;
     }
     return false;
-  }
-
-  /**
-   * Delete a block of text, indicated by a start and end
-   * string pair, with alternates.
-   *
-   * @param sb          - The StringBuffer to delete from, In/Out.
-   * @param startStr    - The start string to delete from.
-   * @param altStartStr - An alternate start string, in case the startStr isn't found.
-   * @param endStr      - The end string to delete to.
-   * @param altEndStr   - An alternate end string in case the endStr is found before the start string.
-   *
-   * @return - true if a delete occurred, false otherwise.
-   */
-  public static boolean deleteFirstToLast(StringBuffer sb, String startStr, String altStartStr, String endStr, String altEndStr) {
-    String fullBuff = sb.toString();
-    int desc_start = fullBuff.indexOf(startStr);
-
-    if (desc_start == -1) {
-      desc_start = fullBuff.indexOf(altStartStr);
-    }
-
-    int desc_end = fullBuff.lastIndexOf(endStr);
-
-    if (desc_start > desc_end) desc_end = fullBuff.lastIndexOf(altEndStr);
-
-    return deleteRange(sb, desc_start, desc_end);
   }
 
   /**
@@ -279,15 +247,5 @@ public class StringTools {
 
   public static boolean startsWithIgnoreCase(String base, String match) {
     return base.regionMatches(true, 0, match, 0, match.length());
-  }
-
-  public static String stripHigh(String inString) {
-    char[] stripOut = new char[inString.length()];
-
-    inString.getChars(0, inString.length(), stripOut, 0);
-    for(int i=0; i<stripOut.length; i++) {
-      if(stripOut[i] > 0x80) stripOut[i] = ' ';
-    }
-    return new String(stripOut);
   }
 }

@@ -18,7 +18,7 @@ import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 
 public class IconFactory {
-  private static Map<ImageIcon, Map<Object, ImageIcon>> _icons = new HashMap<ImageIcon, Map<Object, ImageIcon>>();
+  private static Map<ImageIcon, Map<Object, ImageIcon>> _icons = new HashMap<>();
 
   /**
    * Create a combination of two images, and return it as a new image.
@@ -38,7 +38,7 @@ public class IconFactory {
     // a map of (_icons[left])[right] -> combined icon.
     if(combos == null) {
       ImageIcon new_icon = appendIcons(leftImage, rightImage);
-      combos = new HashMap<Object, ImageIcon>();
+      combos = new HashMap<>();
       combos.put(rightImage, new_icon);
       _icons.put(leftImage, combos);
       return new_icon;
@@ -83,9 +83,7 @@ public class IconFactory {
     Graphics2D g = scaledBI.createGraphics();
     g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
-    if (true) {
-      g.setComposite(AlphaComposite.Src);
-    }
+    g.setComposite(AlphaComposite.Src);
     g.drawImage(originalImage, 0, 0, scaledWidth, scaledHeight, null);
     g.dispose();
     return scaledBI;
