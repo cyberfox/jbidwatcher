@@ -8,8 +8,9 @@ package com.jbidwatcher.util;
 import java.io.*;
 import java.util.zip.*;
 import com.jbidwatcher.util.config.JConfig;
+import org.jetbrains.annotations.NotNull;
 
-public class ByteBuffer {
+public class ByteBuffer extends Backupable {
   private byte[] data;
   private int length;
   private CRC32 crcCalc = new CRC32();
@@ -29,15 +30,7 @@ public class ByteBuffer {
   public int getCRC() { return crc; }
 
   public void save(String fileName) {
-    File fp = new File(fileName);
-
-    if(fp.exists()) {
-      File oldFP = new File(fileName + "~");
-      if(oldFP.exists()) {
-        oldFP.delete();
-      }
-      fp.renameTo(oldFP);
-    }
+    File fp = fileWithBackup(fileName);
 
     try {
       FileOutputStream fos = new FileOutputStream(fp);

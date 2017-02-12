@@ -10,7 +10,7 @@ import com.jbidwatcher.util.config.JConfig;
 import java.io.*;
 import java.util.zip.*;
 
-public class GZip {
+public class GZip extends Backupable {
   private static byte[] _byteHold = new byte[1];
   private static final Boolean _sync = Boolean.TRUE;
   private static final byte[] gzipHdrData = { 0x1f, -117, 0x08, 0x00,
@@ -176,15 +176,7 @@ public class GZip {
   }
 
   public void save(String fileName) {
-    File fp = new File(fileName);
-
-    if(fp.exists()) {
-      File oldFP = new File(fileName + "~");
-      if(oldFP.exists()) {
-        oldFP.delete();
-      }
-      fp.renameTo(oldFP);
-    }
+    File fp = fileWithBackup(fileName);
 
     try {
       FileOutputStream fos = new FileOutputStream(fp);
