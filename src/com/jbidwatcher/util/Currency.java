@@ -17,12 +17,12 @@ import java.beans.DefaultPersistenceDelegate;
 
 public class Currency implements Comparable {
   public static final String VALUE_REGEX="^(\\s?\\$)?[0-9]+([,.0-9]*)$";
-  public static final String NAME_REGEX = "(USD|GBP|JPY|CHF|FRF|EUR|CAD|AUD|NTD|TWD|HKD|MYR|SGD|INR|US)";
+  public static final String NAME_REGEX = "(USD|GBP|JPY|CHF|EUR|CAD|AUD|NTD|TWD|HKD|MYR|SGD|INR|US)";
 
   private static NumberFormat df = NumberFormat.getNumberInstance(Locale.US); // We create a lot of these, so minimizing memory usage is good.
-  public static final int NONE=0, US_DOLLAR=1, UK_POUND=2, JP_YEN=3, GER_MARK=4, FR_FRANC=5, CAN_DOLLAR=6;
-  public static final int EURO=7, AU_DOLLAR=8, CH_FRANC=9, NT_DOLLAR=10, TW_DOLLAR=10, HK_DOLLAR=11;
-  public static final int MY_REAL=12, SG_DOLLAR=13, IND_RUPEE=14;
+  private static final int NONE=0, US_DOLLAR=1, UK_POUND=2, JP_YEN=3, CAN_DOLLAR=6;
+  private static final int EURO=7, AU_DOLLAR=8, CH_FRANC=9, NT_DOLLAR=10, TW_DOLLAR=10, HK_DOLLAR=11;
+  private static final int MY_REAL=12, SG_DOLLAR=13, IND_RUPEE=14;
   private static Currency _noValue = null;
 
   /** 
@@ -38,12 +38,12 @@ public class Currency implements Comparable {
     return _noValue;
   }
 
-  protected int mCurrencyType;
-  protected double mValue;
+  private int mCurrencyType;
+  private double mValue;
   private static final char pound = '\u00A3';
   private static final Character objPound = '\u00A3';
 
-  private static Map<Integer,Double> sCurrencyMap = new HashMap<Integer,Double>();
+  private static Map<Integer,Double> sCurrencyMap = new HashMap<>();
 
   /**
    * Convert a non-US currency to USD, usually for sorting purposes.
@@ -83,16 +83,15 @@ public class Currency implements Comparable {
     return cvt;
   }
 
-  /*!@class CurrencyTypeException
-   *
-   * @brief A class to yell about currency type comparison exceptions.
+  /**
+   * A class to yell about currency type comparison exceptions.
    *
    * This is used when comparing two currencies of disparate monies.
    */
   public static class CurrencyTypeException extends Exception {
     String _associatedString;
 
-    public CurrencyTypeException(String inString) {
+    CurrencyTypeException(String inString) {
       _associatedString = inString;
     }
     public String toString() {
@@ -103,8 +102,6 @@ public class Currency implements Comparable {
   private static final Integer CurDollar = US_DOLLAR;  //  American Dollar
   private static final Integer CurPound = UK_POUND;    //  British Pound
   private static final Integer CurYen = JP_YEN;        //  Japanese Yen
-  private static final Integer CurMark = GER_MARK;     //  German Mark
-  private static final Integer CurFranc = FR_FRANC;    //  French Franc
   private static final Integer CurSwiss = CH_FRANC;    //  Swiss Franc
   private static final Integer CurCan = CAN_DOLLAR;    //  Canadian Dollar
   private static final Integer CurEuro = EURO;         //  Euro
@@ -140,12 +137,8 @@ public class Currency implements Comparable {
     { "JPY",    CurYen },
     { "&yen",   CurYen },
     { "\u00A5", CurYen },
-    { "DM",     CurMark },
-    { "FRF",    CurFranc },
-    { "fr",     CurFranc },
     { "CHF",    CurSwiss },
     { "chf",    CurSwiss },
-    { "dm",     CurMark },
     { "\u20AC", CurEuro },
     { "eur",    CurEuro },
     { "EUR",    CurEuro },
@@ -181,14 +174,6 @@ public class Currency implements Comparable {
     }
 
     return NONE;
-  }
-
-  private boolean isDigit(char ch) {
-    return(ch>='0' && ch<='9');
-  }
-
-  public static boolean isCurrency(String test) {
-    return !getCurrency(test).isNull();
   }
 
   @NotNull
@@ -278,7 +263,6 @@ public class Currency implements Comparable {
 
       int eurLen = checkLengthMatchStart(wholeValue, "EUR");
       int gbpLen = checkLengthMatchStart(wholeValue, "GBP");
-      int frfLen = checkLengthMatchStart(wholeValue, "FRF");
       int chfLen = checkLengthMatchStart(wholeValue, "CHF");
       int cdnLen = checkLengthMatchStart(wholeValue, "CAD");
       int ntdLen = checkLengthMatchStart(wholeValue, "NTD");
@@ -306,9 +290,6 @@ public class Currency implements Comparable {
       } else if(gbpLen != 0) {
         parseCurrency = "GBP";
         valuePortion = wholeValue.substring(gbpLen);
-      } else if(frfLen != 0) {
-        parseCurrency = "FRF";
-        valuePortion = wholeValue.substring(frfLen);
       } else if(chfLen != 0) {
         parseCurrency = "CHF";
         valuePortion = wholeValue.substring(chfLen);
@@ -349,7 +330,7 @@ public class Currency implements Comparable {
         parseCurrency = "GBP";
         valuePortion = wholeValue.substring(1);
       } else {
-        if(!isDigit(firstChar) && firstChar != '$') {
+        if(!Character.isDigit(firstChar) && firstChar != '$') {
           int semiIndex = wholeValue.indexOf(";");
           if(semiIndex == -1) {
             semiIndex = wholeValue.indexOf(" ");
@@ -363,7 +344,7 @@ public class Currency implements Comparable {
           }
         } else {
           parseCurrency = "$";
-          if(isDigit(firstChar)) {
+          if(Character.isDigit(firstChar)) {
             valuePortion = wholeValue;
           } else {
             valuePortion = wholeValue.substring(1);
@@ -435,8 +416,6 @@ public class Currency implements Comparable {
       case IND_RUPEE: return("INR");
       case UK_POUND: return("GBP");
       case JP_YEN: return("JPY");
-      case GER_MARK: return("DM");
-      case FR_FRANC: return("FRF");
       case CH_FRANC: return("CHF");
       case CAN_DOLLAR: return("CAD");
       case EURO: return("EUR");
@@ -514,9 +493,7 @@ public class Currency implements Comparable {
       case IND_RUPEE: return("Rs.");
       case UK_POUND: return(objPound.toString());
       case JP_YEN: return("\u00A5"); //  HACKHACK
-      case FR_FRANC: return("fr");
       case CH_FRANC: return("chf");
-      case GER_MARK: return("dm");
       case CAN_DOLLAR: return("c$");
       case AU_DOLLAR: return("au$");
       case EURO: return("\u20AC");
@@ -538,13 +515,12 @@ public class Currency implements Comparable {
   public String toString() {
     if(isNull()) {
       return("null");
-    } else {
-      String cvtToString = getCurrencySymbol();
-
-      cvtToString += df.format(mValue);
-
-      return(cvtToString);
     }
+
+    String cvtToString = getCurrencySymbol();
+    cvtToString += df.format(mValue);
+
+    return(cvtToString);
   }
 
   /** 
@@ -560,9 +536,8 @@ public class Currency implements Comparable {
   public String getValueString() {
     if(isNull()) {
       return("null");
-    } else {
-      return df.format(mValue);
     }
+    return df.format(mValue);
   }
 
   /** 
@@ -629,9 +604,7 @@ public class Currency implements Comparable {
       throw new CurrencyTypeException("Cannot compare different currencies.");
     }
 
-    boolean lowerValue = Double.compare((double) ((int) (otherValue.getValue() * 1000)), (double) (int) (mValue * 1000)) == 1;
-
-    return(lowerValue);
+    return(Double.compare((double) ((int) (otherValue.getValue() * 1000)), (double) (int) (mValue * 1000)) == 1);
   }
 
   /** 
