@@ -49,18 +49,6 @@ public class ebayCurrencyTables {
         { new Currency("GBP2999.99"), new Currency("GBP50.00") },
         { Currency.NoValue(), new Currency("GBP100.00") } };
 
-  private static Currency[][] fr_incrementTable = {
-            { new Currency(    "FRF4.99"), new Currency( "FRF0.25") },
-            { new Currency(   "FRF24.99"), new Currency( "FRF0.50") },
-            { new Currency(   "FRF99.99"), new Currency( "FRF1.00") },
-            { new Currency(  "FRF249.99"), new Currency( "FRF2.50") },
-            { new Currency(  "FRF499.99"), new Currency( "FRF5.00") },
-            { new Currency(  "FRF999.99"), new Currency("FRF10.00") },
-            { new Currency( "FRF2499.99"), new Currency("FRF25.00") },
-            { new Currency( "FRF9999.99"), new Currency("FRF100.00") },
-            { new Currency("FRF49999.99"), new Currency("FRF250.00") },
-            { Currency.NoValue(), new Currency("FRF500.00") } };
-
   private static Currency[][] eu_incrementTable = {
               { new Currency(   "EUR49.99"), new Currency( "EUR0.50") },
               { new Currency(  "EUR499.99"), new Currency( "EUR1.00") },
@@ -122,10 +110,6 @@ public class ebayCurrencyTables {
       case Currency.UK_POUND:
         rightTable = uk_incrementTable;
         zeroIncrement = zeroPounds;
-        break;
-      case Currency.FR_FRANC:
-        rightTable = fr_incrementTable;
-        zeroIncrement = zeroFrancs;
         break;
       case Currency.CH_FRANC:
         rightTable = ch_incrementTable;
