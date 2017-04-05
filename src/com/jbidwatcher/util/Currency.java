@@ -20,9 +20,9 @@ public class Currency implements Comparable {
   public static final String NAME_REGEX = "(USD|GBP|JPY|CHF|EUR|CAD|AUD|NTD|TWD|HKD|MYR|SGD|INR|US)";
 
   private static NumberFormat df = NumberFormat.getNumberInstance(Locale.US); // We create a lot of these, so minimizing memory usage is good.
-  private static final int NONE=0, US_DOLLAR=1, UK_POUND=2, JP_YEN=3, CAN_DOLLAR=6;
-  private static final int EURO=7, AU_DOLLAR=8, CH_FRANC=9, NT_DOLLAR=10, TW_DOLLAR=10, HK_DOLLAR=11;
-  private static final int MY_REAL=12, SG_DOLLAR=13, IND_RUPEE=14;
+  public static final int NONE=0, US_DOLLAR=1, UK_POUND=2, JP_YEN=3, CAN_DOLLAR=6;
+  public static final int EURO=7, AU_DOLLAR=8, CH_FRANC=9, NT_DOLLAR=10, TW_DOLLAR=10, HK_DOLLAR=11;
+  public static final int MY_REAL=12, SG_DOLLAR=13, IND_RUPEE=14;
   private static Currency _noValue = null;
 
   /** 
