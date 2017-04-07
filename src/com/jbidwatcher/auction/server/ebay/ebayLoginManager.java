@@ -237,6 +237,7 @@ public class ebayLoginManager implements LoginManager {
 
   private CookieJar signInUsingPage(String previousPage, String username, String password, boolean adult, CookieJar cj, JHTML htdoc) throws IOException, CaptchaException {
     List<String> resultPages = new ArrayList<String>();
+    checkSecurityConfirmation(htdoc);
     JHTML.Form curForm = htdoc.getFormWithInput("pass");
     if (curForm != null) {
       //  If it has a password field, this is the input form.
@@ -294,6 +295,11 @@ public class ebayLoginManager implements LoginManager {
         } else if (checkSecurityConfirmation(doc)) { //  Check for CAPTCHA and bad passwords...
           cj = null;
           MQFactory.getConcrete("login").enqueue("FAILED Sign in information is not valid.");
+        } else if (doc.getTitle().equals("Enter your security code")) {
+          String notification = "eBay is requesting the security code for two-factor authentification.";
+          JConfig.log().logMessage(notification);
+          MQFactory.getConcrete("login").enqueue( "FAILED Two-factor authentification not supported");
+	  if (mNotifySwing) MQFactory.getConcrete("Swing").enqueue("INVALID_LOGIN  Two-factor authentification not supported");
         } else {
           JHTML.Form redirect_form = doc.getFormWithInput("hidUrl");
           String hidUrl = null;
