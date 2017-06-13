@@ -23,7 +23,6 @@ import com.jbidwatcher.scripting.Scripting;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.html.JHTML;
-import com.jbidwatcher.my.MyJBidwatcher;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.search.Searcher;
 import org.json.simple.JSONArray;
@@ -52,7 +51,6 @@ public class JBTool {
   private final EntryFactory entryFactory;
   private final SearchManager searchManager;
   private final AuctionServerManager auctionServerManager;
-  private final MyJBidwatcher myJBidwatcher;
   private boolean mLogin = false;
   private String mUsername = null;
   private String mPassword = null;
@@ -139,12 +137,10 @@ public class JBTool {
   }
 
   @Inject
-  public JBTool(EntryFactory eFactory, final EntryCorral corral, SearchManager searchManager, AuctionServerManager serverManager,
-                MyJBidwatcher myJBidwatcher) {
+  public JBTool(EntryFactory eFactory, final EntryCorral corral, SearchManager searchManager, AuctionServerManager serverManager) {
     this.entryFactory = eFactory;
     this.searchManager = searchManager;
     this.auctionServerManager = serverManager;
-    this.myJBidwatcher = myJBidwatcher;
 
     ActiveRecord.disableDatabase();
     AuctionEntry.addObserver(entryFactory);
@@ -294,7 +290,6 @@ public class JBTool {
       if(option.startsWith("bulk")) { mCompare = true; mMultiFiles = true; }
       if(option.startsWith("bidfile=")) testBidHistory(option.substring(8));
       if(option.startsWith("adult")) JConfig.setConfiguration("ebay.mature", "true");
-      if(option.startsWith("upload=")) myJBidwatcher.sendFile(new File(option.substring(7)), "http://my.jbidwatcher.com/upload/log", "cyberfox@jbidwatcher.com", "This is a <test> of descriptions & stuff.");
     }
 
     if(!mLogin) {

@@ -22,7 +22,6 @@ import com.github.rjeschke.txtmark.Processor;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.jbidwatcher.my.MyJBidwatcher;
 import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.util.config.*;
@@ -54,7 +53,6 @@ public class UserActions implements MessageQueue.Listener {
   private final ErrorMonitor monitor;
   private final MultiSnipeManager multisnipeManager;
   private final SearchManager searchManager;
-  private final MyJBidwatcher myJBidwatcher;
   private final myTableCellRenderer cellRenderer;
   private final Provider<JConfigFrame> configFrameProvider;
   private OptionUI _oui = new OptionUI();
@@ -77,7 +75,7 @@ public class UserActions implements MessageQueue.Listener {
   @Inject
   public UserActions(EntryCorral corral, JTabManager tabManager, EntryFactory factory, AuctionsManager auctionsManager,
                      AuctionServerManager serverManager, PauseManager pauseManager, ErrorMonitor errorMonitor,
-                     MultiSnipeManager multiSnipeManager, SearchManager searchManager, MyJBidwatcher myJBidwatcher,
+                     MultiSnipeManager multiSnipeManager, SearchManager searchManager,
                      JBidToolBar toolBar, ListManager listManager, myTableCellRenderer cellRenderer, JPasteListener pasteListener,
                      Provider<JConfigFrame> configFrameProvider) {
     this.entryCorral = corral;
@@ -89,7 +87,6 @@ public class UserActions implements MessageQueue.Listener {
     this.monitor = errorMonitor;
     this.multisnipeManager = multiSnipeManager;
     this.searchManager = searchManager;
-    this.myJBidwatcher = myJBidwatcher;
     this.toolBar = toolBar;
     this.listManager = listManager;
     this.cellRenderer = cellRenderer;
@@ -1229,12 +1226,6 @@ public class UserActions implements MessageQueue.Listener {
     }
 
     final JBidFrame logFrame = _oui.getTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " " + frameName, false);
-    JButton logButton = new JButton("Submit Log");
-    logButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        DoSubmitLogFile();
-      }
-    });
     JButton refreshButton = new JButton("Refresh");
     refreshButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -1242,7 +1233,6 @@ public class UserActions implements MessageQueue.Listener {
       }
     });
     JPanel buttonBox = new JPanel(new BorderLayout());
-    buttonBox.add(logButton, BorderLayout.EAST);
     buttonBox.add(refreshButton, BorderLayout.WEST);
     logFrame.add(buttonBox, BorderLayout.SOUTH);
 
@@ -1447,19 +1437,6 @@ public class UserActions implements MessageQueue.Listener {
   public void DoGetMyeBay() {
     AuctionQObject loadMyeBay = new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, "current");
     MQFactory.getConcrete(serverManager.getServer().getFriendlyName()).enqueueBean(loadMyeBay);
-  }
-
-  private SubmitLogDialog mLogSubmitDialog;
-
-  public void DoSubmitLogFile() {
-    if(mLogSubmitDialog == null) {
-      mLogSubmitDialog = new SubmitLogDialog(myJBidwatcher);
-    }
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        mLogSubmitDialog.showDialog();
-      }
-    });
   }
 
   public void DoRestart() {

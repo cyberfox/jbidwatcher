@@ -152,22 +152,6 @@ public class ebayBidder implements com.jbidwatcher.auction.Bidder {
       checkSignOn(rval.getDocument());
       checkBidErrors(rval);
     }
-//    TODO -- Move this to a registered 'alternative parsing' class, which iterates over objects calling recognizeBidPage until getting a positive result, or running out.
-//    if(JConfig.queryConfiguration("my.jbidwatcher.enabled", "false").equals("true") &&
-//       JConfig.queryConfiguration("my.jbidwatcher.id") != null) {
-//      String recognize = MyJBidwatcher.getInstance().recognizeBidpage(inEntry.getIdentifier(), rval.getBuffer());
-//      Integer remote_result = null;
-//      try {
-//        remote_result = Integer.parseInt(recognize);
-//      } catch(NumberFormatException nfe) {
-//        //  Ignore it for now...
-//        JConfig.log().logDebug(recognize);
-//      }
-//
-//      if(remote_result != null && remote_result != AuctionServer.BID_ERROR_UNKNOWN) {
-//        throw new BadBidException("Remote-checked result", remote_result);
-//      }
-//    }
 
     if(JConfig.debugging) inEntry.setLastStatus("Failed to bid. 'Show Last Error' from context menu to see the failure page from the bid attempt.");
     JConfig.log().dump2File("unknown-" + inEntry.getIdentifier() + ".html", rval.getBuffer());

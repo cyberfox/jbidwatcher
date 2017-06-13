@@ -9,7 +9,6 @@ import com.cyberfox.util.platform.Platform;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.jbidwatcher.auction.server.AuctionServerManager;
-import com.jbidwatcher.my.MyJBidwatcher;
 import com.jbidwatcher.ui.util.JPasteListener;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.util.Constants;
@@ -53,9 +52,9 @@ public class JConfigFrame implements ActionListener {
   }
 
   @Inject
-  public JConfigFrame(MyJBidwatcher myJBidwatcher, AuctionServerManager serverManager, JPasteListener pasteListener) {
+  public JConfigFrame(AuctionServerManager serverManager, JPasteListener pasteListener) {
     String friendlyName = serverManager.getServer().getFriendlyName();
-    mainFrame = createConfigFrame(myJBidwatcher, pasteListener, friendlyName);
+    mainFrame = createConfigFrame(pasteListener, friendlyName);
     Rectangle rec = OptionUI.findCenterBounds(mainFrame.getPreferredSize());
     mainFrame.setLocation(rec.x, rec.y);
     show();
@@ -150,7 +149,7 @@ public class JConfigFrame implements ActionListener {
   private static String QUICK_CARD = "Quick Configuration";
   private static String ADVANCED_CARD = "Advanced Configuration";
 
-  private JFrame createConfigFrame(MyJBidwatcher myJBidwatcher, JPasteListener pasteListener, String friendlyName) {
+  private JFrame createConfigFrame(JPasteListener pasteListener, String friendlyName) {
     JTabbedPane jtpAllTabs = new JTabbedPane();
     final JFrame w;
 
