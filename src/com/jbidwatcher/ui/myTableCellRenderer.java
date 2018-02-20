@@ -203,14 +203,15 @@ public class myTableCellRenderer extends DefaultTableCellRenderer {
       paint = new GradientPaint(0, 0, lighten(selected), 0, getHeight(), selected, false);
       gradientCache.put(cacheMapper(), paint);
     }
-    Graphics2D g2d = (Graphics2D) g;
-    g2d.setPaint(paint);
-    Rectangle bounds = g2d.getClipBounds();
-    g2d.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
+    renderColor(g, paint);
   }
 
-  private void renderColor(Graphics g, Color color) {
-    g.setColor(color);
+  private void renderColor(Graphics g, Paint paint) {
+    if(g instanceof Graphics2D) {
+      ((Graphics2D) g).setPaint(paint);
+    } else {
+      g.setColor((Color)paint);
+    }
     Rectangle bounds = g.getClipBounds();
     g.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
   }

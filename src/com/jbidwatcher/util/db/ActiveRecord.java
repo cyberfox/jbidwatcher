@@ -191,7 +191,7 @@ public abstract class ActiveRecord extends HashBacked {
     if(sDBDisabled) return null;
     ActiveRecord found = getExemplar(klass);
     Table t = getTable(found);
-    Record result = t.findFirstBy(query);
+    Record result = t.findFirst(query);
     if (result != null && !result.isEmpty()) {
       found.setBacking(result);
     } else {

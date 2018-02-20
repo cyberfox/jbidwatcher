@@ -137,20 +137,6 @@ public class Table
     return findByColumn(key, value);
   }
 
-  public Record findFirstBy(String query) {
-    if(STATEMENT_DEBUG) JConfig.log().logDebug("Executing fFB query: " + query);
-
-    synchronized (mS) {
-      try {
-        ResultSet rs = mS.executeQuery(query);
-        return getFirstResult(rs);
-      } catch (SQLException e) {
-        e.printStackTrace();
-        return null;
-      }
-    }
-  }
-
   public List<Record> findAllMulti(String[] keys, String[] values, String order) {
     return findAllMulti(keys, values, null, order);
   }
@@ -266,21 +252,20 @@ public class Table
     return ps.executeQuery();
   }
 
-  private Record getFirstResult(ResultSet rs) throws SQLException {
-    Record rval = new Record();
-    ResultSetMetaData rsm = rs.getMetaData();
-    if (rsm != null) {
-      if (rs.next()) {
-        for (int i = 1; i <= rsm.getColumnCount(); i++) {
-          rval.put(rs.getMetaData().getColumnName(i).toLowerCase(), rs.getString(i));
-        }
-      }
+  public static Record getFirstResult(ResultSet rs) throws SQLException {
+    List<Record> rval = getAllResults(rs, 1);
+    if(rval.size() > 0) {
+      return rval.get(0);
+    } else {
+      return null;
     }
-    rs.close();
-    return rval;
   }
 
   private List<Record> getAllResults(ResultSet rs) throws SQLException {
+    return getAllResults(rs, -1);
+  }
+
+  static private List<Record> getAllResults(ResultSet rs, int count) throws SQLException {
     ArrayList<Record> rval = new ArrayList<Record>();
     ResultSetMetaData rsm = rs.getMetaData();
     if (rsm != null) {
@@ -290,6 +275,7 @@ public class Table
           row.put(rs.getMetaData().getColumnName(i).toLowerCase(), rs.getString(i));
         }
         rval.add(row);
+        if(rval.size() == count) return rval;
       }
     }
     rs.close();

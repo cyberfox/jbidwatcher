@@ -226,17 +226,6 @@ public class auctionTableModel extends AbstractTableModel
 
   private static Map<String, Seller> sellers = new HashMap<>();
 
-  private Seller getSeller(String sellerId) {
-    Seller seller;
-    if (sellers.containsKey(sellerId)) {
-      seller = sellers.get(sellerId);
-    } else {
-      seller = Seller.findFirstBy("id", sellerId);
-      sellers.put(sellerId, seller);
-    }
-    return seller;
-  }
-
   private Object priceWithShippingColumn(AuctionEntry aEntry) {
     Currency shipping = aEntry.getShippingWithInsurance();
     if (shipping.getCurrencyType() == Currency.NONE) {
@@ -351,7 +340,7 @@ public class auctionTableModel extends AbstractTableModel
         return "*";
       }
       String errorNote = aEntry.getErrorPage()==null?"":"*";
-      Seller seller = getSeller(aEntry.getSellerId());
+      Seller seller = featherweightSortBy.getSeller(aEntry.getSellerId());
       switch(columnIndex) {
         case TableColumnController.ID: return aEntry.getIdentifier();
         case TableColumnController.CUR_BID:

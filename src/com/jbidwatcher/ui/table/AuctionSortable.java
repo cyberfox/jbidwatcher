@@ -27,7 +27,7 @@ class AuctionSortable {
   }
 
   /** Utility methods **/
-  private Seller getSeller(String sellerId) {
+  public Seller getSeller(String sellerId) {
     Seller seller;
     if(sellers.containsKey(sellerId)) {
       seller = sellers.get(sellerId);

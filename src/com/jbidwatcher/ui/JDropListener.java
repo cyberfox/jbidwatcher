@@ -79,26 +79,11 @@ public class JDropListener implements DropTargetListener {
   }
 
   private boolean testFlavor(DataFlavor inFlavor, Transferable t) {
-    if(inFlavor != null) {
-      if(t.isDataFlavorSupported(inFlavor)) {
-        JConfig.log().logVerboseDebug("Accepting(2): " + inFlavor.getMimeType());
-        return true;
-      }
-    }
-    return false;
+    return inFlavor != null && t.isDataFlavorSupported(inFlavor);
   }
 
   private boolean testFlavor(DataFlavor inFlavor, DropTargetDragEvent t) {
-    if(inFlavor != null) {
-      if(t.isDataFlavorSupported(inFlavor)) {
-        /*
-         * I think this has been debugged enough.  This gets annoying.
-         */
-        JConfig.log().logVerboseDebug("Accepting(1): " + inFlavor.getMimeType());
-        return true;
-      }
-    }
-    return false;
+    return inFlavor != null && t.isDataFlavorSupported(inFlavor);
   }
 
   private DataFlavor testAllFlavors(Transferable t) {

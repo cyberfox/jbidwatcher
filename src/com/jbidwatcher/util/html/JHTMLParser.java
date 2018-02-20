@@ -148,19 +148,7 @@ public class JHTMLParser {
 
   private void debugParsing(StringBuffer trueBuffer, int bufLen, int charStep) {
     if(JConfig.debugging) {
-      int pre_nl=0, post_nl=0, i;
-      for(i=charStep-1; pre_nl == 0 && i>0 && i>(charStep-40); i--) if(trueBuffer.charAt(i) == '\n') pre_nl = i+1;
-      if(pre_nl == 0) pre_nl = i;
-      for(i=charStep+1; post_nl == 0 && i<bufLen && i<(charStep+20); i++) if(trueBuffer.charAt(i) == '\n') post_nl = i;
-      if(post_nl == 0) post_nl = i;
-      String oddText = trueBuffer.substring(pre_nl, post_nl);
-      if(oddText.indexOf("type=\"submit\"") == -1 &&
-         oddText.indexOf("name=\"Submit\"") == -1 &&
-         !oddText.startsWith("<META")) {
-        if(JConfig.queryConfiguration("show.badhtml", "false").equals("true")) {
-          JConfig.log().logMessage("Found an unusual tag @ " + charStep + "...  (" + oddText + ")");
-        }
-      }
+      debugUnusualTags(trueBuffer, bufLen, charStep);
     }
   }
 

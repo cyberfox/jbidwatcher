@@ -28,6 +28,7 @@ import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.db.Database;
+import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
@@ -422,20 +423,6 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   /*****************/
-  private Record getFirstResult(ResultSet rs) throws SQLException {
-    Record rval = new Record();
-    ResultSetMetaData rsm = rs.getMetaData();
-    if (rsm != null) {
-      if (rs.next()) {
-        for (int i = 1; i <= rsm.getColumnCount(); i++) {
-          rval.put(rs.getMetaData().getColumnName(i).toLowerCase(), rs.getString(i));
-        }
-      }
-    }
-    rs.close();
-    return rval;
-  }
-
   public void DoSQL(Component src) {
     String sql = promptString(src, "Enter the command to run", "Executing");
     if (sql == null || sql.length() == 0) return;
@@ -447,7 +434,7 @@ public class UserActions implements MessageQueue.Listener {
       boolean resultType = db.executeCanonicalizedSQL(s, sql);
       if(resultType) {
         ResultSet rs = s.getResultSet();
-        Record r = getFirstResult(rs);
+        Record r = Table.getFirstResult(rs);
         MQFactory.getConcrete("Swing").enqueue("ALERT " + r.dump());
       } else {
         MQFactory.getConcrete("Swing").enqueue("ALERT " + s.getUpdateCount());
