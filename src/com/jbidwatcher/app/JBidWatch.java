@@ -624,7 +624,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     backboneProvider.get().setMainFrame(mainFrame);
 
     try {
-      preloader.finish(inSplash, serverManager, auctionsManager, filters, ()->inSplash.message("Starting scripts"));
+      preloader.finish(serverManager, auctionsManager, filters, ()->inSplash.message("Starting scripts"));
     } catch(Exception e) {
       JOptionPane.showMessageDialog(null, "<html><body>JBidwatcher is unable to load its scripting layer; as of 3.0<br>" +
                                           "(and pre-releases) and later, scripting is a core part of JBidwatcher<br>" +

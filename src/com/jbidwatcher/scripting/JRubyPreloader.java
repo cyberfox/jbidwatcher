@@ -67,7 +67,7 @@ public class JRubyPreloader implements Runnable {
     }
   }
 
-  public boolean finish(JSplashScreen inSplash, Object serverManager, Object auctionsManager, Object filters, Runnable notifier) {
+  public boolean finish(Object serverManager, Object auctionsManager, Object filters, Runnable notifier) {
     synchronized (syncObject) {
       notifier.run();
       Scripting.setGlobalVariable("$auction_server_manager", serverManager);
