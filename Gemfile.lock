@@ -21,16 +21,21 @@ GEM
       tzinfo (~> 1.1)
     arel (5.0.1.20140414130214)
     builder (3.2.2)
-    i18n (0.7.0)
+    concurrent-ruby (1.1.10)
+    i18n (0.9.5)
+      concurrent-ruby (~> 1.0)
     jdbc-derby (10.10.2.0)
+    json (1.8.1)
     json (1.8.1-java)
     minitest (5.5.0)
+    thread_safe (0.3.4)
     thread_safe (0.3.4-java)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
 
 PLATFORMS
   java
+  ruby
 
 DEPENDENCIES
   activerecord (~> 4.1.0)
