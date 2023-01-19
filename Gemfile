@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-gem 'activerecord', '~> 4.1.0'
+gem 'activerecord', '~> 6.1.7'
 gem 'activerecord-jdbcderby-adapter'
