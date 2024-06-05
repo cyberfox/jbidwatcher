@@ -83,7 +83,7 @@
   <target name="compile" depends="init">
     <echo level="info" message="Compiling all classes." />
     <mkdir dir="${build.dir}" />
-      <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="on" source="1.5" target="1.5">
+      <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="on" source="20" target="20">
           <classpath refid="project.class.path" />
           <include name="**/*.java" />
       </javac>

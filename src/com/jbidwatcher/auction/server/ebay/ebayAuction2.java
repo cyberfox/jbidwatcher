@@ -3,6 +3,7 @@ package com.jbidwatcher.auction.server.ebay;
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.auction.SpecificAuction;
 import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.config.JConfig;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.queue.MQFactory;

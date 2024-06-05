@@ -35,7 +35,7 @@ import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
-import com.jbidwatcher.util.Constants;
+import com.jbidwatcher.util.Record;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
 import com.jbidwatcher.auction.AuctionServerInterface;

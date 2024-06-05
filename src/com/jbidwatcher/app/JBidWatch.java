@@ -9,7 +9,7 @@ import com.cyberfox.util.config.ErrorManagement;
 
 import com.cyberfox.util.platform.Path;
 import com.cyberfox.util.platform.Platform;
-import com.cyberfox.util.platform.osx.NoNap;
+// import com.cyberfox.util.platform.osx.NoNap;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionStats;
 import com.jbidwatcher.platform.*;
@@ -148,7 +148,7 @@ public final class JBidWatch implements JConfig.ConfigListener {
     //  In the case of the initial configuration, unfortunately it's not possible.
     Platform.setupMacUI();
     if(Platform.isMac()) {
-      NoNap.dontNapMeBro();
+      // NoNap.dontNapMeBro();
     }
 
     Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
