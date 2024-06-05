@@ -1,4 +1,3 @@
-.DS_Store
 out
 *~
 JBidwatcher-g.iws
@@ -17,5 +16,4 @@ s101plugin*
 .idea
 sign_in*
 error*
-onejar/META-INF/MANIFEST.MF
-dist/JBidwatcher.app
+.DS_Store

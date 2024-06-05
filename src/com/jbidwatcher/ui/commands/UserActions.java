@@ -7,6 +7,7 @@ package com.jbidwatcher.ui.commands;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 import javax.swing.*;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -17,46 +18,36 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
+import com.cyberfox.util.platform.Path;
 import com.cyberfox.util.platform.Platform;
 import com.github.rjeschke.txtmark.Processor;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.jbidwatcher.search.SearchManager;
 import com.jbidwatcher.ui.*;
 import com.jbidwatcher.util.config.*;
 import com.jbidwatcher.ui.config.JConfigFrame;
 import com.jbidwatcher.ui.util.*;
 import com.jbidwatcher.util.db.Database;
-import com.jbidwatcher.util.db.Table;
 import com.jbidwatcher.util.queue.MQFactory;
 import com.jbidwatcher.util.queue.AuctionQObject;
 import com.jbidwatcher.util.queue.MessageQueue;
-import com.jbidwatcher.scripting.Scripting;
 import com.jbidwatcher.util.services.ActivityMonitor;
+import com.jbidwatcher.util.xml.XMLElement;
 import com.jbidwatcher.util.html.JHTMLOutput;
 import com.jbidwatcher.util.html.JHTML;
 import com.jbidwatcher.util.*;
 import com.jbidwatcher.util.Currency;
+import com.jbidwatcher.util.Record;
 import com.jbidwatcher.auction.*;
 import com.jbidwatcher.auction.server.AuctionServerManager;
+import com.jbidwatcher.auction.AuctionServerInterface;
 import com.l2fprod.common.swing.JFontChooser;
 
-@Singleton
 public class UserActions implements MessageQueue.Listener {
-  private final JTabManager mTabs;
-  private final EntryCorral entryCorral;
+  private Map<String, AbstractCommand> commands = new HashMap<String,AbstractCommand>();
+  private static JTabManager mTabs = JTabManager.getInstance();
+  private static JConfigFrame jcf = null;
   private static SearchFrame _searchFrame = null;
-  private final AuctionsManager auctionsManager;
-  private final EntryFactory entryFactory;
-  private final PauseManager pauseManager;
-  private final AuctionServerManager serverManager;
-  private final ErrorMonitor monitor;
-  private final MultiSnipeManager multisnipeManager;
-  private final SearchManager searchManager;
-  private final myTableCellRenderer cellRenderer;
-  private final Provider<JConfigFrame> configFrameProvider;
   private OptionUI _oui = new OptionUI();
+  private RSSDialog _rssDialog = null;
   private static StringBuffer _colorHelp = null;
   private static StringBuffer _aboutText = null;
   private static StringBuffer _licenseText = null;
@@ -65,34 +56,30 @@ public class UserActions implements MessageQueue.Listener {
 
   private boolean _in_deleting = false;
   private ScriptManager mScriptFrame;
-  private final JBidToolBar toolBar;
-  private final ListManager listManager;
-  private final JPasteListener pasteListener;
 
-  public void DoFAQ() {
-    new FAQCommand().execute();
+  static Class[] sCommandClasses = {
+      FAQCommand.class,
+  };
+
+  public void addCommand(String cmdName, AbstractCommand commandObject) {
+    commands.put(cmdName, commandObject);
   }
 
-  @Inject
-  public UserActions(EntryCorral corral, JTabManager tabManager, EntryFactory factory, AuctionsManager auctionsManager,
-                     AuctionServerManager serverManager, PauseManager pauseManager, ErrorMonitor errorMonitor,
-                     MultiSnipeManager multiSnipeManager, SearchManager searchManager,
-                     JBidToolBar toolBar, ListManager listManager, myTableCellRenderer cellRenderer, JPasteListener pasteListener,
-                     Provider<JConfigFrame> configFrameProvider) {
-    this.entryCorral = corral;
-    this.mTabs = tabManager;
-    this.entryFactory = factory;
-    this.auctionsManager = auctionsManager;
-    this.serverManager = serverManager;
-    this.pauseManager = pauseManager;
-    this.monitor = errorMonitor;
-    this.multisnipeManager = multiSnipeManager;
-    this.searchManager = searchManager;
-    this.toolBar = toolBar;
-    this.listManager = listManager;
-    this.cellRenderer = cellRenderer;
-    this.configFrameProvider = configFrameProvider;
-    this.pasteListener = pasteListener;
+  public UserActions() {
+    if (sCommandClasses == null) {
+      JConfig.log().logMessage("Interactive commands not loaded!");
+    } else {
+      for (Class klass : sCommandClasses) {
+        try {
+          AbstractCommand cmd = (AbstractCommand) klass.newInstance();
+          commands.put(cmd.getCommand(), cmd);
+        } catch (InstantiationException e) {
+          JConfig.log().handleException("Failed to create command for " + klass, e);
+        } catch (IllegalAccessException e) {
+          JConfig.log().handleException("Bad access exception when creating command for " + klass, e);
+        }
+      }
+    }
   }
 
   //  Message Listener stuff
@@ -114,14 +101,12 @@ public class UserActions implements MessageQueue.Listener {
   private void handleStringMessage(Object deQ) {
     String commandStr = (String) deQ;
 
-    //  First, try to let Ruby figure out what to do with the command string.
-    Scripting.rubyMethod("handle_action", commandStr, this, null, null);
-
-    //  Then manually process it.
     if(commandStr.startsWith(ADD_AUCTION)) {
       String auctionSource = commandStr.substring(ADD_AUCTION.length());
 
       cmdAddAuction(auctionSource);
+    } else if(commandStr.equals(MY_EBAY)) {
+      DoGetMyeBay();
     } else if(commandStr.equals(GET_SERVER_TIME)) {
       /**
        * Resynchronize with the server's 'official' time, so as to make sure
@@ -136,9 +121,33 @@ public class UserActions implements MessageQueue.Listener {
       DoSearch();
     } else if(commandStr.equals("About " + Constants.PROGRAM_NAME)) {
       DoAbout();
+    } else if (commandStr.equals("Clear Donation")) {
+      UndoDonate();
+    } else if(commandStr.equals("Need Help")) {
+      DoNeedHelp();
+    } else if(commandStr.equals("Metrics")) {
+      doMetrics();
+    } else if(commandStr.equals("Configure")) {
+      DoConfigure();
+    } else if(commandStr.equals("Upload")) {
+      DoUploadAuctions();
     } else {
-      JConfig.log().logDebug("Received unrecognized 'user' message: " + commandStr);
+      AbstractCommand cmd = commands.get(commandStr);
+      if(cmd != null) cmd.execute();
+      else {
+        JConfig.log().logDebug("Received unrecognized 'user' message: " + commandStr);
+      }
     }
+  }
+
+  private AuctionEntry addAuction(String auctionSource) {
+    AuctionEntry aeNew = EntryFactory.getInstance().constructEntry(auctionSource);
+    if (aeNew != null) {
+      aeNew.setCategory(mTabs.getCurrentTableTitle());
+      AuctionsManager.getInstance().addEntry(aeNew);
+      MQFactory.getConcrete("Swing").enqueue("Added [ " + aeNew.getTitle() + " ]");
+    }
+    return aeNew;
   }
 
   private void cmdAddAuction(String auctionSource) {
@@ -148,40 +157,42 @@ public class UserActions implements MessageQueue.Listener {
 
     auctionSource = auctionSource.trim();
 
-    String id = serverManager.getServer().stripId(auctionSource);
+    String id = AuctionServerManager.getInstance().getServer().stripId(auctionSource);
     if(EntryFactory.isInvalid(true, id)) {
-      AuctionEntry found = EntryCorral.findByIdentifier(id);
+      AuctionEntry found = AuctionEntry.findByIdentifier(id);
       if (found != null) {
         JConfig.log().logMessage("Found auction " + id + " in category " + found.getCategory());
         mTabs.showEntry(found);
       }
     } else {
-      entryFactory.conditionallyAddEntry(true, id, mTabs.getCurrentTableTitle());
+      EntryFactory.getInstance().conditionallyAddEntry(true, id, mTabs.getCurrentTableTitle());
     }
   }
 
-  @MenuCommand(action="Toolbar")
-  public void DoHideShowToolbar() {
+  private void DoHideShowToolbar() {
     MQFactory.getConcrete("Swing").enqueue("TOOLBAR");
   }
 
-  public void DoSearch() {
+  private void DoSearch() {
     if(_searchFrame == null) {
-      _searchFrame = new SearchFrame(searchManager, mTabs, listManager, pasteListener);
+      _searchFrame = new SearchFrame();
     } else {
       _searchFrame.show();
     }
   }
 
-  public void DoScripting() {
-    if (mScriptFrame == null) mScriptFrame = new ScriptManager();
-    MQFactory.getConcrete("scripting").enqueue("SHOW");
+  private void DoScripting() {
+    if(JConfig.scriptingEnabled()) {
+      if (mScriptFrame == null) mScriptFrame = new ScriptManager();
+      MQFactory.getConcrete("scripting").enqueue("SHOW");
+    } else {
+      //  Warn the user that scripting is not enabled.
+    }
   }
 
-  @MenuCommand(action = "Font")
-  public void DoChooseFont() {
+  private void DoChooseFont() {
     JFontChooser jfc = new JFontChooser();
-    jfc.setSelectedFont(cellRenderer.getDefaultFont());
+    jfc.setSelectedFont(myTableCellRenderer.getDefaultFont());
     Font chosen = jfc.showFontDialog(null, "Please choose the default font for the auction table");
     if(chosen != null) {
       myTableCellRenderer.setDefaultFont(chosen);
@@ -189,8 +200,7 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  @MenuCommand(params=2, action = "ShowError")
-  public void DoShowLastError(Component src, AuctionEntry passedAE) {
+  private void DoShowLastError(Component src, AuctionEntry passedAE) {
     AuctionEntry ae = passedAE;
     int[] rowList = mTabs.getPossibleRows();
 
@@ -208,8 +218,7 @@ public class UserActions implements MessageQueue.Listener {
     _oui.showHTMLDisplay(new JHTMLOutput("Error Page", wholeStatus).getStringBuffer(), statusBox, "Error Page...");
   }
 
-  @MenuCommand(params=-2, action = "Mark as Won")
-  public void DoDebugWin(AuctionEntry ae) {
+  private void DoDebugWin(AuctionEntry ae) {
     MQFactory.getConcrete("won").enqueue(ae.getIdentifier());
   }
 
@@ -220,8 +229,7 @@ public class UserActions implements MessageQueue.Listener {
    * @param src - The component that the items came from.
    * @param passedAE - The specific item, if one in particular was chosen.
    */
-  @MenuCommand(params = 2)
-  public void DoDelete(Component src, AuctionEntry passedAE) {
+  private void DoDelete(Component src, AuctionEntry passedAE) {
     AuctionEntry ae = passedAE;
     if(_in_deleting) return;
 
@@ -309,7 +317,7 @@ public class UserActions implements MessageQueue.Listener {
               DeletedEntry.create(entry.getIdentifier());
             }
             //  Just pass the list of ids down to a low-level 'delete multiple' method.
-            EntryCorral.deleteAll(mEntries);
+            AuctionEntry.deleteAll(mEntries);
             if(mDontPrompt) {
               JConfig.setConfiguration("prompt.hide_delete_confirm", "true");
             }
@@ -347,21 +355,24 @@ public class UserActions implements MessageQueue.Listener {
         JConfig.log().logDebug(logMsg);
         Thread.currentThread().setName(logMsg);
         for (AuctionEntry deleteId : entries) {
-          auctionsManager.delEntry(deleteId);
+          AuctionsManager.getInstance().delEntry(deleteId);
         }
       }
     });
     deleteThread.start();
   }
 
-  public void DoConfigure() {
-    configFrameProvider.get().show();
+  private void DoConfigure() {
+    if(jcf == null) {
+      jcf = new JConfigFrame();
+    } else {
+      jcf.show();
+    }
   }
 
   private static Pattern digitSearch = Pattern.compile("[0-9]+");
 
-  @MenuCommand(action = "Paste")
-  public void DoPasteFromClipboard() {
+  private void DoPasteFromClipboard() {
     String auctionId = Clipboard.getClipboardString();
     String original = auctionId;
 
@@ -403,13 +414,11 @@ public class UserActions implements MessageQueue.Listener {
    * @param src - The source component, for error messages.
    * @param ae - The AuctionEntry, in case it's just a single unselected one.
    */
-  @MenuCommand(params = 2)
-  public void DoCopy(Component src, AuctionEntry ae) {
+  private void DoCopy(Component src, AuctionEntry ae) {
     DoCopySomething(src, ae, DO_COPY_DATA, "No auctions selected to copy!", "");
   }
 
-  @MenuCommand(params = 1, action = "Add New")
-  public void DoAdd(Component src) {
+  private void DoAdd(Component src) {
     String keyModifier = Platform.isMac() ? "Cmd" : "Ctrl";
     String prompt = "<html><body>Enter the auction number to add <small>(Press " + keyModifier + "-V to paste)</small></body></html>";
 
@@ -423,7 +432,21 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   /*****************/
-  public void DoSQL(Component src) {
+  private Record getFirstResult(ResultSet rs) throws SQLException {
+    Record rval = new Record();
+    ResultSetMetaData rsm = rs.getMetaData();
+    if (rsm != null) {
+      if (rs.next()) {
+        for (int i = 1; i <= rsm.getColumnCount(); i++) {
+          rval.put(rs.getMetaData().getColumnName(i).toLowerCase(), rs.getString(i));
+        }
+      }
+    }
+    rs.close();
+    return rval;
+  }
+
+  private void DoSQL(Component src) {
     String sql = promptString(src, "Enter the command to run", "Executing");
     if (sql == null || sql.length() == 0) return;
     sql = sql.trim();
@@ -434,7 +457,7 @@ public class UserActions implements MessageQueue.Listener {
       boolean resultType = db.executeCanonicalizedSQL(s, sql);
       if(resultType) {
         ResultSet rs = s.getResultSet();
-        Record r = Table.getFirstResult(rs);
+        Record r = getFirstResult(rs);
         MQFactory.getConcrete("Swing").enqueue("ALERT " + r.dump());
       } else {
         MQFactory.getConcrete("Swing").enqueue("ALERT " + s.getUpdateCount());
@@ -458,8 +481,7 @@ public class UserActions implements MessageQueue.Listener {
     return(_oui.promptString(src, prePrompt, preTitle, preFill));
   }
 
-  @MenuCommand(params = 2, action = "Cancel Snipe")
-  public void CancelSnipe(Component src, AuctionEntry ae) {
+  private void CancelSnipe(Component src, AuctionEntry ae) {
     int[] rowList = mTabs.getPossibleRows();
     int len = rowList.length;
 
@@ -490,9 +512,8 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  @MenuCommand(params=2, action = "Show Time Info")
-  public void DoShowTime(Component src, AuctionEntry ae) {
-    AuctionServerInterface as = serverManager.getServer();
+  private void DoShowTime(Component src, AuctionEntry ae) {
+    AuctionServerInterface as = AuctionServerManager.getInstance().getServer();
     if(ae != null) as = ae.getServer();
 
     String prompt = "<html><body><table>";
@@ -511,8 +532,7 @@ public class UserActions implements MessageQueue.Listener {
     jdTime.setVisible(true);
   }
 
-  @MenuCommand(params = 2)
-  public void DoInformation(Component src, EntryInterface ae) {
+  private void DoInformation(Component src, EntryInterface ae) {
     int[] rowList = mTabs.getPossibleRows();
 
     int len = rowList.length;
@@ -542,9 +562,8 @@ public class UserActions implements MessageQueue.Listener {
   private void showComplexInformation(int[] rowList) {
     StringBuffer prompt = new StringBuffer();
     for (int aRowList : rowList) {
-      if(prompt.length() != 0) prompt.append("<hr>");
       AuctionEntry stepAE = (AuctionEntry) mTabs.getIndexedEntry(aRowList);
-      prompt.append(stepAE.getPresenter().buildInfo(true));
+      prompt.append(stepAE.getPresenter().buildInfo(true)).append("<hr>");
     }
     int width = getInteger("info.width", 620);
     int height = getInteger("info.height", 440);
@@ -606,10 +625,9 @@ public class UserActions implements MessageQueue.Listener {
     return foundDangerousSnipe && dangerousSnipeWarning(src);
   }
 
-  @MenuCommand(params = 1)
-  public void DoMultipleSnipe(Component src) {
-    if(JConfig.isPrerelease(Constants.PROGRAM_VERS) || true) {
-      JOptionPane.showMessageDialog(src, "Creating new multi-snipes is disabled in this pre-release, as the underlying high-bidder detection code isn't certain to work.", "MultiSniping Disabled", JOptionPane.WARNING_MESSAGE);
+  private void DoMultiSnipe(Component src) {
+    if(JConfig.isPrerelease() || true) {
+      JOptionPane.showMessageDialog(src, "Creating new multi-snipes is disabled in this version, as the underlying high-bidder detection code isn't currently working.", "MultiSniping Disabled", JOptionPane.WARNING_MESSAGE);
       return;
     }
 
@@ -691,7 +709,7 @@ public class UserActions implements MessageQueue.Listener {
         }
         seenCurrencyWarning = true;
       }
-      MultiSnipe ms = multisnipeManager.getForAuctionIdentifier(tempAE.getIdentifier());
+      MultiSnipe ms = MultiSnipeManager.getInstance().getForAuctionIdentifier(tempAE.getIdentifier());
       //  IF one of the auctions we're adding is already multi-sniped,
       //  then we're adding this auction into that one's list.
       if(ms != null) {
@@ -757,7 +775,7 @@ public class UserActions implements MessageQueue.Listener {
     JConfig.getMetrics().trackEventValue("snipe", "multi", Integer.toString(rowList.length));
     for(i=0; i<rowList.length; i++) {
       AuctionEntry stepAE = (AuctionEntry)mTabs.getIndexedEntry(rowList[i]);
-      multisnipeManager.addAuctionToMultisnipe(stepAE.getIdentifier(), aeMS);
+      MultiSnipeManager.getInstance().addAuctionToMultisnipe(stepAE.getIdentifier(), aeMS);
       MQFactory.getConcrete("redraw").enqueue(stepAE.getIdentifier());
     }
   }
@@ -783,13 +801,12 @@ public class UserActions implements MessageQueue.Listener {
     return(prompt);
   }
 
-  @MenuCommand(params = 2)
-  public void DoSnipe(Component src, AuctionEntry passedAE) {
+  private void DoSnipe(Component src, AuctionEntry passedAE) {
     AuctionEntry ae = passedAE;
     int[] rowList = mTabs.getPossibleRows();
 
     if(rowList.length > 1) {
-      DoMultipleSnipe(src);
+      DoMultiSnipe(src);
       return;
     }
     if(rowList.length == 1) {
@@ -820,7 +837,18 @@ public class UserActions implements MessageQueue.Listener {
     } catch(Currency.CurrencyTypeException cte) {
       minimumNextBid = null;
     }
-    SnipeDialog sd = showSnipeDialog(ae, minimumNextBid);
+    String prompt = genBidSnipeHTML(ae, minimumNextBid);
+    prompt += "</body></html>";
+
+    String previous = "";
+    if(ae.isSniped()) previous = ae.getSnipeAmount().getValueString();
+    SnipeDialog sd = new SnipeDialog(previous);
+    sd.clear();
+    sd.setPrompt(prompt);
+    sd.pack();
+    Rectangle rec = OptionUI.findCenterBounds(sd.getPreferredSize());
+    sd.setLocation(rec.x, rec.y);
+    sd.setVisible(true);
 
     if(sd.isCancelled() || sd.getAmount().length() == 0) return;
 
@@ -853,28 +881,12 @@ public class UserActions implements MessageQueue.Listener {
       return;
     }
 
+    //  if(JConfig.queryConfiguration("message.sniped", null) == null) { ... }
     MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
     _oui.promptWithCheckbox(src, "Sniped for: " + ae.getSnipeAmount(), "Snipe Alert", "message.sniped", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
   }
 
-  public SnipeDialog showSnipeDialog(AuctionEntry ae, Currency minimumNextBid) {
-    String prompt = genBidSnipeHTML(ae, minimumNextBid);
-    prompt += "</body></html>";
-
-    String previous = "";
-    if(ae.isSniped()) previous = ae.getSnipeAmount().getValueString();
-    SnipeDialog sd = new SnipeDialog(previous);
-    sd.clear();
-    sd.setPrompt(prompt);
-    sd.pack();
-    Rectangle rec = OptionUI.findCenterBounds(sd.getPreferredSize());
-    sd.setLocation(rec.x, rec.y);
-    sd.setVisible(true);
-    return sd;
-  }
-
-  @MenuCommand(params = 2)
-  public void DoShipping(Component src, AuctionEntry ae) {
+  private void DoShipping(Component src, AuctionEntry ae) {
     if(ae == null) {
       JOptionPane.showMessageDialog(src, "You have not chosen an auction to set the shipping for!",
                                     "Shipping-set error", JOptionPane.PLAIN_MESSAGE);
@@ -933,8 +945,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   // TODO -- Add the ability to pick a quantity to buy, defaulting to 1.
-  @MenuCommand(params = 2)
-  public void DoBuy(Component src, AuctionEntry ae) {
+  private void DoBuy(Component src, AuctionEntry ae) {
     if(anyBiddingErrors(src, ae)) return;
 
     int endResult = _oui.promptWithCheckbox(src, "This will buy the item outright at the price of " + ae.getBuyNow() + ".\nIs this what you want?",
@@ -945,8 +956,7 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  @MenuCommand(params = 2)
-  public void DoBid(Component src, final AuctionEntry ae) {
+  private void DoBid(Component src, AuctionEntry ae) {
     if(anyBiddingErrors(src, ae)) return;
 
     Currency minimumNextBid;
@@ -981,13 +991,10 @@ public class UserActions implements MessageQueue.Listener {
                                     "Bad bid value", JOptionPane.PLAIN_MESSAGE);
       return;
     }
-
-    MQFactory.getConcrete(ae.getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount), "none"));
-    entryCorral.put(ae);
+    MQFactory.getConcrete(ae.getServer().getFriendlyName()).enqueueBean(new AuctionQObject(AuctionQObject.BID, new AuctionBid(ae, bidAmount, 1), "none"));
   }
 
-  @MenuCommand(params=2, action = "Browse")
-  public void DoShowInBrowser(Component src, AuctionEntry inAuction) {
+  private void DoShowInBrowser(Component src, AuctionEntry inAuction) {
     AuctionEntry ae = inAuction;
     int[] rowList = mTabs.getPossibleRows();
 
@@ -1010,16 +1017,26 @@ public class UserActions implements MessageQueue.Listener {
    * @param inEntry - The auction entry to load up and display in the users browser.
    */
   public void showInBrowser(AuctionEntry inEntry) {
+    final String entryId = inEntry.getIdentifier();
+    String doLocalServer = JConfig.queryConfiguration("server.enabled", "false");
     String browseTo;
 
-    browseTo = inEntry.getBrowseableURL();
+    if (doLocalServer.equals("false")) {
+      browseTo = inEntry.getBrowseableURL();
+    } else {
+      String localServerPort = JConfig.queryConfiguration("server.port", Constants.DEFAULT_SERVER_PORT_STRING);
+      if (inEntry.isInvalid()) {
+        browseTo = "http://localhost:" + localServerPort + "/cached_" + entryId;
+      } else {
+        browseTo = "http://localhost:" + localServerPort + '/' + entryId;
+      }
+    }
 
     JConfig.getMetrics().trackEvent("browse", "auction");
     MQFactory.getConcrete("browse").enqueue(browseTo);
   }
 
-  @MenuCommand(params = -2, action = "Remove Comment")
-  public void DoDeleteComment(AuctionEntry ae) {
+  private void DeleteComment(AuctionEntry ae) {
     if(ae == null) {
       JConfig.log().logMessage("Auction selected to delete comment from is null, unexpected error!");
       return;
@@ -1029,8 +1046,7 @@ public class UserActions implements MessageQueue.Listener {
     MQFactory.getConcrete("redraw").enqueue(ae.getIdentifier());
   }
 
-  @MenuCommand(params = 2, action="Add Comment")
-  public void DoComment(Component src, AuctionEntry inAuction) {
+  private void DoComment(Component src, AuctionEntry inAuction) {
     if(inAuction == null) {
       JConfig.log().logMessage("Auction selected to comment on is null, unexpected error!");
       return;
@@ -1045,8 +1061,7 @@ public class UserActions implements MessageQueue.Listener {
     MQFactory.getConcrete("redraw").enqueue(inAuction.getIdentifier());
   }
 
-  @MenuCommand(params = 2, action = "View Comment")
-  public void DoShowComment(Component src, AuctionEntry inAuction) {
+  private void ShowComment(Component src, AuctionEntry inAuction) {
     if(inAuction == null) {
       JConfig.log().logMessage("Can't show comments from menu items yet.");
       return;
@@ -1055,28 +1070,26 @@ public class UserActions implements MessageQueue.Listener {
     JOptionPane.showMessageDialog(src, inAuction.getComment(), "Comment", JOptionPane.PLAIN_MESSAGE);
   }
 
-  public void DoUpdateAll() {
-    EntryCorral.forceUpdateActive();
-    entryCorral.clear();
+  private void DoUpdateAll() {
+    AuctionEntry.forceUpdateActive();
+    EntryCorral.getInstance().clear();
   }
 
-  @MenuCommand(params = 1)
-  public void DoStopUpdating(Component src) {
+  private void DoStopUpdating(Component src) {
     int endResult = _oui.promptWithCheckbox(src, "This will terminate all searches, as well as\nall updates that are currently pending.\n\nStop all searches?", "Stop updating/searching", "prompt.search_stop");
 
     if(endResult != JOptionPane.CANCEL_OPTION &&
        endResult != JOptionPane.CLOSED_OPTION) {
-      serverManager.cancelSearches();
+      AuctionServerManager.getInstance().cancelSearches();
 
       //  Clear all dropped or programmatically added auctions.
       MQFactory.getConcrete("drop").clear();
 
-      pauseManager.pause();
+      PauseManager.getInstance().pause();
     }
   }
 
-  @MenuCommand(params = 2)
-  public void DoUpdate(Component src, AuctionEntry inAuction) {
+  private void DoUpdate(Component src, AuctionEntry inAuction) {
     int[] rowList = mTabs.getPossibleRows();
 
     if(rowList.length != 0) {
@@ -1094,8 +1107,7 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  @MenuCommand(params = -2, action = "NotEnded")
-  public void DoSetNotEnded(AuctionEntry whichAuction) {
+  private void DoSetNotEnded(AuctionEntry whichAuction) {
     int[] rowList = mTabs.getPossibleRows();
 
     if (rowList.length != 0) {
@@ -1111,8 +1123,7 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  @MenuCommand(action = "Resync")
-  public void DoResetServerTime() {
+  private void DoResetServerTime() {
     //  Always resets the server time based on the 'default' server.
     MQFactory.getConcrete("user").enqueue(GET_SERVER_TIME);
   }
@@ -1121,7 +1132,7 @@ public class UserActions implements MessageQueue.Listener {
   private final static StringBuffer badLicense = new StringBuffer("Error loading License text!  Please visit <a href=\"http://www.jbidwatcher.com/by-nc-sa-amended.shtml\">http://http://www.jbidwatcher.com/by-nc-sa-amended.shtml</a>!");
 
   static private JFrame aboutFrame = null;
-  public void DoAbout() {
+  private void DoAbout() {
     if(aboutFrame == null) {
       Dimension aboutBoxSize = new Dimension(495, 245);
 
@@ -1136,7 +1147,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   static private JFrame licenseFrame = null;
-  public void DoLicense() {
+  private void DoLicense() {
     if(licenseFrame == null) {
       Dimension licenseBoxSize = new Dimension(600, 245);
 
@@ -1151,7 +1162,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   static private JFrame needHelpFrame = null;
-  public void DoNeedHelp() {
+  private void DoNeedHelp() {
     if(needHelpFrame == null) {
       Dimension boxSize = new Dimension(507, 300);
 
@@ -1167,7 +1178,7 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  public void DoMetrics() {
+  private void doMetrics() {
     Dimension boxSize = new Dimension(400, 220);
     String text = "**I would very much appreciate it if you would allow JBidwatcher to collect _anonymous_ usage statistics to " +
         "help me know what to improve.**\n\nBy clicking 'Yes' you agree that JBidwatcher may collect and report usage data for " +
@@ -1178,7 +1189,7 @@ public class UserActions implements MessageQueue.Listener {
   }
 
   static private JFrame donateFrame = null;
-  public void DoDonate() {
+  private void DoDonate() {
     if (donateFrame == null) {
       Dimension boxSize = new Dimension(495, 245);
 
@@ -1194,12 +1205,11 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  @MenuCommand(action = "Clear Donation")
-  public void UndoDonate() {
+  private void UndoDonate() {
     boolean alreadyClicked = JConfig.queryConfiguration("donation.clicked", "false").equals("true");
     if(donateFrame != null) donateFrame.setVisible(false);
     JConfig.setConfiguration("donation.clicked", "true");
-    toolBar.hideDonation();
+    JBidToolBar.getInstance().hideDonation();
     if(!alreadyClicked) JOptionPane.showMessageDialog(null, "The donation button has been removed; you can still access the donation screen from Help | Donate.", "Removed donation button", JOptionPane.INFORMATION_MESSAGE);
   }
 
@@ -1213,6 +1223,12 @@ public class UserActions implements MessageQueue.Listener {
     }
 
     final JBidFrame logFrame = _oui.getTextDisplay(logText, logBoxSize, Constants.PROGRAM_NAME + " " + frameName, false);
+    JButton logButton = new JButton("Submit Log");
+    logButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        DoSubmitLogFile();
+      }
+    });
     JButton refreshButton = new JButton("Refresh");
     refreshButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -1220,6 +1236,7 @@ public class UserActions implements MessageQueue.Listener {
       }
     });
     JPanel buttonBox = new JPanel(new BorderLayout());
+    buttonBox.add(logButton, BorderLayout.EAST);
     buttonBox.add(refreshButton, BorderLayout.WEST);
     logFrame.add(buttonBox, BorderLayout.SOUTH);
 
@@ -1229,16 +1246,64 @@ public class UserActions implements MessageQueue.Listener {
     logFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
   }
 
-  public void DoViewLog() {
-    showLog(monitor, "Log");
+  private void DoViewLog() {
+    showLog(ErrorMonitor.getInstance(), "Log");
   }
 
-  public void DoViewActivity() {
+  private void DoViewActivity() {
     showLog(ActivityMonitor.getInstance(), "Activity Log");
   }
 
-  public void DoExit() {
+  private void DoSerialize() {
+    System.out.println(AuctionServerManager.getInstance().toXML());
+  }
+
+  private void DoUploadAuctions() {
+    String fname = AuctionsManager.getInstance().saveAuctions();
+    MQFactory.getConcrete("my").enqueue("SYNC " + fname);
+  }
+
+  private void DoLoad(String fname) {
+    String canonicalFName = fname;
+    if(canonicalFName == null) {
+
+      canonicalFName = JConfig.queryConfiguration("savefile", "auctions.xml");
+      String oldFname = canonicalFName;
+
+      canonicalFName = Path.getCanonicalFile(canonicalFName, "jbidwatcher", true);
+
+      if(!canonicalFName.equals(oldFname)) {
+        JConfig.setConfiguration("savefile", canonicalFName);
+      }
+    }
+
+    try {
+      XMLElement xmlFile = new XMLElement(true);
+
+      InputStreamReader isr = new InputStreamReader(new FileInputStream(canonicalFName));
+
+      xmlFile.parseFromReader(isr);
+
+      AuctionServerManager.getInstance().fromXML(xmlFile);
+    } catch(IOException e) {
+      JConfig.log().handleException("Error loading XML file with auctions: " + canonicalFName, e);
+    }
+  }
+
+  private void DoCloseDown() {
     MQFactory.getConcrete("Swing").enqueue("QUIT");
+  }
+
+  private void DoSave(Component src) {
+    String didSave = AuctionsManager.getInstance().saveAuctions();
+    System.gc();
+
+    if(didSave != null) {
+//      JOptionPane.showMessageDialog(src, "Auctions Saved!", "Save Complete", JOptionPane.INFORMATION_MESSAGE);
+      _oui.promptWithCheckbox(src, "Auctions saved!", "Save Complete", "prompt.savecomplete", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
+    } else {
+      JOptionPane.showMessageDialog(src, "An error occurred in saving the auctions!", "Save Failed", JOptionPane.INFORMATION_MESSAGE);
+    }
   }
 
   /**
@@ -1278,7 +1343,7 @@ public class UserActions implements MessageQueue.Listener {
    * @param fail_msg - The message to display in a dialog on failure.
    * @param seperator - The string to seperate selected results with.
    */
-  public void DoCopySomething(Component src, AuctionEntry passedAE, int action, String fail_msg, String seperator) {
+  private void DoCopySomething(Component src, AuctionEntry passedAE, int action, String fail_msg, String seperator) {
     AuctionEntry ae = passedAE;
     int[] rowList = mTabs.getPossibleRows();
 
@@ -1313,8 +1378,7 @@ public class UserActions implements MessageQueue.Listener {
    * @param src - The component we're on.
    * @param ae - The auction entry, if just one was selected.
    */
-  @MenuCommand(params = 2)
-  public void DoCopyURL(Component src, AuctionEntry ae) {
+  private void DoCopyURL(Component src, AuctionEntry ae) {
     DoCopySomething(src, ae, DO_COPY_URL, "No auctions selected to copy URLs of!", "\n");
   }
 
@@ -1324,29 +1388,25 @@ public class UserActions implements MessageQueue.Listener {
    * @param src - The component we're on.
    * @param ae - The auction entry, if just one was selected.
    */
-  @MenuCommand(params = 2)
-  public void DoCopyID(Component src, AuctionEntry ae) {
+  private void DoCopyID(Component src, AuctionEntry ae) {
     DoCopySomething(src, ae, DO_COPY_ID, "No auctions selected to copy IDs of!", ", ");
   }
 
-  @MenuCommand(params = 1)
-  public void DoHelp(Component src) {
+  private void DoHelp(Component src) {
     //  Not really implemented yet...  --  BUGBUG (need to write help!)
     JOptionPane.showMessageDialog(src,
-        "I'm very sorry, but help has not been implemented yet.\n" +
-            "If you'd like to assist in getting help up, you could\n" +
-            "write me an email at cyberfox@jbidwatcher.com\n" +
-            "describing how you use a particular part of JBidwatcher,\n" +
-            "and I'll try to collect those into contextual help options.",
-        "Sorry, no help!", JOptionPane.INFORMATION_MESSAGE);
+                                  "I'm very sorry, but help has not been implemented yet.\n" +
+                                  "If you'd like to assist in getting help up, you could\n" +
+                                  "write me an email at cyberfox@jbidwatcher.com\n" +
+                                  "describing how you use a particular part of JBidwatcher,\n" +
+                                  "and I'll try to collect those into contextual help options.",
+                                  "Sorry, no help!", JOptionPane.INFORMATION_MESSAGE);
   }
 
   private final static StringBuffer badColors = new StringBuffer("Error loading Color help text!  (D'oh!)  Email <a href=\"mailto:cyberfox%40jbidwatcher.com\">me</a>!");
 
   private static JFrame helpFrame = null;
-
-  @MenuCommand(action = "Explain Colors And Icons")
-  public void DoHelpColors() {
+  private void DoHelpColors() {
     if(helpFrame == null) {
       Dimension chSize = new Dimension(495, 245);
 
@@ -1360,16 +1420,24 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  @MenuCommand(action = "Check For Updates")
-  public void DoCheckUpdates() {
+  private void DoRSS() {
+    if(_rssDialog == null) {
+      _rssDialog = new RSSDialog();
+    }
+
+    _rssDialog.prepare();
+    _rssDialog.pack();
+    _rssDialog.setVisible(true);
+  }
+
+  protected void DoCheckUpdates() {
     // Force the 'last known version' to be the current, so that users can check
     // later, and have it still find the new version.
     JConfig.setConfiguration("updates.last_version", Constants.PROGRAM_VERS);
     MQFactory.getConcrete("update").enqueue("INTERACTIVE");
   }
 
-  @MenuCommand(params = 1, action = "Selection Color")
-  public void DoSetSelectionColor(Component src) {
+  protected void DoSetSelectionColor(Component src) {
     String oldColor = JConfig.queryConfiguration("selection.color");
     if(oldColor == null) oldColor = "C6A646";
 
@@ -1379,8 +1447,7 @@ public class UserActions implements MessageQueue.Listener {
     JConfig.setConfiguration("selection.color", MultiSnipe.makeRGB(selectionColor));
   }
 
-  @MenuCommand(params = 1)
-  public void DoSetBackgroundColor(Component src) {
+  protected void DoSetBackgroundColor(Component src) {
     Color bgColor = JColorChooser.showDialog(src, "Select a background color for your auction tables", null);
     if(bgColor == null) {
       return;
@@ -1390,9 +1457,8 @@ public class UserActions implements MessageQueue.Listener {
     JConfig.setConfiguration("background", MultiSnipe.makeRGB(bgColor));
   }
 
-  @MenuCommand(params = 1)
-  public void DoClearDeleted(Component src) {
-    int clearedCount = auctionsManager.clearDeleted();
+  private void DoClearDeleted(Component src) {
+    int clearedCount = AuctionsManager.getInstance().clearDeleted();
 
     _oui.promptWithCheckbox(src, "Cleared " + clearedCount + " deleted entries.", "Clear Complete", "prompt.clear_complete", JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION);
   }
@@ -1410,23 +1476,100 @@ public class UserActions implements MessageQueue.Listener {
       c_src = null;
     }
 
-    Scripting.rubyMethod("handle_action", actionString, this, c_src, whichAuction);
+    AbstractCommand cmd = commands.get(actionString);
+    if(cmd != null) {
+      cmd.setSource(c_src);
+      cmd.setAuction(whichAuction);
+      cmd.setSelected(mTabs.getPossibleRows());
+      cmd.execute();
+    } else if(actionString.equals("Save")) DoSave(c_src);
+    else if (actionString.equals("Clear Deleted")) DoClearDeleted(c_src);
+    else if (actionString.equals("Add") || actionString.equals("Add New")) DoAdd(c_src);
+    else if (actionString.equals("StopUpdating")) DoStopUpdating(c_src);
+    else if (actionString.equals("Help")) DoHelp(c_src);
+    else if (actionString.equals("Multiple Snipe")) DoMultiSnipe(c_src);
+    else if (actionString.equals("Set Background Color")) DoSetBackgroundColor(c_src);
 
-    if (actionString.equals("About " + Constants.PROGRAM_NAME)) DoAbout();
-    else if (actionString.equals("Dump")) JConfig.log().logDebug("Dump requested.");
-    else if (actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
-    else if (actionString.equals("My JBidwatcher")) MQFactory.getConcrete("browse").enqueue("http://my.jbidwatcher.com");
-    else if (actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
+    else if(actionString.equals("Load")) DoLoad(null);
+    else if(actionString.equals("Configure")) DoConfigure();
+    else if(actionString.equals("Check Updates")) DoCheckUpdates();
+    else if(actionString.equals("Check For Updates")) DoCheckUpdates();
+    else if(actionString.equals("Exit")) DoCloseDown();
+    else if(actionString.equals("Explain Colors And Icons")) DoHelpColors();
+    else if(actionString.equals("RSS")) DoRSS();
+    else if(actionString.equals("SQL")) DoSQL(c_src);
+    else if(actionString.equals("Serialize")) DoSerialize();
+    else if(actionString.equals("Upload")) DoUploadAuctions();
+    else if(actionString.equals("Paste")) DoPasteFromClipboard();
+    else if(actionString.equals("UpdateAll")) DoUpdateAll();
+    else if(actionString.equals("Resync")) DoResetServerTime();
+    else if (actionString.equals("About " + Constants.PROGRAM_NAME)) DoAbout();
+    else if (actionString.equals("About")) DoAbout();
+    else if (actionString.equals("Need Help")) DoNeedHelp();
+    else if (actionString.equals("Donate")) DoDonate();
+    else if (actionString.equals("Clear Donation")) UndoDonate();
+    else if (actionString.equals("License")) DoLicense();
+    else if (actionString.equals("Toolbar")) DoHideShowToolbar();
+    else if (actionString.equals("Search")) DoSearch();
+    else if (actionString.equals("Scripting")) DoScripting();
+    else if (actionString.equals("View Log")) DoViewLog();
+    else if (actionString.equals("View Activity")) DoViewActivity();
+    else if (actionString.equals("Submit Log File")) DoSubmitLogFile();
+    else if (actionString.equals("Restart")) DoRestart();
+    else if (actionString.equals("Font")) DoChooseFont();
+    else if (actionString.equals("Metrics")) doMetrics();
+    else if (actionString.equals("Selection Color")) DoSetSelectionColor(c_src);
+
+    else if (actionString.equals("CopyURL")) DoCopyURL(c_src, whichAuction);
+    else if (actionString.equals("CopyID")) DoCopyID(c_src, whichAuction);
+    else if (actionString.equals("Delete")) DoDelete(c_src, whichAuction);
+    else if(actionString.equals("Information")) DoInformation(c_src, whichAuction);
+    else if(actionString.equals("Update")) DoUpdate(c_src, whichAuction);
+    else if(actionString.equals("Browse")) DoShowInBrowser(c_src, whichAuction);
+//    else if(actionString.equals("Status")) DoShowStatus(c_src, whichAuction);
+    else if(actionString.equals("Show Time Info")) DoShowTime(c_src, whichAuction);
+    else if(actionString.equals("ShowError")) DoShowLastError(c_src, whichAuction);
+    else if(actionString.equals("Report")) DoReportProblem(c_src, whichAuction);
+    else if(actionString.equals("Bid")) DoBid(c_src, whichAuction);
+    else if(actionString.equals("Buy")) DoBuy(c_src, whichAuction);
+    else if(actionString.equals("Shipping")) DoShipping(c_src, whichAuction);
+    else if (actionString.equals("Cancel Snipe")) CancelSnipe(c_src, whichAuction);
+    else if (actionString.equals("Add Comment")) DoComment(c_src, whichAuction);
+    else if (actionString.equals("View Comment")) ShowComment(c_src, whichAuction);
+    else if (actionString.equals("Copy")) DoCopy(c_src, whichAuction);
+    else if (actionString.equals("Snipe")) DoSnipe(c_src, whichAuction);
+
+    else if(actionString.equals("NotEnded")) DoSetNotEnded(whichAuction);
+    else if(actionString.equals("Remove Comment")) DeleteComment(whichAuction);
+    else if (actionString.equals("Mark as Won")) DoDebugWin(whichAuction);
+
+    else if(actionString.equals("Dump")) JConfig.log().logDebug("Dump requested.");
+    else if(actionString.equals("Forum")) MQFactory.getConcrete("browse").enqueue("http://forum.jbidwatcher.com");
+    else if(actionString.equals("My JBidwatcher")) MQFactory.getConcrete("browse").enqueue("http://my.jbidwatcher.com");
+    else if(actionString.equals("Report Bug")) MQFactory.getConcrete("browse").enqueue("http://jbidwatcher.lighthouseapp.com/projects/8037-jbidwatcher/tickets");
+
     else JConfig.log().logDebug('[' + actionString + ']');
   }
 
-  @MenuCommand(action = MY_EBAY)
-  public void DoGetMyeBay() {
+  private void DoGetMyeBay() {
     AuctionQObject loadMyeBay = new AuctionQObject(AuctionQObject.LOAD_MYITEMS, null, "current");
-    MQFactory.getConcrete(serverManager.getServer().getFriendlyName()).enqueueBean(loadMyeBay);
+    MQFactory.getConcrete(AuctionServerManager.getInstance().getServer().getFriendlyName()).enqueueBean(loadMyeBay);
   }
 
-  public void DoRestart() {
+  private SubmitLogDialog mLogSubmitDialog;
+
+  private void DoSubmitLogFile() {
+    if(mLogSubmitDialog == null) {
+      mLogSubmitDialog = new SubmitLogDialog();
+    }
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        mLogSubmitDialog.showDialog();
+      }
+    });
+  }
+
+  private void DoRestart() {
     String launcher = System.getenv("JBIDWATCHER_LAUNCHER");
 
     if(JConfig.debugging && launcher != null) {
@@ -1437,8 +1580,7 @@ public class UserActions implements MessageQueue.Listener {
     }
   }
 
-  @MenuCommand(params=2, action = "Report")
-  public void DoReportProblem(Component src, AuctionEntry auction) {
+  private void DoReportProblem(Component src, AuctionEntry auction) {
     String endResult = promptString(src, "What's wrong with: " + auction.getTitle(), "Reporting a problem", "");
     if(endResult == null) endResult = "";
 

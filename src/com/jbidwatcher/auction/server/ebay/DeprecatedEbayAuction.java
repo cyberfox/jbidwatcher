@@ -2,6 +2,7 @@ package com.jbidwatcher.auction.server.ebay;
 
 import com.jbidwatcher.auction.AuctionEntry;
 import com.jbidwatcher.util.*;
+import com.jbidwatcher.util.Record;
 import com.jbidwatcher.util.html.JHTML;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
